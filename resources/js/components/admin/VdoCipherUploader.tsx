@@ -7,12 +7,9 @@ import {
     FileVideo, 
     ShieldCheck, 
     Sparkles, 
-    X, 
-    ArrowRight, 
-    Cpu, 
-    Settings2,
     Copy,
-    Check
+    Check,
+    FastForward
 } from 'lucide-react';
 import { apiClient } from '../../api/client';
 
@@ -50,8 +47,10 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
     const [showManualInput, setShowManualInput] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const abortControllerRef = useRef<AbortController | null>(null);
     const xhrRef = useRef<XMLHttpRequest | null>(null);
+    const skipCompressionRef = useRef<boolean>(false);
+    const videoElementRef = useRef<HTMLVideoElement | null>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
     useEffect(() => {
         setVideoUrl(initialVideoUrl);
@@ -62,7 +61,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
     }, [initialVideoUrl]);
 
     const formatBytes = (bytes: number): string => {
-        if (bytes === 0) return '0 Bytes';
+        if (!bytes || bytes === 0) return '0 Bytes';
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -77,6 +76,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
 
         setSelectedFile(file);
         setOriginalSize(file.size);
+        setCompressedSize(0);
         setErrorMessage(null);
         setStatus('idle');
         setProgress(0);
@@ -91,166 +91,232 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
         };
     };
 
-    // Fast In-Browser Video Compression using Canvas + MediaRecorder
+    // Client-side Video Compressor using Offscreen Canvas & MediaRecorder
     const compressVideoClientSide = async (file: File, targetPreset: CompressionPreset): Promise<Blob> => {
         if (targetPreset === 'original' || !enableCompression) {
             return file;
         }
 
-        return new Promise((resolve, reject) => {
+        skipCompressionRef.current = false;
+
+        return new Promise((resolve) => {
             const video = document.createElement('video');
-            video.preload = 'auto';
+            videoElementRef.current = video;
+
+            // Configure video properties for reliable background rendering
             video.muted = true;
+            video.defaultMuted = true;
             video.playsInline = true;
-            const videoUrl = URL.createObjectURL(file);
-            video.src = videoUrl;
+            video.setAttribute('playsinline', '');
+            video.setAttribute('muted', '');
+            video.style.position = 'fixed';
+            video.style.top = '-9999px';
+            video.style.left = '-9999px';
+            video.style.width = '1px';
+            video.style.height = '1px';
+            video.style.opacity = '0';
+            video.style.pointerEvents = 'none';
+            document.body.appendChild(video);
+
+            const videoBlobUrl = URL.createObjectURL(file);
+            video.src = videoBlobUrl;
+
+            let animFrameId: number;
+
+            const cleanup = () => {
+                try {
+                    cancelAnimationFrame(animFrameId);
+                    video.pause();
+                    video.src = '';
+                    if (video.parentNode) {
+                        video.parentNode.removeChild(video);
+                    }
+                    videoElementRef.current = null;
+                    URL.revokeObjectURL(videoBlobUrl);
+                } catch (_) {}
+            };
 
             video.onloadedmetadata = async () => {
-                const origWidth = video.videoWidth || 1280;
-                const origHeight = video.videoHeight || 720;
-                const duration = video.duration || 60;
-
-                // Determine target dimensions
-                let targetWidth = origWidth;
-                let targetHeight = origHeight;
-                let targetBitrate = 2200000; // 2.2 Mbps
-
-                if (targetPreset === '720p' && origWidth > 1280) {
-                    targetWidth = 1280;
-                    targetHeight = Math.round((origHeight / origWidth) * 1280);
-                    targetBitrate = 1600000; // 1.6 Mbps
-                } else if (targetPreset === '1080p' && origWidth > 1920) {
-                    targetWidth = 1920;
-                    targetHeight = Math.round((origHeight / origWidth) * 1920);
-                    targetBitrate = 2800000; // 2.8 Mbps
-                }
-
-                // If file is already small (under 15MB) or very short, use directly
-                if (file.size < 15 * 1024 * 1024) {
-                    URL.revokeObjectURL(videoUrl);
-                    resolve(file);
-                    return;
-                }
-
-                // Create offscreen canvas
-                const canvas = document.createElement('canvas');
-                canvas.width = targetWidth;
-                canvas.height = targetHeight;
-                const ctx = canvas.getContext('2d', { alpha: false });
-
-                if (!ctx) {
-                    URL.revokeObjectURL(videoUrl);
-                    resolve(file);
-                    return;
-                }
-
-                // Audio capture
-                let stream: MediaStream;
                 try {
-                    const canvasStream = canvas.captureStream(30);
-                    const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
-                    if (AudioCtxClass) {
-                        const audioCtx = new AudioCtxClass();
-                        const source = audioCtx.createMediaElementSource(video);
-                        const dest = audioCtx.createMediaStreamDestination();
-                        source.connect(dest);
-                        const audioTracks = dest.stream.getAudioTracks();
-                        if (audioTracks.length > 0) {
-                            canvasStream.addTrack(audioTracks[0]);
+                    const origWidth = video.videoWidth || 1280;
+                    const origHeight = video.videoHeight || 720;
+                    const duration = video.duration || 60;
+
+                    let targetWidth = origWidth;
+                    let targetHeight = origHeight;
+                    let targetBitrate = 1800000; // 1.8 Mbps default
+
+                    if (targetPreset === '720p') {
+                        if (origWidth > 1280 || origHeight > 720) {
+                            if (origWidth >= origHeight) {
+                                targetWidth = 1280;
+                                targetHeight = Math.round((origHeight / origWidth) * 1280);
+                            } else {
+                                targetHeight = 720;
+                                targetWidth = Math.round((origWidth / origHeight) * 720);
+                            }
                         }
+                        targetBitrate = 1400000; // 1.4 Mbps (~10MB per minute)
+                    } else if (targetPreset === '1080p') {
+                        if (origWidth > 1920 || origHeight > 1080) {
+                            if (origWidth >= origHeight) {
+                                targetWidth = 1920;
+                                targetHeight = Math.round((origHeight / origWidth) * 1920);
+                            } else {
+                                targetHeight = 1080;
+                                targetWidth = Math.round((origWidth / origHeight) * 1080);
+                            }
+                        }
+                        targetBitrate = 2400000; // 2.4 Mbps (~17MB per minute)
                     }
-                    stream = canvasStream;
-                } catch {
-                    // Fallback to video without audio processing if security restricted
-                    URL.revokeObjectURL(videoUrl);
-                    resolve(file);
-                    return;
-                }
 
-                // Detect supported mime type
-                let mimeType = 'video/webm;codecs=vp8,opus';
-                if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
-                    mimeType = 'video/webm;codecs=vp9,opus';
-                } else if (MediaRecorder.isTypeSupported('video/webm')) {
-                    mimeType = 'video/webm';
-                } else if (MediaRecorder.isTypeSupported('video/mp4')) {
-                    mimeType = 'video/mp4';
-                }
+                    // Ensure dimensions are even numbers (required by some encoders)
+                    if (targetWidth % 2 !== 0) targetWidth -= 1;
+                    if (targetHeight % 2 !== 0) targetHeight -= 1;
 
-                let recorder: MediaRecorder;
-                try {
-                    recorder = new MediaRecorder(stream, {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = targetWidth;
+                    canvas.height = targetHeight;
+                    const ctx = canvas.getContext('2d', { alpha: false });
+
+                    if (!ctx) {
+                        cleanup();
+                        resolve(file);
+                        return;
+                    }
+
+                    // Create Canvas Stream
+                    const canvasStream = canvas.captureStream ? canvas.captureStream(30) : (canvas as any).mozCaptureStream(30);
+
+                    // Add Audio Track directly from video element
+                    try {
+                        const vStream = (video as any).captureStream ? (video as any).captureStream() : (video as any).mozCaptureStream ? (video as any).mozCaptureStream() : null;
+                        if (vStream) {
+                            const audioTracks = vStream.getAudioTracks();
+                            if (audioTracks && audioTracks.length > 0) {
+                                canvasStream.addTrack(audioTracks[0]);
+                            }
+                        }
+                    } catch (audioErr) {
+                        console.warn('Audio capture note:', audioErr);
+                    }
+
+                    // Determine best supported MIME type
+                    let mimeType = 'video/webm;codecs=vp8,opus';
+                    if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
+                        mimeType = 'video/webm;codecs=vp9,opus';
+                    } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')) {
+                        mimeType = 'video/webm;codecs=vp8,opus';
+                    } else if (MediaRecorder.isTypeSupported('video/webm')) {
+                        mimeType = 'video/webm';
+                    } else if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1,mp4a.40.2')) {
+                        mimeType = 'video/mp4;codecs=avc1,mp4a.40.2';
+                    } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+                        mimeType = 'video/mp4';
+                    }
+
+                    const recorder = new MediaRecorder(canvasStream, {
                         mimeType,
                         videoBitsPerSecond: targetBitrate
                     });
-                } catch {
-                    URL.revokeObjectURL(videoUrl);
-                    resolve(file);
-                    return;
-                }
+                    mediaRecorderRef.current = recorder;
 
-                const chunks: BlobPart[] = [];
-                recorder.ondataavailable = (e) => {
-                    if (e.data && e.data.size > 0) {
-                        chunks.push(e.data);
-                    }
-                };
+                    const chunks: BlobPart[] = [];
+                    recorder.ondataavailable = (e) => {
+                        if (e.data && e.data.size > 0) {
+                            chunks.push(e.data);
+                        }
+                    };
 
-                recorder.onstop = () => {
-                    URL.revokeObjectURL(videoUrl);
-                    const finalBlob = new Blob(chunks, { type: mimeType });
-                    resolve(finalBlob);
-                };
+                    recorder.onstop = () => {
+                        if (skipCompressionRef.current) {
+                            cleanup();
+                            resolve(file);
+                            return;
+                        }
 
-                recorder.onerror = () => {
-                    URL.revokeObjectURL(videoUrl);
-                    resolve(file); // fallback to original on error
-                };
+                        const compressedBlob = new Blob(chunks, { type: mimeType });
+                        cleanup();
 
-                recorder.start(1000);
+                        if (compressedBlob.size > 0 && compressedBlob.size < file.size) {
+                            resolve(compressedBlob);
+                        } else {
+                            // If compression didn't save size, use whichever is smaller
+                            resolve(compressedBlob.size > 0 ? compressedBlob : file);
+                        }
+                    };
 
-                // Accelerated playback frame drawing loop (2x playback rate for fast compression)
-                video.playbackRate = 2.0;
+                    recorder.onerror = (err) => {
+                        console.error('MediaRecorder error:', err);
+                        cleanup();
+                        resolve(file);
+                    };
 
-                const drawFrame = () => {
-                    if (video.paused || video.ended) return;
-                    ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+                    recorder.start(1000);
 
-                    const currentTime = video.currentTime;
-                    const percent = Math.min(99, Math.round((currentTime / duration) * 100));
-                    setProgress(percent);
-                    setStatusMessage(`ব্রাউজারে ভিডিও অপ্টিমাইজ হচ্ছে... ${percent}% (গতি: 2x)`);
+                    // Speed up playback rate for fast encoding (3x speed)
+                    video.playbackRate = 3.0;
 
-                    requestAnimationFrame(drawFrame);
-                };
+                    const renderFrame = () => {
+                        if (skipCompressionRef.current) {
+                            if (recorder.state === 'recording') recorder.stop();
+                            return;
+                        }
 
-                video.onplay = () => {
-                    drawFrame();
-                };
+                        if (video.paused || video.ended) return;
 
-                video.onended = () => {
-                    recorder.stop();
-                };
+                        ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
 
-                video.onerror = () => {
-                    URL.revokeObjectURL(videoUrl);
-                    resolve(file);
-                };
+                        const current = video.currentTime;
+                        const pct = Math.min(99, Math.round((current / duration) * 100));
+                        setProgress(pct);
+                        setStatusMessage(`ভিডিও অপ্টিমাইজ ও কম্প্রেশন হচ্ছে... ${pct}% (গতি: ৩ গুণ)`);
 
-                try {
+                        animFrameId = requestAnimationFrame(renderFrame);
+                    };
+
+                    video.onplay = () => {
+                        renderFrame();
+                    };
+
+                    video.onended = () => {
+                        cancelAnimationFrame(animFrameId);
+                        ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+                        setProgress(100);
+                        if (recorder.state === 'recording') {
+                            recorder.stop();
+                        }
+                    };
+
+                    // Start playing
                     await video.play();
-                } catch {
-                    // Autoplay blocked fallback
-                    URL.revokeObjectURL(videoUrl);
+
+                } catch (err) {
+                    console.error('Compression setup error:', err);
+                    cleanup();
                     resolve(file);
                 }
             };
 
             video.onerror = () => {
-                URL.revokeObjectURL(videoUrl);
+                cleanup();
                 resolve(file);
             };
         });
+    };
+
+    const handleSkipCompression = () => {
+        skipCompressionRef.current = true;
+        if (videoElementRef.current) {
+            try {
+                videoElementRef.current.pause();
+            } catch (_) {}
+        }
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+            try {
+                mediaRecorderRef.current.stop();
+            } catch (_) {}
+        }
     };
 
     const handleStartUpload = async () => {
@@ -264,25 +330,22 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
         try {
             // STEP 1: Client-side compression
             let fileToUpload: Blob = selectedFile;
+
             if (enableCompression && preset !== 'original') {
                 setStatus('compressing');
-                setStatusMessage('ব্রাউজারে ভিডিও কম্প্রেস করা হচ্ছে (ব্যান্ডউইথ সাশ্রয়ের জন্য)...');
+                setStatusMessage('ব্রাউজারে ভিডিও কম্প্রেশন শুরু হচ্ছে...');
                 setProgress(0);
-                
-                try {
-                    fileToUpload = await compressVideoClientSide(selectedFile, preset);
-                    setCompressedSize(fileToUpload.size);
-                } catch (e: any) {
-                    console.warn('Compression skipped or failed, using original file:', e);
-                    fileToUpload = selectedFile;
-                }
+
+                const compressedResult = await compressVideoClientSide(selectedFile, preset);
+                fileToUpload = compressedResult;
+                setCompressedSize(compressedResult.size);
             } else {
                 setCompressedSize(selectedFile.size);
             }
 
             // STEP 2: Request Upload Credentials from backend
             setStatus('requesting');
-            setStatusMessage('VdoCipher থেকে ক্লাউড আপলোড ক্রেডেনশিয়াল সংগ্রহ করা হচ্ছে...');
+            setStatusMessage('VdoCipher ক্লাউড আপলোড সংযোগ তৈরি করা হচ্ছে...');
             setProgress(0);
 
             const uploadTitle = (lessonTitle || selectedFile.name.replace(/\.[^/.]+$/, '')).substring(0, 100);
@@ -319,9 +382,9 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
             formData.append('success_action_status', clientPayload.success_action_status || '201');
             formData.append('success_action_redirect', clientPayload.success_action_redirect || '');
 
-            const fileName = enableCompression && preset !== 'original' 
-                ? `${selectedFile.name.replace(/\.[^/.]+$/, '')}_compressed.webm` 
-                : selectedFile.name;
+            const isWebm = fileToUpload.type.includes('webm');
+            const fileExt = isWebm ? 'webm' : (selectedFile.name.split('.').pop() || 'mp4');
+            const fileName = `${selectedFile.name.replace(/\.[^/.]+$/, '')}_novonex.${fileExt}`;
 
             // Important: the 'file' parameter MUST be appended last
             formData.append('file', fileToUpload, fileName);
@@ -388,6 +451,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
     };
 
     const handleCancel = () => {
+        handleSkipCompression();
         if (xhrRef.current) {
             xhrRef.current.abort();
             xhrRef.current = null;
@@ -439,7 +503,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                             </span>
                         </h4>
                         <p className="text-xs text-slate-500">
-                            ব্রাউজারে স্বয়ংক্রিয় কম্প্রেশন ও সরাসরি VdoCipher ক্লাউড আপলোড (ব্যান্ডউইথ সাশ্রয়ী)
+                            ব্রাউজারে ভিডিও কম্প্রেশন ও সরাসরি ক্লাউড আপলোড (ব্যান্ডউইথ সাশ্রয়ী)
                         </p>
                     </div>
                 </div>
@@ -522,7 +586,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                     <p className="text-sm font-bold text-slate-900 truncate max-w-sm">{selectedFile.name}</p>
                                     <p className="text-xs text-slate-500 mt-0.5">
                                         মূল ফাইল সাইজ: <strong>{formatBytes(selectedFile.size)}</strong>
-                                        {fileDuration ? ` • সময়: ${Math.round(fileDuration / 60)} মিনিট` : ''}
+                                        {fileDuration ? ` • সময়কাল: ${Math.round(fileDuration / 60)} মিনিট` : ''}
                                     </p>
                                 </div>
                                 <span className="text-[11px] font-semibold text-indigo-600 hover:underline mt-1">
@@ -539,7 +603,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                         ক্লিক করে অথবা ড্র্যাগ করে ভিডিও ফাইল নির্বাচন করুন
                                     </p>
                                     <p className="text-xs text-slate-400 mt-1">
-                                        MP4, MOV, WebM, MKV (হোস্টিংয়ের ব্যান্ডউইথ সাশ্রয় করবে)
+                                        MP4, MOV, WebM, MKV
                                     </p>
                                 </div>
                             </div>
@@ -559,11 +623,11 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                     />
                                     <span className="flex items-center gap-1.5">
                                         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                                        <span>ব্রাউজার ক্লায়েন্ট-সাইড ভিডিও কম্প্রেশন চালু রাখুন</span>
+                                        <span>ভিডিও কম্প্রেশন সক্রিয় রাখুন (সাইজ কমানোর জন্য)</span>
                                     </span>
                                 </label>
                                 <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                                    ~৬০-৮০% ডাটা সাশ্রয়ী
+                                    ~৫০-৮০% ডাটা সাশ্রয়ী
                                 </span>
                             </div>
 
@@ -598,7 +662,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                             <span>1080p Full HD</span>
                                             {preset === '1080p' && <Check className="w-3 h-3 text-indigo-600" />}
                                         </p>
-                                        <p className="text-[10px] text-slate-500 mt-0.5">উচ্চ কোয়ালিটি</p>
+                                        <p className="text-[10px] text-slate-500 mt-0.5">হাই কোয়ালিটি</p>
                                     </button>
 
                                     <button
@@ -614,17 +678,17 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                             <span>মূল ফাইল</span>
                                             {preset === 'original' && <Check className="w-3 h-3 text-indigo-600" />}
                                         </p>
-                                        <p className="text-[10px] text-slate-500 mt-0.5">কম্প্রেশন ছাড়া</p>
+                                        <p className="text-[10px] text-slate-500 mt-0.5">সরাসরি আপলোড</p>
                                     </button>
                                 </div>
                             )}
 
                             {/* Estimated Info Banner */}
                             <div className="flex items-center justify-between text-[11px] text-slate-500 bg-slate-50 px-3 py-2 rounded-lg">
-                                <span>মূল সাইজ: <strong>{formatBytes(selectedFile.size)}</strong></span>
+                                <span>মূল ফাইল সাইজ: <strong>{formatBytes(selectedFile.size)}</strong></span>
                                 {enableCompression && preset !== 'original' && (
                                     <span className="text-emerald-700 font-semibold">
-                                        কম্প্রেসড আনুমানিক: <strong>~{formatBytes(Math.round(selectedFile.size * (preset === '720p' ? 0.25 : 0.45)))}</strong>
+                                        কম্প্রেশন টার্গেট: <strong>~{formatBytes(Math.round(selectedFile.size * (preset === '720p' ? 0.35 : 0.60)))}</strong>
                                     </span>
                                 )}
                             </div>
@@ -702,7 +766,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                         <div className="flex items-center gap-2">
                             <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
                             <span className="text-xs font-bold text-slate-800">
-                                {status === 'compressing' ? 'লোকাল কম্প্রেশন চলছে...' : 'VdoCipher ক্লাউড আপলোড চলছে...'}
+                                {status === 'compressing' ? 'লোকাল কম্প্রেশন চলছে (৩x গতি)...' : 'VdoCipher ক্লাউড আপলোড চলছে...'}
                             </span>
                         </div>
                         <span className="text-xs font-black text-indigo-600 font-mono">
@@ -722,13 +786,24 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                         {statusMessage}
                     </p>
 
-                    <div className="flex justify-center pt-2">
+                    <div className="flex items-center justify-center gap-3 pt-2">
+                        {status === 'compressing' && (
+                            <button
+                                type="button"
+                                onClick={handleSkipCompression}
+                                className="text-xs font-bold text-indigo-700 hover:text-indigo-900 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer border border-indigo-200"
+                            >
+                                <FastForward className="w-3.5 h-3.5" />
+                                <span>কম্প্রেশন স্কিপ করে সরাসরি আপলোড করুন</span>
+                            </button>
+                        )}
+
                         <button
                             type="button"
                             onClick={handleCancel}
-                            className="text-xs font-bold text-rose-600 hover:text-rose-800 px-3 py-1 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all cursor-pointer"
+                            className="text-xs font-bold text-rose-600 hover:text-rose-800 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all cursor-pointer"
                         >
-                            আপলোড বাতিল করুন
+                            বাতিল করুন
                         </button>
                     </div>
                 </div>
@@ -736,4 +811,3 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
         </div>
     );
 };
-
