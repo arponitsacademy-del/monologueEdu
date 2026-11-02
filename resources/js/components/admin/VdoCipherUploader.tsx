@@ -1,0 +1,719 @@
+import React, { useState, useRef, useEffect } from 'react';
+import { 
+    UploadCloud, 
+    CheckCircle2, 
+    AlertCircle, 
+    Loader2, 
+    FileVideo, 
+    ShieldCheck, 
+    Sparkles, 
+    X, 
+    ArrowRight, 
+    Cpu, 
+    Settings2,
+    Copy,
+    Check
+} from 'lucide-react';
+import { apiClient } from '../../api/client';
+
+interface VdoCipherUploaderProps {
+    initialVideoUrl?: string;
+    onVideoUploaded: (videoUrl: string) => void;
+    lessonTitle?: string;
+}
+
+type CompressionPreset = '720p' | '1080p' | 'original';
+
+export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
+    initialVideoUrl = '',
+    onVideoUploaded,
+    lessonTitle = 'Course Lesson Video'
+}) => {
+    const [videoUrl, setVideoUrl] = useState(initialVideoUrl);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const [fileDuration, setFileDuration] = useState<number | null>(null);
+    const [preset, setPreset] = useState<CompressionPreset>('720p');
+    const [enableCompression, setEnableCompression] = useState(true);
+
+    const [status, setStatus] = useState<'idle' | 'compressing' | 'requesting' | 'uploading' | 'success' | 'error'>('idle');
+    const [progress, setProgress] = useState(0);
+    const [statusMessage, setStatusMessage] = useState('');
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [uploadedVideoId, setUploadedVideoId] = useState<string | null>(null);
+    const [originalSize, setOriginalSize] = useState<number>(0);
+    const [compressedSize, setCompressedSize] = useState<number>(0);
+    const [isDragging, setIsDragging] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    // Direct ID input mode
+    const [manualIdInput, setManualIdInput] = useState('');
+    const [showManualInput, setShowManualInput] = useState(false);
+
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const xhrRef = useRef<XMLHttpRequest | null>(null);
+
+    useEffect(() => {
+        setVideoUrl(initialVideoUrl);
+        if (initialVideoUrl && (initialVideoUrl.startsWith('vdocipher://') || initialVideoUrl.startsWith('vdocipher:'))) {
+            const raw = initialVideoUrl.replace('vdocipher://', '').replace('vdocipher:', '');
+            setUploadedVideoId(raw);
+        }
+    }, [initialVideoUrl]);
+
+    const formatBytes = (bytes: number): string => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+    };
+
+    const handleFileChange = (file: File) => {
+        if (!file.type.startsWith('video/') && !file.name.match(/\.(mp4|mov|avi|mkv|webm|m4v)$/i)) {
+            setErrorMessage('অনুগ্রহ করে একটি সঠিক ভিডিও ফাইল নির্বাচন করুন (MP4, WebM, MOV, MKV)।');
+            return;
+        }
+
+        setSelectedFile(file);
+        setOriginalSize(file.size);
+        setErrorMessage(null);
+        setStatus('idle');
+        setProgress(0);
+
+        // Probe duration
+        const tempVideo = document.createElement('video');
+        tempVideo.preload = 'metadata';
+        tempVideo.src = URL.createObjectURL(file);
+        tempVideo.onloadedmetadata = () => {
+            setFileDuration(tempVideo.duration);
+            URL.revokeObjectURL(tempVideo.src);
+        };
+    };
+
+    // Fast In-Browser Video Compression using Canvas + MediaRecorder
+    const compressVideoClientSide = async (file: File, targetPreset: CompressionPreset): Promise<Blob> => {
+        if (targetPreset === 'original' || !enableCompression) {
+            return file;
+        }
+
+        return new Promise((resolve, reject) => {
+            const video = document.createElement('video');
+            video.preload = 'auto';
+            video.muted = true;
+            video.playsInline = true;
+            const videoUrl = URL.createObjectURL(file);
+            video.src = videoUrl;
+
+            video.onloadedmetadata = async () => {
+                const origWidth = video.videoWidth || 1280;
+                const origHeight = video.videoHeight || 720;
+                const duration = video.duration || 60;
+
+                // Determine target dimensions
+                let targetWidth = origWidth;
+                let targetHeight = origHeight;
+                let targetBitrate = 2200000; // 2.2 Mbps
+
+                if (targetPreset === '720p' && origWidth > 1280) {
+                    targetWidth = 1280;
+                    targetHeight = Math.round((origHeight / origWidth) * 1280);
+                    targetBitrate = 1600000; // 1.6 Mbps
+                } else if (targetPreset === '1080p' && origWidth > 1920) {
+                    targetWidth = 1920;
+                    targetHeight = Math.round((origHeight / origWidth) * 1920);
+                    targetBitrate = 2800000; // 2.8 Mbps
+                }
+
+                // If file is already small (under 15MB) or very short, use directly
+                if (file.size < 15 * 1024 * 1024) {
+                    URL.revokeObjectURL(videoUrl);
+                    resolve(file);
+                    return;
+                }
+
+                // Create offscreen canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = targetWidth;
+                canvas.height = targetHeight;
+                const ctx = canvas.getContext('2d', { alpha: false });
+
+                if (!ctx) {
+                    URL.revokeObjectURL(videoUrl);
+                    resolve(file);
+                    return;
+                }
+
+                // Audio capture
+                let stream: MediaStream;
+                try {
+                    const canvasStream = canvas.captureStream(30);
+                    const AudioCtxClass = window.AudioContext || (window as any).webkitAudioContext;
+                    if (AudioCtxClass) {
+                        const audioCtx = new AudioCtxClass();
+                        const source = audioCtx.createMediaElementSource(video);
+                        const dest = audioCtx.createMediaStreamDestination();
+                        source.connect(dest);
+                        const audioTracks = dest.stream.getAudioTracks();
+                        if (audioTracks.length > 0) {
+                            canvasStream.addTrack(audioTracks[0]);
+                        }
+                    }
+                    stream = canvasStream;
+                } catch {
+                    // Fallback to video without audio processing if security restricted
+                    URL.revokeObjectURL(videoUrl);
+                    resolve(file);
+                    return;
+                }
+
+                // Detect supported mime type
+                let mimeType = 'video/webm;codecs=vp8,opus';
+                if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9,opus')) {
+                    mimeType = 'video/webm;codecs=vp9,opus';
+                } else if (MediaRecorder.isTypeSupported('video/webm')) {
+                    mimeType = 'video/webm';
+                } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+                    mimeType = 'video/mp4';
+                }
+
+                let recorder: MediaRecorder;
+                try {
+                    recorder = new MediaRecorder(stream, {
+                        mimeType,
+                        videoBitsPerSecond: targetBitrate
+                    });
+                } catch {
+                    URL.revokeObjectURL(videoUrl);
+                    resolve(file);
+                    return;
+                }
+
+                const chunks: BlobPart[] = [];
+                recorder.ondataavailable = (e) => {
+                    if (e.data && e.data.size > 0) {
+                        chunks.push(e.data);
+                    }
+                };
+
+                recorder.onstop = () => {
+                    URL.revokeObjectURL(videoUrl);
+                    const finalBlob = new Blob(chunks, { type: mimeType });
+                    resolve(finalBlob);
+                };
+
+                recorder.onerror = () => {
+                    URL.revokeObjectURL(videoUrl);
+                    resolve(file); // fallback to original on error
+                };
+
+                recorder.start(1000);
+
+                // Accelerated playback frame drawing loop (2x playback rate for fast compression)
+                video.playbackRate = 2.0;
+
+                const drawFrame = () => {
+                    if (video.paused || video.ended) return;
+                    ctx.drawImage(video, 0, 0, targetWidth, targetHeight);
+
+                    const currentTime = video.currentTime;
+                    const percent = Math.min(99, Math.round((currentTime / duration) * 100));
+                    setProgress(percent);
+                    setStatusMessage(`ব্রাউজারে ভিডিও অপ্টিমাইজ হচ্ছে... ${percent}% (গতি: 2x)`);
+
+                    requestAnimationFrame(drawFrame);
+                };
+
+                video.onplay = () => {
+                    drawFrame();
+                };
+
+                video.onended = () => {
+                    recorder.stop();
+                };
+
+                video.onerror = () => {
+                    URL.revokeObjectURL(videoUrl);
+                    resolve(file);
+                };
+
+                try {
+                    await video.play();
+                } catch {
+                    // Autoplay blocked fallback
+                    URL.revokeObjectURL(videoUrl);
+                    resolve(file);
+                }
+            };
+
+            video.onerror = () => {
+                URL.revokeObjectURL(videoUrl);
+                resolve(file);
+            };
+        });
+    };
+
+    const handleStartUpload = async () => {
+        if (!selectedFile) {
+            setErrorMessage('অনুগ্রহ করে একটি ভিডিও ফাইল নির্বাচন করুন।');
+            return;
+        }
+
+        setErrorMessage(null);
+
+        try {
+            // STEP 1: Client-side compression
+            let fileToUpload: Blob = selectedFile;
+            if (enableCompression && preset !== 'original') {
+                setStatus('compressing');
+                setStatusMessage('ব্রাউজারে ভিডিও কম্প্রেস করা হচ্ছে (ব্যান্ডউইথ সাশ্রয়ের জন্য)...');
+                setProgress(0);
+                
+                try {
+                    fileToUpload = await compressVideoClientSide(selectedFile, preset);
+                    setCompressedSize(fileToUpload.size);
+                } catch (e: any) {
+                    console.warn('Compression skipped or failed, using original file:', e);
+                    fileToUpload = selectedFile;
+                }
+            } else {
+                setCompressedSize(selectedFile.size);
+            }
+
+            // STEP 2: Request Upload Credentials from backend
+            setStatus('requesting');
+            setStatusMessage('VdoCipher থেকে ক্লাউড আপলোড ক্রেডেনশিয়াল সংগ্রহ করা হচ্ছে...');
+            setProgress(0);
+
+            const uploadTitle = (lessonTitle || selectedFile.name.replace(/\.[^/.]+$/, '')).substring(0, 100);
+
+            const { data } = await apiClient.post('/builder/vdocipher/upload-credentials', {
+                title: uploadTitle
+            });
+
+            const { clientPayload, videoId } = data;
+            if (!clientPayload || !videoId) {
+                throw new Error('VdoCipher আপলোড ক্রেডেনশিয়াল পাওয়া যায়নি।');
+            }
+
+            // STEP 3: Direct Upload to VdoCipher AWS S3 Bucket
+            setStatus('uploading');
+            setStatusMessage('সরাসরি VdoCipher ক্লাউডে ভিডিও আপলোড হচ্ছে...');
+            setProgress(0);
+
+            const formData = new FormData();
+            
+            // AWS S3 POST specs: policy keys must come before the 'file' field
+            for (const key of Object.keys(clientPayload)) {
+                if (key !== 'upload_link') {
+                    formData.append(key, clientPayload[key]);
+                }
+            }
+
+            const fileName = enableCompression && preset !== 'original' 
+                ? `${selectedFile.name.replace(/\.[^/.]+$/, '')}_compressed.webm` 
+                : selectedFile.name;
+
+            formData.append('file', fileToUpload, fileName);
+
+            // Upload directly to S3 with XHR for exact progress tracking
+            await new Promise<void>((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhrRef.current = xhr;
+
+                xhr.open('POST', clientPayload.upload_link);
+
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        setProgress(percent);
+                        const uploadedMB = (e.loaded / (1024 * 1024)).toFixed(1);
+                        const totalMB = (e.total / (1024 * 1024)).toFixed(1);
+                        setStatusMessage(`VdoCipher-এ সরাসরি আপলোড হচ্ছে... ${percent}% (${uploadedMB} MB / ${totalMB} MB)`);
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (xhr.status === 200 || xhr.status === 201 || xhr.status === 204) {
+                        resolve();
+                    } else {
+                        reject(new Error(`S3 Upload failed with status HTTP ${xhr.status}: ${xhr.statusText}`));
+                    }
+                };
+
+                xhr.onerror = () => {
+                    reject(new Error('ক্লাউডে ফাইল ট্রান্সফার ব্যাহত হয়েছে। ইন্টারনেট সংযোগ চেক করুন।'));
+                };
+
+                xhr.onabort = () => {
+                    reject(new Error('আপলোড বাতিল করা হয়েছে।'));
+                };
+
+                xhr.send(formData);
+            });
+
+            // STEP 4: Successful completion
+            setStatus('success');
+            setProgress(100);
+            setUploadedVideoId(videoId);
+            const formattedUrl = `vdocipher://${videoId}`;
+            setVideoUrl(formattedUrl);
+            onVideoUploaded(formattedUrl);
+            setStatusMessage('ভিডিও সফলভাবে আপলোড হয়েছে এবং VdoCipher DRM দ্বারা সুরক্ষিত করা হয়েছে!');
+
+        } catch (err: any) {
+            console.error('VdoCipher Upload Error:', err);
+            setStatus('error');
+            setErrorMessage(err.response?.data?.message || err.message || 'ভিডিও আপলোড করতে সমস্যা হয়েছে।');
+        }
+    };
+
+    const handleCancel = () => {
+        if (xhrRef.current) {
+            xhrRef.current.abort();
+            xhrRef.current = null;
+        }
+        setStatus('idle');
+        setProgress(0);
+        setStatusMessage('');
+    };
+
+    const handleApplyManualId = () => {
+        const clean = manualIdInput.trim();
+        if (!clean) return;
+
+        let finalUrl = clean;
+        if (!clean.startsWith('vdocipher://') && !clean.startsWith('vdocipher:') && !clean.startsWith('http')) {
+            finalUrl = `vdocipher://${clean}`;
+        }
+
+        setVideoUrl(finalUrl);
+        setUploadedVideoId(clean.replace('vdocipher://', '').replace('vdocipher:', ''));
+        onVideoUploaded(finalUrl);
+        setShowManualInput(false);
+    };
+
+    const handleCopyId = () => {
+        if (!uploadedVideoId) return;
+        navigator.clipboard.writeText(uploadedVideoId);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const savingsPercentage = originalSize > 0 && compressedSize > 0 && compressedSize < originalSize
+        ? Math.round(((originalSize - compressedSize) / originalSize) * 100)
+        : null;
+
+    return (
+        <div className="p-5 bg-gradient-to-br from-indigo-50/70 via-white to-slate-50 border-2 border-indigo-200/80 rounded-2xl shadow-xs space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-indigo-100">
+                <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-sm">
+                        <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                            <span>VdoCipher DRM ভিডিও আপলোড</span>
+                            <span className="px-2 py-0.5 text-[10px] font-bold bg-indigo-100 text-indigo-700 rounded-full">
+                                পাইরেসি সুরক্ষিত
+                            </span>
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                            ব্রাউজারে স্বয়ংক্রিয় কম্প্রেশন ও সরাসরি VdoCipher ক্লাউড আপলোড (ব্যান্ডউইথ সাশ্রয়ী)
+                        </p>
+                    </div>
+                </div>
+
+                {uploadedVideoId && (
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-100 text-emerald-800 rounded-lg flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>কানেক্টেড</span>
+                        </span>
+                    </div>
+                )}
+            </div>
+
+            {/* Existing Connected Video Badge */}
+            {uploadedVideoId && status !== 'uploading' && status !== 'compressing' && (
+                <div className="p-3.5 bg-emerald-50/80 border border-emerald-200 rounded-xl flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2 text-emerald-900 font-medium truncate">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span className="truncate">ভিডিও সংরক্ষিত: <strong>{uploadedVideoId}</strong></span>
+                    </div>
+                    <div className="flex items-center gap-1 shrink-0">
+                        <button
+                            type="button"
+                            onClick={handleCopyId}
+                            className="px-2.5 py-1 text-[11px] font-bold bg-white text-emerald-700 border border-emerald-300 rounded-lg hover:bg-emerald-100 flex items-center gap-1 transition-all cursor-pointer"
+                        >
+                            {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
+                            <span>{copied ? 'কপি হয়েছে' : 'ID কপি'}</span>
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Error Message Alert */}
+            {errorMessage && (
+                <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs text-rose-800 font-medium">
+                    <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                    <span>{errorMessage}</span>
+                </div>
+            )}
+
+            {/* Upload / Compress Work Area */}
+            {status !== 'uploading' && status !== 'compressing' && status !== 'requesting' ? (
+                <div className="space-y-4">
+                    {/* Drag & Drop File Zone */}
+                    <div
+                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                        onDragLeave={() => setIsDragging(false)}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            setIsDragging(false);
+                            if (e.dataTransfer.files?.[0]) {
+                                handleFileChange(e.dataTransfer.files[0]);
+                            }
+                        }}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`p-6 border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
+                            isDragging 
+                                ? 'border-indigo-600 bg-indigo-50/80 scale-[1.01]' 
+                                : selectedFile 
+                                ? 'border-indigo-300 bg-indigo-50/30 hover:border-indigo-400' 
+                                : 'border-slate-300 bg-white hover:border-indigo-400 hover:bg-slate-50'
+                        }`}
+                    >
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="video/*,.mkv"
+                            onChange={(e) => e.target.files?.[0] && handleFileChange(e.target.files[0])}
+                            className="hidden"
+                        />
+
+                        {selectedFile ? (
+                            <div className="flex flex-col items-center gap-2">
+                                <div className="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                                    <FileVideo className="w-6 h-6" />
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-sm font-bold text-slate-900 truncate max-w-sm">{selectedFile.name}</p>
+                                    <p className="text-xs text-slate-500 mt-0.5">
+                                        মূল ফাইল সাইজ: <strong>{formatBytes(selectedFile.size)}</strong>
+                                        {fileDuration ? ` • সময়: ${Math.round(fileDuration / 60)} মিনিট` : ''}
+                                    </p>
+                                </div>
+                                <span className="text-[11px] font-semibold text-indigo-600 hover:underline mt-1">
+                                    অন্য ফাইল পরিবর্তন করতে ক্লিক করুন
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center gap-2">
+                                <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                    <UploadCloud className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-bold text-slate-800">
+                                        ক্লিক করে অথবা ড্র্যাগ করে ভিডিও ফাইল নির্বাচন করুন
+                                    </p>
+                                    <p className="text-xs text-slate-400 mt-1">
+                                        MP4, MOV, WebM, MKV (হোস্টিংয়ের ব্যান্ডউইথ সাশ্রয় করবে)
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Compression Options */}
+                    {selectedFile && (
+                        <div className="p-4 bg-white border border-indigo-100 rounded-xl space-y-3">
+                            <div className="flex items-center justify-between">
+                                <label className="text-xs font-bold text-slate-800 flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={enableCompression}
+                                        onChange={(e) => setEnableCompression(e.target.checked)}
+                                        className="w-4 h-4 text-indigo-600 rounded-md focus:ring-indigo-500 border-slate-300 cursor-pointer"
+                                    />
+                                    <span className="flex items-center gap-1.5">
+                                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                                        <span>ব্রাউজার ক্লায়েন্ট-সাইড ভিডিও কম্প্রেশন চালু রাখুন</span>
+                                    </span>
+                                </label>
+                                <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                                    ~৬০-৮০% ডাটা সাশ্রয়ী
+                                </span>
+                            </div>
+
+                            {enableCompression && (
+                                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-100">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPreset('720p')}
+                                        className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
+                                            preset === '720p'
+                                                ? 'bg-indigo-50 border-indigo-400 text-indigo-900 shadow-xs'
+                                                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                                        }`}
+                                    >
+                                        <p className="text-xs font-bold flex items-center justify-between">
+                                            <span>720p HD</span>
+                                            {preset === '720p' && <Check className="w-3 h-3 text-indigo-600" />}
+                                        </p>
+                                        <p className="text-[10px] text-slate-500 mt-0.5">সর্বোচ্চ সেভিংস (Best)</p>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setPreset('1080p')}
+                                        className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
+                                            preset === '1080p'
+                                                ? 'bg-indigo-50 border-indigo-400 text-indigo-900 shadow-xs'
+                                                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                                        }`}
+                                    >
+                                        <p className="text-xs font-bold flex items-center justify-between">
+                                            <span>1080p Full HD</span>
+                                            {preset === '1080p' && <Check className="w-3 h-3 text-indigo-600" />}
+                                        </p>
+                                        <p className="text-[10px] text-slate-500 mt-0.5">উচ্চ কোয়ালিটি</p>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setPreset('original')}
+                                        className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
+                                            preset === 'original'
+                                                ? 'bg-indigo-50 border-indigo-400 text-indigo-900 shadow-xs'
+                                                : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
+                                        }`}
+                                    >
+                                        <p className="text-xs font-bold flex items-center justify-between">
+                                            <span>মূল ফাইল</span>
+                                            {preset === 'original' && <Check className="w-3 h-3 text-indigo-600" />}
+                                        </p>
+                                        <p className="text-[10px] text-slate-500 mt-0.5">কম্প্রেশন ছাড়া</p>
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Estimated Info Banner */}
+                            <div className="flex items-center justify-between text-[11px] text-slate-500 bg-slate-50 px-3 py-2 rounded-lg">
+                                <span>মূল সাইজ: <strong>{formatBytes(selectedFile.size)}</strong></span>
+                                {enableCompression && preset !== 'original' && (
+                                    <span className="text-emerald-700 font-semibold">
+                                        কম্প্রেসড আনুমানিক: <strong>~{formatBytes(Math.round(selectedFile.size * (preset === '720p' ? 0.25 : 0.45)))}</strong>
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Action Upload Button */}
+                    {selectedFile && (
+                        <div className="flex items-center gap-3">
+                            <button
+                                type="button"
+                                onClick={handleStartUpload}
+                                className="flex-1 py-3 px-5 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/20 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                            >
+                                <UploadCloud className="w-4 h-4" />
+                                <span>
+                                    {enableCompression && preset !== 'original' 
+                                        ? 'কম্প্রেস করুন ও VdoCipher-এ সরাসরি আপলোড দিন' 
+                                        : 'VdoCipher-এ সরাসরি আপলোড দিন'}
+                                </span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setSelectedFile(null)}
+                                className="py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                            >
+                                বাতিল
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Manual ID toggle */}
+                    <div className="pt-2 text-center">
+                        <button
+                            type="button"
+                            onClick={() => setShowManualInput(!showManualInput)}
+                            className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 underline cursor-pointer"
+                        >
+                            {showManualInput 
+                                ? 'ফাইল আপলোড মোডে ফিরে যান' 
+                                : 'অথবা পূর্বে আপলোড করা VdoCipher Video ID লিখুন'}
+                        </button>
+                    </div>
+
+                    {/* Manual ID Input Box */}
+                    {showManualInput && (
+                        <div className="p-3.5 bg-white border border-slate-200 rounded-xl space-y-2 animate-in fade-in">
+                            <label className="block text-xs font-bold text-slate-700">
+                                VdoCipher Video ID লিখুন:
+                            </label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={manualIdInput}
+                                    onChange={(e) => setManualIdInput(e.target.value)}
+                                    placeholder="e.g. 5e0f76906a234f9e871e98b7..."
+                                    className="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleApplyManualId}
+                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg cursor-pointer"
+                                >
+                                    সংরক্ষণ
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                /* Live Progress State */
+                <div className="p-6 bg-white border border-indigo-200 rounded-2xl space-y-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Loader2 className="w-5 h-5 text-indigo-600 animate-spin" />
+                            <span className="text-xs font-bold text-slate-800">
+                                {status === 'compressing' ? 'লোকাল কম্প্রেশন চলছে...' : 'VdoCipher ক্লাউড আপলোড চলছে...'}
+                            </span>
+                        </div>
+                        <span className="text-xs font-black text-indigo-600 font-mono">
+                            {progress}%
+                        </span>
+                    </div>
+
+                    {/* Progress Track */}
+                    <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden p-0.5">
+                        <div
+                            className="bg-gradient-to-r from-indigo-500 to-sky-500 h-full rounded-full transition-all duration-300 ease-out"
+                            style={{ width: `${progress}%` }}
+                        />
+                    </div>
+
+                    <p className="text-xs text-slate-500 text-center font-medium">
+                        {statusMessage}
+                    </p>
+
+                    <div className="flex justify-center pt-2">
+                        <button
+                            type="button"
+                            onClick={handleCancel}
+                            className="text-xs font-bold text-rose-600 hover:text-rose-800 px-3 py-1 bg-rose-50 hover:bg-rose-100 rounded-lg transition-all cursor-pointer"
+                        >
+                            আপলোড বাতিল করুন
+                        </button>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};

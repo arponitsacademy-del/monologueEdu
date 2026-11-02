@@ -20,12 +20,14 @@ class WebsiteSetting extends Model
         'header_settings',
         'footer_settings',
         'manual_payment_settings',
+        'vdocipher_settings',
     ];
 
     protected $casts = [
         'header_settings' => 'array',
         'footer_settings' => 'array',
         'manual_payment_settings' => 'array',
+        'vdocipher_settings' => 'array',
     ];
 
     public static function defaultHeaderSettings(): array
@@ -119,6 +121,15 @@ class WebsiteSetting extends Model
         ];
     }
 
+    public static function defaultVdocipherSettings(): array
+    {
+        return [
+            'enabled' => false,
+            'api_secret' => '',
+            'watermark_enabled' => true,
+        ];
+    }
+
     public static function current(): self
     {
         $setting = static::first();
@@ -149,6 +160,9 @@ class WebsiteSetting extends Model
         }
         if (empty($setting->manual_payment_settings)) {
             $setting->manual_payment_settings = static::defaultManualPaymentSettings();
+        }
+        if (empty($setting->vdocipher_settings)) {
+            $setting->vdocipher_settings = static::defaultVdocipherSettings();
         }
 
         return $setting;

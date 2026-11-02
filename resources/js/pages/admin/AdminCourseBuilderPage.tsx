@@ -20,9 +20,13 @@ import {
     Lock, 
     Eye,
     Save,
-    Check
+    Check,
+    ShieldCheck,
+    Globe,
+    Video
 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
+import { VdoCipherUploader } from '../../components/admin/VdoCipherUploader';
 
 export const AdminCourseBuilderPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -47,6 +51,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
     const [lessonDuration, setLessonDuration] = useState('0');
     const [lessonIsPreview, setLessonIsPreview] = useState(false);
     const [lessonStatus, setLessonStatus] = useState<'draft' | 'published'>('published');
+    const [videoSourceType, setVideoSourceType] = useState<'vdocipher' | 'embed'>('vdocipher');
 
     // Attachments upload state
     const [uploadingAttachment, setUploadingAttachment] = useState(false);
@@ -139,6 +144,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
         setLessonDuration('15');
         setLessonIsPreview(false);
         setLessonStatus('published');
+        setVideoSourceType('vdocipher');
         setLessonModalOpen(true);
     };
 
@@ -151,6 +157,11 @@ export const AdminCourseBuilderPage: React.FC = () => {
         setLessonDuration(String(lesson.duration_minutes || 0));
         setLessonIsPreview(lesson.is_preview);
         setLessonStatus(lesson.status);
+
+        const vUrl = (lesson.video_url || '').toLowerCase();
+        const isEmbed = vUrl.includes('youtube.com') || vUrl.includes('youtu.be') || vUrl.includes('vimeo.com');
+        setVideoSourceType(isEmbed ? 'embed' : 'vdocipher');
+
         setLessonModalOpen(true);
     };
 
@@ -526,17 +537,63 @@ export const AdminCourseBuilderPage: React.FC = () => {
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">ভিডিও লিংক (YouTube / Vimeo / Embed URL)</label>
-                            <input
-                                type="text"
-                                value={lessonVideoUrl}
-                                onChange={(e) => setLessonVideoUrl(e.target.value)}
-                                placeholder="https://www.youtube.com/watch?v=..."
-                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500"
-                            />
+                    {/* Video Source Switcher */}
+                    <div className="space-y-3">
+                        <label className="block text-xs font-bold text-slate-700">
+                            লেসনের ভিডিও নির্বাচন করুন *
+                        </label>
+
+                        {/* Switcher Tabs */}
+                        <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-xl">
+                            <button
+                                type="button"
+                                onClick={() => setVideoSourceType('vdocipher')}
+                                className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                    videoSourceType === 'vdocipher'
+                                        ? 'bg-white text-indigo-700 shadow-xs'
+                                        : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                            >
+                                <ShieldCheck className="w-4 h-4 text-indigo-600" />
+                                <span>VdoCipher (DRM সুরক্ষিত আপলোড)</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setVideoSourceType('embed')}
+                                className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                                    videoSourceType === 'embed'
+                                        ? 'bg-white text-sky-700 shadow-xs'
+                                        : 'text-slate-600 hover:text-slate-900'
+                                }`}
+                            >
+                                <Globe className="w-4 h-4 text-sky-600" />
+                                <span>YouTube / Vimeo লিংক</span>
+                            </button>
                         </div>
+
+                        {/* VdoCipher Uploader or External URL */}
+                        {videoSourceType === 'vdocipher' ? (
+                            <VdoCipherUploader
+                                initialVideoUrl={lessonVideoUrl}
+                                lessonTitle={lessonTitle || 'Lesson Video'}
+                                onVideoUploaded={(url) => setLessonVideoUrl(url)}
+                            />
+                        ) : (
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    ভিডিও লিংক (YouTube / Vimeo / Direct URL)
+                                </label>
+                                <input
+                                    type="text"
+                                    value={lessonVideoUrl}
+                                    onChange={(e) => setLessonVideoUrl(e.target.value)}
+                                    placeholder="https://www.youtube.com/watch?v=..."
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500"
+                                />
+                            </div>
+                        )}
+
                         <div>
                             <label className="block text-xs font-bold text-slate-700 mb-1">ক্লাসের সময়কাল (মিনিট)</label>
                             <input
