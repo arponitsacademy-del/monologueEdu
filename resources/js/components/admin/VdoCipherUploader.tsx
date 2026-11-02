@@ -296,6 +296,11 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                 throw new Error('VdoCipher আপলোড ক্রেডেনশিয়াল পাওয়া যায়নি।');
             }
 
+            const targetUploadUrl = clientPayload.uploadLink || clientPayload.upload_link;
+            if (!targetUploadUrl) {
+                throw new Error('VdoCipher S3 আপলোড লিংক পাওয়া যায়নি।');
+            }
+
             // STEP 3: Direct Upload to VdoCipher AWS S3 Bucket
             setStatus('uploading');
             setStatusMessage('সরাসরি VdoCipher ক্লাউডে ভিডিও আপলোড হচ্ছে...');
@@ -305,15 +310,19 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
             
             // AWS S3 POST specs: policy keys must come before the 'file' field
             for (const key of Object.keys(clientPayload)) {
-                if (key !== 'upload_link') {
+                if (key !== 'uploadLink' && key !== 'upload_link') {
                     formData.append(key, clientPayload[key]);
                 }
             }
+
+            // AWS S3 parameters
+            formData.append('success_action_status', '201');
 
             const fileName = enableCompression && preset !== 'original' 
                 ? `${selectedFile.name.replace(/\.[^/.]+$/, '')}_compressed.webm` 
                 : selectedFile.name;
 
+            // Important: the 'file' parameter MUST be appended last
             formData.append('file', fileToUpload, fileName);
 
             // Upload directly to S3 with XHR for exact progress tracking
@@ -321,7 +330,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                 const xhr = new XMLHttpRequest();
                 xhrRef.current = xhr;
 
-                xhr.open('POST', clientPayload.upload_link);
+                xhr.open('POST', targetUploadUrl);
 
                 xhr.upload.onprogress = (e) => {
                     if (e.lengthComputable) {
@@ -334,10 +343,19 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                 };
 
                 xhr.onload = () => {
-                    if (xhr.status === 200 || xhr.status === 201 || xhr.status === 204) {
+                    if (xhr.status >= 200 && xhr.status < 300) {
                         resolve();
                     } else {
-                        reject(new Error(`S3 Upload failed with status HTTP ${xhr.status}: ${xhr.statusText}`));
+                        let errDetail = xhr.statusText;
+                        try {
+                            const parser = new DOMParser();
+                            const xml = parser.parseFromString(xhr.responseText, 'text/xml');
+                            const msg = xml.getElementsByTagName('Message')[0];
+                            if (msg && msg.textContent) {
+                                errDetail = msg.textContent;
+                            }
+                        } catch (_) {}
+                        reject(new Error(`S3 Upload failed with status HTTP ${xhr.status}: ${errDetail}`));
                     }
                 };
 

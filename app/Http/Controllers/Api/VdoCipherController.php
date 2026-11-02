@@ -219,6 +219,11 @@ class VdoCipherController extends Controller
                 ], 500);
             }
 
+            // Ensure both uploadLink and upload_link are defined for backward/forward compatibility
+            $uploadUrl = $clientPayload['uploadLink'] ?? ($clientPayload['upload_link'] ?? '');
+            $clientPayload['uploadLink'] = $uploadUrl;
+            $clientPayload['upload_link'] = $uploadUrl;
+
             return response()->json([
                 'clientPayload' => $clientPayload,
                 'videoId' => $videoId,
