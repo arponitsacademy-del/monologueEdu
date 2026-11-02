@@ -578,6 +578,11 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                 initialVideoUrl={lessonVideoUrl}
                                 lessonTitle={lessonTitle || 'Lesson Video'}
                                 onVideoUploaded={(url) => setLessonVideoUrl(url)}
+                                onDurationDetected={(mins) => {
+                                    if (!lessonDuration || lessonDuration === '0') {
+                                        setLessonDuration(String(mins));
+                                    }
+                                }}
                             />
                         ) : (
                             <div>
