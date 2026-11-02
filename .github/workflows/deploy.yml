@@ -48,25 +48,28 @@ jobs:
           cp bootstrap/app.php deploy_dist/app/bootstrap/
           cp bootstrap/providers.php deploy_dist/app/bootstrap/ 2>/dev/null || true
 
-          # 3. Ensure required cache folders exist inside app/storage
+          # 3. Clean any cache files in bootstrap/cache
+          rm -f deploy_dist/app/bootstrap/cache/*.php
+
+          # 4. Ensure required storage folders exist
           mkdir -p deploy_dist/app/storage/framework/{cache,sessions,views}
           mkdir -p deploy_dist/app/storage/logs
 
-          # 4. Copy public assets into public_html root
+          # 5. Copy public assets into public_html root
           cp -r public/build deploy_dist/
           [ -f public/robots.txt ] && cp public/robots.txt deploy_dist/ || true
           [ -f public/favicon.ico ] && cp public/favicon.ico deploy_dist/ || true
 
-          # 5. Inject Hostinger production index.php and .htaccess
+          # 6. Inject Hostinger production index.php and .htaccess
           cp .hostinger/index.php deploy_dist/index.php
           cp .hostinger/.htaccess deploy_dist/.htaccess
 
-          # 6. Compress deploy_dist into a single zip file for ultra-fast transfer
+          # 7. Compress deploy_dist into a single zip file for ultra-fast transfer
           cd deploy_dist
           zip -q -r ../deploy_upload/deploy.zip .
           cd ..
 
-          # 7. Add server-side extractor
+          # 8. Add server-side extractor
           cp .hostinger/deploy_extract.php deploy_upload/deploy_extract.php
 
           echo "Deployment package prepared:"
@@ -87,6 +90,7 @@ jobs:
       - name: ⚡ Extract Package & Optimize on Server
         run: |
           echo "Extracting deployment package on Hostinger..."
+          sleep 3
           RESPONSE=$(curl -s "https://novonexdelta.com/deploy_extract.php?secret=NovonexDeploy_2026_DeltaSecretKey")
           echo "Server response: $RESPONSE"
           if [[ "$RESPONSE" == *"success"* ]]; then
