@@ -68,8 +68,10 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           server-dir: ${{ secrets.FTP_SERVER_DIR || 'domains/novonexdelta.com/public_html/' }}
-          local-dir: deploy_dist/
-          protocol: ftp
+          local-dir: ./deploy_dist/
+          protocol: ftps
+          port: 21
+          dangerous-clean-slate: false
           exclude: |
             **/.git*
             **/.git*/**
