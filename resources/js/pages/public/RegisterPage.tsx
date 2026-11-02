@@ -111,21 +111,21 @@ export const RegisterPage: React.FC = () => {
 
     return (
         <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">
-            <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-3xl border border-slate-200/80 shadow-xl">
+            <div className="max-w-md w-full space-y-8 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl">
                 <div className="text-center space-y-2">
                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white mx-auto shadow-md shadow-sky-500/20">
                         <BookOpen className="w-6 h-6" />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                    <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
                         {t.auth.registerTitle}
                     </h2>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                         {t.auth.registerSub}
                     </p>
                 </div>
 
                 {error && (
-                    <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                    <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/50 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{error}</span>
                     </div>
@@ -133,7 +133,7 @@ export const RegisterPage: React.FC = () => {
 
                 <form onSubmit={handleRegister} className="space-y-4">
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                             {t.auth.nameLabel}
                         </label>
                         <div className="relative">
@@ -143,14 +143,14 @@ export const RegisterPage: React.FC = () => {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder={t.auth.namePlaceholder}
-                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white transition-all"
+                                className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
                             />
                             <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                             {t.auth.phoneLabel}
                         </label>
                         <div className="relative">
@@ -160,14 +160,14 @@ export const RegisterPage: React.FC = () => {
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
                                 placeholder={t.auth.phonePlaceholder}
-                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white transition-all"
+                                className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
                             />
                             <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                             {t.auth.emailLabel}
                         </label>
                         <div className="relative">
@@ -177,14 +177,14 @@ export const RegisterPage: React.FC = () => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder={t.auth.emailPlaceholder}
-                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white transition-all"
+                                className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
                             />
                             <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                             {t.auth.passwordLabel}
                         </label>
                         <div className="relative">
@@ -195,14 +195,14 @@ export const RegisterPage: React.FC = () => {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder={t.auth.passwordPlaceholder}
-                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white transition-all"
+                                className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
                             />
                             <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                             {t.auth.confirmPasswordLabel}
                         </label>
                         <div className="relative">
@@ -212,7 +212,7 @@ export const RegisterPage: React.FC = () => {
                                 value={passwordConfirmation}
                                 onChange={(e) => setPasswordConfirmation(e.target.value)}
                                 placeholder={t.auth.confirmPasswordPlaceholder}
-                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white transition-all"
+                                className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
                             />
                             <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                         </div>
@@ -221,16 +221,16 @@ export const RegisterPage: React.FC = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-3.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-2"
+                        className="w-full py-3.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all cursor-pointer disabled:opacity-50 mt-2"
                     >
                         <span>{loading ? t.auth.processing : t.auth.completeRegisterBtn}</span>
                         <ArrowRight className="w-4 h-4" />
                     </button>
                 </form>
 
-                <div className="text-center text-xs text-slate-500 pt-2">
+                <div className="text-center text-xs text-slate-500 dark:text-slate-400 pt-3 border-t border-slate-100 dark:border-slate-800">
                     {t.auth.haveAccount}{' '}
-                    <Link to="/login" className="font-bold text-sky-600 hover:text-sky-700">
+                    <Link to="/login" className="font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300">
                         {t.auth.loginBtn}
                     </Link>
                 </div>
@@ -245,23 +245,23 @@ export const RegisterPage: React.FC = () => {
             >
                 <form onSubmit={handleVerifyOtp} className="space-y-4">
                     <div className="text-center space-y-1">
-                        <p className="text-xs text-slate-600">
-                            A 6-digit OTP code has been sent to <span className="font-bold text-slate-800">{phone}</span>.
+                        <p className="text-xs text-slate-600 dark:text-slate-300">
+                            A 6-digit OTP code has been sent to <span className="font-bold text-slate-800 dark:text-slate-100">{phone}</span>.
                         </p>
-                        <p className="text-[11px] text-slate-400">
+                        <p className="text-[11px] text-slate-400 dark:text-slate-500">
                             Your account will be activated automatically once the number is verified.
                         </p>
                     </div>
 
                     {resendSuccess && (
-                        <div className="p-3 bg-emerald-50 text-emerald-700 rounded-lg text-xs flex items-center gap-1.5">
-                            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                        <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 rounded-lg text-xs flex items-center gap-1.5 border border-emerald-200 dark:border-emerald-800/50">
+                            <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                             <span>{resendSuccess}</span>
                         </div>
                     )}
 
                     {otpError && (
-                        <div className="p-3 bg-rose-50 text-rose-700 rounded-lg text-xs flex items-center gap-1.5">
+                        <div className="p-3 bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 rounded-lg text-xs flex items-center gap-1.5 border border-rose-200 dark:border-rose-900/50">
                             <AlertCircle className="w-4 h-4 shrink-0" />
                             <span>{otpError}</span>
                         </div>
@@ -275,7 +275,7 @@ export const RegisterPage: React.FC = () => {
                             value={otpCode}
                             onChange={(e) => setOtpCode(e.target.value)}
                             placeholder="------"
-                            className="w-full text-center tracking-[0.5em] text-xl font-bold py-3 bg-slate-50 border border-slate-300 rounded-xl focus:ring-2 focus:ring-sky-500 focus:bg-white"
+                            className="w-full text-center tracking-[0.5em] text-xl font-bold py-3 bg-slate-50 dark:bg-slate-800/60 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-800"
                         />
                     </div>
 
@@ -287,10 +287,10 @@ export const RegisterPage: React.FC = () => {
                         {otpLoading ? t.auth.verifying : t.auth.verifyOtpBtn}
                     </button>
 
-                    <div className="flex items-center justify-between text-xs pt-1 px-1 border-t border-slate-100">
-                        <span className="text-slate-500">Didn't receive code?</span>
+                    <div className="flex items-center justify-between text-xs pt-1 px-1 border-t border-slate-100 dark:border-slate-800">
+                        <span className="text-slate-500 dark:text-slate-400">Didn't receive code?</span>
                         {resendCooldown > 0 ? (
-                            <span className="text-slate-400 font-medium font-mono">
+                            <span className="text-slate-400 dark:text-slate-500 font-medium font-mono">
                                 Resend in {resendCooldown}s
                             </span>
                         ) : (
@@ -298,7 +298,7 @@ export const RegisterPage: React.FC = () => {
                                 type="button"
                                 onClick={handleResendOtp}
                                 disabled={resendLoading}
-                                className="text-sky-600 font-bold hover:underline cursor-pointer disabled:opacity-50"
+                                className="text-sky-600 dark:text-sky-400 font-bold hover:underline cursor-pointer disabled:opacity-50"
                             >
                                 {resendLoading ? 'Sending...' : 'Resend OTP'}
                             </button>
