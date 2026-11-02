@@ -310,13 +310,14 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
             
             // AWS S3 POST specs: policy keys must come before the 'file' field
             for (const key of Object.keys(clientPayload)) {
-                if (key !== 'uploadLink' && key !== 'upload_link') {
+                if (key !== 'uploadLink' && key !== 'upload_link' && key !== 'success_action_redirect' && key !== 'success_action_status') {
                     formData.append(key, clientPayload[key]);
                 }
             }
 
-            // AWS S3 parameters
-            formData.append('success_action_status', '201');
+            // AWS S3 parameters required by VdoCipher policy
+            formData.append('success_action_status', clientPayload.success_action_status || '201');
+            formData.append('success_action_redirect', clientPayload.success_action_redirect || '');
 
             const fileName = enableCompression && preset !== 'original' 
                 ? `${selectedFile.name.replace(/\.[^/.]+$/, '')}_compressed.webm` 
