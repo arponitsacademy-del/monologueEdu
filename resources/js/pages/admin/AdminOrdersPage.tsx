@@ -1,0 +1,318 @@
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { apiClient, formatBDT } from '../../api/client';
+import { Order } from '../../types';
+import { 
+    ShoppingCart, 
+    Search, 
+    CheckCircle2, 
+    XCircle, 
+    Clock, 
+    Eye, 
+    AlertCircle, 
+    Filter,
+    ShieldCheck
+} from 'lucide-react';
+import { Modal } from '../../components/ui/Modal';
+
+export const AdminOrdersPage: React.FC = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState(searchParams.get('search') || '');
+    const [statusFilter, setStatusFilter] = useState(searchParams.get('payment_status') || '');
+
+    // View Modal
+    const [viewOrder, setViewOrder] = useState<Order | null>(null);
+    const [processingId, setProcessingId] = useState<number | null>(null);
+
+    useEffect(() => {
+        fetchOrders();
+    }, [search, statusFilter]);
+
+    const fetchOrders = async () => {
+        setLoading(true);
+        try {
+            const params = new URLSearchParams();
+            if (search) params.append('search', search);
+            if (statusFilter) params.append('payment_status', statusFilter);
+
+            const { data } = await apiClient.get(`/admin/orders?${params.toString()}`);
+            setOrders(data.data || []);
+        } catch {
+            // handle error
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleConfirmPayment = async (orderId: number) => {
+        if (!window.confirm('আপনি কি এই অর্ডারের পেমেন্ট নিশ্চিত করতে এবং শিক্ষার্থীর কোর্সটি সক্রিয় করতে চান?')) return;
+
+        setProcessingId(orderId);
+        try {
+            const { data } = await apiClient.post(`/admin/orders/${orderId}/confirm-payment`);
+            setOrders(prev => prev.map(o => o.id === orderId ? data.order : o));
+            if (viewOrder && viewOrder.id === orderId) {
+                setViewOrder(data.order);
+            }
+            alert(data.message);
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'পেমেন্ট অনুমোদনে সমস্যা হয়েছে।');
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    const handleRejectPayment = async (orderId: number) => {
+        const reason = window.prompt('পেমেন্ট বাতিলের কারণ লিখুন (ঐচ্ছিক):');
+        if (reason === null) return;
+
+        setProcessingId(orderId);
+        try {
+            const { data } = await apiClient.post(`/admin/orders/${orderId}/reject-payment`, { reason });
+            setOrders(prev => prev.map(o => o.id === orderId ? data.order : o));
+            if (viewOrder && viewOrder.id === orderId) {
+                setViewOrder(data.order);
+            }
+            alert(data.message);
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'পেমেন্ট বাতিল ব্যর্থ হয়েছে।');
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    return (
+        <div className="space-y-6 max-w-7xl">
+            <div>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">অর্ডার ও পেমেন্ট ব্যবস্থাপনা</h2>
+                <p className="text-xs text-slate-500 mt-0.5">ম্যানুয়াল বিকাশ/নগদ পেমেন্ট যাচাই ও কোর্স এনরোলমেন্ট অনুমোদন</p>
+            </div>
+
+            {/* Filter Bar */}
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="relative w-full sm:max-w-md">
+                    <input
+                        type="text"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="অর্ডার নম্বর, শিক্ষার্থীর নাম বা ফোন..."
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500"
+                    />
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                </div>
+
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700"
+                    >
+                        <option value="">সকল পেমেন্ট স্ট্যাটাস</option>
+                        <option value="pending">যাচাইকরণ বাকি (Pending)</option>
+                        <option value="paid">পরিশোধিত ও সক্রিয় (Paid)</option>
+                        <option value="failed">বাতিল / ব্যর্থ (Failed)</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* Orders Table */}
+            <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
+                            <tr>
+                                <th className="py-4 px-6">অর্ডার নম্বর</th>
+                                <th className="py-4 px-4">শিক্ষার্থী</th>
+                                <th className="py-4 px-4">কোর্স</th>
+                                <th className="py-4 px-4">মূল্য</th>
+                                <th className="py-4 px-4">পদ্ধতি ও TrxID</th>
+                                <th className="py-4 px-4">স্ট্যাটাস</th>
+                                <th className="py-4 px-6 text-right">অ্যাকশন</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                                        অর্ডারের তথ্য লোড হচ্ছে...
+                                    </td>
+                                </tr>
+                            ) : orders.length === 0 ? (
+                                <tr>
+                                    <td colSpan={7} className="py-12 text-center text-slate-400">
+                                        কোনো অর্ডার খুঁজে পাওয়া যায়নি।
+                                    </td>
+                                </tr>
+                            ) : (
+                                orders.map((order) => {
+                                    const payment = order.latest_payment;
+                                    return (
+                                        <tr key={order.id} className="hover:bg-slate-50/60 transition-colors">
+                                            <td className="py-4 px-6 font-mono font-bold text-slate-900">
+                                                {order.order_number}
+                                            </td>
+
+                                            <td className="py-4 px-4">
+                                                <div className="font-bold text-slate-900">{order.user?.name}</div>
+                                                <div className="text-[11px] text-slate-400 font-mono">{order.user?.phone}</div>
+                                            </td>
+
+                                            <td className="py-4 px-4 max-w-[180px] truncate">
+                                                {order.course?.title}
+                                            </td>
+
+                                            <td className="py-4 px-4">
+                                                <span className="font-bold text-slate-900">{formatBDT(order.final_amount)}</span>
+                                            </td>
+
+                                            <td className="py-4 px-4">
+                                                <div className="font-semibold text-slate-800 uppercase text-[11px]">
+                                                    {order.payment_method.replace('manual_', '')}
+                                                </div>
+                                                <div className="font-mono text-[10px] text-sky-600 font-bold">
+                                                    {payment?.transaction_ref || 'N/A'}
+                                                </div>
+                                            </td>
+
+                                            <td className="py-4 px-4">
+                                                {order.payment_status === 'paid' ? (
+                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800">
+                                                        পরিশোধিত
+                                                    </span>
+                                                ) : order.payment_status === 'pending' ? (
+                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800">
+                                                        যাচাইকরণ বাকি
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-rose-100 text-rose-800">
+                                                        বাতিল
+                                                    </span>
+                                                )}
+                                            </td>
+
+                                            <td className="py-4 px-6 text-right">
+                                                <div className="inline-flex items-center gap-1.5">
+                                                    <button
+                                                        onClick={() => setViewOrder(order)}
+                                                        className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg"
+                                                        title="বিস্তারিত দেখুন"
+                                                    >
+                                                        <Eye className="w-4 h-4" />
+                                                    </button>
+
+                                                    {order.payment_status === 'pending' && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleConfirmPayment(order.id)}
+                                                                disabled={processingId === order.id}
+                                                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-xs disabled:opacity-50"
+                                                                title="পেমেন্ট অনুমোদন ও এনরোলমেন্ট সক্রিয় করুন"
+                                                            >
+                                                                অনুমোদন
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleRejectPayment(order.id)}
+                                                                disabled={processingId === order.id}
+                                                                className="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-lg text-xs disabled:opacity-50"
+                                                                title="বাতিল করুন"
+                                                            >
+                                                                বাতিল
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* View Order Modal */}
+            <Modal
+                isOpen={Boolean(viewOrder)}
+                onClose={() => setViewOrder(null)}
+                title="অর্ডারের পূর্ণাঙ্গ বিবরণ"
+                maxWidth="md"
+            >
+                {viewOrder && (
+                    <div className="space-y-4 text-xs text-slate-700">
+                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                            <div className="flex justify-between font-mono font-bold text-slate-900 border-b border-slate-200 pb-2">
+                                <span>অর্ডার নম্বর:</span>
+                                <span>{viewOrder.order_number}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">শিক্ষার্থী:</span>
+                                <span className="font-bold text-slate-800">{viewOrder.user?.name}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">মোবাইল নম্বর:</span>
+                                <span className="font-mono">{viewOrder.user?.phone}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">কোর্সের নাম:</span>
+                                <span className="font-bold text-slate-800">{viewOrder.course?.title}</span>
+                            </div>
+                        </div>
+
+                        {/* Payment Breakdown */}
+                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">নিয়মিত মূল্য:</span>
+                                <span>{formatBDT(viewOrder.original_price)}</span>
+                            </div>
+                            <div className="flex justify-between text-emerald-600">
+                                <span>ছাড়:</span>
+                                <span>- {formatBDT(viewOrder.discount_amount)}</span>
+                            </div>
+                            <div className="flex justify-between font-bold text-slate-900 text-sm border-t border-slate-200 pt-2">
+                                <span>চূড়ান্ত প্রদেয়:</span>
+                                <span className="text-sky-600">{formatBDT(viewOrder.final_amount)}</span>
+                            </div>
+                        </div>
+
+                        {/* Trx Info */}
+                        <div className="p-4 bg-sky-50/50 rounded-2xl border border-sky-200 space-y-2">
+                            <h4 className="font-bold text-sky-950 uppercase text-[11px]">পেমেন্ট ট্রানজেকশন তথ্য</h4>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">পদ্ধতি:</span>
+                                <span className="font-bold uppercase">{viewOrder.payment_method.replace('manual_', '')}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">প্রেরক মোবাইল:</span>
+                                <span className="font-mono font-bold text-slate-800">{viewOrder.latest_payment?.sender_phone || 'N/A'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-slate-500">ট্রানজেকশন আইডি:</span>
+                                <span className="font-mono font-bold text-sky-700 text-sm">{viewOrder.latest_payment?.transaction_ref || 'N/A'}</span>
+                            </div>
+                        </div>
+
+                        {viewOrder.payment_status === 'pending' && (
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    onClick={() => handleConfirmPayment(viewOrder.id)}
+                                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-colors"
+                                >
+                                    পেমেন্ট অনুমোদন ও এনরোল করুন
+                                </button>
+                                <button
+                                    onClick={() => handleRejectPayment(viewOrder.id)}
+                                    className="py-3 px-6 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-xl transition-colors"
+                                >
+                                    বাতিল
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </Modal>
+        </div>
+    );
+};

@@ -1,0 +1,91 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🐘 Setup PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo, pdo_mysql, bcmath, curl, zip
+          coverage: none
+
+      - name: 📦 Install Composer Dependencies (Production)
+        run: |
+          composer install --no-dev --prefer-dist --optimize-autoloader --no-progress --no-interaction
+
+      - name: ⚡ Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 🎨 Install NPM Dependencies & Build Vite Assets
+        run: |
+          npm ci || npm install
+          npm run build
+
+      - name: 🏗️ Prepare Hostinger Staging Structure
+        run: |
+          # 1. Create clean deploy directory
+          rm -rf deploy_dist
+          mkdir -p deploy_dist/app
+
+          # 2. Copy Laravel backend core into app/
+          cp -r app config database resources routes storage vendor artisan composer.json composer.lock deploy_dist/app/
+          mkdir -p deploy_dist/app/bootstrap
+          cp bootstrap/app.php deploy_dist/app/bootstrap/
+          cp bootstrap/providers.php deploy_dist/app/bootstrap/ 2>/dev/null || true
+
+          # 3. Ensure required cache folders exist inside app/storage
+          mkdir -p deploy_dist/app/storage/framework/{cache,sessions,views}
+          mkdir -p deploy_dist/app/storage/logs
+
+          # 4. Copy public assets into public_html root
+          cp -r public/build deploy_dist/
+          [ -f public/robots.txt ] && cp public/robots.txt deploy_dist/ || true
+          [ -f public/favicon.ico ] && cp public/favicon.ico deploy_dist/ || true
+
+          # 5. Inject Hostinger production index.php and .htaccess
+          cp .hostinger/index.php deploy_dist/index.php
+          cp .hostinger/.htaccess deploy_dist/.htaccess
+
+      - name: 🚀 Sync Files to Hostinger via FTP/FTPS
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          server-dir: ${{ secrets.FTP_SERVER_DIR || 'domains/novonexdelta.com/public_html/' }}
+          local-dir: deploy_dist/
+          protocol: ftp
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            deploy_dist/app/.env
+            deploy_dist/app/storage/logs/**
+            deploy_dist/app/storage/framework/sessions/**
+
+      - name: 🔄 Run Post-Deploy Migrations & Clear Cache (Optional Webhook)
+        if: ${{ env.DEPLOY_SECRET != '' }}
+        env:
+          DEPLOY_SECRET: ${{ secrets.DEPLOY_SECRET }}
+        run: |
+          echo "Triggering post-deploy migration and cache optimization..."
+          curl -s -X POST "https://novonexdelta.com/api/deploy/post-update" \
+            -H "Content-Type: application/json" \
+            -H "X-Deploy-Secret: ${{ secrets.DEPLOY_SECRET }}" || echo "Webhook trigger skipped or finished."
+

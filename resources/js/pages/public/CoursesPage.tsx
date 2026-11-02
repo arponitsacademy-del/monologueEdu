@@ -1,0 +1,334 @@
+import React, { useEffect, useState } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { apiClient, formatBDT } from '../../api/client';
+import { Course, Category, CustomPage } from '../../types';
+import { PageBlockRenderer } from '../../components/builder/PageBlockRenderer';
+import { useLanguage } from '../../context/LanguageContext';
+import { Search, BookOpen, Layers, Sparkles, X, ChevronRight } from 'lucide-react';
+
+export const CoursesPage: React.FC = () => {
+    const { t, language } = useLanguage();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [courses, setCourses] = useState<Course[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [pageConfig, setPageConfig] = useState<CustomPage | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    const activeCategory = searchParams.get('category') || '';
+    const activeSearch = searchParams.get('search') || '';
+
+    // Fetch page settings from visual page builder/admin page edit
+    useEffect(() => {
+        const fetchPageAndCategories = async () => {
+            try {
+                const [catsRes, pageRes] = await Promise.allSettled([
+                    apiClient.get('/categories'),
+                    apiClient.get('/pages/courses'),
+                ]);
+
+                let allCats: Category[] = [];
+                if (catsRes.status === 'fulfilled') {
+                    allCats = catsRes.value.data || [];
+                }
+
+                // Filter out pseudo categories 'free-courses' & 'paid-courses'
+                let validCats = allCats.filter(c => c.slug !== 'free-courses' && c.slug !== 'paid-courses');
+
+                if (pageRes.status === 'fulfilled' && pageRes.value.data?.page) {
+                    const page = pageRes.value.data.page;
+                    setPageConfig(page);
+
+                    // Check if page builder has course_tabs block with selectedCategorySlugs
+                    const tabBlock = (page.blocks || []).find((b: any) => b.type === 'course_tabs');
+                    if (tabBlock?.settings?.selectedCategorySlugs && Array.isArray(tabBlock.settings.selectedCategorySlugs)) {
+                        const selectedSlugs: string[] = tabBlock.settings.selectedCategorySlugs;
+                        if (selectedSlugs.length > 0) {
+                            validCats = validCats.filter(c => selectedSlugs.includes(c.slug));
+                        }
+                    }
+                }
+
+                setCategories(validCats);
+            } catch {
+                // handle error
+            }
+        };
+
+        fetchPageAndCategories();
+    }, []);
+
+    useEffect(() => {
+        fetchCourses();
+    }, [activeCategory, activeSearch]);
+
+    const fetchCourses = async () => {
+        setLoading(true);
+        try {
+            const params = new URLSearchParams();
+            if (activeCategory) params.append('category', activeCategory);
+            if (activeSearch) params.append('search', activeSearch);
+
+            const { data } = await apiClient.get(`/courses?${params.toString()}`);
+            setCourses(data.data || []);
+        } catch {
+            // handle error
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        const q = formData.get('q') as string;
+        const newParams = new URLSearchParams(searchParams);
+        if (q) newParams.set('search', q);
+        else newParams.delete('search');
+        setSearchParams(newParams);
+    };
+
+    const handleSelectCategory = (categorySlug: string) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (!categorySlug || categorySlug === 'all') {
+            newParams.delete('category');
+        } else {
+            newParams.set('category', categorySlug);
+        }
+        setSearchParams(newParams);
+    };
+
+    // If page is fully customized with custom blocks (beyond standard grid), render builder view
+    const isCustomizedInBuilder = pageConfig && 
+        Array.isArray(pageConfig.blocks) && 
+        pageConfig.blocks.length > 0 &&
+        pageConfig.blocks.some(b => b.type !== 'course_tabs');
+
+    if (isCustomizedInBuilder && pageConfig) {
+        return (
+            <div className="space-y-0">
+                {pageConfig.custom_css && <style>{pageConfig.custom_css}</style>}
+                {pageConfig.blocks.map(block => (
+                    <PageBlockRenderer key={block.id} block={block} isBuilder={false} />
+                ))}
+            </div>
+        );
+    }
+
+    const currentCategoryObj = categories.find(c => c.slug === activeCategory);
+
+    return (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-10">
+            {/* Header & Search */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200/80 dark:border-slate-800 pb-8">
+                <div>
+                    <div className="inline-flex items-center gap-2 text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-widest mb-2">
+                        <Sparkles className="w-4 h-4" />
+                        <span>{language === 'en' ? 'Course Catalog' : 'কোর্স ক্যাটালগ'}</span>
+                    </div>
+                    <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                        {currentCategoryObj ? currentCategoryObj.name : t.courses.allTab}
+                    </h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        {currentCategoryObj?.description || (language === 'en' ? 'Choose the right course to achieve your goals. Comprehensive preparation with top instructors.' : 'আপনার লক্ষ্য অর্জনের জন্য উপযুক্ত কোর্সটি বেছে নিন। অভিজ্ঞ শিক্ষকদের সাথে পূর্ণাঙ্গ প্রস্তুতি।')}
+                    </p>
+                </div>
+
+                {/* Search Bar */}
+                <form onSubmit={handleSearchSubmit} className="relative max-w-md w-full">
+                    <input
+                        type="text"
+                        name="q"
+                        defaultValue={activeSearch}
+                        placeholder={t.courses.searchPlaceholder}
+                        className="w-full pl-11 pr-4 py-3 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 text-sm shadow-2xs placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                    />
+                    <Search className="w-5 h-5 text-slate-400 dark:text-slate-500 absolute left-3.5 top-3.5" />
+                </form>
+            </div>
+
+            {/* Category Filter Tabs */}
+            <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <Layers className="w-3.5 h-3.5 text-sky-500" />
+                        <span>{t.courses.filterByCategory}</span>
+                    </span>
+                    {activeCategory && (
+                        <button
+                            type="button"
+                            onClick={() => handleSelectCategory('all')}
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-rose-500 hover:text-rose-600 cursor-pointer"
+                        >
+                            <X className="w-3.5 h-3.5" />
+                            <span>{language === 'en' ? 'Reset Filter' : 'ফিল্টার রিসেট করুন'}</span>
+                        </button>
+                    )}
+                </div>
+
+                {/* Horizontally Scrollable Category Pill Tabs */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                    {/* All Courses Tab */}
+                    <button
+                        type="button"
+                        onClick={() => handleSelectCategory('all')}
+                        className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
+                            activeCategory === ''
+                                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30 ring-2 ring-sky-500/20'
+                                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800 shadow-2xs'
+                        }`}
+                    >
+                        <span>{t.courses.allTab}</span>
+                    </button>
+
+                    {/* Educational Categories Selected in Builder/Page Edit */}
+                    {categories.map((cat) => {
+                        const isSelected = activeCategory === cat.slug;
+                        return (
+                            <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => handleSelectCategory(cat.slug)}
+                                className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shrink-0 cursor-pointer flex items-center gap-2 ${
+                                    isSelected
+                                        ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30 ring-2 ring-sky-500/20'
+                                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800 shadow-2xs'
+                                }`}
+                            >
+                                <span>{cat.name}</span>
+                                {cat.courses_count !== undefined && cat.courses_count > 0 && (
+                                    <span
+                                        className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                                            isSelected
+                                                ? 'bg-white/20 text-white'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                                        }`}
+                                    >
+                                        {cat.courses_count}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Courses Grid */}
+            {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {[1, 2, 3, 4, 5, 6].map((n) => (
+                        <div key={n} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4 animate-pulse space-y-4">
+                            <div className="h-48 bg-slate-200 dark:bg-slate-800 rounded-xl" />
+                            <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded w-3/4" />
+                            <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-1/2" />
+                        </div>
+                    ))}
+                </div>
+            ) : courses.length === 0 ? (
+                <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3">
+                    <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto" />
+                    <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">
+                        {language === 'en' ? 'No Courses Found' : 'কোনো কোর্স পাওয়া যায়নি'}
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                        {language === 'en' ? 'There are currently no courses in this category or matching your search.' : 'এই ক্যাটাগরিতে বর্তমানে কোনো কোর্স নেই অথবা অনুসন্ধানের সাথে মেলেনি।'}
+                    </p>
+                    {activeCategory && (
+                        <button
+                            type="button"
+                            onClick={() => handleSelectCategory('all')}
+                            className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 text-white font-bold text-xs rounded-xl shadow-xs hover:bg-sky-700 transition-colors cursor-pointer"
+                        >
+                            <span>{t.courses.viewAll}</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {courses.map((course) => (
+                        <div
+                            key={course.id}
+                            className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-xl hover:border-sky-300 dark:hover:border-sky-500 transition-all flex flex-col overflow-hidden"
+                        >
+                            <div className="relative aspect-video bg-slate-900 overflow-hidden">
+                                {course.thumbnail ? (
+                                    <img
+                                        src={course.thumbnail}
+                                        alt={course.title}
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-800 to-slate-950 text-white">
+                                        <BookOpen className="w-12 h-12 text-sky-400 opacity-60" />
+                                    </div>
+                                )}
+                                {course.discount_percent && course.discount_percent > 0 ? (
+                                    <span className="absolute top-3 right-3 px-2.5 py-1 text-xs font-black bg-rose-500 text-white rounded-lg shadow-md">
+                                        {course.discount_percent}{t.courses.off}
+                                    </span>
+                                ) : course.price === 0 ? (
+                                    <span className="absolute top-3 right-3 px-2.5 py-1 text-xs font-black bg-emerald-500 text-white rounded-lg shadow-md">
+                                        {t.courses.free}
+                                    </span>
+                                ) : null}
+                            </div>
+
+                            <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+                                        <span>{course.lessons_count || 0} {t.courses.lessonsCount}</span>
+                                        <span>•</span>
+                                        <span>{course.enrollments_count || 0} {t.courses.studentsCount}</span>
+                                    </div>
+
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
+                                        {course.title}
+                                    </h3>
+
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                                        {course.short_description || (language === 'en' ? 'Specialized course prepared according to the complete syllabus.' : 'সম্পূর্ণ সিলেবাস অনুযায়ী প্রস্তুতকৃত বিশেষ কোর্স।')}
+                                    </p>
+                                </div>
+
+                                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400 truncate mr-2">
+                                        {language === 'en' ? 'Instructor:' : 'শিক্ষক:'}{' '}
+                                        <span className="font-bold text-slate-800 dark:text-slate-200">
+                                            {course.instructors && course.instructors.length > 0 
+                                                ? course.instructors.map(i => i.name).join(', ') 
+                                                : (course.instructor?.name || (language === 'en' ? 'Expert Mentor' : 'অভিজ্ঞ শিক্ষক'))}
+                                        </span>
+                                    </div>
+
+                                    <div className="text-right shrink-0">
+                                        {course.price === 0 ? (
+                                            <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">{t.courses.free}</span>
+                                        ) : (
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span className="text-lg font-black text-slate-900 dark:text-white">
+                                                    {formatBDT(course.effective_price || course.price)}
+                                                </span>
+                                                {course.sale_price && course.sale_price < course.price && (
+                                                    <span className="text-xs text-slate-400 line-through">
+                                                        {formatBDT(course.price)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <Link
+                                    to={`/courses/${course.slug}`}
+                                    className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-sky-600 group-hover:text-white font-bold text-sm text-slate-700 dark:text-slate-200 text-center transition-all shadow-xs cursor-pointer"
+                                >
+                                    {t.courses.viewDetails}
+                                </Link>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
