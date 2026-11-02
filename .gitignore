@@ -23,4 +23,5 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /deploy_dist
+/deploy_upload
 .ftp-deploy-sync-state.json

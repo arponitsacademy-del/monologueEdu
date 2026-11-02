@@ -36,11 +36,11 @@ jobs:
           npm install --legacy-peer-deps
           npm run build
 
-      - name: 🏗️ Prepare Hostinger Staging Structure
+      - name: 📦 Create Compressed Deployment Package (Fast & Reliable)
         run: |
-          # 1. Create clean deploy directory
-          rm -rf deploy_dist
-          mkdir -p deploy_dist/app
+          # 1. Clean previous staging directories
+          rm -rf deploy_dist deploy_upload
+          mkdir -p deploy_dist/app deploy_upload
 
           # 2. Copy Laravel backend core into app/
           cp -r app config database resources routes storage vendor artisan composer.json composer.lock deploy_dist/app/
@@ -61,32 +61,37 @@ jobs:
           cp .hostinger/index.php deploy_dist/index.php
           cp .hostinger/.htaccess deploy_dist/.htaccess
 
-      - name: 🚀 Sync Files to Hostinger via FTP/FTPS
+          # 6. Compress deploy_dist into a single zip file for ultra-fast transfer
+          cd deploy_dist
+          zip -q -r ../deploy_upload/deploy.zip .
+          cd ..
+
+          # 7. Add server-side extractor
+          cp .hostinger/deploy_extract.php deploy_upload/deploy_extract.php
+
+          echo "Deployment package prepared:"
+          ls -lh deploy_upload/
+
+      - name: 🚀 Upload Package via FTPS (Under 15 Seconds)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ${{ secrets.FTP_SERVER_DIR || 'public_html/' }}
-          local-dir: ./deploy_dist/
+          server-dir: ./
+          local-dir: ./deploy_upload/
           protocol: ftps
           port: 21
           dangerous-clean-slate: false
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            deploy_dist/app/.env
-            deploy_dist/app/storage/logs/**
-            deploy_dist/app/storage/framework/sessions/**
 
-      - name: 🔄 Run Post-Deploy Migrations & Clear Cache (Optional Webhook)
-        if: ${{ env.DEPLOY_SECRET != '' }}
-        env:
-          DEPLOY_SECRET: ${{ secrets.DEPLOY_SECRET }}
+      - name: ⚡ Extract Package & Optimize on Server
         run: |
-          echo "Triggering post-deploy migration and cache optimization..."
-          curl -s -X POST "https://novonexdelta.com/api/deploy/post-update" \
-            -H "Content-Type: application/json" \
-            -H "X-Deploy-Secret: ${{ secrets.DEPLOY_SECRET }}" || echo "Webhook trigger skipped or finished."
-
+          echo "Extracting deployment package on Hostinger..."
+          RESPONSE=$(curl -s "https://novonexdelta.com/deploy_extract.php?secret=NovonexDeploy_2026_DeltaSecretKey")
+          echo "Server response: $RESPONSE"
+          if [[ "$RESPONSE" == *"success"* ]]; then
+            echo "✅ Deployment successful and verified!"
+          else
+            echo "❌ Extraction failed, see response above"
+            exit 1
+          fi
