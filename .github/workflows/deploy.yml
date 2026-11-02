@@ -67,7 +67,7 @@ jobs:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: ${{ secrets.FTP_SERVER_DIR || 'domains/novonexdelta.com/public_html/' }}
+          server-dir: ${{ secrets.FTP_SERVER_DIR || 'public_html/' }}
           local-dir: ./deploy_dist/
           protocol: ftps
           port: 21
