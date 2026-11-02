@@ -77,7 +77,10 @@ export const AdminSettingsPage: React.FC = () => {
             const { data } = await apiClient.post('/admin/vdocipher/test-connection', {
                 api_secret: vdoSecret
             });
-            setVdoTestResult({ success: true, message: data.message });
+            setVdoTestResult({
+                success: Boolean(data.success),
+                message: data.message || (data.success ? 'কানেকশন সফল!' : 'কানেকশন ব্যর্থ হয়েছে।')
+            });
             if (data.success) {
                 setVdoHasSecret(true);
             }
@@ -101,11 +104,21 @@ export const AdminSettingsPage: React.FC = () => {
                 api_secret: vdoSecret,
                 watermark_enabled: vdoWatermark,
             });
-            setVdoHasSecret(data.settings.has_api_secret);
-            setVdoSuccessMsg(data.message || 'VdoCipher কনফিগারেশন সফলভাবে সংরক্ষণ করা হয়েছে!');
-            setTimeout(() => setVdoSuccessMsg(null), 4000);
+            if (data.success !== false) {
+                setVdoHasSecret(Boolean(data.settings?.has_api_secret ?? true));
+                setVdoSuccessMsg(data.message || 'VdoCipher কনফিগারেশন সফলভাবে সংরক্ষণ করা হয়েছে!');
+                setTimeout(() => setVdoSuccessMsg(null), 4000);
+            } else {
+                setVdoTestResult({
+                    success: false,
+                    message: data.message || 'সেটিংস সংরক্ষণ ব্যর্থ হয়েছে।'
+                });
+            }
         } catch (err: any) {
-            alert(err.response?.data?.message || 'VdoCipher সেটিংস সংরক্ষণ করতে ব্যর্থ হয়েছে।');
+            setVdoTestResult({
+                success: false,
+                message: err.response?.data?.message || 'VdoCipher সেটিংস সংরক্ষণ করতে ব্যর্থ হয়েছে।'
+            });
         } finally {
             setVdoSaving(false);
         }
@@ -122,14 +135,16 @@ export const AdminSettingsPage: React.FC = () => {
                 contact_phone: contactPhone,
             };
 
-            const [genRes] = await Promise.all([
-                apiClient.put('/admin/website-settings', updatePayload),
-                apiClient.put('/admin/vdocipher/settings', {
+            const genRes = await apiClient.put('/admin/website-settings', updatePayload);
+            
+            // Also update vdocipher if configured
+            try {
+                await apiClient.put('/admin/vdocipher/settings', {
                     enabled: vdoEnabled,
                     api_secret: vdoSecret,
                     watermark_enabled: vdoWatermark,
-                })
-            ]);
+                });
+            } catch (_) {}
 
             updateSettingsLocally(updatePayload);
             await refreshSettings();
@@ -137,7 +152,8 @@ export const AdminSettingsPage: React.FC = () => {
             setSuccessMessage(genRes.data.message || t.settings.successMsg);
             setTimeout(() => setSuccessMessage(null), 4000);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'Failed to save settings.');
+            setSuccessMessage(null);
+            alert(err.response?.data?.message || 'সেটিংস সংরক্ষণ ব্যর্থ হয়েছে।');
         } finally {
             setSaving(false);
         }

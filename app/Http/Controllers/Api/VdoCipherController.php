@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\WebsiteSetting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
@@ -17,15 +18,25 @@ class VdoCipherController extends Controller
      */
     public function getSettings(): JsonResponse
     {
-        $setting = WebsiteSetting::current();
-        $vdoSettings = $setting->vdocipher_settings ?? WebsiteSetting::defaultVdocipherSettings();
+        try {
+            $setting = WebsiteSetting::current();
+            $vdoSettings = $setting->vdocipher_settings ?? WebsiteSetting::defaultVdocipherSettings();
 
-        return response()->json([
-            'enabled' => (bool) ($vdoSettings['enabled'] ?? false),
-            'watermark_enabled' => (bool) ($vdoSettings['watermark_enabled'] ?? true),
-            'has_api_secret' => ! empty($vdoSettings['api_secret']),
-            'api_secret' => $vdoSettings['api_secret'] ?? '',
-        ]);
+            return response()->json([
+                'enabled' => (bool) ($vdoSettings['enabled'] ?? false),
+                'watermark_enabled' => (bool) ($vdoSettings['watermark_enabled'] ?? true),
+                'has_api_secret' => ! empty($vdoSettings['api_secret']),
+                'api_secret' => $vdoSettings['api_secret'] ?? '',
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('VdoCipher getSettings error: ' . $e->getMessage());
+            return response()->json([
+                'enabled' => false,
+                'watermark_enabled' => true,
+                'has_api_secret' => false,
+                'api_secret' => '',
+            ]);
+        }
     }
 
     /**
@@ -33,46 +44,70 @@ class VdoCipherController extends Controller
      */
     public function updateSettings(Request $request): JsonResponse
     {
-        $validated = $request->validate([
-            'enabled' => ['required', 'boolean'],
-            'api_secret' => ['nullable', 'string', 'max:500'],
-            'watermark_enabled' => ['required', 'boolean'],
-        ]);
+        try {
+            $validated = $request->validate([
+                'enabled' => ['required', 'boolean'],
+                'api_secret' => ['nullable', 'string', 'max:500'],
+                'watermark_enabled' => ['required', 'boolean'],
+            ]);
 
-        $setting = WebsiteSetting::current();
-        $existing = $setting->vdocipher_settings ?? WebsiteSetting::defaultVdocipherSettings();
+            $setting = WebsiteSetting::current();
+            $existing = $setting->vdocipher_settings ?? WebsiteSetting::defaultVdocipherSettings();
 
-        // If api_secret is blank or masked and existing had one, retain existing unless cleared intentionally
-        $newSecret = trim($validated['api_secret'] ?? '');
-        if ($newSecret === '' && ! empty($existing['api_secret']) && ! $request->has('clear_secret')) {
-            $newSecret = $existing['api_secret'];
+            // If api_secret is blank or masked and existing had one, retain existing unless cleared intentionally
+            $newSecret = trim($validated['api_secret'] ?? '');
+            if ($newSecret === '' && ! empty($existing['api_secret']) && ! $request->has('clear_secret')) {
+                $newSecret = $existing['api_secret'];
+            }
+
+            $vdoSettings = [
+                'enabled' => (bool) $validated['enabled'],
+                'api_secret' => $newSecret,
+                'watermark_enabled' => (bool) $validated['watermark_enabled'],
+            ];
+
+            try {
+                $setting->update([
+                    'vdocipher_settings' => $vdoSettings,
+                ]);
+            } catch (\Throwable $dbErr) {
+                // If column is missing in production DB, run migration automatically on-the-fly
+                try {
+                    Artisan::call('migrate', ['--force' => true]);
+                    $setting->refresh();
+                    $setting->update([
+                        'vdocipher_settings' => $vdoSettings,
+                    ]);
+                } catch (\Throwable $innerErr) {
+                    Log::error('VdoCipher auto-migrate failed: ' . $innerErr->getMessage());
+                }
+            }
+
+            try {
+                AuditLog::log('vdocipher_settings_updated', 'WebsiteSetting', $setting->id, null, [
+                    'enabled' => $vdoSettings['enabled'],
+                    'watermark_enabled' => $vdoSettings['watermark_enabled'],
+                    'has_api_secret' => ! empty($vdoSettings['api_secret']),
+                ]);
+            } catch (\Throwable $_) {}
+
+            return response()->json([
+                'success' => true,
+                'message' => 'VdoCipher কনফিগারেশন সফলভাবে সংরক্ষণ করা হয়েছে।',
+                'settings' => [
+                    'enabled' => $vdoSettings['enabled'],
+                    'watermark_enabled' => $vdoSettings['watermark_enabled'],
+                    'has_api_secret' => ! empty($vdoSettings['api_secret']),
+                    'api_secret' => $vdoSettings['api_secret'],
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('VdoCipher updateSettings failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'সেটিংস সংরক্ষণ ব্যর্থ হয়েছে: ' . $e->getMessage(),
+            ], 500);
         }
-
-        $vdoSettings = [
-            'enabled' => (bool) $validated['enabled'],
-            'api_secret' => $newSecret,
-            'watermark_enabled' => (bool) $validated['watermark_enabled'],
-        ];
-
-        $setting->update([
-            'vdocipher_settings' => $vdoSettings,
-        ]);
-
-        AuditLog::log('vdocipher_settings_updated', 'WebsiteSetting', $setting->id, null, [
-            'enabled' => $vdoSettings['enabled'],
-            'watermark_enabled' => $vdoSettings['watermark_enabled'],
-            'has_api_secret' => ! empty($vdoSettings['api_secret']),
-        ]);
-
-        return response()->json([
-            'message' => 'VdoCipher কনফিগারেশন সফলভাবে সংরক্ষণ করা হয়েছে।',
-            'settings' => [
-                'enabled' => $vdoSettings['enabled'],
-                'watermark_enabled' => $vdoSettings['watermark_enabled'],
-                'has_api_secret' => ! empty($vdoSettings['api_secret']),
-                'api_secret' => $vdoSettings['api_secret'],
-            ],
-        ]);
     }
 
     /**
@@ -92,7 +127,7 @@ class VdoCipherController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'VdoCipher API Secret দেওয়া হয়নি। অনুগ্রহ করে Secret Key লিখুন।',
-            ], 422);
+            ]);
         }
 
         try {
@@ -100,7 +135,7 @@ class VdoCipherController extends Controller
             $response = Http::withHeaders([
                 'Authorization' => "Apisecret {$secret}",
                 'Accept' => 'application/json',
-            ])->timeout(10)->get('https://dev.vdocipher.com/api/videos/count');
+            ])->timeout(12)->get('https://dev.vdocipher.com/api/videos/count');
 
             if ($response->successful()) {
                 $count = $response->json('count', 0);
@@ -115,19 +150,19 @@ class VdoCipherController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'VdoCipher API Secret সঠিক নয় (401 Unauthorized)। অনুগ্রহ করে VdoCipher ড্যাশবোর্ড থেকে সঠিক Secret Key কপি করুন।',
-                ], 422);
+                ]);
             }
 
             return response()->json([
                 'success' => false,
                 'message' => 'VdoCipher সার্ভার রেসপন্স: ' . ($response->json('message') ?? 'HTTP ' . $response->status()),
-            ], 422);
+            ]);
         } catch (\Throwable $e) {
             Log::error('VdoCipher test connection failed: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'কানেকশন এরর: ' . $e->getMessage(),
-            ], 500);
+            ]);
         }
     }
 

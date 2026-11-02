@@ -34,9 +34,11 @@ if (file_exists($zipFile)) {
             echo "ZipArchive open failed with code: " . $res . "\n";
         }
     } else {
-        // Fallback to system unzip command
-        @exec('unzip -o -q ' . escapeshellarg($zipFile) . ' -d ' . escapeshellarg(__DIR__), $unzipLog, $unzipCode);
-        echo "System unzip code: $unzipCode\n";
+        // Fallback to system unzip command if available
+        if (function_exists('exec')) {
+            @exec('unzip -o -q ' . escapeshellarg($zipFile) . ' -d ' . escapeshellarg(__DIR__), $unzipLog, $unzipCode);
+            echo "System unzip code: $unzipCode\n";
+        }
         @unlink($zipFile);
     }
 }
@@ -47,8 +49,29 @@ if (file_exists($zipFile)) {
 @unlink(__DIR__ . '/app/bootstrap/cache/config.php');
 @unlink(__DIR__ . '/app/bootstrap/cache/routes-v7.php');
 
-if (is_dir(__DIR__ . '/domains')) {
+if (is_dir(__DIR__ . '/domains') && function_exists('exec')) {
     @exec('rm -rf ' . escapeshellarg(__DIR__ . '/domains'));
+}
+
+// Run Laravel migrations and cache optimization
+if (file_exists(__DIR__ . '/app/vendor/autoload.php') && file_exists(__DIR__ . '/app/bootstrap/app.php')) {
+    try {
+        require_once __DIR__ . '/app/vendor/autoload.php';
+        $app = require_once __DIR__ . '/app/bootstrap/app.php';
+        $app->usePublicPath(__DIR__);
+
+        $kernel = $app->make(\Illuminate\Contracts\Console\Kernel::class);
+        $kernel->bootstrap();
+
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $migrateLog = \Illuminate\Support\Facades\Artisan::output();
+        echo "Artisan migrate:\n" . trim($migrateLog) . "\n";
+
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        echo "Artisan optimize:clear executed.\n";
+    } catch (\Throwable $e) {
+        echo "Artisan error: " . $e->getMessage() . "\n";
+    }
 }
 
 echo "status: success\n";
