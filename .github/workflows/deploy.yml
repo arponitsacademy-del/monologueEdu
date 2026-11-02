@@ -26,15 +26,14 @@ jobs:
         run: |
           composer install --no-dev --prefer-dist --optimize-autoloader --no-progress --no-interaction
 
-      - name: ⚡ Setup Node.js 20
+      - name: ⚡ Setup Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: 22
 
       - name: 🎨 Install NPM Dependencies & Build Vite Assets
         run: |
-          npm ci || npm install
+          npm install --legacy-peer-deps
           npm run build
 
       - name: 🏗️ Prepare Hostinger Staging Structure
