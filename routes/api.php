@@ -214,7 +214,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('courses', [NexPilotAdminController::class, 'getEligibleCourses']);
             Route::post('/', [NexPilotAdminController::class, 'store']);
             Route::get('settings', [NexPilotAdminController::class, 'getSettings']);
-            Route::put('settings', [NexPilotAdminController::class, 'updateSettings']);
+            Route::match(['post', 'put'], 'settings', [NexPilotAdminController::class, 'updateSettings']);
             Route::post('test-connection', [NexPilotAdminController::class, 'testConnection']);
             Route::post('upload-material', [NexPilotAdminController::class, 'uploadAttachment']);
             Route::get('{id}', [NexPilotAdminController::class, 'show']);
