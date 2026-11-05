@@ -27,6 +27,9 @@ class Order extends Model
         'original_price',
         'discount_amount',
         'final_amount',
+        'has_nexpilot',
+        'nexpilot_id',
+        'nexpilot_price',
         'payment_status',
         'order_status',
         'payment_method',
@@ -37,6 +40,8 @@ class Order extends Model
         'original_price' => 'float',
         'discount_amount' => 'float',
         'final_amount' => 'float',
+        'has_nexpilot' => 'boolean',
+        'nexpilot_price' => 'float',
     ];
 
     public static function generateOrderNumber(): string
@@ -57,6 +62,11 @@ class Order extends Model
     public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function nexpilot(): BelongsTo
+    {
+        return $this->belongsTo(NexPilot::class, 'nexpilot_id');
     }
 
     public function payments(): HasMany

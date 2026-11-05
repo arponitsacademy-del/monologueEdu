@@ -31,6 +31,9 @@ import { AdminHeaderBuilderPage } from '../pages/admin/AdminHeaderBuilderPage';
 import { AdminFooterBuilderPage } from '../pages/admin/AdminFooterBuilderPage';
 import { AdminAppearanceGeneralPage } from '../pages/admin/AdminAppearanceGeneralPage';
 import { AdminManualPaymentPage } from '../pages/admin/AdminManualPaymentPage';
+import { AdminNexPilotsPage } from '../pages/admin/AdminNexPilotsPage';
+import { AdminNexPilotEditPage } from '../pages/admin/AdminNexPilotEditPage';
+import { AdminNexPilotBuilderPage } from '../pages/admin/AdminNexPilotBuilderPage';
 import { CustomPageView } from '../pages/public/CustomPageView';
 
 // Teacher pages
@@ -42,6 +45,7 @@ import { TeacherQuestionsPage } from '../pages/teacher/TeacherQuestionsPage';
 import { StudentDashboardPage } from '../pages/student/StudentDashboardPage';
 import { StudentCoursesPage } from '../pages/student/StudentCoursesPage';
 import { StudentOrdersPage } from '../pages/student/StudentOrdersPage';
+import { StudentNexPilotPage } from '../pages/student/StudentNexPilotPage';
 
 // Learning page
 import { LessonPlayerPage } from '../pages/learning/LessonPlayerPage';
@@ -74,6 +78,10 @@ export const AppRoutes: React.FC = () => {
                 <Route path="courses/categories" element={<AdminCourseCategoriesPage />} />
                 <Route path="courses/:id/edit" element={<AdminCourseEditPage />} />
                 <Route path="courses/:id/builder" element={<AdminCourseBuilderPage />} />
+                <Route path="nexpilot" element={<AdminNexPilotsPage />} />
+                <Route path="nexpilot/new" element={<AdminNexPilotEditPage />} />
+                <Route path="nexpilot/:id/edit" element={<AdminNexPilotEditPage />} />
+                <Route path="nexpilot/:id/builder" element={<AdminNexPilotBuilderPage />} />
                 <Route path="pages" element={<AdminPagesPage />} />
                 <Route path="appearance" element={<Navigate to="/admin/appearance/general" replace />} />
                 <Route path="appearance/general" element={<AdminAppearanceGeneralPage />} />
@@ -101,6 +109,7 @@ export const AppRoutes: React.FC = () => {
             <Route path="/student" element={<DashboardLayout />}>
                 <Route index element={<StudentDashboardPage />} />
                 <Route path="my-courses" element={<StudentCoursesPage />} />
+                <Route path="courses/:courseId/nexpilot" element={<StudentNexPilotPage />} />
                 <Route path="orders" element={<StudentOrdersPage />} />
             </Route>
 

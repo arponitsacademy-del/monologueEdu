@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../../api/client';
-import { BookOpen, PlayCircle, Clock } from 'lucide-react';
+import { BookOpen, PlayCircle, Clock, Bot, Sparkles } from 'lucide-react';
 
 export const StudentCoursesPage: React.FC = () => {
     const [coursesData, setCoursesData] = useState<any[]>([]);
@@ -65,7 +65,19 @@ export const StudentCoursesPage: React.FC = () => {
 
                                 <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                                     <div>
-                                        <h3 className="font-bold text-slate-900 text-base line-clamp-2">{course.title}</h3>
+                                        <div className="flex items-start justify-between gap-2">
+                                            <h3 className="font-bold text-slate-900 text-base line-clamp-2 flex-1">{course.title}</h3>
+                                            {item.has_nexpilot && (
+                                                <Link
+                                                    to={`/student/courses/${course.id}/nexpilot`}
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-sky-600 to-indigo-600 text-white text-[11px] font-bold rounded-lg shadow-xs hover:from-sky-700 hover:to-indigo-700 shrink-0 transition-all hover:scale-105"
+                                                    title="NexPilot AI টিউটর"
+                                                >
+                                                    <Sparkles className="w-3 h-3 text-amber-300" />
+                                                    <span>Pilot</span>
+                                                </Link>
+                                            )}
+                                        </div>
                                         <p className="text-xs text-slate-500 mt-1">
                                             শিক্ষক: {course.instructors?.map((i: any) => i.name).join(', ') || 'অভিজ্ঞ মেন্টর'}
                                         </p>
@@ -85,15 +97,37 @@ export const StudentCoursesPage: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <Link
-                                        to={last_lesson_id 
-                                            ? `/learning/${course.id}/lessons/${last_lesson_id}` 
-                                            : `/courses/${course.slug}`}
-                                        className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
-                                    >
-                                        <PlayCircle className="w-4 h-4" />
-                                        <span>ক্লাস চালিয়ে যান</span>
-                                    </Link>
+                                    {item.has_nexpilot ? (
+                                        <div className="flex items-center gap-2">
+                                            <Link
+                                                to={last_lesson_id 
+                                                    ? `/learning/${course.id}/lessons/${last_lesson_id}` 
+                                                    : `/courses/${course.slug}`}
+                                                className="flex-1 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                                            >
+                                                <PlayCircle className="w-4 h-4" />
+                                                <span>ক্লাস চালিয়ে যান</span>
+                                            </Link>
+                                            <Link
+                                                to={`/student/courses/${course.id}/nexpilot`}
+                                                className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors shrink-0 border border-slate-700"
+                                                title="NexPilot AI টিউটর রুমে প্রবেশ করুন"
+                                            >
+                                                <Bot className="w-4 h-4 text-sky-400" />
+                                                <span>Pilot</span>
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <Link
+                                            to={last_lesson_id 
+                                                ? `/learning/${course.id}/lessons/${last_lesson_id}` 
+                                                : `/courses/${course.slug}`}
+                                            className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                                        >
+                                            <PlayCircle className="w-4 h-4" />
+                                            <span>ক্লাস চালিয়ে যান</span>
+                                        </Link>
+                                    )}
                                 </div>
                             </div>
                         );

@@ -13,7 +13,9 @@ import {
     BookOpen, 
     CheckCircle2,
     Copy,
-    Check
+    Check,
+    Sparkles,
+    Bot
 } from 'lucide-react';
 
 const DEFAULT_MANUAL_SETTINGS: ManualPaymentSettings = {
@@ -52,6 +54,7 @@ export const CheckoutPage: React.FC = () => {
 
     const [course, setCourse] = useState<Course | null>(null);
     const [loading, setLoading] = useState(true);
+    const [includeNexPilot, setIncludeNexPilot] = useState(true);
     const [paymentMethod, setPaymentMethod] = useState<'manual_bkash' | 'manual_nagad' | 'manual_rocket'>('manual_bkash');
     const [transactionRef, setTransactionRef] = useState('');
     const [senderPhone, setSenderPhone] = useState(user?.phone || '');
@@ -131,6 +134,12 @@ export const CheckoutPage: React.FC = () => {
     const currentNumber = activeGateway?.config?.account_number || '01700000000';
     const currentType: ManualPaymentType = activeGateway?.config?.type || 'send_money';
 
+    const nexpilot = course?.nexpilot;
+    const hasActivePilot = Boolean(nexpilot && (nexpilot.is_active === true || nexpilot.is_active === 1 || nexpilot.is_active === '1'));
+    const pilotPrice = hasActivePilot && includeNexPilot ? Number(nexpilot.price || 0) : 0;
+    const courseBasePrice = course ? Number(course.effective_price || course.price || 0) : 0;
+    const totalPayable = courseBasePrice + pilotPrice;
+
     const getMethodTypeLabel = (type: ManualPaymentType) => {
         if (type === 'payment') {
             return language === 'en' ? 'Payment' : 'পেমেন্ট';
@@ -171,6 +180,7 @@ export const CheckoutPage: React.FC = () => {
                 transaction_ref: transactionRef,
                 sender_phone: senderPhone,
                 notes,
+                include_nexpilot: hasActivePilot && includeNexPilot,
             });
 
             navigate(`/order-status/${data.order.order_number}`, { state: { order: data.order } });
@@ -277,7 +287,7 @@ export const CheckoutPage: React.FC = () => {
 
                                 <p className="pt-0.5">
                                     {language === 'en' ? '3. Send Amount: ' : '৩. টাকার পরিমাণ: '}
-                                    <strong className="text-slate-900">{formatBDT(course.effective_price || course.price)}</strong>
+                                    <strong className="text-slate-900">{formatBDT(totalPayable)}</strong>
                                 </p>
 
                                 {/* Custom instruction note from admin if provided */}
@@ -384,6 +394,50 @@ export const CheckoutPage: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* NexPilot Add-on Option if course has NexPilot */}
+                        {hasActivePilot && (
+                            <div 
+                                onClick={() => setIncludeNexPilot(!includeNexPilot)}
+                                className={`p-4 rounded-2xl border-2 transition-all cursor-pointer select-none ${
+                                    includeNexPilot 
+                                        ? 'bg-linear-to-br from-indigo-50/80 via-sky-50/50 to-white border-indigo-400 shadow-xs' 
+                                        : 'bg-slate-50 border-slate-200 hover:border-slate-300 opacity-80'
+                                }`}
+                            >
+                                <div className="flex items-start gap-3">
+                                    <input
+                                        type="checkbox"
+                                        checked={includeNexPilot}
+                                        onChange={(e) => setIncludeNexPilot(e.target.checked)}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="mt-1 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                    />
+                                    <div className="flex-1">
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="font-black text-sm text-slate-900 flex items-center gap-1.5">
+                                                <Sparkles className="w-4 h-4 text-amber-500" />
+                                                <span>NexPilot AI টিউটর</span>
+                                            </span>
+                                            <span className="font-black text-sm text-indigo-600">
+                                                +{formatBDT(nexpilot.price)}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                            {nexpilot.short_description || 'সম্পূর্ণ কোর্সের থিওরি ও প্র্যাকটিসে সার্বক্ষণিক পার্সোনালাইজড এআই টিউটর সহায়তা।'}
+                                        </p>
+                                        <div className="mt-2.5 flex items-center gap-2">
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700">
+                                                Theory + Practice
+                                            </span>
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700">
+                                                OpenAI Powered
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Pricing Breakdown */}
                         <div className="space-y-3 pt-4 border-t border-slate-100 text-sm">
                             <div className="flex justify-between text-slate-600">
@@ -398,9 +452,19 @@ export const CheckoutPage: React.FC = () => {
                                 </div>
                             )}
 
+                            {hasActivePilot && includeNexPilot && (
+                                <div className="flex justify-between text-indigo-600 font-medium">
+                                    <span className="flex items-center gap-1.5">
+                                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                                        <span>NexPilot AI লার্নিং অ্যাসিস্ট্যান্ট</span>
+                                    </span>
+                                    <span className="font-semibold">+{formatBDT(nexpilot.price)}</span>
+                                </div>
+                            )}
+
                             <div className="flex justify-between text-lg font-black text-slate-900 pt-3 border-t border-slate-100">
                                 <span>{language === 'en' ? 'Total Payable' : 'মোট প্রদেয়'}</span>
-                                <span className="text-sky-600">{formatBDT(course.effective_price || course.price)}</span>
+                                <span className="text-sky-600">{formatBDT(totalPayable)}</span>
                             </div>
                         </div>
 

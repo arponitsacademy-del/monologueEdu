@@ -21,6 +21,7 @@ class WebsiteSetting extends Model
         'footer_settings',
         'manual_payment_settings',
         'vdocipher_settings',
+        'openai_settings',
     ];
 
     protected $casts = [
@@ -28,6 +29,7 @@ class WebsiteSetting extends Model
         'footer_settings' => 'array',
         'manual_payment_settings' => 'array',
         'vdocipher_settings' => 'array',
+        'openai_settings' => 'array',
     ];
 
     public static function defaultHeaderSettings(): array
@@ -130,6 +132,16 @@ class WebsiteSetting extends Model
         ];
     }
 
+    public static function defaultOpenaiSettings(): array
+    {
+        return [
+            'api_key' => '',
+            'default_model' => 'gpt-4o-mini',
+            'cost_per_1k_input' => 0.00015,
+            'cost_per_1k_output' => 0.00060,
+        ];
+    }
+
     public static function current(): self
     {
         $setting = static::first();
@@ -148,6 +160,7 @@ class WebsiteSetting extends Model
                 'header_settings' => static::defaultHeaderSettings(),
                 'footer_settings' => static::defaultFooterSettings(),
                 'manual_payment_settings' => static::defaultManualPaymentSettings(),
+                'openai_settings' => static::defaultOpenaiSettings(),
             ]);
         }
 
@@ -163,6 +176,9 @@ class WebsiteSetting extends Model
         }
         if (empty($setting->vdocipher_settings)) {
             $setting->vdocipher_settings = static::defaultVdocipherSettings();
+        }
+        if (empty($setting->openai_settings)) {
+            $setting->openai_settings = static::defaultOpenaiSettings();
         }
 
         return $setting;

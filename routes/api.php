@@ -20,6 +20,8 @@ use App\Http\Controllers\Api\SmsMarketingController;
 use App\Http\Controllers\Api\SmsSettingsController;
 use App\Http\Controllers\Api\VdoCipherController;
 use App\Http\Controllers\Api\WebsiteSettingsController;
+use App\Http\Controllers\Api\NexPilotAdminController;
+use App\Http\Controllers\Api\NexPilotStudentController;
 use App\Models\Course;
 use App\Models\LessonComment;
 use Illuminate\Http\Request;
@@ -75,6 +77,13 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // VdoCipher DRM OTP Playback
     Route::post('vdocipher/otp', [VdoCipherController::class, 'getOtp']);
+
+    // NexPilot Student Learning Room & Chatbot
+    Route::prefix('student/nexpilot')->group(function () {
+        Route::get('courses/{courseId}', [NexPilotStudentController::class, 'getPilotForCourse']);
+        Route::get('topics/{topicId}/history', [NexPilotStudentController::class, 'getTopicChatHistory']);
+        Route::post('topics/{topicId}/chat', [NexPilotStudentController::class, 'sendMessage']);
+    });
 
     // Course Builder (Accessible to Admin & Assigned Teachers)
     Route::prefix('builder')->group(function () {
@@ -198,6 +207,25 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('pages/{id}', [AdminPageController::class, 'destroy']);
         Route::post('pages/{id}/toggle-status', [AdminPageController::class, 'toggleStatus']);
         Route::post('pages/{id}/duplicate', [AdminPageController::class, 'duplicate']);
+
+        // NexPilot AI Management
+        Route::prefix('nexpilot')->group(function () {
+            Route::get('/', [NexPilotAdminController::class, 'index']);
+            Route::get('courses', [NexPilotAdminController::class, 'getEligibleCourses']);
+            Route::post('/', [NexPilotAdminController::class, 'store']);
+            Route::get('settings', [NexPilotAdminController::class, 'getSettings']);
+            Route::put('settings', [NexPilotAdminController::class, 'updateSettings']);
+            Route::post('test-connection', [NexPilotAdminController::class, 'testConnection']);
+            Route::post('upload-material', [NexPilotAdminController::class, 'uploadAttachment']);
+            Route::get('{id}', [NexPilotAdminController::class, 'show']);
+            Route::put('{id}', [NexPilotAdminController::class, 'update']);
+            Route::delete('{id}', [NexPilotAdminController::class, 'destroy']);
+            Route::get('{id}/builder', [NexPilotAdminController::class, 'getBuilderData']);
+            Route::post('{id}/topics', [NexPilotAdminController::class, 'storeTopic']);
+            Route::put('topics/{topicId}', [NexPilotAdminController::class, 'updateTopic']);
+            Route::delete('topics/{topicId}', [NexPilotAdminController::class, 'destroyTopic']);
+            Route::post('{id}/reorder-topics', [NexPilotAdminController::class, 'reorderTopics']);
+        });
     });
 });
 

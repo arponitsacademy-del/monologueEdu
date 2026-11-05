@@ -51,7 +51,7 @@ class EnrollmentController extends Controller
 
         $enrollments = $user->enrollments()
             ->with(['course' => function ($q) {
-                $q->with(['instructors:id,name', 'instructor:id,name'])
+                $q->with(['instructors:id,name', 'instructor:id,name', 'nexpilot:id,course_id,title,is_active'])
                   ->withCount('lessons');
             }])
             ->where('status', Enrollment::STATUS_ACTIVE)
@@ -74,6 +74,12 @@ class EnrollmentController extends Controller
                 ->latest('last_accessed_at')
                 ->first();
 
+            $pilot = $course->nexpilot;
+            $hasPilotAccess = (bool) (
+                $user->isAdmin() ||
+                ($enrollment->has_nexpilot && $pilot && $pilot->is_active)
+            );
+
             return [
                 'course' => $course,
                 'enrolled_at' => $enrollment->enrolled_at,
@@ -81,6 +87,8 @@ class EnrollmentController extends Controller
                 'completed_lessons' => $completedCount,
                 'progress_percentage' => $percentage,
                 'last_lesson_id' => $lastAccessed ? $lastAccessed->lesson_id : optional($course->lessons()->first())->id,
+                'has_nexpilot' => $hasPilotAccess,
+                'nexpilot_id' => $pilot ? $pilot->id : null,
             ];
         });
 

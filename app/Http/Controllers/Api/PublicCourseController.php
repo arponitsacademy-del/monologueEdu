@@ -59,6 +59,10 @@ class PublicCourseController extends Controller
                 'instructors:id,name,email,role',
                 'instructor:id,name,email',
                 'categories:id,name,slug',
+                'nexpilot' => function ($q) {
+                    $q->select('id', 'course_id', 'title', 'price', 'short_description', 'is_active')
+                      ->where('is_active', true);
+                },
                 'sections.lessons' => function ($q) {
                     $q->select('id', 'course_id', 'section_id', 'title', 'slug', 'duration_minutes', 'is_preview', 'sort_order')
                       ->orderBy('sort_order');

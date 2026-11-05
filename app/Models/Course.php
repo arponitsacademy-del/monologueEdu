@@ -88,6 +88,11 @@ class Course extends Model
         return $this->hasMany(Order::class);
     }
 
+    public function nexpilot(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(NexPilot::class);
+    }
+
     public function scopePublished($query)
     {
         return $query->where('status', self::STATUS_PUBLISHED);

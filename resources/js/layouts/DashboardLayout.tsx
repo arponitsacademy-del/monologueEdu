@@ -28,7 +28,9 @@ import {
     Image as ImageIcon,
     Layers,
     Palette,
-    CreditCard
+    CreditCard,
+    Bot,
+    Sparkles
 } from 'lucide-react';
 
 export const DashboardLayout: React.FC = () => {
@@ -45,6 +47,7 @@ export const DashboardLayout: React.FC = () => {
         '/admin/sms': true,
         '/admin/appearance': true,
         '/admin/payments': true,
+        '/admin/nexpilot': true,
     });
 
     const toggleSubmenu = (path: string, e?: React.MouseEvent) => {
@@ -117,6 +120,15 @@ export const DashboardLayout: React.FC = () => {
                         { title: t.sidebar.createCourse, path: '/admin/courses/create' },
                         { title: t.sidebar.courseManagement, path: '/admin/courses' },
                         { title: t.sidebar.courseCategories, path: '/admin/courses/categories' },
+                    ]
+                },
+                { 
+                    title: 'NexPilot', 
+                    path: '/admin/nexpilot', 
+                    icon: Bot,
+                    children: [
+                        { title: 'New Pilot', path: '/admin/nexpilot/new' },
+                        { title: 'All Pilots', path: '/admin/nexpilot' },
                     ]
                 },
                 { title: t.sidebar.pages || 'Pages', path: '/admin/pages', icon: Layers },

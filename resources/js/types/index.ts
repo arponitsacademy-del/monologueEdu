@@ -43,6 +43,7 @@ export interface Course {
     lessons?: Lesson[];
     lessons_count?: number;
     enrollments_count?: number;
+    nexpilot?: any;
     created_at?: string;
 }
 

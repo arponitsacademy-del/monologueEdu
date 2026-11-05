@@ -20,6 +20,7 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'course_id' => ['required', 'exists:courses,id'],
+            'include_nexpilot' => ['nullable', 'boolean'],
             'payment_method' => ['required', 'string', 'in:manual_bkash,manual_nagad,manual_rocket,bank,manual'],
             'transaction_ref' => ['required', 'string', 'max:100'],
             'sender_phone' => ['required', 'string', 'max:20'],
@@ -27,7 +28,7 @@ class OrderController extends Controller
         ]);
 
         $user = auth()->user();
-        $course = Course::findOrFail($validated['course_id']);
+        $course = Course::with('nexpilot')->findOrFail($validated['course_id']);
 
         if ($course->status !== Course::STATUS_PUBLISHED) {
             abort(404, 'কোর্সটি কেনার জন্য উপলব্ধ নেই।');
@@ -47,11 +48,21 @@ class OrderController extends Controller
             ], 422);
         }
 
-        $price = (float) $course->price;
-        $finalAmount = (float) $course->effective_price;
-        $discountAmount = max(0, $price - $finalAmount);
+        $includeNexPilot = (bool) ($validated['include_nexpilot'] ?? false);
+        $nexpilot = $course->nexpilot;
+        $nexpilotPrice = 0.0;
+        $nexpilotId = null;
+        if ($includeNexPilot && $nexpilot && $nexpilot->is_active) {
+            $nexpilotPrice = (float) $nexpilot->price;
+            $nexpilotId = $nexpilot->id;
+        }
 
-        $order = DB::transaction(function () use ($user, $course, $validated, $price, $discountAmount, $finalAmount) {
+        $price = (float) $course->price;
+        $courseFinalAmount = (float) $course->effective_price;
+        $discountAmount = max(0, $price - $courseFinalAmount);
+        $finalAmount = $courseFinalAmount + $nexpilotPrice;
+
+        $order = DB::transaction(function () use ($user, $course, $validated, $price, $discountAmount, $finalAmount, $includeNexPilot, $nexpilotId, $nexpilotPrice) {
             $order = Order::create([
                 'order_number' => Order::generateOrderNumber(),
                 'user_id' => $user->id,
@@ -59,6 +70,9 @@ class OrderController extends Controller
                 'original_price' => $price,
                 'discount_amount' => $discountAmount,
                 'final_amount' => $finalAmount,
+                'has_nexpilot' => $nexpilotPrice > 0 || ($includeNexPilot && $nexpilotId),
+                'nexpilot_id' => $nexpilotId,
+                'nexpilot_price' => $nexpilotPrice,
                 'payment_status' => Order::PAYMENT_PENDING,
                 'order_status' => Order::ORDER_PROCESSING,
                 'payment_method' => $validated['payment_method'],
@@ -155,6 +169,8 @@ class OrderController extends Controller
                 [
                     'order_id' => $order->id,
                     'status' => Enrollment::STATUS_ACTIVE,
+                    'has_nexpilot' => (bool) $order->has_nexpilot,
+                    'nexpilot_id' => $order->nexpilot_id,
                     'enrolled_at' => now(),
                 ]
             );

@@ -15,12 +15,15 @@ class Enrollment extends Model
         'user_id',
         'course_id',
         'order_id',
+        'has_nexpilot',
+        'nexpilot_id',
         'status',
         'enrolled_at',
         'expires_at',
     ];
 
     protected $casts = [
+        'has_nexpilot' => 'boolean',
         'enrolled_at' => 'datetime',
         'expires_at' => 'datetime',
     ];
@@ -38,6 +41,11 @@ class Enrollment extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function nexpilot(): BelongsTo
+    {
+        return $this->belongsTo(NexPilot::class, 'nexpilot_id');
     }
 
     public function isActive(): bool
