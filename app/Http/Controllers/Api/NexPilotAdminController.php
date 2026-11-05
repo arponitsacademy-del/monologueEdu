@@ -60,6 +60,7 @@ class NexPilotAdminController extends Controller
                     'price' => (float) $c->effective_price,
                     'status' => $c->status,
                     'has_pilot' => (bool) $c->nexpilot,
+                    'pilot_id' => $c->nexpilot?->id,
                 ];
             });
 

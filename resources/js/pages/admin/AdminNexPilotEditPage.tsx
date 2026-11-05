@@ -177,17 +177,28 @@ export const AdminNexPilotEditPage: React.FC = () => {
                         </label>
                         <select
                             required
-                            disabled={isEditMode}
                             value={selectedCourseId}
                             onChange={(e) => handleCourseSelect(Number(e.target.value))}
-                            className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500 disabled:opacity-60"
+                            className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
                         >
                             <option value="">-- কোর্স নির্বাচন করুন --</option>
-                            {courses.map((course) => (
-                                <option key={course.id} value={course.id} disabled={course.has_pilot && !isEditMode}>
-                                    {course.title} {course.has_pilot && !isEditMode ? '(ইতিমধ্যে পাইলট রয়েছে)' : ''} ({formatBDT(course.price)})
-                                </option>
-                            ))}
+                            {courses.map((course) => {
+                                const isCurrentCourse = isEditMode && course.id === selectedCourseId;
+                                const isOwnedByAnotherPilot = course.has_pilot && (!isEditMode || course.id !== selectedCourseId);
+
+                                return (
+                                    <option 
+                                        key={course.id} 
+                                        value={course.id} 
+                                        disabled={isOwnedByAnotherPilot}
+                                    >
+                                        {course.title}
+                                        {isCurrentCourse ? ' (বর্তমান কোর্স)' : ''}
+                                        {isOwnedByAnotherPilot ? ' (অন্য পাইলটে যুক্ত রয়েছে)' : ''} 
+                                        {` (${formatBDT(course.price)})`}
+                                    </option>
+                                );
+                            })}
                         </select>
                     </div>
 
