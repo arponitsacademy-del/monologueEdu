@@ -10,8 +10,10 @@ use App\Models\WebsiteSetting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class NexPilotAdminController extends Controller
 {
@@ -73,7 +75,7 @@ class NexPilotAdminController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'course_id' => ['required', 'exists:courses,id', 'unique:nexpilots,course_id'],
+            'course_id' => ['required', 'integer', 'exists:courses,id', 'unique:nexpilots,course_id'],
             'title' => ['nullable', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
             'short_description' => ['nullable', 'string', 'max:500'],
@@ -93,12 +95,23 @@ class NexPilotAdminController extends Controller
             $validated['openai_model'] = 'gpt-4o-mini';
         }
 
-        $pilot = NexPilot::create($validated);
+        try {
+            $pilot = NexPilot::create($validated);
 
-        return response()->json([
-            'message' => 'NexPilot সফলভাবে তৈরি করা হয়েছে।',
-            'pilot' => $pilot->load('course:id,title,price'),
-        ], 201);
+            return response()->json([
+                'message' => 'NexPilot সফলভাবে তৈরি করা হয়েছে।',
+                'pilot' => $pilot->load('course:id,title,price'),
+            ], 201);
+        } catch (\Throwable $e) {
+            Log::error('NexPilot store error: ' . $e->getMessage(), [
+                'payload' => $validated,
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'message' => 'পাইলট তৈরি করতে সমস্যা হয়েছে: ' . $e->getMessage(),
+            ], 422);
+        }
     }
 
     /**
@@ -121,7 +134,12 @@ class NexPilotAdminController extends Controller
         $pilot = NexPilot::findOrFail($id);
 
         $validated = $request->validate([
-            'course_id' => ['required', 'exists:courses,id', 'unique:nexpilots,course_id,' . $pilot->id],
+            'course_id' => [
+                'required',
+                'integer',
+                'exists:courses,id',
+                Rule::unique('nexpilots', 'course_id')->ignore($pilot->id),
+            ],
             'title' => ['required', 'string', 'max:255'],
             'price' => ['required', 'numeric', 'min:0'],
             'short_description' => ['nullable', 'string', 'max:500'],
@@ -133,16 +151,33 @@ class NexPilotAdminController extends Controller
             'is_active' => ['boolean'],
         ]);
 
+        // CRITICAL: Preserve current model or fallback to default; never set to null
         if (empty($validated['openai_model'])) {
-            $validated['openai_model'] = null;
+            $validated['openai_model'] = $pilot->openai_model ?: 'gpt-4o-mini';
         }
 
-        $pilot->update($validated);
+        if (!array_key_exists('openai_api_key', $validated)) {
+            $validated['openai_api_key'] = $pilot->openai_api_key;
+        }
 
-        return response()->json([
-            'message' => 'NexPilot সফলভাবে আপডেট করা হয়েছে।',
-            'pilot' => $pilot->fresh(['course:id,title,price']),
-        ]);
+        try {
+            $pilot->update($validated);
+
+            return response()->json([
+                'message' => 'NexPilot সফলভাবে আপডেট করা হয়েছে।',
+                'pilot' => $pilot->fresh(['course:id,title,price']),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('NexPilot update error: ' . $e->getMessage(), [
+                'pilot_id' => $id,
+                'payload' => $validated,
+                'exception' => $e,
+            ]);
+
+            return response()->json([
+                'message' => 'পাইলট আপডেট করতে ত্রুটি হয়েছে: ' . $e->getMessage(),
+            ], 422);
+        }
     }
 
     /**

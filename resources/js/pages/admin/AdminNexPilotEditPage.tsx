@@ -90,13 +90,13 @@ export const AdminNexPilotEditPage: React.FC = () => {
         setSaving(true);
 
         const payload = {
-            course_id: selectedCourseId,
-            title,
-            price,
-            short_description: shortDescription,
-            long_description: longDescription,
-            max_usd_limit: maxUsdLimit,
-            system_prompt: systemPrompt || null,
+            course_id: Number(selectedCourseId),
+            title: title.trim(),
+            price: Number(price) || 0,
+            short_description: shortDescription.trim(),
+            long_description: longDescription.trim(),
+            max_usd_limit: Number(maxUsdLimit) || 2.0,
+            system_prompt: systemPrompt?.trim() || null,
             is_active: isActive,
         };
 
@@ -118,7 +118,10 @@ export const AdminNexPilotEditPage: React.FC = () => {
                 }
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'পাইলট সংরক্ষণ করতে সমস্যা হয়েছে।');
+            const validationErrors = err.response?.data?.errors 
+                ? Object.values(err.response.data.errors).flat().join(' ')
+                : null;
+            setError(validationErrors || err.response?.data?.message || 'পাইলট সংরক্ষণ করতে সমস্যা হয়েছে।');
         } finally {
             setSaving(false);
         }
