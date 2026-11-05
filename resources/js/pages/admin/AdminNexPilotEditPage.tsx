@@ -96,8 +96,6 @@ export const AdminNexPilotEditPage: React.FC = () => {
             short_description: shortDescription,
             long_description: longDescription,
             max_usd_limit: maxUsdLimit,
-            openai_model: openaiModel,
-            openai_api_key: openaiApiKey || null,
             system_prompt: systemPrompt || null,
             is_active: isActive,
         };
@@ -314,48 +312,36 @@ export const AdminNexPilotEditPage: React.FC = () => {
                 <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-4 shadow-xs">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <Cpu className="w-4 h-4 text-indigo-600" />
-                        <span>AI মডেল ও নির্দেশনা</span>
+                        <span>AI মডেল ও কোর্স নির্দেশনা</span>
                     </h3>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                                OpenAI Model
-                            </label>
-                            <select
-                                value={openaiModel}
-                                onChange={(e) => setOpenaiModel(e.target.value)}
-                                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
-                            >
-                                <option value="gpt-4o-mini">gpt-4o-mini (সুপার ফাস্ট ও খরচ সবচেয়ে কম - Recommended)</option>
-                                <option value="gpt-4o">gpt-4o (সর্বোচ্চ নিখুঁত ও বুদ্ধিমান)</option>
-                                <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                            </select>
+                    {/* Centrally Connected Notice */}
+                    <div className="p-4 rounded-2xl bg-gradient-to-r from-sky-50 to-indigo-50/50 dark:from-slate-800 dark:to-indigo-950/30 border border-sky-100 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+                        <div className="flex items-center gap-2.5 text-slate-700 dark:text-slate-300">
+                            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+                            <span>
+                                OpenAI মডেল ও API কানেকশন কেন্দ্রীয়ভাবে <strong className="text-sky-600 dark:text-sky-400 font-bold">AI Model Configuration</strong> থেকে পরিচালিত হচ্ছে।
+                            </span>
                         </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                                কাস্টম API Key (ঐচ্ছিক)
-                            </label>
-                            <input
-                                type="password"
-                                value={openaiApiKey}
-                                onChange={(e) => setOpenaiApiKey(e.target.value)}
-                                placeholder="খালি রাখলে গ্লোবাল কী ব্যবহার হবে"
-                                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono focus:ring-2 focus:ring-sky-500"
-                            />
-                        </div>
+                        <Link
+                            to="/admin/nexpilot/ai-configuration"
+                            className="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400 font-bold hover:underline shrink-0 text-xs"
+                            target="_blank"
+                        >
+                            <span>মডেল পরিবর্তন করুন</span>
+                            <span>→</span>
+                        </Link>
                     </div>
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            সার্বিক পাইলট নির্দেশনা (Global System Prompt)
+                            এই কোর্সের জন্য বিশেষ নির্দেশনা (Optional Course System Prompt)
                         </label>
                         <textarea
                             rows={3}
                             value={systemPrompt}
                             onChange={(e) => setSystemPrompt(e.target.value)}
-                            placeholder="যেমন: শিক্ষার্থীদের সর্বদা বাংলায় বন্ধুত্বপূর্ণভাবে পড়াবে। প্রতিটি উত্তরে সহজ উদাহরণ দেবে..."
+                            placeholder="যেমন: এই কোর্সে শিক্ষার্থীদের পদার্থবিজ্ঞানের মৌলিক সূত্রগুলো বাংলায় উদাহরণসহ বোঝাবে..."
                             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
                         />
                     </div>

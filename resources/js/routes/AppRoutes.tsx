@@ -34,6 +34,7 @@ import { AdminManualPaymentPage } from '../pages/admin/AdminManualPaymentPage';
 import { AdminNexPilotsPage } from '../pages/admin/AdminNexPilotsPage';
 import { AdminNexPilotEditPage } from '../pages/admin/AdminNexPilotEditPage';
 import { AdminNexPilotBuilderPage } from '../pages/admin/AdminNexPilotBuilderPage';
+import { AdminNexPilotAiConfigPage } from '../pages/admin/AdminNexPilotAiConfigPage';
 import { CustomPageView } from '../pages/public/CustomPageView';
 
 // Teacher pages
@@ -80,6 +81,7 @@ export const AppRoutes: React.FC = () => {
                 <Route path="courses/:id/builder" element={<AdminCourseBuilderPage />} />
                 <Route path="nexpilot" element={<AdminNexPilotsPage />} />
                 <Route path="nexpilot/new" element={<AdminNexPilotEditPage />} />
+                <Route path="nexpilot/ai-configuration" element={<AdminNexPilotAiConfigPage />} />
                 <Route path="nexpilot/:id/edit" element={<AdminNexPilotEditPage />} />
                 <Route path="nexpilot/:id/builder" element={<AdminNexPilotBuilderPage />} />
                 <Route path="pages" element={<AdminPagesPage />} />

@@ -126,11 +126,15 @@ class NexPilotAdminController extends Controller
             'short_description' => ['nullable', 'string', 'max:500'],
             'long_description' => ['nullable', 'string'],
             'max_usd_limit' => ['required', 'numeric', 'min:0.01', 'max:100.00'],
-            'openai_model' => ['required', 'string', 'max:100'],
+            'openai_model' => ['nullable', 'string', 'max:100'],
             'openai_api_key' => ['nullable', 'string', 'max:500'],
             'system_prompt' => ['nullable', 'string'],
             'is_active' => ['boolean'],
         ]);
+
+        if (empty($validated['openai_model'])) {
+            $validated['openai_model'] = null;
+        }
 
         $pilot->update($validated);
 
@@ -318,12 +322,25 @@ class NexPilotAdminController extends Controller
         $setting = WebsiteSetting::current();
         $openai = $setting->openai_settings ?? [];
 
+        $apiKey = $openai['api_key'] ?? env('OPENAI_API_KEY', '');
+        $hasKey = !empty($apiKey);
+        $maskedKey = '';
+        if ($hasKey) {
+            $maskedKey = strlen($apiKey) > 10 
+                ? substr($apiKey, 0, 7) . '...' . substr($apiKey, -4) 
+                : '••••••••••••';
+        }
+
         return response()->json([
-            'has_api_key' => !empty($openai['api_key']) || !empty(env('OPENAI_API_KEY')),
-            'api_key' => $openai['api_key'] ?? '',
+            'has_api_key' => $hasKey,
+            'masked_key' => $maskedKey,
+            'api_key' => $apiKey,
             'default_model' => $openai['default_model'] ?? 'gpt-4o-mini',
-            'cost_per_1k_input' => $openai['cost_per_1k_input'] ?? 0.00015,
-            'cost_per_1k_output' => $openai['cost_per_1k_output'] ?? 0.00060,
+            'is_enabled' => (bool) ($openai['is_enabled'] ?? true),
+            'temperature' => (float) ($openai['temperature'] ?? 0.7),
+            'global_system_prompt' => $openai['global_system_prompt'] ?? '',
+            'cost_per_1k_input' => (float) ($openai['cost_per_1k_input'] ?? 0.00015),
+            'cost_per_1k_output' => (float) ($openai['cost_per_1k_output'] ?? 0.00060),
         ]);
     }
 
@@ -335,6 +352,9 @@ class NexPilotAdminController extends Controller
         $validated = $request->validate([
             'api_key' => ['nullable', 'string', 'max:500'],
             'default_model' => ['required', 'string', 'max:100'],
+            'is_enabled' => ['nullable', 'boolean'],
+            'temperature' => ['nullable', 'numeric', 'min:0', 'max:2'],
+            'global_system_prompt' => ['nullable', 'string', 'max:5000'],
             'cost_per_1k_input' => ['nullable', 'numeric', 'min:0'],
             'cost_per_1k_output' => ['nullable', 'numeric', 'min:0'],
         ]);
@@ -342,17 +362,26 @@ class NexPilotAdminController extends Controller
         $setting = WebsiteSetting::current();
         $current = $setting->openai_settings ?? [];
 
+        $apiKey = (isset($validated['api_key']) && trim($validated['api_key']) !== '') 
+            ? trim($validated['api_key']) 
+            : ($current['api_key'] ?? '');
+
+        $newSettings = [
+            'api_key' => $apiKey,
+            'default_model' => $validated['default_model'],
+            'is_enabled' => (bool) ($validated['is_enabled'] ?? true),
+            'temperature' => (float) ($validated['temperature'] ?? 0.7),
+            'global_system_prompt' => $validated['global_system_prompt'] ?? ($current['global_system_prompt'] ?? ''),
+            'cost_per_1k_input' => (float) ($validated['cost_per_1k_input'] ?? 0.00015),
+            'cost_per_1k_output' => (float) ($validated['cost_per_1k_output'] ?? 0.00060),
+        ];
+
         $setting->update([
-            'openai_settings' => [
-                'api_key' => isset($validated['api_key']) ? trim($validated['api_key']) : ($current['api_key'] ?? ''),
-                'default_model' => $validated['default_model'],
-                'cost_per_1k_input' => (float) ($validated['cost_per_1k_input'] ?? 0.00015),
-                'cost_per_1k_output' => (float) ($validated['cost_per_1k_output'] ?? 0.00060),
-            ],
+            'openai_settings' => $newSettings,
         ]);
 
         return response()->json([
-            'message' => 'OpenAI কনফিগারেশন সফলভাবে সংরক্ষণ করা হয়েছে।',
+            'message' => 'AI Model কনফিগারেশন সফলভাবে সংরক্ষণ করা হয়েছে।',
             'settings' => $setting->fresh()->openai_settings,
         ]);
     }

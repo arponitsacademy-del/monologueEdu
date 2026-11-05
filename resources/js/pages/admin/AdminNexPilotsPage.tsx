@@ -19,7 +19,8 @@ import {
     HelpCircle,
     GraduationCap,
     SlidersHorizontal,
-    DollarSign
+    DollarSign,
+    Cpu
 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 
@@ -31,16 +32,6 @@ export const AdminNexPilotsPage: React.FC = () => {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [pilotToDelete, setPilotToDelete] = useState<any | null>(null);
     const [deleting, setDeleting] = useState(false);
-
-    // OpenAI Settings Modal
-    const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-    const [openAiKey, setOpenAiKey] = useState('');
-    const [openAiModel, setOpenAiModel] = useState('gpt-4o-mini');
-    const [costInput, setCostInput] = useState(0.00015);
-    const [costOutput, setCostOutput] = useState(0.00060);
-    const [savingSettings, setSavingSettings] = useState(false);
-    const [testingConnection, setTestingConnection] = useState(false);
-    const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
     useEffect(() => {
         fetchPilots();
@@ -57,56 +48,6 @@ export const AdminNexPilotsPage: React.FC = () => {
             console.error('Failed to fetch pilots', err);
         } finally {
             setLoading(false);
-        }
-    };
-
-    const fetchOpenAiSettings = async () => {
-        try {
-            const { data } = await apiClient.get('/admin/nexpilot/settings');
-            setOpenAiKey(data.api_key || '');
-            setOpenAiModel(data.default_model || 'gpt-4o-mini');
-            setCostInput(data.cost_per_1k_input || 0.00015);
-            setCostOutput(data.cost_per_1k_output || 0.00060);
-            setTestResult(null);
-            setSettingsModalOpen(true);
-        } catch (err) {
-            console.error('Failed to fetch OpenAI settings', err);
-        }
-    };
-
-    const handleSaveOpenAiSettings = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setSavingSettings(true);
-        try {
-            await apiClient.put('/admin/nexpilot/settings', {
-                api_key: openAiKey,
-                default_model: openAiModel,
-                cost_per_1k_input: costInput,
-                cost_per_1k_output: costOutput,
-            });
-            setSettingsModalOpen(false);
-        } catch (err: any) {
-            alert(err.response?.data?.message || 'সেটিংস সংরক্ষণ ব্যর্থ হয়েছে।');
-        } finally {
-            setSavingSettings(false);
-        }
-    };
-
-    const handleTestOpenAiConnection = async () => {
-        setTestingConnection(true);
-        setTestResult(null);
-        try {
-            const { data } = await apiClient.post('/admin/nexpilot/test-connection', {
-                api_key: openAiKey,
-            });
-            setTestResult({ success: true, message: data.message });
-        } catch (err: any) {
-            setTestResult({
-                success: false,
-                message: err.response?.data?.message || 'OpenAI API সংযোগ ব্যর্থ হয়েছে।'
-            });
-        } finally {
-            setTestingConnection(false);
         }
     };
 
@@ -149,14 +90,13 @@ export const AdminNexPilotsPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-2.5">
-                    <button
-                        type="button"
-                        onClick={fetchOpenAiSettings}
+                    <Link
+                        to="/admin/nexpilot/ai-configuration"
                         className="px-3.5 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl flex items-center gap-2 shadow-xs transition-colors cursor-pointer"
                     >
-                        <Settings className="w-4 h-4 text-slate-500" />
-                        <span>OpenAI কনফিগারেশন</span>
-                    </button>
+                        <Cpu className="w-4 h-4 text-indigo-500" />
+                        <span>AI Model Configuration</span>
+                    </Link>
 
                     <Link
                         to="/admin/nexpilot/new"
@@ -318,114 +258,6 @@ export const AdminNexPilotsPage: React.FC = () => {
                     })}
                 </div>
             )}
-
-            {/* OpenAI Settings Modal */}
-            <Modal
-                isOpen={settingsModalOpen}
-                onClose={() => setSettingsModalOpen(false)}
-                title="OpenAI কনফিগারেশন ও টোকেন রেট"
-            >
-                <form onSubmit={handleSaveOpenAiSettings} className="space-y-4">
-                    <div>
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                            OpenAI API Secret Key
-                        </label>
-                        <input
-                            type="password"
-                            value={openAiKey}
-                            onChange={(e) => setOpenAiKey(e.target.value)}
-                            placeholder="sk-proj-xxxxxxxxxxxxxxxxxxxx"
-                            className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono focus:ring-2 focus:ring-sky-500"
-                        />
-                        <p className="text-[11px] text-slate-400 mt-1">
-                            পাইলটের মাধ্যমে চ্যাট করার সময় এই কী দিয়ে OpenAI সার্ভারে রিকোয়েস্ট পাঠানো হবে।
-                        </p>
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                            ডিফল্ট AI মডেল
-                        </label>
-                        <select
-                            value={openAiModel}
-                            onChange={(e) => setOpenAiModel(e.target.value)}
-                            className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
-                        >
-                            <option value="gpt-4o-mini">gpt-4o-mini (সর্বোচ্চ দ্রুত ও সাশ্রয়ী - Recommended)</option>
-                            <option value="gpt-4o">gpt-4o (সর্বোচ্চ বুদ্ধিমান ও নিখুঁত)</option>
-                            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                        </select>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3 pt-1">
-                        <div>
-                            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
-                                ইনপুট টোকেন কস্ট ($ per 1K)
-                            </label>
-                            <input
-                                type="number"
-                                step="0.00001"
-                                value={costInput}
-                                onChange={(e) => setCostInput(parseFloat(e.target.value) || 0)}
-                                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
-                                আউটপুট টোকেন কস্ট ($ per 1K)
-                            </label>
-                            <input
-                                type="number"
-                                step="0.00001"
-                                value={costOutput}
-                                onChange={(e) => setCostOutput(parseFloat(e.target.value) || 0)}
-                                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Test Connection Banner */}
-                    {testResult && (
-                        <div className={`p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
-                            testResult.success 
-                                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200' 
-                                : 'bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-200'
-                        }`}>
-                            {testResult.success ? <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" /> : <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />}
-                            <span>{testResult.message}</span>
-                        </div>
-                    )}
-
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-                        <button
-                            type="button"
-                            onClick={handleTestOpenAiConnection}
-                            disabled={testingConnection}
-                            className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer"
-                        >
-                            {testingConnection ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 text-amber-500" />}
-                            <span>সংযোগ পরীক্ষা করুন</span>
-                        </button>
-
-                        <div className="flex items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setSettingsModalOpen(false)}
-                                className="px-3.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 cursor-pointer"
-                            >
-                                বাতিল
-                            </button>
-                            <button
-                                type="submit"
-                                disabled={savingSettings}
-                                className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
-                            >
-                                {savingSettings ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন'}
-                            </button>
-                        </div>
-                    </div>
-                </form>
-            </Modal>
 
             {/* Delete Confirm Modal */}
             <Modal

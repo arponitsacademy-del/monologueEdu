@@ -129,6 +129,7 @@ export const DashboardLayout: React.FC = () => {
                     children: [
                         { title: 'New Pilot', path: '/admin/nexpilot/new' },
                         { title: 'All Pilots', path: '/admin/nexpilot' },
+                        { title: 'AI Model Configuration', path: '/admin/nexpilot/ai-configuration' },
                     ]
                 },
                 { title: t.sidebar.pages || 'Pages', path: '/admin/pages', icon: Layers },
