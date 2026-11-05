@@ -9,6 +9,8 @@ use App\Models\NexPilot;
 use App\Models\NexPilotChatMessage;
 use App\Models\NexPilotStudentUsage;
 use App\Models\NexPilotTopic;
+use App\Models\Order;
+use App\Models\Payment;
 use App\Models\WebsiteSetting;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,24 +27,6 @@ class NexPilotStudentController extends Controller
         $user = $request->user();
         $course = Course::findOrFail($courseId);
 
-        // Check enrollment & NexPilot permission
-        $enrollment = Enrollment::where('user_id', $user->id)
-            ->where('course_id', $course->id)
-            ->where('status', Enrollment::STATUS_ACTIVE)
-            ->first();
-
-        $hasAccess = (bool) (
-            $user->isAdmin() ||
-            ($enrollment && $enrollment->has_nexpilot)
-        );
-
-        if (!$hasAccess) {
-            return response()->json([
-                'has_access' => false,
-                'message' => 'এই কোর্সের জন্য NexPilot AI আনলক করা নেই। কোর্স কেনার সময় NexPilot অ্যাড-অন যুক্ত করুন।',
-            ], 403);
-        }
-
         $pilot = NexPilot::with([
             'topics' => function ($q) {
                 $q->where('is_active', true)->orderBy('order_index')->orderBy('id');
@@ -54,6 +38,25 @@ class NexPilotStudentController extends Controller
                 'has_access' => false,
                 'message' => 'এই কোর্সের জন্য বর্তমানে কোনো সক্রিয় NexPilot প্রস্তুত নেই। শীঘ্রই যুক্ত হবে।',
             ], 404);
+        }
+
+        // Check enrollment & NexPilot permission
+        $enrollment = Enrollment::where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->where('status', Enrollment::STATUS_ACTIVE)
+            ->first();
+
+        $hasAccess = (bool) (
+            $user->isAdmin() ||
+            $user->isTeacher() ||
+            ($enrollment && ((float)$pilot->price <= 0 || $enrollment->has_nexpilot))
+        );
+
+        if (!$hasAccess) {
+            return response()->json([
+                'has_access' => false,
+                'message' => 'এই কোর্সের জন্য NexPilot AI আনলক করা নেই। কোর্স ড্যাশবোর্ড থেকে আনলক করুন।',
+            ], 403);
         }
 
         // Retrieve or initialize student usage record
@@ -132,6 +135,8 @@ class NexPilotStudentController extends Controller
         // Access check
         $hasAccess = (bool) (
             $user->isAdmin() ||
+            $user->isTeacher() ||
+            ((float)$topic->pilot->price <= 0 && Enrollment::where('user_id', $user->id)->where('course_id', $topic->pilot->course_id)->where('status', Enrollment::STATUS_ACTIVE)->exists()) ||
             Enrollment::where('user_id', $user->id)
                 ->where('course_id', $topic->pilot->course_id)
                 ->where('status', Enrollment::STATUS_ACTIVE)
@@ -177,6 +182,8 @@ class NexPilotStudentController extends Controller
         // Access check
         $hasAccess = (bool) (
             $user->isAdmin() ||
+            $user->isTeacher() ||
+            ((float)$pilot->price <= 0 && Enrollment::where('user_id', $user->id)->where('course_id', $pilot->course_id)->where('status', Enrollment::STATUS_ACTIVE)->exists()) ||
             Enrollment::where('user_id', $user->id)
                 ->where('course_id', $pilot->course_id)
                 ->where('status', Enrollment::STATUS_ACTIVE)
@@ -402,6 +409,86 @@ class NexPilotStudentController extends Controller
                 'message' => 'সার্ভার প্রক্রিয়াকরণে সমস্যা হয়েছে: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Unlock NexPilot for an enrolled student
+     */
+    public function unlockPilotForEnrolledCourse(Request $request, $courseId): JsonResponse
+    {
+        $user = $request->user();
+        $course = Course::findOrFail($courseId);
+        $pilot = NexPilot::where('course_id', $course->id)->where('is_active', true)->firstOrFail();
+
+        $enrollment = Enrollment::where('user_id', $user->id)
+            ->where('course_id', $course->id)
+            ->where('status', Enrollment::STATUS_ACTIVE)
+            ->first();
+
+        if (!$enrollment) {
+            return response()->json([
+                'message' => 'আপনাকে প্রথমে এই কোর্সে এনরোল করতে হবে।',
+            ], 422);
+        }
+
+        // Free pilot or admin/teacher immediately activates
+        if ((float) $pilot->price <= 0 || $user->isAdmin()) {
+            $enrollment->update([
+                'has_nexpilot' => true,
+                'nexpilot_id' => $pilot->id,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'is_free' => true,
+                'message' => 'NexPilot AI সফলভাবে আপনার কোর্সে সক্রিয় করা হয়েছে!',
+                'redirect_url' => "/student/courses/{$course->id}/nexpilot",
+            ]);
+        }
+
+        // Paid pilot via manual payment details
+        $validated = $request->validate([
+            'payment_method' => ['required', 'string'],
+            'transaction_ref' => ['required', 'string'],
+            'sender_phone' => ['required', 'string'],
+        ]);
+
+        if (Payment::where('transaction_ref', $validated['transaction_ref'])->exists()) {
+            return response()->json([
+                'message' => 'এই ট্রানজেকশন আইডিটি ইতিমধ্যে ব্যবহৃত হয়েছে।',
+            ], 422);
+        }
+
+        $order = Order::create([
+            'order_number' => Order::generateOrderNumber(),
+            'user_id' => $user->id,
+            'course_id' => $course->id,
+            'original_price' => (float) $pilot->price,
+            'discount_amount' => 0,
+            'final_amount' => (float) $pilot->price,
+            'has_nexpilot' => true,
+            'nexpilot_id' => $pilot->id,
+            'nexpilot_price' => (float) $pilot->price,
+            'payment_status' => Order::PAYMENT_PENDING,
+            'order_status' => Order::ORDER_PROCESSING,
+            'payment_method' => $validated['payment_method'],
+            'notes' => 'NexPilot AI Add-on for Enrolled Student',
+        ]);
+
+        Payment::create([
+            'order_id' => $order->id,
+            'transaction_ref' => $validated['transaction_ref'],
+            'sender_phone' => $validated['sender_phone'],
+            'amount' => (float) $pilot->price,
+            'payment_method' => $validated['payment_method'],
+            'status' => Payment::STATUS_PENDING,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'requires_approval' => true,
+            'message' => 'NexPilot পেমেন্ট সাবমিট হয়েছে। অ্যাডমিন পেমেন্ট যাচাই করলে স্বয়ংক্রিয়ভাবে সক্রিয় হবে।',
+        ]);
     }
 }
 

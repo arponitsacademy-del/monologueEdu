@@ -27,15 +27,33 @@ class EnrollmentController extends Controller
         }
 
         if ($user->isEnrolledIn($course->id)) {
+            $enrollment = Enrollment::where('user_id', $user->id)
+                ->where('course_id', $course->id)
+                ->first();
+
+            $pilot = $course->nexpilot;
+            if ($enrollment && $pilot && $pilot->is_active && (float)$pilot->price <= 0 && !$enrollment->has_nexpilot) {
+                $enrollment->update([
+                    'has_nexpilot' => true,
+                    'nexpilot_id' => $pilot->id,
+                ]);
+            }
+
             return response()->json([
                 'message' => 'আপনি ইতিমধ্যে এই কোর্সে এনরোল করেছেন।',
+                'enrollment' => $enrollment,
             ]);
         }
+
+        $pilot = $course->nexpilot;
+        $hasPilot = (bool) ($pilot && $pilot->is_active && (float)$pilot->price <= 0);
 
         $enrollment = Enrollment::create([
             'user_id' => $user->id,
             'course_id' => $course->id,
             'status' => Enrollment::STATUS_ACTIVE,
+            'has_nexpilot' => $hasPilot,
+            'nexpilot_id' => $hasPilot ? $pilot->id : null,
             'enrolled_at' => now(),
         ]);
 
@@ -51,7 +69,7 @@ class EnrollmentController extends Controller
 
         $enrollments = $user->enrollments()
             ->with(['course' => function ($q) {
-                $q->with(['instructors:id,name', 'instructor:id,name', 'nexpilot:id,course_id,title,is_active'])
+                $q->with(['instructors:id,name', 'instructor:id,name', 'nexpilot:id,course_id,title,price,is_active'])
                   ->withCount('lessons');
             }])
             ->where('status', Enrollment::STATUS_ACTIVE)
@@ -75,9 +93,12 @@ class EnrollmentController extends Controller
                 ->first();
 
             $pilot = $course->nexpilot;
+            $hasActivePilot = (bool) ($pilot && $pilot->is_active);
+            $pilotPrice = $pilot ? (float) $pilot->price : 0;
             $hasPilotAccess = (bool) (
                 $user->isAdmin() ||
-                ($enrollment->has_nexpilot && $pilot && $pilot->is_active)
+                $user->isTeacher() ||
+                ($hasActivePilot && ($pilotPrice <= 0 || $enrollment->has_nexpilot))
             );
 
             return [
@@ -89,6 +110,9 @@ class EnrollmentController extends Controller
                 'last_lesson_id' => $lastAccessed ? $lastAccessed->lesson_id : optional($course->lessons()->first())->id,
                 'has_nexpilot' => $hasPilotAccess,
                 'nexpilot_id' => $pilot ? $pilot->id : null,
+                'has_active_pilot' => $hasActivePilot,
+                'pilot_price' => $pilotPrice,
+                'pilot_title' => $pilot ? $pilot->title : null,
             ];
         });
 

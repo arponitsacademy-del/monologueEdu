@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\Enrollment;
 use App\Models\NexPilot;
 use App\Models\NexPilotTopic;
 use App\Models\WebsiteSetting;
@@ -469,6 +470,84 @@ class NexPilotAdminController extends Controller
                 'message' => 'সার্ভার সংযোগে ত্রুটি: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Get students enrolled in a pilot's course with NexPilot access status
+     */
+    public function getEnrolledStudents($id): JsonResponse
+    {
+        $pilot = NexPilot::with('course')->findOrFail($id);
+
+        $enrollments = Enrollment::with('user:id,name,phone,email')
+            ->where('course_id', $pilot->course_id)
+            ->where('status', Enrollment::STATUS_ACTIVE)
+            ->latest('enrolled_at')
+            ->get()
+            ->map(function ($e) {
+                return [
+                    'enrollment_id' => $e->id,
+                    'user_id' => $e->user_id,
+                    'name' => $e->user?->name ?? 'Unknown',
+                    'phone' => $e->user?->phone,
+                    'email' => $e->user?->email,
+                    'has_nexpilot' => (bool) $e->has_nexpilot,
+                    'enrolled_at' => $e->enrolled_at ? $e->enrolled_at->format('d M Y, h:i A') : 'N/A',
+                ];
+            });
+
+        return response()->json([
+            'pilot' => [
+                'id' => $pilot->id,
+                'title' => $pilot->title,
+                'course_title' => $pilot->course?->title,
+                'price' => (float) $pilot->price,
+            ],
+            'students' => $enrollments,
+        ]);
+    }
+
+    /**
+     * Toggle NexPilot access for an enrolled student
+     */
+    public function toggleStudentAccess(Request $request, $id, $enrollmentId): JsonResponse
+    {
+        $pilot = NexPilot::findOrFail($id);
+        $enrollment = Enrollment::where('id', $enrollmentId)->where('course_id', $pilot->course_id)->firstOrFail();
+
+        $newStatus = !$enrollment->has_nexpilot;
+        $enrollment->update([
+            'has_nexpilot' => $newStatus,
+            'nexpilot_id' => $newStatus ? $pilot->id : null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'has_nexpilot' => $newStatus,
+            'message' => $newStatus 
+                ? 'শিক্ষার্থীর জন্য NexPilot অ্যাক্সেস সফলভাবে দেওয়া হয়েছে।' 
+                : 'শিক্ষার্থীর NexPilot অ্যাক্সেস বন্ধ করা হয়েছে।',
+        ]);
+    }
+
+    /**
+     * Grant NexPilot to all enrolled students of this course
+     */
+    public function grantToAllStudents($id): JsonResponse
+    {
+        $pilot = NexPilot::findOrFail($id);
+
+        $count = Enrollment::where('course_id', $pilot->course_id)
+            ->where('status', Enrollment::STATUS_ACTIVE)
+            ->update([
+                'has_nexpilot' => true,
+                'nexpilot_id' => $pilot->id,
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => "এই কোর্সের মোট {$count} জন শিক্ষার্থীকে সফলভাবে NexPilot অ্যাক্সেস দেওয়া হয়েছে!",
+        ]);
     }
 }
 

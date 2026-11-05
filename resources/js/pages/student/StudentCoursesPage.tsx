@@ -1,11 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { apiClient } from '../../api/client';
-import { BookOpen, PlayCircle, Clock, Bot, Sparkles } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { apiClient, formatBDT } from '../../api/client';
+import { useSettings } from '../../context/SettingsContext';
+import { useAuth } from '../../context/AuthContext';
+import { 
+    BookOpen, 
+    PlayCircle, 
+    Clock, 
+    Bot, 
+    Sparkles, 
+    ShieldCheck, 
+    ArrowRight, 
+    Check, 
+    AlertCircle, 
+    Loader2,
+    Copy
+} from 'lucide-react';
+import { Modal } from '../../components/ui/Modal';
 
 export const StudentCoursesPage: React.FC = () => {
+    const navigate = useNavigate();
+    const { settings } = useSettings();
+    const { user } = useAuth();
+
     const [coursesData, setCoursesData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Unlock Modal State
+    const [unlockModalOpen, setUnlockModalOpen] = useState(false);
+    const [selectedCourseForUnlock, setSelectedCourseForUnlock] = useState<any | null>(null);
+    const [unlockPaymentMethod, setUnlockPaymentMethod] = useState<'manual_bkash' | 'manual_nagad' | 'manual_rocket'>('manual_bkash');
+    const [unlockSenderPhone, setUnlockSenderPhone] = useState(user?.phone || '');
+    const [unlockTrxId, setUnlockTrxId] = useState('');
+    const [submittingUnlock, setSubmittingUnlock] = useState(false);
+    const [unlockError, setUnlockError] = useState<string | null>(null);
+    const [unlockSuccess, setUnlockSuccess] = useState<string | null>(null);
+    const [copiedNumber, setCopiedNumber] = useState(false);
 
     useEffect(() => {
         fetchMyCourses();
@@ -19,6 +49,71 @@ export const StudentCoursesPage: React.FC = () => {
         finally {
             setLoading(false);
         }
+    };
+
+    const handleOpenUnlock = async (item: any) => {
+        setSelectedCourseForUnlock(item);
+        setUnlockError(null);
+        setUnlockSuccess(null);
+        setUnlockSenderPhone(user?.phone || '');
+        setUnlockTrxId('');
+
+        // If pilot price is free (0 taka) or user is admin, unlock immediately!
+        if ((Number(item.pilot_price) || 0) <= 0 || user?.role === 'admin') {
+            try {
+                const { data } = await apiClient.post(`/student/nexpilot/courses/${item.course.id}/unlock`);
+                setCoursesData(prev => prev.map(c => c.course.id === item.course.id ? { ...c, has_nexpilot: true } : c));
+                navigate(`/student/courses/${item.course.id}/nexpilot`);
+            } catch (err: any) {
+                alert(err.response?.data?.message || 'পাইলট সক্রিয় করতে সমস্যা হয়েছে।');
+            }
+            return;
+        }
+
+        // Open paid unlock modal
+        setUnlockModalOpen(true);
+    };
+
+    const handleSubmitUnlockPayment = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedCourseForUnlock) return;
+
+        setSubmittingUnlock(true);
+        setUnlockError(null);
+
+        try {
+            const { data } = await apiClient.post(`/student/nexpilot/courses/${selectedCourseForUnlock.course.id}/unlock`, {
+                payment_method: unlockPaymentMethod,
+                transaction_ref: unlockTrxId.trim(),
+                sender_phone: unlockSenderPhone.trim(),
+            });
+
+            setUnlockSuccess(data.message || 'পেমেন্ট সাবমিট হয়েছে। ভেরিফাই হলে স্বয়ংক্রিয়ভাবে সক্রিয় হবে।');
+            setTimeout(() => {
+                setUnlockModalOpen(false);
+                fetchMyCourses();
+            }, 3000);
+        } catch (err: any) {
+            setUnlockError(err.response?.data?.message || 'পেমেন্ট সাবমিট করতে সমস্যা হয়েছে।');
+        } finally {
+            setSubmittingUnlock(false);
+        }
+    };
+
+    const manualBkash = settings?.manual_payment_settings?.bkash?.account_number || '01700000000';
+    const manualNagad = settings?.manual_payment_settings?.nagad?.account_number || '01700000000';
+    const manualRocket = settings?.manual_payment_settings?.rocket?.account_number || '01700000000';
+
+    const currentPayNumber = unlockPaymentMethod === 'manual_bkash' 
+        ? manualBkash 
+        : unlockPaymentMethod === 'manual_nagad' 
+        ? manualNagad 
+        : manualRocket;
+
+    const handleCopyNumber = () => {
+        navigator.clipboard.writeText(currentPayNumber);
+        setCopiedNumber(true);
+        setTimeout(() => setCopiedNumber(false), 2000);
     };
 
     if (loading) {
@@ -67,7 +162,8 @@ export const StudentCoursesPage: React.FC = () => {
                                     <div>
                                         <div className="flex items-start justify-between gap-2">
                                             <h3 className="font-bold text-slate-900 text-base line-clamp-2 flex-1">{course.title}</h3>
-                                            {item.has_nexpilot && (
+                                            
+                                            {item.has_nexpilot ? (
                                                 <Link
                                                     to={`/student/courses/${course.id}/nexpilot`}
                                                     className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-sky-600 to-indigo-600 text-white text-[11px] font-bold rounded-lg shadow-xs hover:from-sky-700 hover:to-indigo-700 shrink-0 transition-all hover:scale-105"
@@ -76,7 +172,17 @@ export const StudentCoursesPage: React.FC = () => {
                                                     <Sparkles className="w-3 h-3 text-amber-300" />
                                                     <span>Pilot</span>
                                                 </Link>
-                                            )}
+                                            ) : item.has_active_pilot ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleOpenUnlock(item)}
+                                                    className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold rounded-lg transition-all cursor-pointer"
+                                                    title="এই কোর্সের জন্য NexPilot AI আনলক করুন"
+                                                >
+                                                    <Sparkles className="w-3 h-3 text-amber-600" />
+                                                    <span>{item.pilot_price > 0 ? `+Pilot` : 'ফ্রি Pilot'}</span>
+                                                </button>
+                                            ) : null}
                                         </div>
                                         <p className="text-xs text-slate-500 mt-1">
                                             শিক্ষক: {course.instructors?.map((i: any) => i.name).join(', ') || 'অভিজ্ঞ মেন্টর'}
@@ -117,6 +223,27 @@ export const StudentCoursesPage: React.FC = () => {
                                                 <span>Pilot</span>
                                             </Link>
                                         </div>
+                                    ) : item.has_active_pilot ? (
+                                        <div className="flex items-center gap-2">
+                                            <Link
+                                                to={last_lesson_id 
+                                                    ? `/learning/${course.id}/lessons/${last_lesson_id}` 
+                                                    : `/courses/${course.slug}`}
+                                                className="flex-1 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                                            >
+                                                <PlayCircle className="w-4 h-4" />
+                                                <span>ক্লাস চালিয়ে যান</span>
+                                            </Link>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleOpenUnlock(item)}
+                                                className="px-3 py-2.5 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
+                                                title="এই কোর্সের জন্য NexPilot AI টিউটর আনলক করুন"
+                                            >
+                                                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                                <span>{item.pilot_price > 0 ? 'Pilot নিন' : 'ফ্রি চালু করুন'}</span>
+                                            </button>
+                                        </div>
                                     ) : (
                                         <Link
                                             to={last_lesson_id 
@@ -134,6 +261,149 @@ export const StudentCoursesPage: React.FC = () => {
                     })}
                 </div>
             )}
+
+            {/* Unlock NexPilot Payment Modal */}
+            <Modal
+                isOpen={unlockModalOpen}
+                onClose={() => setUnlockModalOpen(false)}
+                title="NexPilot AI পার্সোনাল টিউটর আনলক করুন"
+            >
+                {selectedCourseForUnlock && (
+                    <div className="space-y-4">
+                        {/* Course & Pilot Overview Card */}
+                        <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-sky-50/50 to-white border border-indigo-100 flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <Bot className="w-5 h-5" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between gap-2">
+                                    <h4 className="font-bold text-sm text-slate-900 truncate">
+                                        {selectedCourseForUnlock.course?.title}
+                                    </h4>
+                                    <span className="font-black text-sm text-indigo-600 shrink-0">
+                                        {formatBDT(selectedCourseForUnlock.pilot_price)}
+                                    </span>
+                                </div>
+                                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                                    {selectedCourseForUnlock.pilot_title || 'NexPilot AI লার্নিং অ্যাসিস্ট্যান্ট'} — থিওরি ও প্র্যাকটিস সলভিংয়ে সার্বক্ষণিক পার্সোনাল এআই শিক্ষক।
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Instructions */}
+                        <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2">
+                            <div className="flex items-center justify-between font-bold text-slate-900">
+                                <span>পেমেন্ট নির্দেশনা ({unlockPaymentMethod === 'manual_bkash' ? 'bKash' : unlockPaymentMethod === 'manual_nagad' ? 'Nagad' : 'Rocket'} Send Money):</span>
+                                <button
+                                    type="button"
+                                    onClick={handleCopyNumber}
+                                    className="inline-flex items-center gap-1 text-sky-600 font-bold hover:underline cursor-pointer"
+                                >
+                                    {copiedNumber ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                                    <span>{copiedNumber ? 'কপি হয়েছে' : 'নম্বর কপি'}</span>
+                                </button>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span>প্রাপক নম্বর:</span>
+                                <strong className="font-mono text-sm text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                                    {currentPayNumber}
+                                </strong>
+                            </div>
+                            <div>
+                                টাকার পরিমাণ: <strong className="text-slate-900">{formatBDT(selectedCourseForUnlock.pilot_price)}</strong>
+                            </div>
+                        </div>
+
+                        {/* Error Alert */}
+                        {unlockError && (
+                            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium rounded-xl flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                                <span>{unlockError}</span>
+                            </div>
+                        )}
+
+                        {/* Success Alert */}
+                        {unlockSuccess && (
+                            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-2">
+                                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                                <span>{unlockSuccess}</span>
+                            </div>
+                        )}
+
+                        {/* Submit Payment Form */}
+                        <form onSubmit={handleSubmitUnlockPayment} className="space-y-3 pt-1">
+                            {/* Method Selection */}
+                            <div className="grid grid-cols-3 gap-2">
+                                {(['manual_bkash', 'manual_nagad', 'manual_rocket'] as const).map((method) => {
+                                    const isSelected = unlockPaymentMethod === method;
+                                    const label = method === 'manual_bkash' ? 'bKash' : method === 'manual_nagad' ? 'Nagad' : 'Rocket';
+                                    return (
+                                        <button
+                                            key={method}
+                                            type="button"
+                                            onClick={() => setUnlockPaymentMethod(method)}
+                                            className={`p-2.5 rounded-xl border text-center transition-all cursor-pointer font-bold text-xs ${
+                                                isSelected 
+                                                    ? 'border-sky-500 bg-sky-50/70 text-sky-700 shadow-2xs' 
+                                                    : 'border-slate-200 hover:border-slate-300 text-slate-600'
+                                            }`}
+                                        >
+                                            {label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    যে নম্বর থেকে টাকা পাঠিয়েছেন (Sender Mobile)
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={unlockSenderPhone}
+                                    onChange={(e) => setUnlockSenderPhone(e.target.value)}
+                                    placeholder="017xxxxxxxx"
+                                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1">
+                                    ট্রানজেকশন আইডি (TrxID)
+                                </label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={unlockTrxId}
+                                    onChange={(e) => setUnlockTrxId(e.target.value)}
+                                    placeholder="যেমন: 9J3K8LQZ"
+                                    className="w-full px-3.5 py-2.5 font-mono uppercase bg-slate-50 border border-slate-200 rounded-xl text-xs"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-end gap-2 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setUnlockModalOpen(false)}
+                                    className="px-4 py-2 text-xs font-bold text-slate-500"
+                                >
+                                    বাতিল
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={submittingUnlock}
+                                    className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                                >
+                                    <span>{submittingUnlock ? 'সাবমিট হচ্ছে...' : 'পেমেন্ট সাবমিট করুন'}</span>
+                                    <ArrowRight className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 };
+

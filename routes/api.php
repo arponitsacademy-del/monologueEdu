@@ -83,6 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('courses/{courseId}', [NexPilotStudentController::class, 'getPilotForCourse']);
         Route::get('topics/{topicId}/history', [NexPilotStudentController::class, 'getTopicChatHistory']);
         Route::post('topics/{topicId}/chat', [NexPilotStudentController::class, 'sendMessage']);
+        Route::post('courses/{courseId}/unlock', [NexPilotStudentController::class, 'unlockPilotForEnrolledCourse']);
     });
 
     // Course Builder (Accessible to Admin & Assigned Teachers)
@@ -225,6 +226,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::put('topics/{topicId}', [NexPilotAdminController::class, 'updateTopic']);
             Route::delete('topics/{topicId}', [NexPilotAdminController::class, 'destroyTopic']);
             Route::post('{id}/reorder-topics', [NexPilotAdminController::class, 'reorderTopics']);
+            Route::get('{id}/students', [NexPilotAdminController::class, 'getEnrolledStudents']);
+            Route::post('{id}/students/{enrollmentId}/toggle', [NexPilotAdminController::class, 'toggleStudentAccess']);
+            Route::post('{id}/grant-all', [NexPilotAdminController::class, 'grantToAllStudents']);
         });
     });
 });
