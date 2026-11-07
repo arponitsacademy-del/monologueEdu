@@ -32,6 +32,18 @@ class ExamSubmissionController extends Controller
                 return;
             }
 
+            // Check if teacher is assigned to any course attached to this exam
+            $isInstructor = $exam->courses()
+                ->where(function ($q) use ($user) {
+                    $q->where('instructor_id', $user->id)
+                      ->orWhereHas('instructors', fn($iq) => $iq->where('users.id', $user->id));
+                })
+                ->exists();
+
+            if ($isInstructor) {
+                return;
+            }
+
             if ($exam->course_id) {
                 $isInstructor = Course::where('id', $exam->course_id)
                     ->where(function ($q) use ($user) {
@@ -92,7 +104,7 @@ class ExamSubmissionController extends Controller
         $avgMarks = ExamSubmission::where('exam_id', $exam->id)->avg('obtained_marks') ?? 0;
 
         return response()->json([
-            'exam' => $exam->load('course:id,title,slug'),
+            'exam' => $exam->load(['courses:id,title,slug', 'course:id,title,slug']),
             'submissions' => $submissions,
             'stats' => [
                 'total_submissions' => $totalSubmissions,
@@ -197,9 +209,14 @@ class ExamSubmissionController extends Controller
     {
         $user = $request->user();
 
-        // Check enrollment if course linked
-        if ($exam->course_id) {
-            $isEnrolled = Enrollment::where('course_id', $exam->course_id)
+        // Check enrollment if exam is linked to courses
+        $linkedCourseIds = $exam->courses()->pluck('courses.id')->toArray();
+        if ($exam->course_id && !in_array($exam->course_id, $linkedCourseIds)) {
+            $linkedCourseIds[] = $exam->course_id;
+        }
+
+        if (!empty($linkedCourseIds)) {
+            $isEnrolled = Enrollment::whereIn('course_id', $linkedCourseIds)
                 ->where('user_id', $user->id)
                 ->exists();
 
@@ -223,7 +240,7 @@ class ExamSubmissionController extends Controller
             return response()->json([
                 'already_submitted' => true,
                 'submission' => $existing->load('answers.question'),
-                'exam' => $exam->load('course:id,title'),
+                'exam' => $exam->load(['courses:id,title', 'course:id,title']),
             ]);
         }
 
@@ -249,7 +266,7 @@ class ExamSubmissionController extends Controller
 
         return response()->json([
             'already_submitted' => false,
-            'exam' => $exam->load('course:id,title'),
+            'exam' => $exam->load(['courses:id,title', 'course:id,title']),
             'submission' => $submission,
             'questions' => $questions,
         ]);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
@@ -46,6 +47,11 @@ class Exam extends Model
                 $exam->slug = Str::slug($exam->title) . '-' . Str::lower(Str::random(6));
             }
         });
+    }
+
+    public function courses(): BelongsToMany
+    {
+        return $this->belongsToMany(Course::class, 'course_exams')->withPivot('order')->withTimestamps();
     }
 
     public function course(): BelongsTo

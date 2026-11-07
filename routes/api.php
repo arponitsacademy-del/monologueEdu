@@ -137,6 +137,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('attachments/{attachment}', [LessonAttachmentController::class, 'delete']);
 
         Route::post('vdocipher/upload-credentials', [VdoCipherController::class, 'getUploadCredentials']);
+
+        // Course Attached Exams
+        Route::get('{course}/exams', [CourseBuilderController::class, 'getCourseExams']);
+        Route::post('{course}/exams', [CourseBuilderController::class, 'attachExam']);
+        Route::delete('{course}/exams/{exam}', [CourseBuilderController::class, 'detachExam']);
     });
 
     // Teacher Specific Routes

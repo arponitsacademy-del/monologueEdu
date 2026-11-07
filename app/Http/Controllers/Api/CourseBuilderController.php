@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use App\Models\CourseSection;
+use App\Models\Exam;
 use App\Models\Lesson;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -223,6 +224,99 @@ class CourseBuilderController extends Controller
         return response()->json([
             'message' => 'লেসন ক্লোন করা হয়েছে।',
             'lesson' => $clone->load('attachments'),
+        ]);
+    }
+
+    public function getCourseExams(Course $course): JsonResponse
+    {
+        $this->authorizeCourseAccess($course);
+        $user = auth()->user();
+
+        $attachedExams = $course->exams()
+            ->with(['creator:id,name,email'])
+            ->withCount(['questions', 'submissions'])
+            ->get();
+
+        $attachedIds = $attachedExams->pluck('id')->toArray();
+
+        // Available exams query
+        $availableQuery = Exam::whereNotIn('id', $attachedIds);
+
+        if (!$user->isAdmin()) {
+            $teacherCourseIds = Course::where('instructor_id', $user->id)
+                ->orWhereHas('instructors', fn($q) => $q->where('users.id', $user->id))
+                ->pluck('id');
+
+            $availableQuery->where(function ($q) use ($user, $teacherCourseIds) {
+                $q->where('created_by', $user->id)
+                  ->orWhereHas('courses', fn($cq) => $cq->whereIn('courses.id', $teacherCourseIds))
+                  ->orWhereIn('course_id', $teacherCourseIds);
+            });
+        }
+
+        $availableExams = $availableQuery->latest()->get(['id', 'title', 'duration_minutes', 'total_marks', 'pass_marks', 'status']);
+
+        return response()->json([
+            'attached_exams' => $attachedExams,
+            'available_exams' => $availableExams,
+        ]);
+    }
+
+    public function attachExam(Request $request, Course $course): JsonResponse
+    {
+        $this->authorizeCourseAccess($course);
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'exam_id' => ['required', 'exists:exams,id'],
+        ]);
+
+        $exam = Exam::findOrFail($validated['exam_id']);
+
+        if (!$user->isAdmin() && $exam->created_by !== $user->id) {
+            $hasAccess = $exam->courses()
+                ->where(function ($q) use ($user) {
+                    $q->where('instructor_id', $user->id)
+                      ->orWhereHas('instructors', fn($iq) => $iq->where('users.id', $user->id));
+                })
+                ->exists();
+
+            if (!$hasAccess && $exam->course_id) {
+                $hasAccess = Course::where('id', $exam->course_id)
+                    ->where(function ($q) use ($user) {
+                        $q->where('instructor_id', $user->id)
+                          ->orWhereHas('instructors', fn($iq) => $iq->where('users.id', $user->id));
+                    })
+                    ->exists();
+            }
+
+            if (!$hasAccess) {
+                return response()->json(['message' => 'এই পরীক্ষাটি যুক্ত করার অনুমতি আপনার নেই।'], 403);
+            }
+        }
+
+        $nextOrder = $course->exams()->count() + 1;
+        $course->exams()->syncWithoutDetaching([
+            $exam->id => ['order' => $nextOrder],
+        ]);
+
+        return response()->json([
+            'message' => 'কোর্সে পরীক্ষাটি সফলভাবে যুক্ত করা হয়েছে।',
+            'attached_exams' => $course->exams()
+                ->with(['creator:id,name,email'])
+                ->withCount(['questions', 'submissions'])
+                ->get(),
+        ]);
+    }
+
+    public function detachExam(Course $course, Exam $exam): JsonResponse
+    {
+        $this->authorizeCourseAccess($course);
+
+        $course->exams()->detach($exam->id);
+
+        return response()->json([
+            'message' => 'কোর্স থেকে পরীক্ষাটি অপসারণ করা হয়েছে।',
         ]);
     }
 }

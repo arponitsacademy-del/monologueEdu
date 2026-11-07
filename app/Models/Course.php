@@ -76,9 +76,9 @@ class Course extends Model
         return $this->hasMany(Enrollment::class);
     }
 
-    public function exams(): HasMany
+    public function exams(): BelongsToMany
     {
-        return $this->hasMany(Exam::class);
+        return $this->belongsToMany(Exam::class, 'course_exams')->withPivot('order')->withTimestamps()->orderBy('course_exams.order');
     }
 
     public function students(): BelongsToMany

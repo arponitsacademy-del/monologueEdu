@@ -337,6 +337,11 @@ export interface Exam {
         title: string;
         slug: string;
     } | null;
+    courses?: {
+        id: number;
+        title: string;
+        slug: string;
+    }[];
     creator?: {
         id: number;
         name: string;

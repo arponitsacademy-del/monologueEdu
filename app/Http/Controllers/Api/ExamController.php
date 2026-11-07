@@ -27,6 +27,17 @@ class ExamController extends Controller
                 return;
             }
 
+            $isInstructor = $exam->courses()
+                ->where(function ($q) use ($user) {
+                    $q->where('instructor_id', $user->id)
+                      ->orWhereHas('instructors', fn($iq) => $iq->where('users.id', $user->id));
+                })
+                ->exists();
+
+            if ($isInstructor) {
+                return;
+            }
+
             if ($exam->course_id) {
                 $isInstructor = Course::where('id', $exam->course_id)
                     ->where(function ($q) use ($user) {
@@ -50,7 +61,7 @@ class ExamController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $query = Exam::with(['course:id,title,slug', 'creator:id,name,email'])
+        $query = Exam::with(['courses:id,title,slug', 'course:id,title,slug', 'creator:id,name,email'])
             ->withCount(['questions', 'submissions']);
 
         // Teacher restriction
@@ -60,8 +71,9 @@ class ExamController extends Controller
                 ->pluck('id');
 
             $query->where(function ($q) use ($user, $courseIds) {
-                $q->whereIn('course_id', $courseIds)
-                  ->orWhere('created_by', $user->id);
+                $q->where('created_by', $user->id)
+                  ->orWhereHas('courses', fn($cq) => $cq->whereIn('courses.id', $courseIds))
+                  ->orWhereIn('course_id', $courseIds);
             });
         }
 
@@ -69,12 +81,17 @@ class ExamController extends Controller
             $search = trim($request->search);
             $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
+                  ->orWhereHas('courses', fn($cq) => $cq->where('title', 'like', "%{$search}%"))
                   ->orWhereHas('course', fn($cq) => $cq->where('title', 'like', "%{$search}%"));
             });
         }
 
         if ($request->filled('course_id')) {
-            $query->where('course_id', $request->course_id);
+            $cid = $request->course_id;
+            $query->where(function ($q) use ($cid) {
+                $q->where('course_id', $cid)
+                  ->orWhereHas('courses', fn($cq) => $cq->where('courses.id', $cid));
+            });
         }
 
         if ($request->filled('status')) {
@@ -116,6 +133,8 @@ class ExamController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'course_id' => ['nullable', 'exists:courses,id'],
+            'course_ids' => ['nullable', 'array'],
+            'course_ids.*' => ['exists:courses,id'],
             'description' => ['nullable', 'string'],
             'total_marks' => ['nullable', 'numeric', 'min:0'],
             'pass_marks' => ['nullable', 'numeric', 'min:0'],
@@ -127,19 +146,11 @@ class ExamController extends Controller
             'end_time' => ['nullable', 'date', 'after_or_equal:start_time'],
         ]);
 
-        // Teacher check on course
-        if ($user->role === User::ROLE_TEACHER && !empty($validated['course_id'])) {
-            $isInstructor = Course::where('id', $validated['course_id'])
-                ->where(function ($q) use ($user) {
-                    $q->where('instructor_id', $user->id)
-                      ->orWhereHas('instructors', fn($iq) => $iq->where('users.id', $user->id));
-                })
-                ->exists();
-
-            if (!$isInstructor) {
-                return response()->json(['message' => 'You are not assigned to this course.'], 403);
-            }
+        $courseIds = $validated['course_ids'] ?? [];
+        if (!empty($validated['course_id']) && !in_array($validated['course_id'], $courseIds)) {
+            $courseIds[] = $validated['course_id'];
         }
+        unset($validated['course_ids']);
 
         $validated['created_by'] = $user->id;
         $validated['status'] = $validated['status'] ?? Exam::STATUS_PUBLISHED;
@@ -148,7 +159,10 @@ class ExamController extends Controller
         $validated['total_marks'] = $validated['total_marks'] ?? 0;
 
         $exam = Exam::create($validated);
-        $exam->load('course:id,title,slug');
+        if (!empty($courseIds)) {
+            $exam->courses()->sync($courseIds);
+        }
+        $exam->load(['courses:id,title,slug', 'course:id,title,slug']);
 
         return response()->json([
             'message' => 'Exam created successfully!',
@@ -163,7 +177,7 @@ class ExamController extends Controller
     {
         $this->authorizeExam($request->user(), $exam);
 
-        $exam->load(['course:id,title,slug', 'creator:id,name,email'])
+        $exam->load(['courses:id,title,slug', 'course:id,title,slug', 'creator:id,name,email'])
             ->loadCount(['questions', 'submissions']);
 
         return response()->json($exam);
@@ -180,6 +194,8 @@ class ExamController extends Controller
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'course_id' => ['nullable', 'exists:courses,id'],
+            'course_ids' => ['nullable', 'array'],
+            'course_ids.*' => ['exists:courses,id'],
             'description' => ['nullable', 'string'],
             'total_marks' => ['nullable', 'numeric', 'min:0'],
             'pass_marks' => ['nullable', 'numeric', 'min:0'],
@@ -191,24 +207,16 @@ class ExamController extends Controller
             'end_time' => ['nullable', 'date', 'after_or_equal:start_time'],
         ]);
 
-        if ($user->role === User::ROLE_TEACHER && !empty($validated['course_id'])) {
-            $isInstructor = Course::where('id', $validated['course_id'])
-                ->where(function ($q) use ($user) {
-                    $q->where('instructor_id', $user->id)
-                      ->orWhereHas('instructors', fn($iq) => $iq->where('users.id', $user->id));
-                })
-                ->exists();
-
-            if (!$isInstructor) {
-                return response()->json(['message' => 'You are not assigned to this course.'], 403);
-            }
+        if (isset($validated['course_ids'])) {
+            $exam->courses()->sync($validated['course_ids']);
+            unset($validated['course_ids']);
         }
 
         $validated['has_negative_marking'] = (bool) ($validated['has_negative_marking'] ?? false);
         $validated['negative_marks'] = $validated['has_negative_marking'] ? ($validated['negative_marks'] ?? 0) : 0;
 
         $exam->update($validated);
-        $exam->load('course:id,title,slug');
+        $exam->load(['courses:id,title,slug', 'course:id,title,slug']);
 
         return response()->json([
             'message' => 'Exam updated successfully!',

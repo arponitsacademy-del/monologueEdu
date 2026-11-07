@@ -12,7 +12,8 @@ import {
     AlertCircle,
     CheckCircle2,
     Wrench,
-    Loader2
+    Loader2,
+    GraduationCap
 } from 'lucide-react';
 
 export const ExamFormPage: React.FC = () => {
@@ -26,11 +27,10 @@ export const ExamFormPage: React.FC = () => {
 
     const [loading, setLoading] = useState(isEdit);
     const [submitting, setSubmitting] = useState(false);
-    const [courses, setCourses] = useState<any[]>([]);
+    const [attachedCourses, setAttachedCourses] = useState<any[]>([]);
 
     const [formData, setFormData] = useState({
         title: '',
-        course_id: '',
         description: '',
         total_marks: 100,
         pass_marks: 33,
@@ -45,29 +45,23 @@ export const ExamFormPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        fetchCourses();
         if (isEdit) {
             fetchExamDetails();
         }
     }, [id]);
-
-    const fetchCourses = async () => {
-        try {
-            const res = await apiClient.get('/exams/courses-list');
-            setCourses(res.data || []);
-        } catch (err) {
-            console.error('Failed to load courses', err);
-        }
-    };
 
     const fetchExamDetails = async () => {
         try {
             setLoading(true);
             const res = await apiClient.get(`/exams/${id}`);
             const data = res.data;
+            if (data.courses && Array.isArray(data.courses)) {
+                setAttachedCourses(data.courses);
+            } else if (data.course) {
+                setAttachedCourses([data.course]);
+            }
             setFormData({
                 title: data.title || '',
-                course_id: data.course_id ? String(data.course_id) : '',
                 description: data.description || '',
                 total_marks: data.total_marks || 0,
                 pass_marks: data.pass_marks || 0,
@@ -98,7 +92,6 @@ export const ExamFormPage: React.FC = () => {
             setSubmitting(true);
             const payload = {
                 ...formData,
-                course_id: formData.course_id ? Number(formData.course_id) : null,
                 total_marks: Number(formData.total_marks),
                 pass_marks: Number(formData.pass_marks),
                 negative_marks: formData.has_negative_marking ? Number(formData.negative_marks) : 0,
@@ -179,28 +172,38 @@ export const ExamFormPage: React.FC = () => {
                     />
                 </div>
 
-                {/* 2. Course Selection */}
-                <div>
-                    <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-1.5">
-                        কোর্স নির্ধারণ করুন (Associated Course)
-                    </label>
-                    <div className="relative">
-                        <select
-                            value={formData.course_id}
-                            onChange={e => setFormData({ ...formData, course_id: e.target.value })}
-                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
-                        >
-                            <option value="">-- সাধারণ পরীক্ষা (কোনো কোর্সের সাথে যুক্ত নয়) --</option>
-                            {courses.map(c => (
-                                <option key={c.id} value={c.id}>
-                                    {c.title}
-                                </option>
-                            ))}
-                        </select>
+                {/* 2. Course Assignment Info Notice */}
+                <div className="p-4 rounded-2xl bg-sky-50/80 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/60 space-y-2">
+                    <div className="flex items-start gap-3">
+                        <GraduationCap className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
+                        <div className="space-y-1">
+                            <h4 className="text-sm font-bold text-sky-900 dark:text-sky-200">
+                                কোর্স অ্যাসাইনমেন্ট সংক্রান্ত নিয়ম
+                            </h4>
+                            <p className="text-xs text-sky-800/80 dark:text-sky-300/80 leading-relaxed">
+                                পরীক্ষা তৈরির সময় এখানে কোর্স নির্বাচন করতে হবে না। পরীক্ষাটি তৈরি করার পর যে কোনো কোর্সের ভেতরে গিয়ে (<strong>Course Builder</strong>-এর <strong>"পরীক্ষাসমূহ"</strong> ট্যাব থেকে) এক বা একাধিক কোর্সে এই পরীক্ষা যুক্ত করতে পারবেন।
+                            </p>
+                        </div>
                     </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                        যে কোর্সে পরীক্ষাটি যুক্ত করবেন, সেই কোর্সে দায়িত্বপ্রাপ্ত শিক্ষক উত্তরপত্র মূল্যায়ন (খাতা চেক) করতে পারবেন।
-                    </p>
+
+                    {isEdit && attachedCourses.length > 0 && (
+                        <div className="pt-2 border-t border-sky-100 dark:border-sky-900/40">
+                            <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1.5">
+                                বর্তমানে যুক্ত থাকা কোর্স ({attachedCourses.length}টি):
+                            </p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {attachedCourses.map((c: any) => (
+                                    <span
+                                        key={c.id}
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-300 text-xs font-semibold shadow-xs border border-sky-200 dark:border-slate-700"
+                                    >
+                                        <BookOpen className="w-3.5 h-3.5 text-sky-500" />
+                                        {c.title}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* 3. Description / Instructions */}
@@ -367,3 +370,4 @@ export const ExamFormPage: React.FC = () => {
         </div>
     );
 };
+
