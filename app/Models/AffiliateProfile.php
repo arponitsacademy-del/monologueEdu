@@ -66,3 +66,4 @@ class AffiliateProfile extends Model
         return $this->hasMany(Order::class, 'affiliate_id');
     }
 }
+

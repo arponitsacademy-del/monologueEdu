@@ -235,3 +235,4 @@ class AffiliateStudentController extends Controller
         ]);
     }
 }
+

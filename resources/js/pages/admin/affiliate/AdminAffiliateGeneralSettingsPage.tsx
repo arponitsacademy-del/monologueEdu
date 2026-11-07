@@ -356,3 +356,4 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
         </div>
     );
 };
+

@@ -822,3 +822,4 @@ export const StudentAffiliatePage: React.FC = () => {
         </div>
     );
 };
+

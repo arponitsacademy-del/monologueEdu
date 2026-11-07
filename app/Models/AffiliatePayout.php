@@ -32,3 +32,4 @@ class AffiliatePayout extends Model
         return $this->belongsTo(AffiliateProfile::class, 'affiliate_id');
     }
 }
+

@@ -100,3 +100,4 @@ export function clearStoredReferralCode(): void {
         console.error('Error clearing referral code', e);
     }
 }
+

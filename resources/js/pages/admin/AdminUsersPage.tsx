@@ -14,8 +14,18 @@ import {
     RefreshCw,
     ChevronLeft,
     ChevronRight,
-    BookOpen
+    BookOpen,
+    UserPlus,
+    Trash2,
+    Loader2,
+    CheckCircle2,
+    X,
+    Lock,
+    Phone,
+    Mail,
+    User as UserIcon
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../../components/ui/Modal';
 
 export const AdminUsersPage: React.FC = () => {
@@ -45,6 +55,25 @@ export const AdminUsersPage: React.FC = () => {
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [newRole, setNewRole] = useState<UserRole>('student');
     const [updatingRole, setUpdatingRole] = useState(false);
+
+    // Current logged in admin
+    const { user: currentUser } = useAuth();
+
+    // Create User Modal state
+    const [createModalOpen, setCreateModalOpen] = useState(false);
+    const [creatingUser, setCreatingUser] = useState(false);
+    const [createError, setCreateError] = useState<string | null>(null);
+    const [createForm, setCreateForm] = useState({
+        name: '',
+        phone: '',
+        email: '',
+        password: '',
+        role: 'student' as UserRole,
+        status: 'active' as 'active' | 'inactive',
+    });
+
+    // Delete User state
+    const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
 
     // Keep state in sync with URL searchParams (e.g. when navigating from dashboard or back/forward)
     useEffect(() => {
@@ -183,6 +212,56 @@ export const AdminUsersPage: React.FC = () => {
         }
     };
 
+    const handleCreateUser = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setCreateError(null);
+        setCreatingUser(true);
+
+        try {
+            const { data } = await apiClient.post('/admin/users', createForm);
+            setUsers(prev => [data.user, ...prev]);
+            setPagination(prev => ({ ...prev, total: prev.total + 1 }));
+            setCreateModalOpen(false);
+            setCreateForm({
+                name: '',
+                phone: '',
+                email: '',
+                password: '',
+                role: 'student',
+                status: 'active',
+            });
+            alert(data.message || 'নতুন ব্যবহারকারী সফলভাবে তৈরি করা হয়েছে।');
+        } catch (err: any) {
+            setCreateError(err.response?.data?.message || 'ব্যবহারকারী তৈরি করতে ব্যর্থ হয়েছে। তথ্যগুলো পুনরায় পরীক্ষা করুন।');
+        } finally {
+            setCreatingUser(false);
+        }
+    };
+
+    const handleDeleteUser = async (userToDelete: User) => {
+        if (currentUser && currentUser.id === userToDelete.id) {
+            alert('আপনি নিজের অ্যাডমিন অ্যাকাউন্ট নিজে ডিলিট করতে পারবেন না।');
+            return;
+        }
+
+        const roleBangla = userToDelete.role === 'admin' ? 'অ্যাডমিন' : (userToDelete.role === 'teacher' ? 'শিক্ষক' : 'শিক্ষার্থী');
+        const confirmMessage = `আপনি কি নিশ্চিতভাবে ${roleBangla} "${userToDelete.name}" (${userToDelete.phone || userToDelete.email}) এর অ্যাকাউন্ট স্থায়ীভাবে ডিলিট করতে চান?\n\nসতর্কতা: এই অ্যাকশনটি পূর্বাবস্থায় ফিরিয়ে আনা যাবে না!`;
+
+        if (!window.confirm(confirmMessage)) return;
+
+        setDeletingUserId(userToDelete.id);
+        try {
+            const { data } = await apiClient.delete(`/admin/users/${userToDelete.id}`);
+            setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
+            setPagination(prev => ({ ...prev, total: Math.max(0, prev.total - 1) }));
+            alert(data.message || 'ইউজার অ্যাকাউন্ট সফলভাবে ডিলিট করা হয়েছে।');
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'ব্যবহারকারী ডিলিট করতে ব্যর্থ হয়েছে।');
+        } finally {
+            setDeletingUserId(null);
+        }
+    };
+
     const activeRoleTab = searchParams.get('role') || '';
 
     return (
@@ -198,14 +277,26 @@ export const AdminUsersPage: React.FC = () => {
                         সকল শিক্ষার্থী, শিক্ষক ও অ্যাডমিন অ্যাকাউন্ট পরিচালনা, রোল পরিবর্তন ও স্ট্যাটাস নিয়ন্ত্রণ
                     </p>
                 </div>
-                <button
-                    onClick={() => fetchUsers()}
-                    disabled={loading}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-2xs self-start sm:self-auto cursor-pointer"
-                >
-                    <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-sky-500' : ''}`} />
-                    <span>রিফ্রেশ</span>
-                </button>
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                    <button
+                        onClick={() => {
+                            setCreateError(null);
+                            setCreateModalOpen(true);
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-xs font-bold text-white shadow-md shadow-sky-600/20 transition-all cursor-pointer"
+                    >
+                        <UserPlus className="w-4 h-4" />
+                        <span>নতুন ইউজার তৈরি করুন</span>
+                    </button>
+                    <button
+                        onClick={() => fetchUsers()}
+                        disabled={loading}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
+                    >
+                        <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-sky-500' : ''}`} />
+                        <span>রিফ্রেশ</span>
+                    </button>
+                </div>
             </div>
 
             {/* Quick Filter Tabs */}
@@ -446,10 +537,10 @@ export const AdminUsersPage: React.FC = () => {
                                             </td>
 
                                             <td className="py-4 px-6 text-right">
-                                                <div className="inline-flex items-center gap-2">
+                                                <div className="inline-flex items-center gap-1.5">
                                                     <button
                                                         onClick={() => openRoleModal(u)}
-                                                        className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-lg text-xs transition-colors cursor-pointer"
+                                                        className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-lg text-xs transition-colors cursor-pointer"
                                                     >
                                                         রোল পরিবর্তন
                                                     </button>
@@ -463,6 +554,18 @@ export const AdminUsersPage: React.FC = () => {
                                                         title={u.status === 'active' ? 'অ্যাকাউন্ট নিষ্ক্রিয় করুন' : 'অ্যাকাউন্ট সক্রিয় করুন'}
                                                     >
                                                         {u.status === 'active' ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteUser(u)}
+                                                        disabled={deletingUserId === u.id || (currentUser?.id === u.id)}
+                                                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+                                                        title={currentUser?.id === u.id ? 'নিজের অ্যাকাউন্ট ডিলিট করা যাবে না' : 'ইউজার অ্যাকাউন্ট ডিলিট করুন'}
+                                                    >
+                                                        {deletingUserId === u.id ? (
+                                                            <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
+                                                        ) : (
+                                                            <Trash2 className="w-4 h-4" />
+                                                        )}
                                                     </button>
                                                 </div>
                                             </td>
@@ -549,6 +652,180 @@ export const AdminUsersPage: React.FC = () => {
                         </div>
                     </form>
                 )}
+            </Modal>
+            {/* Create User Modal */}
+            <Modal
+                isOpen={createModalOpen}
+                onClose={() => setCreateModalOpen(false)}
+                title="নতুন ব্যবহারকারী তৈরি করুন"
+                maxWidth="md"
+            >
+                <form onSubmit={handleCreateUser} className="space-y-4">
+                    {createError && (
+                        <div className="p-3.5 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-xl flex items-start gap-2.5 text-xs text-rose-700 dark:text-rose-300">
+                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-600 dark:text-rose-400" />
+                            <div>{createError}</div>
+                        </div>
+                    )}
+
+                    {/* Role Selection */}
+                    <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-2">
+                            ব্যবহারকারীর ভূমিকা (রোল) নির্বাচন করুন:
+                        </label>
+                        <div className="grid grid-cols-3 gap-2.5">
+                            <button
+                                type="button"
+                                onClick={() => setCreateForm({ ...createForm, role: 'student' })}
+                                className={`p-3 rounded-xl border-2 text-center transition-all cursor-pointer ${
+                                    createForm.role === 'student'
+                                        ? 'border-sky-500 bg-sky-50/70 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 shadow-xs'
+                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-600 dark:text-slate-400'
+                                }`}
+                            >
+                                <span className="block font-bold text-xs">শিক্ষার্থী</span>
+                                <span className="text-[10px] text-slate-400 block mt-0.5">Student</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCreateForm({ ...createForm, role: 'teacher' })}
+                                className={`p-3 rounded-xl border-2 text-center transition-all cursor-pointer ${
+                                    createForm.role === 'teacher'
+                                        ? 'border-purple-500 bg-purple-50/70 dark:bg-purple-950/40 text-purple-700 dark:text-purple-300 shadow-xs'
+                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-600 dark:text-slate-400'
+                                }`}
+                            >
+                                <span className="block font-bold text-xs">শিক্ষক</span>
+                                <span className="text-[10px] text-slate-400 block mt-0.5">Teacher</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCreateForm({ ...createForm, role: 'admin' })}
+                                className={`p-3 rounded-xl border-2 text-center transition-all cursor-pointer ${
+                                    createForm.role === 'admin'
+                                        ? 'border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 shadow-xs'
+                                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-600 dark:text-slate-400'
+                                }`}
+                            >
+                                <span className="block font-bold text-xs">অ্যাডমিন</span>
+                                <span className="text-[10px] text-slate-400 block mt-0.5">Admin</span>
+                            </button>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-1.5">
+                            {createForm.role === 'student' && 'শিক্ষার্থী: ওয়েবসাইটে কোর্স কিনতে পারবে, লাইভ/রেকর্ডেড ক্লাসে যোগ দিতে পারবে ও পরীক্ষা দিতে পারবে।'}
+                            {createForm.role === 'teacher' && 'শিক্ষক: নির্ধারিত কোর্সের কারিকুলাম, প্রশ্ন ব্যাংক তৈরি, পরীক্ষা গ্রহণ ও লিখিত খাতা মূল্যায়ন করতে পারবে।'}
+                            {createForm.role === 'admin' && 'অ্যাডমিন: সমগ্র প্ল্যাটফর্ম, আর্থিক লেনদেন, ইউজার ও সেটিংস পরিচালনার পূর্ণ ক্ষমতা থাকবে।'}
+                        </p>
+                    </div>
+
+                    {/* Name */}
+                    <div>
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+                            পুরো নাম (Full Name) *
+                        </label>
+                        <div className="relative">
+                            <UserIcon className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input
+                                type="text"
+                                required
+                                value={createForm.name}
+                                onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
+                                placeholder="যেমন: আহমেদ হাসান"
+                                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Phone & Email */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+                                মোবাইল নম্বর (Phone) *
+                            </label>
+                            <div className="relative">
+                                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                <input
+                                    type="text"
+                                    required
+                                    value={createForm.phone}
+                                    onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                                    placeholder="017XXXXXXXX"
+                                    className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-mono focus:outline-hidden focus:ring-2 focus:ring-sky-500"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+                                ইমেইল ঠিকানা (Email) *
+                            </label>
+                            <div className="relative">
+                                <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                <input
+                                    type="email"
+                                    required
+                                    value={createForm.email}
+                                    onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                                    placeholder="user@example.com"
+                                    className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Password & Status */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+                                পাসওয়ার্ড (Password) *
+                            </label>
+                            <div className="relative">
+                                <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                <input
+                                    type="password"
+                                    required
+                                    minLength={6}
+                                    value={createForm.password}
+                                    onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                                    placeholder="কমপক্ষে ৬ অক্ষরের"
+                                    className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+                                অ্যাকাউন্ট স্ট্যাটাস
+                            </label>
+                            <select
+                                value={createForm.status}
+                                onChange={(e) => setCreateForm({ ...createForm, status: e.target.value as any })}
+                                className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:outline-hidden focus:ring-2 focus:ring-sky-500"
+                            >
+                                <option value="active">সক্রিয় (Active)</option>
+                                <option value="inactive">নিষ্ক্রিয় (Inactive)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-slate-100 dark:border-slate-800">
+                        <button
+                            type="button"
+                            onClick={() => setCreateModalOpen(false)}
+                            className="px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                        >
+                            বাতিল
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={creatingUser}
+                            className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-md disabled:opacity-50 flex items-center gap-2 cursor-pointer transition-colors"
+                        >
+                            {creatingUser ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                            <span>ব্যবহারকারী তৈরি করুন</span>
+                        </button>
+                    </div>
+                </form>
             </Modal>
         </div>
     );

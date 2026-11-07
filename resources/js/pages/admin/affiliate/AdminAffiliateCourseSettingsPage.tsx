@@ -530,3 +530,4 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
         </div>
     );
 };
+

@@ -208,9 +208,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // User Management
         Route::get('users', [AdminUserController::class, 'index']);
+        Route::post('users', [AdminUserController::class, 'store']);
         Route::get('users/{user}', [AdminUserController::class, 'show']);
         Route::post('users/{user}/role', [AdminUserController::class, 'changeRole']);
         Route::post('users/{user}/status', [AdminUserController::class, 'toggleStatus']);
+        Route::delete('users/{user}', [AdminUserController::class, 'destroy']);
 
         // Order Management
         Route::get('orders', [OrderController::class, 'index']);

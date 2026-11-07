@@ -230,3 +230,4 @@ class AffiliateAdminController extends Controller
         ]);
     }
 }
+
