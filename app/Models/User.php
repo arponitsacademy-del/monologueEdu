@@ -150,6 +150,11 @@ class User extends Authenticatable
             ->exists();
     }
 
+    public function teacherProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(TeacherProfile::class);
+    }
+
     public function affiliateProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(AffiliateProfile::class);

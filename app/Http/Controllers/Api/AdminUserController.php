@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Course;
+use App\Models\TeacherProfile;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -39,7 +40,8 @@ class AdminUserController extends Controller
             });
         }
 
-        $users = $query->withCount(['enrollments', 'instructedCourses'])
+        $users = $query->with(['teacherProfile'])
+            ->withCount(['enrollments', 'instructedCourses'])
             ->latest()
             ->paginate($request->integer('per_page', 15));
 
@@ -69,6 +71,7 @@ class AdminUserController extends Controller
                           ->latest();
                 },
                 'affiliateProfile',
+                'teacherProfile',
             ])->loadCount(['enrollments', 'orders', 'examSubmissions', 'instructedCourses']),
         ]);
     }
@@ -102,11 +105,15 @@ class AdminUserController extends Controller
 
         $user->update(['role' => $newRole]);
 
+        if ($newRole === User::ROLE_TEACHER) {
+            TeacherProfile::firstOrCreate(['user_id' => $user->id]);
+        }
+
         AuditLog::log('user_role_changed', 'User', $user->id, ['role' => $oldRole], ['role' => $newRole]);
 
         return response()->json([
             'message' => "ইউজারের রোল সফলভাবে {$newRole} এ পরিবর্তন করা হয়েছে।",
-            'user' => $user->fresh(),
+            'user' => $user->fresh(['teacherProfile']),
         ]);
     }
 
@@ -186,6 +193,19 @@ class AdminUserController extends Controller
             'status' => $validated['status'] ?? User::STATUS_ACTIVE,
         ]);
 
+        if ($user->role === User::ROLE_TEACHER) {
+            TeacherProfile::updateOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'designation' => $request->input('designation') ?: 'শিক্ষক (Instructor)',
+                    'institution' => $request->input('institution') ?: 'মনোলগ এডু ফ্যাকাল্টি',
+                    'photo_url' => $request->input('photo_url'),
+                    'bio' => $request->input('bio'),
+                    'is_featured' => true,
+                ]
+            );
+        }
+
         AuditLog::log('user_created_by_admin', 'User', $user->id, null, [
             'name' => $user->name,
             'email' => $user->email,
@@ -195,7 +215,7 @@ class AdminUserController extends Controller
 
         return response()->json([
             'message' => 'নতুন ব্যবহারকারী সফলভাবে তৈরি করা হয়েছে।',
-            'user' => $user->loadCount(['enrollments', 'instructedCourses']),
+            'user' => $user->load(['teacherProfile'])->loadCount(['enrollments', 'instructedCourses']),
         ], 201);
     }
 
@@ -250,6 +270,36 @@ class AdminUserController extends Controller
 
         return response()->json([
             'message' => 'ব্যবহারকারী অ্যাকাউন্ট সফলভাবে ডিলিট করা হয়েছে।',
+        ]);
+    }
+
+    /**
+     * Update teacher profile details
+     */
+    public function updateTeacherProfile(Request $request, User $user): JsonResponse
+    {
+        if ($user->role !== User::ROLE_TEACHER) {
+            return response()->json(['message' => 'এই ব্যবহারকারী একজন শিক্ষক নন।'], 422);
+        }
+
+        $validated = $request->validate([
+            'designation' => ['nullable', 'string', 'max:255'],
+            'institution' => ['nullable', 'string', 'max:255'],
+            'photo_url' => ['nullable', 'string'],
+            'bio' => ['nullable', 'string'],
+            'expertise' => ['nullable', 'string', 'max:255'],
+            'is_featured' => ['nullable', 'boolean'],
+        ]);
+
+        $profile = TeacherProfile::updateOrCreate(
+            ['user_id' => $user->id],
+            $validated
+        );
+
+        return response()->json([
+            'message' => 'শিক্ষকের প্রোফাইল তথ্য সফলভাবে সংরক্ষিত হয়েছে।',
+            'profile' => $profile,
+            'user' => $user->load('teacherProfile'),
         ]);
     }
 }

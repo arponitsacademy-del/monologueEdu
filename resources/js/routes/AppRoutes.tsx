@@ -11,6 +11,7 @@ import { LoginPage } from '../pages/public/LoginPage';
 import { RegisterPage } from '../pages/public/RegisterPage';
 import { CheckoutPage } from '../pages/public/CheckoutPage';
 import { OrderStatusPage } from '../pages/public/OrderStatusPage';
+import { TeacherProfilePage } from '../pages/public/TeacherProfilePage';
 
 // Admin pages
 import { AdminDashboardPage } from '../pages/admin/AdminDashboardPage';
@@ -77,6 +78,7 @@ export const AppRoutes: React.FC = () => {
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/checkout/:slug" element={<CheckoutPage />} />
                 <Route path="/order-status/:orderNumber" element={<OrderStatusPage />} />
+                <Route path="/teachers/:id" element={<TeacherProfilePage />} />
                 <Route path="/p/:slug" element={<CustomPageView />} />
                 <Route path="/privacy-policy" element={<CustomPageView slugOverride="privacy-policy" />} />
                 <Route path="/terms" element={<CustomPageView slugOverride="terms" />} />

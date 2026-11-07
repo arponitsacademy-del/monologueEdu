@@ -78,6 +78,10 @@ export const AdminUsersPage: React.FC = () => {
         password: '',
         role: 'student' as UserRole,
         status: 'active' as 'active' | 'inactive',
+        designation: '',
+        institution: '',
+        photo_url: '',
+        bio: '',
     });
 
     // Delete User state
@@ -87,7 +91,15 @@ export const AdminUsersPage: React.FC = () => {
     const [detailsModalOpen, setDetailsModalOpen] = useState(false);
     const [loadingDetails, setLoadingDetails] = useState(false);
     const [userDetails, setUserDetails] = useState<any | null>(null);
-    const [activeDetailTab, setActiveDetailTab] = useState<'courses' | 'orders' | 'exams' | 'instructed'>('courses');
+    const [activeDetailTab, setActiveDetailTab] = useState<'courses' | 'orders' | 'exams' | 'instructed' | 'teacher_profile'>('courses');
+    const [savingTeacherProfile, setSavingTeacherProfile] = useState(false);
+    const [teacherProfileForm, setTeacherProfileForm] = useState({
+        designation: '',
+        institution: '',
+        photo_url: '',
+        bio: '',
+        is_featured: true,
+    });
 
     // Keep state in sync with URL searchParams (e.g. when navigating from dashboard or back/forward)
     useEffect(() => {
@@ -243,6 +255,10 @@ export const AdminUsersPage: React.FC = () => {
                 password: '',
                 role: 'student',
                 status: 'active',
+                designation: '',
+                institution: '',
+                photo_url: '',
+                bio: '',
             });
             alert(data.message || 'নতুন ব্যবহারকারী সফলভাবে তৈরি করা হয়েছে।');
         } catch (err: any) {
@@ -280,15 +296,52 @@ export const AdminUsersPage: React.FC = () => {
         setUserDetails(u);
         setDetailsModalOpen(true);
         setLoadingDetails(true);
-        setActiveDetailTab('courses');
+        setActiveDetailTab(u.role === 'teacher' ? 'teacher_profile' : 'courses');
+        setTeacherProfileForm({
+            designation: (u as any).teacher_profile?.designation || '',
+            institution: (u as any).teacher_profile?.institution || '',
+            photo_url: (u as any).teacher_profile?.photo_url || '',
+            bio: (u as any).teacher_profile?.bio || '',
+            is_featured: (u as any).teacher_profile?.is_featured ?? true,
+        });
 
         try {
             const { data } = await apiClient.get(`/admin/users/${u.id}`);
             setUserDetails(data.user);
+            if (data.user.teacher_profile) {
+                setTeacherProfileForm({
+                    designation: data.user.teacher_profile.designation || '',
+                    institution: data.user.teacher_profile.institution || '',
+                    photo_url: data.user.teacher_profile.photo_url || '',
+                    bio: data.user.teacher_profile.bio || '',
+                    is_featured: data.user.teacher_profile.is_featured ?? true,
+                });
+            }
         } catch (err: any) {
             console.error('Failed to load user details', err);
         } finally {
             setLoadingDetails(false);
+        }
+    };
+
+    const handleSaveTeacherProfile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!userDetails) return;
+        setSavingTeacherProfile(true);
+        try {
+            const { data } = await apiClient.put(`/admin/users/${userDetails.id}/teacher-profile`, teacherProfileForm);
+            setUserDetails((prev: any) => ({
+                ...prev,
+                teacher_profile: data.teacher_profile,
+            }));
+            setUsers((prev) =>
+                prev.map((u) => (u.id === userDetails.id ? { ...u, teacher_profile: data.teacher_profile } : u))
+            );
+            alert(data.message || 'শিক্ষকের প্রোফাইল তথ্য সফলভাবে সংরক্ষণ করা হয়েছে।');
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'প্রোফাইল আপডেট করতে ব্যর্থ হয়েছে।');
+        } finally {
+            setSavingTeacherProfile(false);
         }
     };
 
@@ -815,6 +868,70 @@ export const AdminUsersPage: React.FC = () => {
                         </div>
                     </div>
 
+                    {/* Teacher Specific Fields */}
+                    {createForm.role === 'teacher' && (
+                        <div className="p-4 bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200/70 dark:border-purple-900/60 rounded-2xl space-y-3">
+                            <div className="flex items-center gap-2 text-xs font-bold text-purple-700 dark:text-purple-300">
+                                <GraduationCap className="w-4 h-4" />
+                                <span>শিক্ষকের প্রোফাইল বিবরণ (Teacher Profile)</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        পদবী (Designation)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={createForm.designation}
+                                        onChange={(e) => setCreateForm({ ...createForm, designation: e.target.value })}
+                                        placeholder="যেমন: সিনিয়র পদার্থবিজ্ঞান শিক্ষক"
+                                        className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 font-medium"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        শিক্ষা প্রতিষ্ঠান / পড়াশোনা (Institution)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={createForm.institution}
+                                        onChange={(e) => setCreateForm({ ...createForm, institution: e.target.value })}
+                                        placeholder="যেমন: BUET / ঢাকা বিশ্ববিদ্যালয়"
+                                        className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 font-medium"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    প্রোফাইল ছবির লিংক (Photo URL)
+                                </label>
+                                <input
+                                    type="url"
+                                    value={createForm.photo_url}
+                                    onChange={(e) => setCreateForm({ ...createForm, photo_url: e.target.value })}
+                                    placeholder="https://example.com/teacher-photo.jpg"
+                                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 font-medium"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                    সংক্ষিপ্ত বায়ো (Bio)
+                                </label>
+                                <textarea
+                                    rows={2}
+                                    value={createForm.bio}
+                                    onChange={(e) => setCreateForm({ ...createForm, bio: e.target.value })}
+                                    placeholder="শিক্ষকের অভিজ্ঞতা ও পাঠদান পদ্ধতি সম্পর্কে সংক্ষেপে লিখুন..."
+                                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 font-medium"
+                                />
+                            </div>
+                        </div>
+                    )}
+
                     {/* Password & Status */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
@@ -944,6 +1061,17 @@ export const AdminUsersPage: React.FC = () => {
                                     >
                                         {userDetails.status === 'active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন'}
                                     </button>
+                                    {userDetails.role === 'teacher' && (
+                                        <a
+                                            href={`/teachers/${userDetails.id}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                                        >
+                                            <ExternalLink className="w-3.5 h-3.5" />
+                                            <span>পাবলিক প্রোফাইল</span>
+                                        </a>
+                                    )}
                                 </div>
                             </div>
 
@@ -1039,20 +1167,34 @@ export const AdminUsersPage: React.FC = () => {
                             </button>
 
                             {userDetails.role === 'teacher' && (
-                                <button
-                                    onClick={() => setActiveDetailTab('instructed')}
-                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
-                                        activeDetailTab === 'instructed'
-                                            ? 'bg-purple-600 text-white shadow-xs'
-                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                                    }`}
-                                >
-                                    <GraduationCap className="w-3.5 h-3.5" />
-                                    <span>টিচিং কোর্স</span>
-                                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-slate-700">
-                                        {userDetails.instructed_courses?.length ?? 0}
-                                    </span>
-                                </button>
+                                <>
+                                    <button
+                                        onClick={() => setActiveDetailTab('instructed')}
+                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                                            activeDetailTab === 'instructed'
+                                                ? 'bg-purple-600 text-white shadow-xs'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        }`}
+                                    >
+                                        <GraduationCap className="w-3.5 h-3.5" />
+                                        <span>টিচিং কোর্স</span>
+                                        <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-slate-700">
+                                            {userDetails.instructed_courses?.length ?? 0}
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => setActiveDetailTab('teacher_profile')}
+                                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                                            activeDetailTab === 'teacher_profile'
+                                                ? 'bg-purple-600 text-white shadow-xs'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        }`}
+                                    >
+                                        <Shield className="w-3.5 h-3.5" />
+                                        <span>শিক্ষক প্রোফাইল তথ্য</span>
+                                    </button>
+                                </>
                             )}
                         </div>
 
@@ -1284,6 +1426,130 @@ export const AdminUsersPage: React.FC = () => {
                                     </div>
                                 )}
                             </div>
+                        )}
+
+                        {/* TAB 5: TEACHER PROFILE SETTINGS (if teacher) */}
+                        {activeDetailTab === 'teacher_profile' && userDetails.role === 'teacher' && (
+                            <form onSubmit={handleSaveTeacherProfile} className="space-y-4 p-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                                <div className="flex items-center justify-between pb-3 border-b border-slate-200/60 dark:border-slate-750">
+                                    <div className="flex items-center gap-2">
+                                        <GraduationCap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                        <div>
+                                            <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
+                                                শিক্ষক পরিচিতি ও হোমপেজ ক্যারাউজল তথ্য
+                                            </h4>
+                                            <p className="text-[11px] text-slate-400">
+                                                এখানে প্রদত্ত তথ্য ও ছবি হোমপেজের শিক্ষক ক্যারাউজল এবং শিক্ষকের পাবলিক প্রোফাইলে প্রদর্শিত হবে।
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <a
+                                        href={`/teachers/${userDetails.id}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1 shrink-0"
+                                    >
+                                        <span>প্রোফাইল পেজ</span>
+                                        <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+                                            পদবী (Designation)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={teacherProfileForm.designation}
+                                            onChange={(e) => setTeacherProfileForm({ ...teacherProfileForm, designation: e.target.value })}
+                                            placeholder="যেমন: সিনিয়র পদার্থবিজ্ঞান শিক্ষক"
+                                            className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-purple-500 font-medium"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+                                            শিক্ষা প্রতিষ্ঠান / পড়াশোনা (Institution / Education)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={teacherProfileForm.institution}
+                                            onChange={(e) => setTeacherProfileForm({ ...teacherProfileForm, institution: e.target.value })}
+                                            placeholder="যেমন: বুয়েট / BUET (CSE), ঢাকা বিশ্ববিদ্যালয়"
+                                            className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-purple-500 font-medium"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+                                        প্রোফাইল ছবির লিংক (Photo URL)
+                                    </label>
+                                    <div className="flex gap-3 items-center">
+                                        {teacherProfileForm.photo_url ? (
+                                            <img
+                                                src={teacherProfileForm.photo_url}
+                                                alt="Preview"
+                                                className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
+                                                onError={(e) => ((e.target as HTMLElement).style.display = 'none')}
+                                            />
+                                        ) : (
+                                            <div className="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center font-bold text-sm shrink-0">
+                                                {(userDetails.name || 'T').charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        <input
+                                            type="url"
+                                            value={teacherProfileForm.photo_url}
+                                            onChange={(e) => setTeacherProfileForm({ ...teacherProfileForm, photo_url: e.target.value })}
+                                            placeholder="https://example.com/teacher-photo.jpg"
+                                            className="flex-1 px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-purple-500 font-medium"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+                                        সংক্ষিপ্ত পরিচিতি ও বায়ো (Bio)
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={teacherProfileForm.bio}
+                                        onChange={(e) => setTeacherProfileForm({ ...teacherProfileForm, bio: e.target.value })}
+                                        placeholder="শিক্ষকের অভিজ্ঞতা, পাঠদান পদ্ধতি এবং শিক্ষার্থীদের উদ্দেশ্যে বার্তা..."
+                                        className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-purple-500 font-medium"
+                                    />
+                                </div>
+
+                                <div className="flex items-center gap-2 pt-1">
+                                    <input
+                                        type="checkbox"
+                                        id="is_featured"
+                                        checked={teacherProfileForm.is_featured}
+                                        onChange={(e) => setTeacherProfileForm({ ...teacherProfileForm, is_featured: e.target.checked })}
+                                        className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-700 cursor-pointer"
+                                    />
+                                    <label htmlFor="is_featured" className="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+                                        হোমপেজের শিক্ষক ক্যারাউজলে প্রদর্শন করুন (Featured on Homepage)
+                                    </label>
+                                </div>
+
+                                <div className="pt-3 border-t border-slate-200/60 dark:border-slate-750 flex justify-end">
+                                    <button
+                                        type="submit"
+                                        disabled={savingTeacherProfile}
+                                        className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md disabled:opacity-50 flex items-center gap-2 cursor-pointer transition-colors"
+                                    >
+                                        {savingTeacherProfile ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                        ) : (
+                                            <CheckCircle2 className="w-4 h-4" />
+                                        )}
+                                        <span>তথ্য সংরক্ষণ করুন</span>
+                                    </button>
+                                </div>
+                            </form>
                         )}
                     </div>
                 )}

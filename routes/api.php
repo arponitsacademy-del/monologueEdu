@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\ExamBuilderController;
 use App\Http\Controllers\Api\ExamSubmissionController;
 use App\Http\Controllers\Api\AffiliateAdminController;
 use App\Http\Controllers\Api\AffiliateStudentController;
+use App\Http\Controllers\Api\TeacherPublicController;
 use App\Models\Course;
 use App\Models\LessonComment;
 use Illuminate\Http\Request;
@@ -48,6 +49,8 @@ Route::get('categories', [PublicCourseController::class, 'categories']);
 Route::get('settings', [WebsiteSettingsController::class, 'getSettings']);
 Route::get('pages/{slug}', [PublicPageController::class, 'show']);
 Route::get('affiliate/check-code/{code}', [AffiliateStudentController::class, 'checkCode']);
+Route::get('teachers/featured', [TeacherPublicController::class, 'getFeaturedTeachers']);
+Route::get('teachers/{id}', [TeacherPublicController::class, 'getTeacherProfile']);
 
 /*
 |--------------------------------------------------------------------------
@@ -214,6 +217,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('users/{user}', [AdminUserController::class, 'show']);
         Route::post('users/{user}/role', [AdminUserController::class, 'changeRole']);
         Route::post('users/{user}/status', [AdminUserController::class, 'toggleStatus']);
+        Route::put('users/{user}/teacher-profile', [AdminUserController::class, 'updateTeacherProfile']);
         Route::delete('users/{user}', [AdminUserController::class, 'destroy']);
 
         // Order Management
