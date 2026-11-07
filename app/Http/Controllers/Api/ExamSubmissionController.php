@@ -203,6 +203,137 @@ class ExamSubmissionController extends Controller
     }
 
     /**
+     * Get all exam submissions and performance progress for the authenticated student
+     */
+    public function studentMyExams(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $query = ExamSubmission::where('user_id', $user->id)
+            ->whereIn('status', [ExamSubmission::STATUS_SUBMITTED, ExamSubmission::STATUS_EVALUATED])
+            ->with([
+                'exam' => function ($q) {
+                    $q->select('id', 'title', 'total_marks', 'duration_minutes', 'has_negative_marking', 'negative_marks')
+                      ->with(['courses:id,title,slug']);
+                },
+                'evaluator:id,name',
+            ])
+            ->latest('submitted_at');
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->whereHas('exam', function ($eq) use ($search) {
+                $eq->where('title', 'like', "%{$search}%");
+            });
+        }
+
+        $submissions = $query->paginate($request->integer('per_page', 15));
+
+        // Compute merit positions for each submission
+        $submissions->getCollection()->transform(function ($sub) {
+            $sub->merit_position = $sub->getMeritPosition();
+            $sub->total_participants = ExamSubmission::where('exam_id', $sub->exam_id)
+                ->whereIn('status', [ExamSubmission::STATUS_SUBMITTED, ExamSubmission::STATUS_EVALUATED])
+                ->count();
+            return $sub;
+        });
+
+        // Compute overall student progress analytics
+        $allUserSubmissions = ExamSubmission::where('user_id', $user->id)
+            ->whereIn('status', [ExamSubmission::STATUS_SUBMITTED, ExamSubmission::STATUS_EVALUATED])
+            ->get();
+
+        $totalExams = $allUserSubmissions->count();
+        $totalQuestionsAttempted = (int) $allUserSubmissions->sum('total_answered');
+        $totalCorrect = (int) $allUserSubmissions->sum('total_correct');
+        $totalWrong = (int) $allUserSubmissions->sum('total_wrong');
+        $totalMarksPossible = (float) $allUserSubmissions->sum('total_marks');
+        $totalMarksObtained = (float) $allUserSubmissions->sum('obtained_marks');
+
+        $averageScore = $totalExams > 0 ? round($totalMarksObtained / $totalExams, 2) : 0;
+        $accuracyRate = $totalQuestionsAttempted > 0 ? round(($totalCorrect / $totalQuestionsAttempted) * 100, 1) : 0;
+        $overallPercentage = $totalMarksPossible > 0 ? round(($totalMarksObtained / $totalMarksPossible) * 100, 1) : 0;
+
+        return response()->json([
+            'submissions' => $submissions,
+            'progress' => [
+                'total_exams' => $totalExams,
+                'total_questions_attempted' => $totalQuestionsAttempted,
+                'total_correct' => $totalCorrect,
+                'total_wrong' => $totalWrong,
+                'accuracy_rate' => $accuracyRate,
+                'average_score' => $averageScore,
+                'overall_percentage' => $overallPercentage,
+            ],
+        ]);
+    }
+
+    /**
+     * Get full question-by-question review and analysis for a student submission
+     */
+    public function studentSubmissionReview(Request $request, ExamSubmission $submission): JsonResponse
+    {
+        $user = $request->user();
+
+        // Must be the owner, or teacher/admin
+        if ($user->role === User::ROLE_STUDENT && $submission->user_id !== $user->id) {
+            abort(403, 'Unauthorized access to this exam review.');
+        }
+
+        $exam = $submission->exam()->with(['courses:id,title,slug', 'course:id,title,slug'])->first();
+        if (!$exam) {
+            abort(404, 'Exam not found.');
+        }
+
+        // Load all questions of the exam in order
+        $questions = ExamQuestion::where('exam_id', $exam->id)
+            ->orderBy('order')
+            ->get();
+
+        // Load submission answers indexed by question_id
+        $submissionAnswers = ExamSubmissionAnswer::where('submission_id', $submission->id)
+            ->get()
+            ->keyBy('question_id');
+
+        // Build question review item
+        $reviewedQuestions = $questions->map(function ($q) use ($submissionAnswers, $exam) {
+            $answer = $submissionAnswers->get($q->id);
+            $hasAnswered = $answer !== null && !empty($answer->student_answer);
+            $isCorrect = $answer ? (bool) $answer->is_correct : false;
+
+            return [
+                'id' => $q->id,
+                'question_text' => $q->question_text,
+                'question_type' => $q->question_type,
+                'marks' => (float) $q->marks,
+                'attachment_url' => $q->attachment_url,
+                'explanation' => $q->explanation,
+                'options' => $q->options ?? [],
+                'correct_answers' => $q->correct_answers ?? [],
+                'student_answer' => $answer ? $answer->student_answer : null,
+                'attachments' => $answer ? ($answer->attachments ?? []) : [],
+                'is_answered' => $hasAnswered || ($answer && !empty($answer->attachments)),
+                'is_correct' => $isCorrect,
+                'marks_obtained' => $answer ? (float) $answer->marks_obtained : 0.0,
+                'teacher_feedback' => $answer ? $answer->teacher_feedback : null,
+            ];
+        });
+
+        $submission->merit_position = $submission->getMeritPosition();
+        $totalParticipants = ExamSubmission::where('exam_id', $submission->exam_id)
+            ->whereIn('status', [ExamSubmission::STATUS_SUBMITTED, ExamSubmission::STATUS_EVALUATED])
+            ->count();
+
+        return response()->json([
+            'submission' => $submission->load(['user:id,name,email,phone', 'evaluator:id,name']),
+            'exam' => $exam,
+            'merit_position' => $submission->merit_position,
+            'total_participants' => $totalParticipants,
+            'questions' => $reviewedQuestions,
+        ]);
+    }
+
+    /**
      * Student starts or retrieves an exam session
      */
     public function studentStartExam(Request $request, Exam $exam): JsonResponse

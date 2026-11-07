@@ -92,8 +92,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('courses/{courseId}/unlock', [NexPilotStudentController::class, 'unlockPilotForEnrolledCourse']);
     });
 
-    // Student Exam Taking Routes
+    // Student Exam Taking & Review Routes
     Route::prefix('student/exams')->group(function () {
+        Route::get('my-exams', [ExamSubmissionController::class, 'studentMyExams']);
+        Route::get('submissions/{submission}', [ExamSubmissionController::class, 'studentSubmissionReview']);
         Route::get('{exam}/start', [ExamSubmissionController::class, 'studentStartExam']);
         Route::post('{exam}/submit', [ExamSubmissionController::class, 'studentSubmitExam']);
         Route::post('upload-attachment', [ExamSubmissionController::class, 'uploadAnswerAttachment']);

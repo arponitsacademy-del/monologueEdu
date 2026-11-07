@@ -48,6 +48,7 @@ import { StudentCoursesPage } from '../pages/student/StudentCoursesPage';
 import { StudentOrdersPage } from '../pages/student/StudentOrdersPage';
 import { StudentNexPilotPage } from '../pages/student/StudentNexPilotPage';
 import { StudentAffiliatePage } from '../pages/student/StudentAffiliatePage';
+import { StudentExamsPage } from '../pages/student/StudentExamsPage';
 
 // Affiliate Admin pages
 import { AdminAffiliateGeneralSettingsPage } from '../pages/admin/affiliate/AdminAffiliateGeneralSettingsPage';
@@ -142,6 +143,7 @@ export const AppRoutes: React.FC = () => {
                 <Route index element={<StudentDashboardPage />} />
                 <Route path="my-courses" element={<StudentCoursesPage />} />
                 <Route path="courses/:courseId/nexpilot" element={<StudentNexPilotPage />} />
+                <Route path="exams" element={<StudentExamsPage />} />
                 <Route path="orders" element={<StudentOrdersPage />} />
                 <Route path="affiliate" element={<StudentAffiliatePage />} />
             </Route>

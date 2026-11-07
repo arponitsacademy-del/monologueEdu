@@ -209,6 +209,7 @@ export const DashboardLayout: React.FC = () => {
         return [
             { title: t.sidebar.dashboard, path: '/student', icon: LayoutDashboard },
             { title: t.sidebar.myCourses, path: '/student/my-courses', icon: BookOpen },
+            { title: 'আমার পরীক্ষাসমূহ', path: '/student/exams', icon: ClipboardList },
             { title: t.sidebar.myOrders, path: '/student/orders', icon: ShoppingCart },
             { title: 'Affiliate Program', path: '/student/affiliate', icon: Share2 },
         ];

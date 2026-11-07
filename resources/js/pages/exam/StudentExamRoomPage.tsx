@@ -21,7 +21,10 @@ import {
     Check,
     X,
     Eye,
-    RotateCcw
+    RotateCcw,
+    Printer,
+    Download,
+    ClipboardList
 } from 'lucide-react';
 
 export const StudentExamRoomPage: React.FC = () => {
@@ -320,13 +323,27 @@ export const StudentExamRoomPage: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Back Buttons */}
-                        <div className="mt-8 flex items-center justify-center gap-3">
+                        {/* Action Buttons */}
+                        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                            <Link
+                                to="/student/exams"
+                                className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-md shadow-indigo-600/20"
+                            >
+                                <ClipboardList className="w-4 h-4" />
+                                <span>সকল পরীক্ষার হিস্ট্রি ও বিস্তারিত রিভিউ</span>
+                            </Link>
+                            <button
+                                onClick={() => window.print()}
+                                className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-2"
+                            >
+                                <Printer className="w-4 h-4 text-slate-500" />
+                                <span>PDF ডাউনলোড / প্রিন্ট</span>
+                            </button>
                             <Link
                                 to="/student/my-courses"
-                                className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-100 text-white dark:text-slate-900 text-sm font-semibold transition-all"
+                                className="px-4 py-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-xs font-semibold transition-all"
                             >
-                                ড্যাশবোর্ডে ফিরে যান
+                                কোর্স ড্যাশবোর্ডে ফিরুন
                             </Link>
                         </div>
                     </div>
