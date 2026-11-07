@@ -155,6 +155,11 @@ class User extends Authenticatable
         return $this->hasOne(AffiliateProfile::class);
     }
 
+    public function examSubmissions(): HasMany
+    {
+        return $this->hasMany(ExamSubmission::class);
+    }
+
     public function hasPurchasedAnyCourse(): bool
     {
         return $this->enrollments()->where('status', 'active')->exists()

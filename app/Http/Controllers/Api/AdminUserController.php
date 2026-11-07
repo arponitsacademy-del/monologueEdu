@@ -50,9 +50,26 @@ class AdminUserController extends Controller
     {
         return response()->json([
             'user' => $user->load([
-                'enrolledCourses:id,title,price,thumbnail',
-                'instructedCourses:id,title,price,status',
-            ]),
+                'enrolledCourses' => function ($query) {
+                    $query->select('courses.id', 'courses.title', 'courses.slug', 'courses.price', 'courses.sale_price', 'courses.thumbnail', 'courses.status')
+                          ->withPivot(['id', 'status', 'enrolled_at', 'expires_at'])
+                          ->latest('enrollments.created_at');
+                },
+                'instructedCourses' => function ($query) {
+                    $query->select('courses.id', 'courses.title', 'courses.slug', 'courses.price', 'courses.status', 'courses.thumbnail');
+                },
+                'orders' => function ($query) {
+                    $query->select('id', 'user_id', 'course_id', 'order_number', 'final_amount', 'payment_status', 'order_status', 'payment_method', 'created_at')
+                          ->with('course:id,title,thumbnail')
+                          ->latest();
+                },
+                'examSubmissions' => function ($query) {
+                    $query->select('id', 'exam_id', 'user_id', 'total_marks', 'obtained_marks', 'total_questions', 'total_answered', 'total_correct', 'total_wrong', 'status', 'submitted_at')
+                          ->with('exam:id,title')
+                          ->latest();
+                },
+                'affiliateProfile',
+            ])->loadCount(['enrollments', 'orders', 'examSubmissions', 'instructedCourses']),
         ]);
     }
 

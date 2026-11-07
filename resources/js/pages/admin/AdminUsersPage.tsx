@@ -23,7 +23,15 @@ import {
     Lock,
     Phone,
     Mail,
-    User as UserIcon
+    User as UserIcon,
+    ExternalLink,
+    Calendar,
+    DollarSign,
+    Clock,
+    ClipboardList,
+    ShoppingCart,
+    Share2,
+    Award
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../../components/ui/Modal';
@@ -74,6 +82,12 @@ export const AdminUsersPage: React.FC = () => {
 
     // Delete User state
     const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
+
+    // User Details Modal state
+    const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+    const [loadingDetails, setLoadingDetails] = useState(false);
+    const [userDetails, setUserDetails] = useState<any | null>(null);
+    const [activeDetailTab, setActiveDetailTab] = useState<'courses' | 'orders' | 'exams' | 'instructed'>('courses');
 
     // Keep state in sync with URL searchParams (e.g. when navigating from dashboard or back/forward)
     useEffect(() => {
@@ -259,6 +273,22 @@ export const AdminUsersPage: React.FC = () => {
             alert(err.response?.data?.message || 'ব্যবহারকারী ডিলিট করতে ব্যর্থ হয়েছে।');
         } finally {
             setDeletingUserId(null);
+        }
+    };
+
+    const handleOpenUserDetails = async (u: User) => {
+        setUserDetails(u);
+        setDetailsModalOpen(true);
+        setLoadingDetails(true);
+        setActiveDetailTab('courses');
+
+        try {
+            const { data } = await apiClient.get(`/admin/users/${u.id}`);
+            setUserDetails(data.user);
+        } catch (err: any) {
+            console.error('Failed to load user details', err);
+        } finally {
+            setLoadingDetails(false);
         }
     };
 
@@ -474,15 +504,27 @@ export const AdminUsersPage: React.FC = () => {
                                     return (
                                         <tr key={u.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                                             <td className="py-4 px-6">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 font-bold flex items-center justify-center text-sm shrink-0 border border-sky-200/50 dark:border-sky-800/50">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleOpenUserDetails(u)}
+                                                    className="flex items-center gap-3 text-left group cursor-pointer focus:outline-hidden"
+                                                    title="বিস্তারিত ও এনরোল্ড কোর্স দেখতে ক্লিক করুন"
+                                                >
+                                                    <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 font-bold flex items-center justify-center text-sm shrink-0 border border-sky-200/50 dark:border-sky-800/50 group-hover:scale-105 group-hover:border-sky-400 transition-all">
                                                         {initial}
                                                     </div>
                                                     <div>
-                                                        <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm">{u.name || 'অজ্ঞাত ইউজার'}</h4>
-                                                        <span className="text-[11px] text-slate-400">ID: #{u.id}</span>
+                                                        <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors flex items-center gap-1.5">
+                                                            <span>{u.name || 'অজ্ঞাত ইউজার'}</span>
+                                                            <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 text-sky-500 transition-opacity" />
+                                                        </h4>
+                                                        <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                                                            <span>ID: #{u.id}</span>
+                                                            <span>•</span>
+                                                            <span className="text-sky-500 font-medium">বিস্তারিত দেখুন</span>
+                                                        </span>
                                                     </div>
-                                                </div>
+                                                </button>
                                             </td>
 
                                             <td className="py-4 px-4 font-mono font-bold text-slate-800 dark:text-slate-200">{u.phone || '-'}</td>
@@ -826,6 +868,425 @@ export const AdminUsersPage: React.FC = () => {
                         </button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* User Details & Enrolled Courses Modal */}
+            <Modal
+                isOpen={detailsModalOpen}
+                onClose={() => setDetailsModalOpen(false)}
+                title="ব্যবহারকারীর বিস্তারিত বিবরণ (User Profile & Enrolled Courses)"
+                maxWidth="xl"
+            >
+                {userDetails && (
+                    <div className="space-y-6">
+                        {/* Profile Header Card */}
+                        <div className="p-4 sm:p-5 bg-gradient-to-br from-slate-50 via-sky-50/30 to-indigo-50/20 dark:from-slate-800 dark:via-slate-800/80 dark:to-slate-850 rounded-2xl border border-slate-200/80 dark:border-slate-700 space-y-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div className="flex items-center gap-3.5">
+                                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white font-extrabold flex items-center justify-center text-xl shadow-md shrink-0">
+                                        {(userDetails.name || 'U').charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">
+                                                {userDetails.name || 'অজ্ঞাত ইউজার'}
+                                            </h3>
+                                            <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
+                                                ID: #{userDetails.id}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                            {userDetails.role === 'admin' ? (
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/60">
+                                                    <Shield className="w-3 h-3" />
+                                                    অ্যাডমিন
+                                                </span>
+                                            ) : userDetails.role === 'teacher' ? (
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/60">
+                                                    <GraduationCap className="w-3 h-3" />
+                                                    শিক্ষক
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200/60">
+                                                    শিক্ষার্থী
+                                                </span>
+                                            )}
+
+                                            {userDetails.status === 'active' ? (
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/60">
+                                                    <UserCheck className="w-3 h-3" />
+                                                    সক্রিয় একাউন্ট
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200/60">
+                                                    <UserX className="w-3 h-3" />
+                                                    নিষ্ক্রিয় একাউন্ট
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 self-start sm:self-center">
+                                    <button
+                                        onClick={() => {
+                                            openRoleModal(userDetails);
+                                        }}
+                                        className="px-3 py-1.5 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 shadow-2xs transition-colors cursor-pointer"
+                                    >
+                                        রোল পরিবর্তন
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            handleToggleStatus(userDetails);
+                                        }}
+                                        className="px-3 py-1.5 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 shadow-2xs transition-colors cursor-pointer"
+                                    >
+                                        {userDetails.status === 'active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন'}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Contact Details Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-slate-200/60 dark:border-slate-700/60 text-xs">
+                                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                    <Phone className="w-4 h-4 text-sky-500 shrink-0" />
+                                    <div>
+                                        <span className="block text-[10px] text-slate-400">মোবাইল নম্বর</span>
+                                        <a href={`tel:${userDetails.phone}`} className="font-mono font-bold hover:underline">
+                                            {userDetails.phone || 'দেওয়া হয়নি'}
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                    <Mail className="w-4 h-4 text-indigo-500 shrink-0" />
+                                    <div>
+                                        <span className="block text-[10px] text-slate-400">ইমেইল এড্রেস</span>
+                                        <a href={`mailto:${userDetails.email}`} className="font-semibold truncate max-w-[170px] block hover:underline">
+                                            {userDetails.email || 'দেওয়া হয়নি'}
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                    <Calendar className="w-4 h-4 text-amber-500 shrink-0" />
+                                    <div>
+                                        <span className="block text-[10px] text-slate-400">যোগদানের তারিখ</span>
+                                        <span className="font-semibold">
+                                            {userDetails.created_at ? new Date(userDetails.created_at).toLocaleDateString('bn-BD', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric',
+                                            }) : '-'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Navigation Tabs */}
+                        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-700 pb-2 overflow-x-auto scrollbar-none">
+                            <button
+                                onClick={() => setActiveDetailTab('courses')}
+                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                                    activeDetailTab === 'courses'
+                                        ? 'bg-sky-600 text-white shadow-xs'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                }`}
+                            >
+                                <BookOpen className="w-3.5 h-3.5" />
+                                <span>এনরোল্ড কোর্সসমূহ</span>
+                                <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                                    activeDetailTab === 'courses' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700'
+                                }`}>
+                                    {userDetails.enrolled_courses?.length ?? userDetails.enrollments_count ?? 0}
+                                </span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveDetailTab('orders')}
+                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                                    activeDetailTab === 'orders'
+                                        ? 'bg-sky-600 text-white shadow-xs'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                }`}
+                            >
+                                <ShoppingCart className="w-3.5 h-3.5" />
+                                <span>অর্ডার ও পেমেন্ট</span>
+                                <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                                    activeDetailTab === 'orders' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700'
+                                }`}>
+                                    {userDetails.orders?.length ?? userDetails.orders_count ?? 0}
+                                </span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveDetailTab('exams')}
+                                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                                    activeDetailTab === 'exams'
+                                        ? 'bg-sky-600 text-white shadow-xs'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                }`}
+                            >
+                                <ClipboardList className="w-3.5 h-3.5" />
+                                <span>পরীক্ষার ফলাফল</span>
+                                <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
+                                    activeDetailTab === 'exams' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700'
+                                }`}>
+                                    {userDetails.exam_submissions?.length ?? userDetails.exam_submissions_count ?? 0}
+                                </span>
+                            </button>
+
+                            {userDetails.role === 'teacher' && (
+                                <button
+                                    onClick={() => setActiveDetailTab('instructed')}
+                                    className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
+                                        activeDetailTab === 'instructed'
+                                            ? 'bg-purple-600 text-white shadow-xs'
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                    }`}
+                                >
+                                    <GraduationCap className="w-3.5 h-3.5" />
+                                    <span>টিচিং কোর্স</span>
+                                    <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-slate-700">
+                                        {userDetails.instructed_courses?.length ?? 0}
+                                    </span>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* TAB 1: ENROLLED COURSES */}
+                        {activeDetailTab === 'courses' && (
+                            <div className="space-y-3">
+                                {loadingDetails ? (
+                                    <div className="py-12 flex flex-col items-center justify-center text-slate-400">
+                                        <Loader2 className="w-7 h-7 animate-spin text-sky-500 mb-2" />
+                                        <span className="text-xs font-medium">এনরোল্ড কোর্স লোড হচ্ছে...</span>
+                                    </div>
+                                ) : !userDetails.enrolled_courses || userDetails.enrolled_courses.length === 0 ? (
+                                    <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                                        <BookOpen className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">কোনো কোর্সে এনরোল করা নেই</p>
+                                        <p className="text-xs text-slate-400 mt-1">এই শিক্ষার্থী এখনও কোনো পেইড বা ফ্রি কোর্সে যুক্ত হননি।</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                        {userDetails.enrolled_courses.map((course: any) => (
+                                            <div
+                                                key={course.id}
+                                                className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 shadow-2xs flex flex-col justify-between hover:border-sky-300 dark:hover:border-sky-700 transition-colors"
+                                            >
+                                                <div className="flex gap-3">
+                                                    <div className="w-16 h-16 rounded-xl bg-slate-100 dark:bg-slate-900 overflow-hidden shrink-0 border border-slate-200 dark:border-slate-700">
+                                                        {course.thumbnail ? (
+                                                            <img
+                                                                src={course.thumbnail}
+                                                                alt={course.title}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                                                <BookOpen className="w-6 h-6" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm line-clamp-2">
+                                                            {course.title}
+                                                        </h4>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="font-bold text-slate-900 dark:text-slate-200 text-xs">
+                                                                ৳{course.sale_price || course.price}
+                                                            </span>
+                                                            <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                                                                {course.pivot?.status === 'active' ? 'এনরোল্ড (Active)' : (course.pivot?.status || 'Active')}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-750 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock className="w-3 h-3 text-sky-500" />
+                                                        ভর্তির তারিখ: {course.pivot?.enrolled_at ? new Date(course.pivot.enrolled_at).toLocaleDateString('bn-BD') : (course.pivot?.created_at ? new Date(course.pivot.created_at).toLocaleDateString('bn-BD') : '-')}
+                                                    </span>
+                                                    <a
+                                                        href={`/courses/${course.slug || course.id}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1"
+                                                    >
+                                                        <span>কোর্স পেজ</span>
+                                                        <ExternalLink className="w-3 h-3" />
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TAB 2: ORDERS & PAYMENTS */}
+                        {activeDetailTab === 'orders' && (
+                            <div className="space-y-3">
+                                {loadingDetails ? (
+                                    <div className="py-12 flex flex-col items-center justify-center text-slate-400">
+                                        <Loader2 className="w-7 h-7 animate-spin text-sky-500 mb-2" />
+                                        <span className="text-xs font-medium">অর্ডার হিস্ট্রি লোড হচ্ছে...</span>
+                                    </div>
+                                ) : !userDetails.orders || userDetails.orders.length === 0 ? (
+                                    <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                                        <ShoppingCart className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">কোনো অর্ডার পাওয়া যায়নি</p>
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+                                        <table className="w-full text-left text-xs">
+                                            <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-700">
+                                                <tr>
+                                                    <th className="py-2.5 px-3">অর্ডার #</th>
+                                                    <th className="py-2.5 px-3">কোর্স</th>
+                                                    <th className="py-2.5 px-3">পরিমাণ</th>
+                                                    <th className="py-2.5 px-3">পেমেন্ট মেথড</th>
+                                                    <th className="py-2.5 px-3">পেমেন্ট স্ট্যাটাস</th>
+                                                    <th className="py-2.5 px-3 text-right">তারিখ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                {userDetails.orders.map((order: any) => (
+                                                    <tr key={order.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                                        <td className="py-2.5 px-3 font-mono font-bold text-slate-800 dark:text-slate-200">
+                                                            {order.order_number}
+                                                        </td>
+                                                        <td className="py-2.5 px-3 font-medium text-slate-800 dark:text-slate-200 line-clamp-1">
+                                                            {order.course?.title || 'কোর্স'}
+                                                        </td>
+                                                        <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-slate-100">
+                                                            ৳{order.final_amount}
+                                                        </td>
+                                                        <td className="py-2.5 px-3 uppercase text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                                                            {order.payment_method}
+                                                        </td>
+                                                        <td className="py-2.5 px-3">
+                                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                                                order.payment_status === 'paid'
+                                                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                                                    : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                                                            }`}>
+                                                                {order.payment_status === 'paid' ? 'পরিশোধিত (Paid)' : (order.payment_status || 'Pending')}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-2.5 px-3 text-right text-slate-400">
+                                                            {new Date(order.created_at).toLocaleDateString('bn-BD')}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TAB 3: EXAM SUBMISSIONS */}
+                        {activeDetailTab === 'exams' && (
+                            <div className="space-y-3">
+                                {loadingDetails ? (
+                                    <div className="py-12 flex flex-col items-center justify-center text-slate-400">
+                                        <Loader2 className="w-7 h-7 animate-spin text-sky-500 mb-2" />
+                                        <span className="text-xs font-medium">পরীক্ষার রেকর্ড লোড হচ্ছে...</span>
+                                    </div>
+                                ) : !userDetails.exam_submissions || userDetails.exam_submissions.length === 0 ? (
+                                    <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                                        <ClipboardList className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">কোনো পরীক্ষায় অংশ নেননি</p>
+                                    </div>
+                                ) : (
+                                    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+                                        <table className="w-full text-left text-xs">
+                                            <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-700">
+                                                <tr>
+                                                    <th className="py-2.5 px-3">পরীক্ষার নাম</th>
+                                                    <th className="py-2.5 px-3">প্রাপ্ত নম্বর</th>
+                                                    <th className="py-2.5 px-3">সঠিক / ভুল</th>
+                                                    <th className="py-2.5 px-3">স্ট্যাটাস</th>
+                                                    <th className="py-2.5 px-3 text-right">জমা দেওয়ার তারিখ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                {userDetails.exam_submissions.map((sub: any) => (
+                                                    <tr key={sub.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
+                                                        <td className="py-2.5 px-3 font-semibold text-slate-800 dark:text-slate-200">
+                                                            {sub.exam?.title || 'পরীক্ষা'}
+                                                        </td>
+                                                        <td className="py-2.5 px-3 font-bold text-emerald-600">
+                                                            {sub.obtained_marks} / {sub.total_marks}
+                                                        </td>
+                                                        <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400">
+                                                            <span className="text-emerald-600 font-bold">{sub.total_correct || 0}</span> সঠিক, <span className="text-rose-600 font-bold">{sub.total_wrong || 0}</span> ভুল
+                                                        </td>
+                                                        <td className="py-2.5 px-3">
+                                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
+                                                                {sub.status === 'evaluated' ? 'মূল্যায়ন সম্পন্ন' : (sub.status || 'জমা হয়েছে')}
+                                                            </span>
+                                                        </td>
+                                                        <td className="py-2.5 px-3 text-right text-slate-400">
+                                                            {sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString('bn-BD') : '-'}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TAB 4: INSTRUCTED COURSES (if teacher) */}
+                        {activeDetailTab === 'instructed' && userDetails.role === 'teacher' && (
+                            <div className="space-y-3">
+                                {!userDetails.instructed_courses || userDetails.instructed_courses.length === 0 ? (
+                                    <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                                        <GraduationCap className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">কোনো কোর্স পরিচালনা করছেন না</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                                        {userDetails.instructed_courses.map((course: any) => (
+                                            <div
+                                                key={course.id}
+                                                className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 shadow-2xs flex items-center justify-between"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 flex items-center justify-center font-bold shrink-0">
+                                                        <BookOpen className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm line-clamp-1">
+                                                            {course.title}
+                                                        </h4>
+                                                        <span className="text-[11px] text-slate-400">ফি: ৳{course.price} • স্ট্যাটাস: {course.status}</span>
+                                                    </div>
+                                                </div>
+                                                <a
+                                                    href={`/courses/${course.slug || course.id}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="p-2 text-slate-400 hover:text-purple-600"
+                                                    title="কোর্স পেজ"
+                                                >
+                                                    <ExternalLink className="w-4 h-4" />
+                                                </a>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
             </Modal>
         </div>
     );
