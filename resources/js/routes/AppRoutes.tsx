@@ -51,6 +51,13 @@ import { StudentNexPilotPage } from '../pages/student/StudentNexPilotPage';
 // Learning page
 import { LessonPlayerPage } from '../pages/learning/LessonPlayerPage';
 
+// Exam pages
+import { ExamListPage } from '../pages/exam/ExamListPage';
+import { ExamFormPage } from '../pages/exam/ExamFormPage';
+import { ExamBuilderPage } from '../pages/exam/ExamBuilderPage';
+import { ExamSubmissionsPage } from '../pages/exam/ExamSubmissionsPage';
+import { StudentExamRoomPage } from '../pages/exam/StudentExamRoomPage';
+
 export const AppRoutes: React.FC = () => {
     return (
         <Routes>
@@ -84,6 +91,12 @@ export const AppRoutes: React.FC = () => {
                 <Route path="nexpilot/ai-configuration" element={<AdminNexPilotAiConfigPage />} />
                 <Route path="nexpilot/:id/edit" element={<AdminNexPilotEditPage />} />
                 <Route path="nexpilot/:id/builder" element={<AdminNexPilotBuilderPage />} />
+                {/* Exam Management */}
+                <Route path="exams" element={<ExamListPage />} />
+                <Route path="exams/create" element={<ExamFormPage />} />
+                <Route path="exams/:id/edit" element={<ExamFormPage />} />
+                <Route path="exams/:id/builder" element={<ExamBuilderPage />} />
+                <Route path="exams/:id/submissions" element={<ExamSubmissionsPage />} />
                 <Route path="pages" element={<AdminPagesPage />} />
                 <Route path="appearance" element={<Navigate to="/admin/appearance/general" replace />} />
                 <Route path="appearance/general" element={<AdminAppearanceGeneralPage />} />
@@ -105,6 +118,12 @@ export const AppRoutes: React.FC = () => {
                 <Route index element={<TeacherDashboardPage />} />
                 <Route path="courses" element={<TeacherCoursesPage />} />
                 <Route path="questions" element={<TeacherQuestionsPage />} />
+                {/* Exam Management */}
+                <Route path="exams" element={<ExamListPage />} />
+                <Route path="exams/create" element={<ExamFormPage />} />
+                <Route path="exams/:id/edit" element={<ExamFormPage />} />
+                <Route path="exams/:id/builder" element={<ExamBuilderPage />} />
+                <Route path="exams/:id/submissions" element={<ExamSubmissionsPage />} />
             </Route>
 
             {/* Student Dashboard */}
@@ -114,6 +133,9 @@ export const AppRoutes: React.FC = () => {
                 <Route path="courses/:courseId/nexpilot" element={<StudentNexPilotPage />} />
                 <Route path="orders" element={<StudentOrdersPage />} />
             </Route>
+
+            {/* Student Exam Room */}
+            <Route path="/exams/:examId/take" element={<StudentExamRoomPage />} />
 
             {/* Learning Room / Video Player */}
             <Route path="/learning/:courseId/lessons/:lessonId" element={<LessonPlayerPage />} />

@@ -22,6 +22,9 @@ use App\Http\Controllers\Api\VdoCipherController;
 use App\Http\Controllers\Api\WebsiteSettingsController;
 use App\Http\Controllers\Api\NexPilotAdminController;
 use App\Http\Controllers\Api\NexPilotStudentController;
+use App\Http\Controllers\Api\ExamController;
+use App\Http\Controllers\Api\ExamBuilderController;
+use App\Http\Controllers\Api\ExamSubmissionController;
 use App\Models\Course;
 use App\Models\LessonComment;
 use Illuminate\Http\Request;
@@ -84,6 +87,36 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('topics/{topicId}/history', [NexPilotStudentController::class, 'getTopicChatHistory']);
         Route::post('topics/{topicId}/chat', [NexPilotStudentController::class, 'sendMessage']);
         Route::post('courses/{courseId}/unlock', [NexPilotStudentController::class, 'unlockPilotForEnrolledCourse']);
+    });
+
+    // Student Exam Taking Routes
+    Route::prefix('student/exams')->group(function () {
+        Route::get('{exam}/start', [ExamSubmissionController::class, 'studentStartExam']);
+        Route::post('{exam}/submit', [ExamSubmissionController::class, 'studentSubmitExam']);
+        Route::post('upload-attachment', [ExamSubmissionController::class, 'uploadAnswerAttachment']);
+    });
+
+    // Exam Management (Admin & Teacher)
+    Route::prefix('exams')->middleware('role:teacher,admin')->group(function () {
+        Route::get('/', [ExamController::class, 'index']);
+        Route::get('/courses-list', [ExamController::class, 'coursesList']);
+        Route::post('/', [ExamController::class, 'store']);
+        Route::get('/{exam}', [ExamController::class, 'show']);
+        Route::put('/{exam}', [ExamController::class, 'update']);
+        Route::delete('/{exam}', [ExamController::class, 'destroy']);
+
+        // Exam Builder
+        Route::get('/{exam}/questions', [ExamBuilderController::class, 'getQuestions']);
+        Route::post('/{exam}/questions', [ExamBuilderController::class, 'storeQuestion']);
+        Route::put('/{exam}/questions/{question}', [ExamBuilderController::class, 'updateQuestion']);
+        Route::delete('/{exam}/questions/{question}', [ExamBuilderController::class, 'deleteQuestion']);
+        Route::post('/{exam}/questions/reorder', [ExamBuilderController::class, 'reorderQuestions']);
+        Route::post('/questions/upload-attachment', [ExamBuilderController::class, 'uploadAttachment']);
+
+        // Submissions & Evaluation
+        Route::get('/{exam}/submissions', [ExamSubmissionController::class, 'getSubmissions']);
+        Route::get('/{exam}/submissions/{submission}', [ExamSubmissionController::class, 'getSubmissionDetails']);
+        Route::post('/{exam}/submissions/{submission}/evaluate', [ExamSubmissionController::class, 'evaluateSubmission']);
     });
 
     // Course Builder (Accessible to Admin & Assigned Teachers)

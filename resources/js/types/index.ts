@@ -314,3 +314,96 @@ export interface SmsCampaign {
 }
 
 export * from './page';
+
+export interface Exam {
+    id: number;
+    course_id?: number | null;
+    created_by: number;
+    title: string;
+    slug: string;
+    description?: string | null;
+    total_marks: number;
+    pass_marks?: number | null;
+    has_negative_marking: boolean;
+    negative_marks: number;
+    duration_minutes: number;
+    status: 'draft' | 'published' | 'archived';
+    start_time?: string | null;
+    end_time?: string | null;
+    questions_count?: number;
+    submissions_count?: number;
+    course?: {
+        id: number;
+        title: string;
+        slug: string;
+    } | null;
+    creator?: {
+        id: number;
+        name: string;
+        email: string;
+    } | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ExamQuestion {
+    id: number;
+    exam_id: number;
+    question_text: string;
+    question_type: 'single_choice' | 'multiple_choice' | 'written_paper';
+    marks: number;
+    attachment_url?: string | null;
+    explanation?: string | null;
+    order: number;
+    options?: { id: string; text: string }[] | null;
+    correct_answers?: string[] | null;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface ExamSubmissionAnswer {
+    id: number;
+    submission_id: number;
+    question_id: number;
+    student_answer?: string[] | null;
+    is_correct?: boolean | null;
+    marks_obtained: number;
+    attachments?: { url: string; file_name?: string; file_type?: string }[] | null;
+    teacher_feedback?: string | null;
+    question?: ExamQuestion;
+}
+
+export interface ExamSubmission {
+    id: number;
+    exam_id: number;
+    user_id: number;
+    started_at: string;
+    submitted_at?: string | null;
+    total_marks: number;
+    obtained_marks: number;
+    total_questions: number;
+    total_answered: number;
+    total_skipped: number;
+    total_correct: number;
+    total_wrong: number;
+    negative_marks_deducted: number;
+    status: 'in_progress' | 'submitted' | 'evaluated';
+    merit_position?: number;
+    evaluated_by?: number | null;
+    evaluation_notes?: string | null;
+    evaluated_at?: string | null;
+    created_at: string;
+    user?: {
+        id: number;
+        name: string;
+        email: string;
+        phone?: string;
+    };
+    evaluator?: {
+        id: number;
+        name: string;
+    };
+    answers?: ExamSubmissionAnswer[];
+    exam?: Exam;
+}
+

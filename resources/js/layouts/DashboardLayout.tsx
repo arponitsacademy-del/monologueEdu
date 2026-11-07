@@ -30,7 +30,8 @@ import {
     Palette,
     CreditCard,
     Bot,
-    Sparkles
+    Sparkles,
+    ClipboardList
 } from 'lucide-react';
 
 export const DashboardLayout: React.FC = () => {
@@ -48,6 +49,8 @@ export const DashboardLayout: React.FC = () => {
         '/admin/appearance': true,
         '/admin/payments': true,
         '/admin/nexpilot': true,
+        '/admin/exams': true,
+        '/teacher/exams': true,
     });
 
     const toggleSubmenu = (path: string, e?: React.MouseEvent) => {
@@ -132,6 +135,15 @@ export const DashboardLayout: React.FC = () => {
                         { title: 'AI Model Configuration', path: '/admin/nexpilot/ai-configuration' },
                     ]
                 },
+                { 
+                    title: t.sidebar.examManagement || 'Exam Management', 
+                    path: '/admin/exams', 
+                    icon: ClipboardList,
+                    children: [
+                        { title: t.sidebar.createExam || 'Create New Exam', path: '/admin/exams/create' },
+                        { title: t.sidebar.allExams || 'All Exams', path: '/admin/exams' },
+                    ]
+                },
                 { title: t.sidebar.pages || 'Pages', path: '/admin/pages', icon: Layers },
                 { 
                     title: t.sidebar.appearance, 
@@ -170,6 +182,15 @@ export const DashboardLayout: React.FC = () => {
             return [
                 { title: t.sidebar.dashboard, path: '/teacher', icon: LayoutDashboard },
                 { title: t.sidebar.myCourses, path: '/teacher/courses', icon: BookOpen },
+                { 
+                    title: t.sidebar.examManagement || 'Exam Management', 
+                    path: '/teacher/exams', 
+                    icon: ClipboardList,
+                    children: [
+                        { title: t.sidebar.createExam || 'Create New Exam', path: '/teacher/exams/create' },
+                        { title: t.sidebar.allExams || 'All Exams', path: '/teacher/exams' },
+                    ]
+                },
                 { title: t.sidebar.studentQuestions, path: '/teacher/questions', icon: MessageSquare },
             ];
         }
