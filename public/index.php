@@ -66,17 +66,4 @@ require __DIR__.'/../vendor/autoload.php';
 /** @var Application $app */
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
-// Auto-run migrations on initial setup if flag file doesn't exist
-$setupFlag = __DIR__ . '/../storage/installed.lock';
-if (!file_exists($setupFlag)) {
-    try {
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        \Illuminate\Support\Facades\Artisan::call('db:seed', ['--force' => true]);
-        \Illuminate\Support\Facades\Artisan::call('storage:link');
-        @file_put_contents($setupFlag, date('Y-m-d H:i:s'));
-    } catch (\Throwable $e) {
-        // Error logged
-    }
-}
-
 $app->handleRequest(Request::capture());
