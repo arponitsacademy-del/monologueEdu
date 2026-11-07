@@ -31,7 +31,8 @@ import {
     CreditCard,
     Bot,
     Sparkles,
-    ClipboardList
+    ClipboardList,
+    Share2
 } from 'lucide-react';
 
 export const DashboardLayout: React.FC = () => {
@@ -157,6 +158,16 @@ export const DashboardLayout: React.FC = () => {
                 },
                 { title: t.sidebar.orders, path: '/admin/orders', icon: ShoppingCart },
                 { 
+                    title: 'Affiliate', 
+                    path: '/admin/affiliate', 
+                    icon: Share2,
+                    children: [
+                        { title: 'General Settings', path: '/admin/affiliate/settings' },
+                        { title: 'Course Commissions', path: '/admin/affiliate/courses' },
+                        { title: 'Affiliates & Payouts', path: '/admin/affiliate/members' },
+                    ]
+                },
+                { 
                     title: t.sidebar.payments, 
                     path: '/admin/payments', 
                     icon: CreditCard,
@@ -199,6 +210,7 @@ export const DashboardLayout: React.FC = () => {
             { title: t.sidebar.dashboard, path: '/student', icon: LayoutDashboard },
             { title: t.sidebar.myCourses, path: '/student/my-courses', icon: BookOpen },
             { title: t.sidebar.myOrders, path: '/student/orders', icon: ShoppingCart },
+            { title: 'Affiliate Program', path: '/student/affiliate', icon: Share2 },
         ];
     };
 

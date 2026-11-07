@@ -23,9 +23,12 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'user_id',
+        'affiliate_id',
+        'affiliate_code',
         'course_id',
         'original_price',
         'discount_amount',
+        'affiliate_discount',
         'final_amount',
         'has_nexpilot',
         'nexpilot_id',
@@ -39,6 +42,7 @@ class Order extends Model
     protected $casts = [
         'original_price' => 'float',
         'discount_amount' => 'float',
+        'affiliate_discount' => 'float',
         'final_amount' => 'float',
         'has_nexpilot' => 'boolean',
         'nexpilot_price' => 'float',
@@ -72,6 +76,16 @@ class Order extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(Payment::class);
+    }
+
+    public function affiliateProfile(): BelongsTo
+    {
+        return $this->belongsTo(AffiliateProfile::class, 'affiliate_id');
+    }
+
+    public function affiliateCommission(): HasOne
+    {
+        return $this->hasOne(AffiliateCommission::class);
     }
 
     public function latestPayment(): HasOne

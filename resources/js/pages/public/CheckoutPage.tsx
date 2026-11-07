@@ -15,8 +15,12 @@ import {
     Copy,
     Check,
     Sparkles,
-    Bot
+    Bot,
+    Tag,
+    X,
+    Loader2
 } from 'lucide-react';
+import { getStoredReferralCode, setStoredReferralCode, clearStoredReferralCode } from '../../utils/referralTracker';
 
 const DEFAULT_MANUAL_SETTINGS: ManualPaymentSettings = {
     bkash: {
@@ -62,6 +66,18 @@ export const CheckoutPage: React.FC = () => {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+
+    // Referral / Affiliate state
+    const [referralInput, setReferralInput] = useState('');
+    const [appliedReferral, setAppliedReferral] = useState<{
+        code: string;
+        discount_amount: number;
+        discount_rate: number;
+        discount_type: string;
+        message: string;
+    } | null>(null);
+    const [checkingReferral, setCheckingReferral] = useState(false);
+    const [referralMessage, setReferralMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     // Merge settings from context or fallback to defaults
     const manualSettings: ManualPaymentSettings = {
@@ -138,7 +154,54 @@ export const CheckoutPage: React.FC = () => {
     const hasActivePilot = Boolean(nexpilot && (nexpilot.is_active === true || nexpilot.is_active === 1 || nexpilot.is_active === '1'));
     const pilotPrice = hasActivePilot && includeNexPilot ? Number(nexpilot.price || 0) : 0;
     const courseBasePrice = course ? Number(course.effective_price || course.price || 0) : 0;
-    const totalPayable = courseBasePrice + pilotPrice;
+    const referralDiscount = appliedReferral ? Number(appliedReferral.discount_amount || 0) : 0;
+    const totalPayable = Math.max(0, courseBasePrice + pilotPrice - referralDiscount);
+
+    const validateReferralCode = async (codeToVerify: string, courseId: number) => {
+        if (!codeToVerify || !codeToVerify.trim()) return;
+        try {
+            setCheckingReferral(true);
+            setReferralMessage(null);
+            const { data } = await apiClient.get(`/affiliate/check-code/${encodeURIComponent(codeToVerify.trim())}`, {
+                params: { course_id: courseId }
+            });
+
+            if (data.valid) {
+                setAppliedReferral({
+                    code: data.code,
+                    discount_amount: Number(data.discount_amount || 0),
+                    discount_rate: Number(data.discount_rate || 0),
+                    discount_type: data.discount_type || 'percentage',
+                    message: data.message,
+                });
+                setStoredReferralCode(data.code, data.cookie_days || 30);
+                setReferralMessage({ type: 'success', text: data.message });
+            } else {
+                setReferralMessage({ type: 'error', text: data.message || 'রেফারেল কোডটি কার্যকর নয়।' });
+            }
+        } catch (err: any) {
+            setReferralMessage({ type: 'error', text: err.response?.data?.message || 'রেফারেল কোডটি সঠিক নয়।' });
+        } finally {
+            setCheckingReferral(false);
+        }
+    };
+
+    useEffect(() => {
+        if (course) {
+            const stored = getStoredReferralCode();
+            if (stored && !appliedReferral) {
+                setReferralInput(stored);
+                validateReferralCode(stored, course.id);
+            }
+        }
+    }, [course]);
+
+    const handleRemoveReferral = () => {
+        setAppliedReferral(null);
+        setReferralInput('');
+        setReferralMessage(null);
+        clearStoredReferralCode();
+    };
 
     const getMethodTypeLabel = (type: ManualPaymentType) => {
         if (type === 'payment') {
@@ -181,6 +244,7 @@ export const CheckoutPage: React.FC = () => {
                 sender_phone: senderPhone,
                 notes,
                 include_nexpilot: hasActivePilot && includeNexPilot,
+                affiliate_code: appliedReferral?.code || (referralInput.trim() ? referralInput.trim() : undefined),
             });
 
             navigate(`/order-status/${data.order.order_number}`, { state: { order: data.order } });
@@ -438,6 +502,68 @@ export const CheckoutPage: React.FC = () => {
                             </div>
                         )}
 
+                        {/* Referral / Promo Code Box */}
+                        <div className="pt-2 border-t border-slate-100">
+                            {appliedReferral ? (
+                                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-1.5 bg-emerald-100 rounded-lg text-emerald-700">
+                                            <Tag className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="font-mono font-bold text-xs text-emerald-900">{appliedReferral.code}</span>
+                                                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-200/80 text-emerald-800 rounded">
+                                                    {appliedReferral.discount_amount > 0 ? `৳${appliedReferral.discount_amount} ছাড়` : 'কোড সক্রিয়'}
+                                                </span>
+                                            </div>
+                                            <p className="text-[11px] text-emerald-700 mt-0.5">
+                                                {appliedReferral.message}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveReferral}
+                                        className="text-slate-400 hover:text-red-500 p-1 transition-colors"
+                                        title="কোড বাতিল করুন"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                        <Tag className="w-3.5 h-3.5 text-indigo-500" />
+                                        <span>{language === 'en' ? 'Have a Referral or Promo Code?' : 'রেফারেল বা প্রোমো কোড আছে?'}</span>
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={referralInput}
+                                            onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
+                                            placeholder="যেমন: MONO2026"
+                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono uppercase focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
+                                        />
+                                        <button
+                                            type="button"
+                                            disabled={checkingReferral || !referralInput.trim()}
+                                            onClick={() => validateReferralCode(referralInput, course.id)}
+                                            className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors disabled:opacity-50 shrink-0 flex items-center gap-1"
+                                        >
+                                            {checkingReferral && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                                            <span>{language === 'en' ? 'Apply' : 'প্রয়োগ'}</span>
+                                        </button>
+                                    </div>
+                                    {referralMessage && referralMessage.type === 'error' && (
+                                        <p className="text-[11px] text-red-500 font-medium">
+                                            {referralMessage.text}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
                         {/* Pricing Breakdown */}
                         <div className="space-y-3 pt-4 border-t border-slate-100 text-sm">
                             <div className="flex justify-between text-slate-600">
@@ -449,6 +575,16 @@ export const CheckoutPage: React.FC = () => {
                                 <div className="flex justify-between text-emerald-600 font-medium">
                                     <span>{language === 'en' ? `Discount (${course.discount_percent}%)` : `বিশেষ ছাড় (${course.discount_percent}%)`}</span>
                                     <span>- {formatBDT(course.price - course.sale_price)}</span>
+                                </div>
+                            )}
+
+                            {referralDiscount > 0 && (
+                                <div className="flex justify-between text-emerald-600 font-medium">
+                                    <span className="flex items-center gap-1.5">
+                                        <Tag className="w-3.5 h-3.5 text-emerald-500" />
+                                        <span>{language === 'en' ? 'Referral Discount' : 'রেফারেল ডিসকাউন্ট'} ({appliedReferral?.code})</span>
+                                    </span>
+                                    <span className="font-semibold">- {formatBDT(referralDiscount)}</span>
                                 </div>
                             )}
 

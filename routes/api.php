@@ -25,6 +25,8 @@ use App\Http\Controllers\Api\NexPilotStudentController;
 use App\Http\Controllers\Api\ExamController;
 use App\Http\Controllers\Api\ExamBuilderController;
 use App\Http\Controllers\Api\ExamSubmissionController;
+use App\Http\Controllers\Api\AffiliateAdminController;
+use App\Http\Controllers\Api\AffiliateStudentController;
 use App\Models\Course;
 use App\Models\LessonComment;
 use Illuminate\Http\Request;
@@ -45,6 +47,7 @@ Route::get('courses/{slug}', [PublicCourseController::class, 'show']);
 Route::get('categories', [PublicCourseController::class, 'categories']);
 Route::get('settings', [WebsiteSettingsController::class, 'getSettings']);
 Route::get('pages/{slug}', [PublicPageController::class, 'show']);
+Route::get('affiliate/check-code/{code}', [AffiliateStudentController::class, 'checkCode']);
 
 /*
 |--------------------------------------------------------------------------
@@ -94,6 +97,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('{exam}/start', [ExamSubmissionController::class, 'studentStartExam']);
         Route::post('{exam}/submit', [ExamSubmissionController::class, 'studentSubmitExam']);
         Route::post('upload-attachment', [ExamSubmissionController::class, 'uploadAnswerAttachment']);
+    });
+
+    // Student Affiliate Program
+    Route::prefix('student/affiliate')->group(function () {
+        Route::get('status', [AffiliateStudentController::class, 'getStatus']);
+        Route::post('apply', [AffiliateStudentController::class, 'apply']);
+        Route::post('payout-account', [AffiliateStudentController::class, 'updatePayoutAccount']);
+        Route::post('request-payout', [AffiliateStudentController::class, 'requestPayout']);
     });
 
     // Exam Management (Admin & Teacher)
@@ -267,6 +278,19 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('{id}/students', [NexPilotAdminController::class, 'getEnrolledStudents']);
             Route::post('{id}/students/{enrollmentId}/toggle', [NexPilotAdminController::class, 'toggleStudentAccess']);
             Route::post('{id}/grant-all', [NexPilotAdminController::class, 'grantToAllStudents']);
+        });
+
+        // Affiliate Management
+        Route::prefix('affiliate')->group(function () {
+            Route::get('settings', [AffiliateAdminController::class, 'getGeneralSettings']);
+            Route::put('settings', [AffiliateAdminController::class, 'updateGeneralSettings']);
+            Route::get('courses', [AffiliateAdminController::class, 'getCourseSettings']);
+            Route::put('courses/{course}', [AffiliateAdminController::class, 'updateCourseSetting']);
+            Route::delete('courses/{course}', [AffiliateAdminController::class, 'deleteCourseSetting']);
+            Route::get('affiliates', [AffiliateAdminController::class, 'getAffiliates']);
+            Route::get('commissions', [AffiliateAdminController::class, 'getCommissions']);
+            Route::get('payouts', [AffiliateAdminController::class, 'getPayouts']);
+            Route::put('payouts/{payout}', [AffiliateAdminController::class, 'updatePayoutStatus']);
         });
     });
 });

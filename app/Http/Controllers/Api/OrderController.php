@@ -4,7 +4,11 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\AffiliateCommission;
+use App\Models\AffiliateProfile;
+use App\Models\AffiliateSetting;
 use App\Models\Course;
+use App\Models\CourseAffiliateSetting;
 use App\Models\Enrollment;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -25,6 +29,7 @@ class OrderController extends Controller
             'transaction_ref' => ['required', 'string', 'max:100'],
             'sender_phone' => ['required', 'string', 'max:20'],
             'notes' => ['nullable', 'string', 'max:500'],
+            'affiliate_code' => ['nullable', 'string', 'max:50'],
         ]);
 
         $user = auth()->user();
@@ -60,15 +65,51 @@ class OrderController extends Controller
         $price = (float) $course->price;
         $courseFinalAmount = (float) $course->effective_price;
         $discountAmount = max(0, $price - $courseFinalAmount);
+
+        // Check and apply affiliate discount
+        $affiliateProfile = null;
+        $affiliateDiscount = 0.0;
+        if (!empty($validated['affiliate_code'])) {
+            $affiliateProfile = AffiliateProfile::where('affiliate_code', $validated['affiliate_code'])
+                ->where('status', AffiliateProfile::STATUS_ACTIVE)
+                ->first();
+
+            // Self-referral protection: cannot refer oneself
+            if ($affiliateProfile && $affiliateProfile->user_id !== $user->id) {
+                $courseSetting = CourseAffiliateSetting::where('course_id', $course->id)->first();
+                $genSetting = AffiliateSetting::current();
+
+                $discountType = $courseSetting && $courseSetting->is_active
+                    ? $courseSetting->discount_type
+                    : $genSetting->default_discount_type;
+
+                $discountRate = $courseSetting && $courseSetting->is_active
+                    ? (float) $courseSetting->discount_amount
+                    : (float) $genSetting->default_discount_amount;
+
+                if ($discountType === 'percentage') {
+                    $affiliateDiscount = round(($courseFinalAmount * $discountRate) / 100, 2);
+                } else {
+                    $affiliateDiscount = min($courseFinalAmount, $discountRate);
+                }
+            } else {
+                $affiliateProfile = null;
+            }
+        }
+
+        $courseFinalAmount = max(0, $courseFinalAmount - $affiliateDiscount);
         $finalAmount = $courseFinalAmount + $nexpilotPrice;
 
-        $order = DB::transaction(function () use ($user, $course, $validated, $price, $discountAmount, $finalAmount, $includeNexPilot, $nexpilotId, $nexpilotPrice) {
+        $order = DB::transaction(function () use ($user, $course, $validated, $price, $discountAmount, $affiliateDiscount, $affiliateProfile, $finalAmount, $includeNexPilot, $nexpilotId, $nexpilotPrice) {
             $order = Order::create([
                 'order_number' => Order::generateOrderNumber(),
                 'user_id' => $user->id,
+                'affiliate_id' => $affiliateProfile ? $affiliateProfile->id : null,
+                'affiliate_code' => $affiliateProfile ? $affiliateProfile->affiliate_code : null,
                 'course_id' => $course->id,
                 'original_price' => $price,
                 'discount_amount' => $discountAmount,
+                'affiliate_discount' => $affiliateDiscount,
                 'final_amount' => $finalAmount,
                 'has_nexpilot' => $nexpilotPrice > 0 || ($includeNexPilot && $nexpilotId),
                 'nexpilot_id' => $nexpilotId,
@@ -181,6 +222,52 @@ class OrderController extends Controller
                 'amount' => $order->final_amount,
                 'confirmed_by' => auth()->id(),
             ]);
+
+            // Affiliate commission crediting
+            if ($order->affiliate_id && $order->affiliateProfile) {
+                $affiliate = $order->affiliateProfile;
+                if ($affiliate->status === AffiliateProfile::STATUS_ACTIVE && $affiliate->user_id !== $order->user_id) {
+                    $courseSetting = CourseAffiliateSetting::where('course_id', $order->course_id)->first();
+                    $genSetting = AffiliateSetting::current();
+
+                    $commType = $courseSetting && $courseSetting->is_active
+                        ? $courseSetting->commission_type
+                        : $genSetting->default_commission_type;
+
+                    $commRate = $courseSetting && $courseSetting->is_active
+                        ? (float) $courseSetting->commission_amount
+                        : (float) $genSetting->default_commission_amount;
+
+                    if ($commType === 'percentage') {
+                        $commAmount = round(($order->final_amount * $commRate) / 100, 2);
+                    } else {
+                        $commAmount = (float) $commRate;
+                    }
+
+                    if ($commAmount > 0) {
+                        AffiliateCommission::firstOrCreate(
+                            [
+                                'order_id' => $order->id,
+                                'affiliate_id' => $affiliate->id,
+                            ],
+                            [
+                                'course_id' => $order->course_id,
+                                'buyer_id' => $order->user_id,
+                                'order_amount' => $order->final_amount,
+                                'discount_given' => $order->affiliate_discount ?? 0,
+                                'commission_type' => $commType,
+                                'commission_rate' => $commRate,
+                                'commission_amount' => $commAmount,
+                                'status' => AffiliateCommission::STATUS_APPROVED,
+                            ]
+                        );
+
+                        $affiliate->balance += $commAmount;
+                        $affiliate->total_earned += $commAmount;
+                        $affiliate->save();
+                    }
+                }
+            }
 
             // Notify student
             $order->user->notify(new PaymentConfirmedNotification($order));

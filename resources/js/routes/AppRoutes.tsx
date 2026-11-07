@@ -47,6 +47,12 @@ import { StudentDashboardPage } from '../pages/student/StudentDashboardPage';
 import { StudentCoursesPage } from '../pages/student/StudentCoursesPage';
 import { StudentOrdersPage } from '../pages/student/StudentOrdersPage';
 import { StudentNexPilotPage } from '../pages/student/StudentNexPilotPage';
+import { StudentAffiliatePage } from '../pages/student/StudentAffiliatePage';
+
+// Affiliate Admin pages
+import { AdminAffiliateGeneralSettingsPage } from '../pages/admin/affiliate/AdminAffiliateGeneralSettingsPage';
+import { AdminAffiliateCourseSettingsPage } from '../pages/admin/affiliate/AdminAffiliateCourseSettingsPage';
+import { AdminAffiliateMembersPage } from '../pages/admin/affiliate/AdminAffiliateMembersPage';
 
 // Learning page
 import { LessonPlayerPage } from '../pages/learning/LessonPlayerPage';
@@ -106,6 +112,11 @@ export const AppRoutes: React.FC = () => {
                 <Route path="orders" element={<AdminOrdersPage />} />
                 <Route path="payments" element={<Navigate to="/admin/payments/manual" replace />} />
                 <Route path="payments/manual" element={<AdminManualPaymentPage />} />
+                {/* Affiliate Management */}
+                <Route path="affiliate" element={<Navigate to="/admin/affiliate/settings" replace />} />
+                <Route path="affiliate/settings" element={<AdminAffiliateGeneralSettingsPage />} />
+                <Route path="affiliate/courses" element={<AdminAffiliateCourseSettingsPage />} />
+                <Route path="affiliate/members" element={<AdminAffiliateMembersPage />} />
                 <Route path="analytics" element={<AdminAnalyticsPage />} />
                 <Route path="sms" element={<AdminSmsPage />} />
                 <Route path="sms-marketing" element={<AdminSmsMarketingPage />} />
@@ -132,6 +143,7 @@ export const AppRoutes: React.FC = () => {
                 <Route path="my-courses" element={<StudentCoursesPage />} />
                 <Route path="courses/:courseId/nexpilot" element={<StudentNexPilotPage />} />
                 <Route path="orders" element={<StudentOrdersPage />} />
+                <Route path="affiliate" element={<StudentAffiliatePage />} />
             </Route>
 
             {/* Student Exam Room */}

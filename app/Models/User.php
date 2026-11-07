@@ -149,4 +149,15 @@ class User extends Authenticatable
             ->where('is_completed', true)
             ->exists();
     }
+
+    public function affiliateProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(AffiliateProfile::class);
+    }
+
+    public function hasPurchasedAnyCourse(): bool
+    {
+        return $this->enrollments()->where('status', 'active')->exists()
+            || $this->orders()->where('payment_status', 'paid')->exists();
+    }
 }

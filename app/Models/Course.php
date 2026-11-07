@@ -141,4 +141,9 @@ class Course extends Model
         return $this->instructors()->where('users.id', $userId)->exists()
             || $this->instructor_id === $userId;
     }
+
+    public function affiliateSetting(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(CourseAffiliateSetting::class);
+    }
 }

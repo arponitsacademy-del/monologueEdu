@@ -7,6 +7,10 @@ import { LanguageProvider } from './context/LanguageContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { AppRoutes } from './routes/AppRoutes';
+import { captureReferralFromUrl } from './utils/referralTracker';
+
+// Capture any incoming referral parameter (?ref=CODE)
+captureReferralFromUrl();
 
 const queryClient = new QueryClient({
     defaultOptions: {
