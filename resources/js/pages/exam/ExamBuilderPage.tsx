@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
 import { Exam, ExamQuestion } from '../../types';
+import { WordMathEditor } from '../../components/exam/WordMathEditor';
+import { MathView } from '../../components/shared/MathView';
 import {
     Wrench,
     ArrowLeft,
@@ -371,9 +373,10 @@ export const ExamBuilderPage: React.FC = () => {
                                                 [{q.marks} মার্ক]
                                             </span>
                                         </div>
-                                        <p className="text-sm font-medium text-slate-900 dark:text-white whitespace-pre-line">
-                                            {q.question_text}
-                                        </p>
+                                        <MathView
+                                            content={q.question_text}
+                                            className="text-sm font-medium text-slate-900 dark:text-white"
+                                        />
                                     </div>
                                 </div>
 
@@ -445,7 +448,7 @@ export const ExamBuilderPage: React.FC = () => {
                                                 <span className="font-semibold text-slate-500 mr-1">
                                                     {String.fromCharCode(65 + oIdx)}.
                                                 </span>
-                                                <span className="truncate">{opt.text}</span>
+                                                <MathView content={opt.text} inline className="truncate" />
                                             </div>
                                         );
                                     })}
@@ -471,7 +474,7 @@ export const ExamBuilderPage: React.FC = () => {
             {/* Modal for Add / Edit Question */}
             {modalOpen && (
                 <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-4xl max-h-[92vh] overflow-y-auto shadow-2xl p-6 space-y-5 animate-in fade-in zoom-in-95">
                         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <Plus className="w-5 h-5 text-sky-500" />
@@ -549,18 +552,15 @@ export const ExamBuilderPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Question Text */}
+                            {/* Word Math Question Text Editor */}
                             <div>
-                                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                    প্রশ্ন / নির্দেশনাবলী <span className="text-rose-500">*</span>
-                                </label>
-                                <textarea
-                                    required
-                                    rows={3}
+                                <WordMathEditor
                                     value={questionForm.question_text}
-                                    onChange={e => setQuestionForm({ ...questionForm, question_text: e.target.value })}
-                                    placeholder="এখানে প্রশ্নটি বিস্তারিত লিখুন..."
-                                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                    onChange={val => setQuestionForm({ ...questionForm, question_text: val })}
+                                    label="প্রশ্ন ও গাণিতিক সমীকরণ (Question & Equations)"
+                                    placeholder="এখানে মাইক্রোসফট ওয়ার্ডের মতো প্রশ্ন ও সমীকরণ লিখুন... যেমন: যদি $x^2 + y^2 = 25$ এবং $x + y = 7$ হয়, তবে $xy$ এর মান কত?"
+                                    minHeight="150px"
+                                    required
                                 />
                             </div>
 
@@ -680,14 +680,38 @@ export const ExamBuilderPage: React.FC = () => {
                                                         {String.fromCharCode(65 + idx)}
                                                     </span>
 
-                                                    <input
-                                                        type="text"
-                                                        required
-                                                        value={opt.text}
-                                                        onChange={e => handleOptionTextChange(idx, e.target.value)}
-                                                        placeholder={`অপশন ${String.fromCharCode(65 + idx)} এর উত্তর লিখুন...`}
-                                                        className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-sky-500"
-                                                    />
+                                                    <div className="flex-1 space-y-1">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <input
+                                                                type="text"
+                                                                required
+                                                                value={opt.text}
+                                                                onChange={e => handleOptionTextChange(idx, e.target.value)}
+                                                                placeholder={`অপশন ${String.fromCharCode(65 + idx)} এর উত্তর লিখুন... (গণিতের জন্য: $\\frac{1}{2}$ বা $x^2$)`}
+                                                                className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-sky-500 font-sans"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    if (opt.text.startsWith('$') && opt.text.endsWith('$')) {
+                                                                        handleOptionTextChange(idx, opt.text.slice(1, -1));
+                                                                    } else {
+                                                                        handleOptionTextChange(idx, `$${opt.text || 'x'}$`);
+                                                                    }
+                                                                }}
+                                                                className="px-2 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 hover:text-sky-700 text-slate-600 dark:text-slate-400 text-xs font-serif font-bold rounded border border-slate-200 dark:border-slate-700"
+                                                                title="Math equation wrap ($...$)"
+                                                            >
+                                                                ∑ Math
+                                                            </button>
+                                                        </div>
+                                                        {opt.text && (opt.text.includes('$') || opt.text.includes('\\')) && (
+                                                            <div className="text-xs px-2.5 py-1 bg-sky-50/80 dark:bg-sky-950/40 rounded-lg text-sky-900 dark:text-sky-200 border border-sky-100 dark:border-sky-900/40">
+                                                                <span className="text-[10px] text-slate-400 mr-2 font-bold uppercase">অপশন প্রিভিউ:</span>
+                                                                <MathView content={opt.text} inline />
+                                                            </div>
+                                                        )}
+                                                    </div>
 
                                                     {questionForm.options.length > 2 && (
                                                         <button

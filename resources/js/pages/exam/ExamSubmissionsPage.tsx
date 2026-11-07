@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
 import { Exam, ExamSubmission } from '../../types';
+import { MathView } from '../../components/shared/MathView';
 import {
     FileText,
     ArrowLeft,
@@ -400,9 +401,10 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                                     [সর্বোচ্চ নম্বর: {q.marks}]
                                                                 </span>
                                                             </div>
-                                                            <p className="text-sm font-medium text-slate-900 dark:text-white whitespace-pre-line">
-                                                                {q.question_text}
-                                                            </p>
+                                                            <MathView
+                                                                content={q.question_text}
+                                                                className="text-sm font-medium text-slate-900 dark:text-white"
+                                                            />
                                                         </div>
                                                     </div>
 
@@ -447,7 +449,7 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                                         <span className="font-bold text-slate-400">
                                                                             {String.fromCharCode(65 + oIdx)}.
                                                                         </span>
-                                                                        <span>{opt.text}</span>
+                                                                        <MathView content={opt.text} inline />
                                                                     </div>
                                                                     <div className="flex items-center gap-2 text-[11px]">
                                                                         {isStudentPick && (

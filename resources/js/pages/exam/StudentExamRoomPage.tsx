@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
 import { Exam, ExamQuestion, ExamSubmission } from '../../types';
+import { MathView } from '../../components/shared/MathView';
 import {
     Clock,
     Award,
@@ -389,9 +390,10 @@ export const StudentExamRoomPage: React.FC = () => {
                                                 [{q.marks} মার্ক]
                                             </span>
                                         </div>
-                                        <p className="text-base font-semibold text-slate-900 dark:text-white whitespace-pre-line leading-relaxed">
-                                            {q.question_text}
-                                        </p>
+                                        <MathView
+                                            content={q.question_text}
+                                            className="text-base font-semibold text-slate-900 dark:text-white"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -428,7 +430,7 @@ export const StudentExamRoomPage: React.FC = () => {
                                                 }`}>
                                                     {String.fromCharCode(65 + oIdx)}
                                                 </span>
-                                                <span className="flex-1">{opt.text}</span>
+                                                <MathView content={opt.text} inline className="flex-1" />
                                             </button>
                                         );
                                     })}
