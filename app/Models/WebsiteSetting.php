@@ -40,8 +40,8 @@ class WebsiteSetting extends Model
             'show_auth_buttons' => true,
             'logo_url' => null,
             'logo_height' => 44,
-            'brand_title' => 'Novonex',
-            'brand_subtitle' => 'Academy',
+            'brand_title' => 'Monologue',
+            'brand_subtitle' => 'Edu',
             'announcement_enabled' => false,
             'announcement_text' => '🎉 New batch admission open! Enroll now with 20% discount.',
             'announcement_link' => '/courses',
@@ -60,8 +60,8 @@ class WebsiteSetting extends Model
     {
         return [
             'bg_color' => '#0f172a',
-            'brand_title' => 'Novonex',
-            'brand_subtitle' => 'Academy',
+            'brand_title' => 'Monologue',
+            'brand_subtitle' => 'Edu',
             'description' => 'Bangladesh’s leading online learning platform. Prepare for exams with the best mentors.',
             'badge_text' => '100% Trusted & Quality Online Education',
             'show_badge' => true,
@@ -82,13 +82,13 @@ class WebsiteSetting extends Model
             'column_4_title' => 'Contact Us',
             'phone' => '+880 1700 000000',
             'phone_hours' => '10 AM - 10 PM (Sat - Thu)',
-            'email' => 'support@novonex.edu.bd',
+            'email' => 'support@monologueedu.com',
             'address' => 'Dhaka, Bangladesh',
             'social_links' => [
                 ['id' => '1', 'platform' => 'facebook', 'url' => 'https://facebook.com'],
                 ['id' => '2', 'platform' => 'youtube', 'url' => 'https://youtube.com'],
             ],
-            'copyright_text' => '© 2026 Novonex Academy. All rights reserved.',
+            'copyright_text' => '© 2026 Monologue Edu. All rights reserved.',
             'bottom_credit' => 'Crafted with ❤️ for passionate learners',
         ];
     }
@@ -147,16 +147,16 @@ class WebsiteSetting extends Model
         $setting = static::first();
         if (! $setting) {
             $setting = static::create([
-                'site_name' => 'Novonex Academy',
-                'site_tagline' => 'Bangladesh’s Premier EdTech Platform',
+                'site_name' => 'Monologue Edu',
+                'site_tagline' => 'Premier Online Learning & EdTech Platform',
                 'default_language' => 'en',
                 'logo_url' => null,
                 'favicon_url' => null,
-                'contact_email' => 'support@novonex.edu.bd',
+                'contact_email' => 'support@monologueedu.com',
                 'contact_phone' => '+880 1700 000000',
                 'primary_color' => '#0ea5e9',
                 'secondary_color' => '#0f172a',
-                'copyright_text' => '© 2026 Novonex Academy. All rights reserved.',
+                'copyright_text' => '© 2026 Monologue Edu. All rights reserved.',
                 'header_settings' => static::defaultHeaderSettings(),
                 'footer_settings' => static::defaultFooterSettings(),
                 'manual_payment_settings' => static::defaultManualPaymentSettings(),

@@ -91,7 +91,7 @@ class Page extends Model
                 'title' => 'Why Choose Us Section',
                 'settings' => [
                     'sectionTag' => 'Why Choose Us',
-                    'sectionTitle' => 'Why is Novonex Academy the Best?',
+                    'sectionTitle' => 'Why is Monologue Edu the Best?',
                     'sectionSub' => 'We do not just provide video lessons; we ensure in-depth concept clarity for every student.',
                     'items' => [
                         [
@@ -237,7 +237,7 @@ class Page extends Model
                     'status' => 'published',
                     'layout_type' => 'category',
                     'is_system' => false,
-                    'meta_title' => $category->name . ' - Novonex Academy',
+                    'meta_title' => $category->name . ' - Monologue Edu',
                     'meta_description' => $category->description ?? ($category->name . ' courses and materials.'),
                     'blocks' => static::defaultCategoryBlocks($category),
                 ]
@@ -254,7 +254,7 @@ class Page extends Model
                 'status' => 'published',
                 'layout_type' => 'builder',
                 'is_system' => true,
-                'meta_title' => 'All Courses - Novonex Academy',
+                'meta_title' => 'All Courses - Monologue Edu',
                 'meta_description' => 'Browse all subject-based preparation courses.',
                 'blocks' => static::defaultCoursesBlocks(),
             ]

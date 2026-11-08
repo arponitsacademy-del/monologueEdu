@@ -6,7 +6,7 @@
     @php
         $siteSettings = \App\Models\WebsiteSetting::current();
         $siteFavicon = $siteSettings->favicon_url ?? null;
-        $siteTitle = $siteSettings->site_name ?? 'Novonex Academy';
+        $siteTitle = $siteSettings->site_name ?? 'Monologue Edu';
         $siteTagline = $siteSettings->site_tagline ?? 'Premier Online Learning & EdTech Platform';
         $headerSettings = $siteSettings->header_settings ?? [];
         $siteLogo = $headerSettings['logo_url'] ?? $siteSettings->logo_url ?? null;
