@@ -166,7 +166,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
             setCampaignTitle('');
             fetchHistory();
         } catch (err: any) {
-            setSendErrorMessage(err.response?.data?.message || 'এসএমএস পাঠাতে সমস্যা হয়েছে। গেটওয়ে সেটিংস পরীক্ষা করুন।');
+            setSendErrorMessage(err.response?.data?.message || 'Failed to send SMS. Please verify your gateway settings.');
         } finally {
             setSending(false);
         }
@@ -182,11 +182,11 @@ export const AdminSmsMarketingPage: React.FC = () => {
                     className="flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center gap-2 transition"
                 >
                     <Sliders className="w-4 h-4 text-slate-500" />
-                    <span>এসএমএস কনফিগারেশন (Configuration)</span>
+                    <span>SMS Configuration</span>
                 </Link>
                 <div className="flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-sky-600 text-white shadow-sm flex items-center justify-center gap-2">
                     <Send className="w-4 h-4 text-white" />
-                    <span>এসএমএস মার্কেটিং ও বাল্ক সেন্ডার (Marketing)</span>
+                    <span>SMS Marketing & Bulk Broadcast</span>
                 </div>
             </div>
 
@@ -198,9 +198,9 @@ export const AdminSmsMarketingPage: React.FC = () => {
                             <MessageSquareText className="w-6 h-6" />
                         </div>
                         <div>
-                            <h1 className="text-xl font-bold text-slate-900">এসএমএস মার্কেটিং ও ঘোষণা</h1>
+                            <h1 className="text-xl font-bold text-slate-900">SMS Marketing & Announcements</h1>
                             <p className="text-xs text-slate-500 mt-0.5">
-                                নির্দিষ্ট কোর্সের শিক্ষার্থী অথবা ওয়েবসাইটের সকল গ্রাহকদের এক ক্লিকে বাল্ক বার্তা পাঠান
+                                Send bulk SMS broadcasts to course enrollments or all registered users with one click
                             </p>
                         </div>
                     </div>
@@ -210,12 +210,12 @@ export const AdminSmsMarketingPage: React.FC = () => {
                         {settings?.sms_enabled ? (
                             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>গ্রিনওয়েব গেটওয়ে সক্রিয়</span>
+                                <span>Greenweb Gateway Active</span>
                             </div>
                         ) : (
                             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                                 <Info className="w-3.5 h-3.5 text-amber-600" />
-                                <span>সিমুলেশন মোড (টেস্টিং)</span>
+                                <span>Simulation Mode (Testing)</span>
                             </div>
                         )}
                     </div>
@@ -225,7 +225,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                     <div className="mt-4 p-3 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs text-amber-800 flex items-start gap-2">
                         <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                         <span>
-                            এসএমএস গেটওয়ে বর্তমানে সিমুলেশন মোডে রয়েছে। বার্তা পাঠালে তা সফলভাবে প্রসেস হবে এবং লগ ফাইলে রেকর্ড থাকবে, কিন্তু কোনো মোবাইল ব্যালেন্স কাটবে না। লাইভ এসএমএস পাঠাতে "এসএমএস কনফিগারেশন" থেকে এপিআই টোকেন দিয়ে গেটওয়ে সক্রিয় করুন।
+                            SMS gateway is currently in simulation mode. Messages will be recorded in logs without deducting mobile credit balance. Configure an API token in SMS Configuration to send live messages.
                         </span>
                     </div>
                 )}
@@ -242,7 +242,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                         onClick={() => setSendSuccessMessage(null)}
                         className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 underline"
                     >
-                        বন্ধ করুন
+                        Close
                     </button>
                 </div>
             )}
@@ -257,7 +257,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                         onClick={() => setSendErrorMessage(null)}
                         className="text-xs font-semibold text-rose-700 hover:text-rose-900 underline"
                     >
-                        বন্ধ করুন
+                        Close
                     </button>
                 </div>
             )}
@@ -272,13 +272,13 @@ export const AdminSmsMarketingPage: React.FC = () => {
                     <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-full bg-sky-100 text-sky-700 font-extrabold text-xs flex items-center justify-center">১</span>
-                                <span>কাদের এসএমএস পাঠাতে চান? (টার্গেট প্রাপক)</span>
+                                <span className="w-6 h-6 rounded-full bg-sky-100 text-sky-700 font-extrabold text-xs flex items-center justify-center">1</span>
+                                <span>Select Target Audience (Recipients)</span>
                             </h3>
                             {loadingPreview && (
                                 <span className="inline-flex items-center gap-1 text-xs text-sky-600 font-medium">
                                     <Loader2 className="w-3 h-3 animate-spin" />
-                                    <span>হিসাব হচ্ছে...</span>
+                                    <span>Calculating...</span>
                                 </span>
                             )}
                         </div>
@@ -286,10 +286,10 @@ export const AdminSmsMarketingPage: React.FC = () => {
                         {/* Audience Type Cards */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                             {[
-                                { id: 'students', label: 'সকল শিক্ষার্থী', icon: Users, desc: 'নিবন্ধিত সব ছাত্র' },
-                                { id: 'course', label: 'নির্দিষ্ট কোর্স', icon: BookOpen, desc: 'একটি নির্দিষ্ট কোর্স' },
-                                { id: 'all', label: 'সকল ইউজার', icon: UserCheck, desc: 'ছাত্র, শিক্ষক ও অন্যান্য' },
-                                { id: 'custom', label: 'কাস্টম নম্বর', icon: PhoneCall, desc: 'নিজে নম্বর লিখুন' },
+                                { id: 'students', label: 'All Students', icon: Users, desc: 'Registered students' },
+                                { id: 'course', label: 'Specific Course', icon: BookOpen, desc: 'Enrolled in course' },
+                                { id: 'all', label: 'All Users', icon: UserCheck, desc: 'Students & staff' },
+                                { id: 'custom', label: 'Custom Numbers', icon: PhoneCall, desc: 'Direct phone input' },
                             ].map((opt) => {
                                 const Icon = opt.icon;
                                 const isSelected = targetType === opt.id;
@@ -324,7 +324,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                         {targetType === 'course' && (
                             <div className="pt-2 animate-in fade-in">
                                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                    কোর্স নির্বাচন করুন:
+                                    Select Course:
                                 </label>
                                 <select
                                     value={selectedCourseId}
@@ -333,7 +333,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                                 >
                                     {courses.map((course) => (
                                         <option key={course.id} value={course.id}>
-                                            {course.title} ({course.enrollments_count} জন এনরোল্ড শিক্ষার্থী)
+                                            {course.title} ({course.enrollments_count} enrolled students)
                                         </option>
                                     ))}
                                 </select>
@@ -343,7 +343,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                         {targetType === 'custom' && (
                             <div className="pt-2 animate-in fade-in">
                                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                    মোবাইল নম্বরসমূহ (কমা অথবা নতুন লাইনে লিখুন):
+                                    Mobile Numbers (comma or newline separated):
                                 </label>
                                 <textarea
                                     rows={3}
@@ -353,7 +353,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                                     className="w-full px-3.5 py-2.5 font-mono bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                                 />
                                 <p className="text-[10px] text-slate-400 mt-1">
-                                    ১১ ডিজিটের বৈধ বাংলাদেশি মোবাইল নম্বর লিখুন। ডুপ্লিকেট নম্বর স্বয়ংক্রিয়ভাবে বাদ দেওয়া হবে।
+                                    Enter valid 11-digit mobile numbers. Duplicate numbers will be automatically removed.
                                 </p>
                             </div>
                         )}
@@ -363,18 +363,18 @@ export const AdminSmsMarketingPage: React.FC = () => {
                     <div className="bg-white p-6 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                                <span className="w-6 h-6 rounded-full bg-sky-100 text-sky-700 font-extrabold text-xs flex items-center justify-center">২</span>
-                                <span>এসএমএস বার্তা লিখুন (Message Body)</span>
+                                <span className="w-6 h-6 rounded-full bg-sky-100 text-sky-700 font-extrabold text-xs flex items-center justify-center">2</span>
+                                <span>Compose SMS Message</span>
                             </h3>
 
                             {/* Tags helper */}
                             <div className="hidden sm:flex items-center gap-1.5 text-xs">
-                                <span className="text-slate-400 text-[11px]">ভেরিয়েবল:</span>
+                                <span className="text-slate-400 text-[11px]">Variables:</span>
                                 <button
                                     type="button"
                                     onClick={() => insertVariable('{name}')}
                                     className="px-2 py-0.5 bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 font-mono text-[11px] rounded border border-slate-200"
-                                    title="প্রাপকের নাম"
+                                    title="Recipient Name"
                                 >
                                     + {'{name}'}
                                 </button>
@@ -382,7 +382,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                                     type="button"
                                     onClick={() => insertVariable('{site_name}')}
                                     className="px-2 py-0.5 bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 font-mono text-[11px] rounded border border-slate-200"
-                                    title="ওয়েবসাইট নাম"
+                                    title="Website Name"
                                 >
                                     + {'{site_name}'}
                                 </button>
@@ -391,7 +391,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                                         type="button"
                                         onClick={() => insertVariable('{course_title}')}
                                         className="px-2 py-0.5 bg-slate-100 hover:bg-sky-100 text-slate-700 hover:text-sky-700 font-mono text-[11px] rounded border border-slate-200"
-                                        title="কোর্সের নাম"
+                                        title="Course Name"
                                     >
                                         + {'{course_title}'}
                                     </button>
@@ -403,7 +403,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                         <div>
                             <input
                                 type="text"
-                                placeholder="ক্যাম্পেইনের নাম (ঐচ্ছিক, যেমন: ফিজিক্স ১ম পত্র লাইভ ক্লাস নোটিশ)"
+                                placeholder="Campaign Title (optional, e.g. Physics 1st Paper Live Class Notice)"
                                 value={campaignTitle}
                                 onChange={(e) => setCampaignTitle(e.target.value)}
                                 className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
@@ -417,7 +417,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                                 required
                                 value={message}
                                 onChange={(e) => setMessage(e.target.value)}
-                                placeholder="এখানে এসএমএস মেসেজটি লিখুন... যেমন: প্রিয় {name}, আপনার কোর্সের নতুন লাইভ ক্লাস শুরু হয়েছে।"
+                                placeholder="Type your SMS message here... e.g. Dear {name}, your new live lecture has started on {site_name}."
                                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm leading-relaxed focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                             />
                         </div>
@@ -428,18 +428,18 @@ export const AdminSmsMarketingPage: React.FC = () => {
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                                     isUnicode ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-700'
                                 }`}>
-                                    {isUnicode ? 'বাংলা (Unicode)' : 'ইংরেজি (GSM)'}
+                                    {isUnicode ? 'Unicode' : 'GSM / ASCII'}
                                 </span>
                                 <span className="text-slate-600 font-medium">
-                                    মোট অক্ষর: <strong className="text-slate-900">{charCount}</strong>
+                                    Total Characters: <strong className="text-slate-900">{charCount}</strong>
                                 </span>
                                 <span className="text-slate-600 font-medium">
-                                    প্রতি প্রাপক: <strong className="text-sky-700">{smsParts}</strong> এসএমএস
+                                    Per Recipient: <strong className="text-sky-700">{smsParts}</strong> SMS parts
                                 </span>
                             </div>
 
                             <div className="text-slate-500 font-medium text-[11px]">
-                                আনুমানিক খরচ: <strong className="text-slate-900">{estimatedTotalSms}</strong> টি ক্রেডিট
+                                Estimated Credits: <strong className="text-slate-900">{estimatedTotalSms}</strong> Credits
                             </div>
                         </div>
 
@@ -454,12 +454,12 @@ export const AdminSmsMarketingPage: React.FC = () => {
                                 {sending ? (
                                     <>
                                         <Loader2 className="w-4 h-4 animate-spin" />
-                                        <span>এসএমএস পাঠানো হচ্ছে...</span>
+                                        <span>Sending SMS...</span>
                                     </>
                                 ) : (
                                     <>
                                         <Send className="w-4 h-4" />
-                                        <span>{preview?.total_recipients || 0} জন প্রাপককে পাঠান</span>
+                                        <span>Send to {preview?.total_recipients || 0} Recipients</span>
                                     </>
                                 )}
                             </button>
@@ -475,21 +475,21 @@ export const AdminSmsMarketingPage: React.FC = () => {
                     <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-4">
                         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600">
-                                অডিয়েন্স সারাংশ
+                                Audience Summary
                             </h4>
                             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800">
-                                {preview?.total_recipients || 0} জন
+                                {preview?.total_recipients || 0}
                             </span>
                         </div>
 
                         <div className="space-y-3">
                             <div className="text-xs">
-                                <span className="text-slate-400 block text-[10px] uppercase font-semibold">টার্গেট ধরন</span>
+                                <span className="text-slate-400 block text-[10px] uppercase font-semibold">Target Audience</span>
                                 <span className="font-bold text-slate-800 capitalize">
-                                    {targetType === 'students' && 'সকল নিবন্ধিত শিক্ষার্থী'}
-                                    {targetType === 'course' && 'কোর্সের এনরোল্ড শিক্ষার্থী'}
-                                    {targetType === 'all' && 'সকল সক্রিয় ইউজার'}
-                                    {targetType === 'custom' && 'কাস্টম মোবাইল নম্বর'}
+                                    {targetType === 'students' && 'All Registered Students'}
+                                    {targetType === 'course' && 'Course Enrolled Students'}
+                                    {targetType === 'all' && 'All Active Users'}
+                                    {targetType === 'custom' && 'Custom Mobile Numbers'}
                                 </span>
                             </div>
 
@@ -504,7 +504,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                                     )}
                                     <div className="truncate">
                                         <p className="font-bold text-slate-800 truncate text-xs">{preview.course.title}</p>
-                                        <p className="text-[10px] text-slate-400">নির্বাচিত কোর্স</p>
+                                        <p className="text-[10px] text-slate-400">Selected Course</p>
                                     </div>
                                 </div>
                             )}
@@ -512,7 +512,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                             {/* Sample Recipients */}
                             <div>
                                 <span className="text-slate-400 block text-[10px] uppercase font-semibold mb-1.5">
-                                    নমুনা প্রাপক তালিকা ({preview?.sample_recipients?.length || 0})
+                                    Sample Recipients ({preview?.sample_recipients?.length || 0})
                                 </span>
                                 {preview?.sample_recipients && preview.sample_recipients.length > 0 ? (
                                     <div className="space-y-1.5">
@@ -531,7 +531,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-slate-400 italic">কোনো প্রাপক খুঁজে পাওয়া যায়নি</p>
+                                    <p className="text-xs text-slate-400 italic">No recipients found</p>
                                 )}
                             </div>
                         </div>
@@ -541,21 +541,21 @@ export const AdminSmsMarketingPage: React.FC = () => {
                     <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-2xs space-y-3">
                         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
                             <Sparkles className="w-3.5 h-3.5 text-sky-600" />
-                            <span>রেডিমেড টেমপ্লেট</span>
+                            <span>Pre-built Templates</span>
                         </h4>
                         <div className="space-y-2">
                             {[
                                 {
-                                    title: 'লাইভ ক্লাস নোটিশ',
-                                    text: 'প্রিয় {name}, আজ রাত ৮:০০ টায় আপনার কোর্সের লাইভ ক্লাস শুরু হবে। যথাসময়ে জয়েন করুন। - {site_name}'
+                                    title: 'Live Class Notice',
+                                    text: 'Dear {name}, your live lecture will begin tonight at 8:00 PM. Please join on time. - {site_name}'
                                 },
                                 {
-                                    title: 'ডিসকাউন্ট অফার ঘোষণা',
-                                    text: 'প্রিয় {name}, Novonex Academy-এর সকল কোর্সে চলছে ৫০% মেগা ছাড়! আজই এনরোল করুন। ভিজিট করুন আমাদের ওয়েবসাইট।'
+                                    title: 'Discount Offer Announcement',
+                                    text: 'Dear {name}, enjoy a 50% discount on all courses at Monologue Edu! Enroll today at monologueedu.com.'
                                 },
                                 {
-                                    title: 'জরুরী নোটিশ',
-                                    text: 'বিশেষ নোটিশ: আগামীকালের ক্লাস স্থগিত করা হয়েছে। পরবর্তী ক্লাসের সময়সূচি শীঘ্রই জানানো হবে। - {site_name}'
+                                    title: 'Urgent Notice',
+                                    text: 'Important Notice: Tomorrow\'s class has been rescheduled. We will notify you shortly. - {site_name}'
                                 },
                             ].map((tpl, i) => (
                                 <button
@@ -578,13 +578,13 @@ export const AdminSmsMarketingPage: React.FC = () => {
             <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
                 <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                     <div>
-                        <h3 className="text-base font-bold text-slate-900">পূর্ববর্তী এসএমএস ক্যাম্পেইন ইতিহাস</h3>
-                        <p className="text-xs text-slate-500 mt-0.5">সম্প্রতি প্রেরিত বাল্ক মেসেজগুলোর বিবরণ ও ডেলিভারি রিপোর্ট</p>
+                        <h3 className="text-base font-bold text-slate-900">Previous SMS Campaign History</h3>
+                        <p className="text-xs text-slate-500 mt-0.5">Details and delivery status of recently broadcast campaigns</p>
                     </div>
                     <button
                         onClick={fetchHistory}
                         className="p-2 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition"
-                        title="রিফ্রেশ"
+                        title="Refresh"
                     >
                         <RefreshCw className={`w-4 h-4 ${loadingHistory ? 'animate-spin' : ''}`} />
                     </button>
@@ -594,18 +594,18 @@ export const AdminSmsMarketingPage: React.FC = () => {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100">
-                                <th className="py-3 px-6">ক্যাম্পেইন শিরোনাম</th>
-                                <th className="py-3 px-6">টার্গেট অডিয়েন্স</th>
-                                <th className="py-3 px-6">মেসেজ সারসংক্ষেপ</th>
-                                <th className="py-3 px-6 text-center">প্রাপক (সফল/ব্যর্থ)</th>
-                                <th className="py-3 px-6 text-right">তারিখ ও সময়</th>
+                                <th className="py-3 px-6">Campaign Title</th>
+                                <th className="py-3 px-6">Target Audience</th>
+                                <th className="py-3 px-6">Message Summary</th>
+                                <th className="py-3 px-6 text-center">Recipients (Sent/Failed)</th>
+                                <th className="py-3 px-6 text-right">Date & Time</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-xs text-slate-700">
                             {campaigns.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="py-12 text-center text-slate-400">
-                                        এখনও কোনো এসএমএস ক্যাম্পেইন পাঠানো হয়নি
+                                        No SMS campaigns sent yet
                                     </td>
                                 </tr>
                             ) : (
@@ -621,7 +621,7 @@ export const AdminSmsMarketingPage: React.FC = () => {
                                                 </span>
                                             ) : (
                                                 <span className="font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-                                                    {c.target_type === 'students' ? 'সকল শিক্ষার্থী' : c.target_type === 'all' ? 'সকল গ্রাহক' : 'কাস্টম'}
+                                                    {c.target_type === 'students' ? 'All Students' : c.target_type === 'all' ? 'All Users' : 'Custom'}
                                                 </span>
                                             )}
                                         </td>
@@ -629,13 +629,13 @@ export const AdminSmsMarketingPage: React.FC = () => {
                                             {c.message}
                                         </td>
                                         <td className="py-4 px-6 text-center">
-                                            <span className="font-bold text-emerald-600">{c.sent_count} সফল</span>
+                                            <span className="font-bold text-emerald-600">{c.sent_count} Sent</span>
                                             {c.failed_count > 0 && (
-                                                <span className="text-rose-600 font-bold ml-1.5">({c.failed_count} ব্যর্থ)</span>
+                                                <span className="text-rose-600 font-bold ml-1.5">({c.failed_count} Failed)</span>
                                             )}
                                         </td>
                                         <td className="py-4 px-6 text-right font-medium text-slate-400 text-[11px]">
-                                            {new Date(c.created_at).toLocaleString('bn-BD', {
+                                            {new Date(c.created_at).toLocaleString('en-US', {
                                                 dateStyle: 'medium',
                                                 timeStyle: 'short'
                                             })}
@@ -656,23 +656,23 @@ export const AdminSmsMarketingPage: React.FC = () => {
                             <Send className="w-6 h-6" />
                         </div>
                         <h3 className="text-base font-bold text-slate-900 text-center">
-                            এসএমএস ক্যাম্পেইন নিশ্চিতকরণ
+                            Confirm SMS Campaign Broadcast
                         </h3>
                         <p className="text-xs text-slate-500 text-center mt-1">
-                            আপনি কি নিশ্চিতভাবে এই বার্তাটি প্রচার করতে চান?
+                            Are you sure you want to broadcast this message to the selected audience?
                         </p>
 
                         <div className="my-4 p-3.5 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
                             <div className="flex justify-between">
-                                <span className="text-slate-500">মোট প্রাপক:</span>
-                                <strong className="text-slate-800">{preview?.total_recipients} জন</strong>
+                                <span className="text-slate-500">Total Recipients:</span>
+                                <strong className="text-slate-800">{preview?.total_recipients}</strong>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-500">মোট এসএমএস ক্রেডিট:</span>
-                                <strong className="text-sky-700">{estimatedTotalSms} টি</strong>
+                                <span className="text-slate-500">Estimated SMS Credits:</span>
+                                <strong className="text-sky-700">{estimatedTotalSms}</strong>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-500">টার্গেট গ্রুপ:</span>
+                                <span className="text-slate-500">Target Group:</span>
                                 <strong className="text-slate-800">{preview?.course?.title || targetType}</strong>
                             </div>
                         </div>
@@ -683,14 +683,14 @@ export const AdminSmsMarketingPage: React.FC = () => {
                                 onClick={() => setShowConfirmModal(false)}
                                 className="px-4 py-2 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-50"
                             >
-                                বাতিল
+                                Cancel
                             </button>
                             <button
                                 type="button"
                                 onClick={handleSendCampaign}
                                 className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20"
                             >
-                                হ্যাঁ, এখনই পাঠান
+                                Yes, Send Now
                             </button>
                         </div>
                     </div>

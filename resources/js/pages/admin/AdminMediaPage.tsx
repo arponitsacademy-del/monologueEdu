@@ -59,7 +59,7 @@ export const AdminMediaPage: React.FC = () => {
             }
         } catch (err: any) {
             console.error('Failed to load media', err);
-            showToast('মিডিয়া ফাইল লোড করতে সমস্যা হয়েছে');
+            showToast('Failed to load media files');
         } finally {
             setLoading(false);
         }
@@ -99,11 +99,11 @@ export const AdminMediaPage: React.FC = () => {
         if (fileInputRef.current) fileInputRef.current.value = '';
 
         if (successCount > 0) {
-            showToast(`${successCount} টি ফাইল সফলভাবে আপলোড হয়েছে`);
+            showToast(`${successCount} file(s) uploaded successfully`);
             fetchMedia(1, search, filterType);
         }
         if (failCount > 0) {
-            showToast(`${failCount} টি ফাইল আপলোডে ব্যর্থ হয়েছে`);
+            showToast(`${failCount} file(s) failed to upload`);
         }
     };
 
@@ -111,7 +111,7 @@ export const AdminMediaPage: React.FC = () => {
         if (e) e.stopPropagation();
         navigator.clipboard.writeText(item.url);
         setCopiedId(item.id);
-        showToast('ফাইলের লিংক ক্লিপবোর্ডে কপি হয়েছে!');
+        showToast('File link copied to clipboard!');
         setTimeout(() => setCopiedId(null), 2000);
     };
 
@@ -120,7 +120,7 @@ export const AdminMediaPage: React.FC = () => {
         setDeleting(true);
         try {
             await apiClient.delete(`/admin/media/${deleteModalItem.id}`);
-            showToast('ফাইল সফলভাবে মুছে ফেলা হয়েছে');
+            showToast('File deleted successfully');
             setMediaItems(prev => prev.filter(item => item.id !== deleteModalItem.id));
             if (selectedItem?.id === deleteModalItem.id) {
                 setSelectedItem(null);
@@ -128,7 +128,7 @@ export const AdminMediaPage: React.FC = () => {
             setDeleteModalItem(null);
             setTotalItems(prev => Math.max(0, prev - 1));
         } catch (err) {
-            showToast('ফাইল মুছতে সমস্যা হয়েছে');
+            showToast('Failed to delete file');
         } finally {
             setDeleting(false);
         }
@@ -186,9 +186,9 @@ export const AdminMediaPage: React.FC = () => {
                             <ImageIcon className="w-5 h-5" />
                         </div>
                         <div>
-                            <h1 className="text-xl font-bold text-slate-900">মিডিয়া লাইব্রেরি (Media Library)</h1>
+                            <h1 className="text-xl font-bold text-slate-900">Media Library</h1>
                             <p className="text-xs text-slate-500 mt-0.5">
-                                ওয়েবসাইটের সমস্ত কোর্স থাম্বনেইল, ব্যানার, ম্যাটেরিয়াল ও আপলোডকৃত ফাইলসমূহ
+                                All course thumbnails, banners, materials, and uploaded website files
                             </p>
                         </div>
                     </div>
@@ -204,12 +204,12 @@ export const AdminMediaPage: React.FC = () => {
                         {uploading ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                <span>আপলোড হচ্ছে...</span>
+                                <span>Uploading...</span>
                             </>
                         ) : (
                             <>
                                 <UploadCloud className="w-4 h-4" />
-                                <span>নতুন ফাইল আপলোড</span>
+                                <span>Upload New File</span>
                             </>
                         )}
                     </button>
@@ -221,11 +221,11 @@ export const AdminMediaPage: React.FC = () => {
                 {/* Type Filters */}
                 <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
                     {[
-                        { label: 'সকল ফাইল', value: 'all' },
-                        { label: 'ছবি (Images)', value: 'image' },
-                        { label: 'ডকুমেন্ট (Documents)', value: 'document' },
-                        { label: 'ভিডিও (Videos)', value: 'video' },
-                        { label: 'অডিও (Audio)', value: 'audio' },
+                        { label: 'All Files', value: 'all' },
+                        { label: 'Images', value: 'image' },
+                        { label: 'Documents', value: 'document' },
+                        { label: 'Videos', value: 'video' },
+                        { label: 'Audio', value: 'audio' },
                     ].map((tab) => (
                         <button
                             key={tab.value}
@@ -247,10 +247,9 @@ export const AdminMediaPage: React.FC = () => {
                         <Search className="w-4 h-4 absolute left-3 top-2.5 text-slate-400" />
                         <input
                             type="text"
-                            placeholder="ফাইলের নাম লিখে খুঁজুন..."
+                            placeholder="Search by file name..."
                             value={search}
-                            onChange={(e) => setSearch}
-                            onInput={(e: any) => setSearch(e.target.value)}
+                            onChange={(e) => setSearch(e.target.value)}
                             className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
                         />
                     </form>
@@ -259,7 +258,7 @@ export const AdminMediaPage: React.FC = () => {
                         type="button"
                         onClick={() => fetchMedia(page, search, filterType)}
                         className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 transition"
-                        title="রিফ্রেশ"
+                        title="Refresh"
                     >
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                     </button>
@@ -278,10 +277,10 @@ export const AdminMediaPage: React.FC = () => {
             >
                 <UploadCloud className="w-8 h-8 text-slate-400 group-hover:text-sky-600 group-hover:scale-110 transition mb-2" />
                 <p className="text-xs font-semibold text-slate-700">
-                    এখানে যে কোনো ফাইল টেনে এনে ছেড়ে দিন অথবা ক্লিক করে সিলেক্ট করুন
+                    Drag and drop any file here, or click to browse
                 </p>
                 <p className="text-[11px] text-slate-400 mt-0.5">
-                    ছবি, পিডিএফ, ভিডিও, অডিও ফাইল সাপোর্ট করে (প্রতি ফাইল সর্বোচ্চ ৫০ মেগাবাইট)
+                    Supports images, PDFs, videos, audio files (max 50 MB per file)
                 </p>
             </div>
 
@@ -289,16 +288,16 @@ export const AdminMediaPage: React.FC = () => {
             {loading && mediaItems.length === 0 ? (
                 <div className="py-24 flex flex-col items-center justify-center bg-white rounded-2xl border border-slate-200">
                     <Loader2 className="w-10 h-10 animate-spin text-sky-600 mb-3" />
-                    <p className="text-sm font-medium text-slate-600">মিডিয়া লাইব্রেরি লোড হচ্ছে...</p>
+                    <p className="text-sm font-medium text-slate-600">Loading media library...</p>
                 </div>
             ) : mediaItems.length === 0 ? (
                 <div className="py-20 text-center bg-white rounded-2xl border border-slate-200">
                     <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
                         <ImageIcon className="w-8 h-8" />
                     </div>
-                    <h3 className="text-sm font-bold text-slate-800">কোনো ফাইল খুঁজে পাওয়া যায়নি</h3>
+                    <h3 className="text-sm font-bold text-slate-800">No files found</h3>
                     <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                        উপরে দেওয়া "নতুন ফাইল আপলোড" বাটনে ক্লিক করে প্রথম ফাইল আপলোড করুন
+                        Click the "Upload New File" button above to upload your first file.
                     </p>
                 </div>
             ) : (
@@ -321,7 +320,7 @@ export const AdminMediaPage: React.FC = () => {
                                             type="button"
                                             onClick={(e) => handleCopyUrl(item, e)}
                                             className="p-2 bg-white text-slate-700 hover:text-sky-600 rounded-lg shadow-md hover:scale-105 transition"
-                                            title="লিংক কপি করুন"
+                                            title="Copy Link"
                                         >
                                             {isCopied ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
                                         </button>
@@ -331,7 +330,7 @@ export const AdminMediaPage: React.FC = () => {
                                             rel="noopener noreferrer"
                                             onClick={(e) => e.stopPropagation()}
                                             className="p-2 bg-white text-slate-700 hover:text-sky-600 rounded-lg shadow-md hover:scale-105 transition"
-                                            title="নতুন ট্যাবে দেখুন"
+                                            title="Open in new tab"
                                         >
                                             <ExternalLink className="w-4 h-4" />
                                         </a>
@@ -342,7 +341,7 @@ export const AdminMediaPage: React.FC = () => {
                                                 setDeleteModalItem(item);
                                             }}
                                             className="p-2 bg-white text-rose-600 hover:bg-rose-50 rounded-lg shadow-md hover:scale-105 transition"
-                                            title="মুছে ফেলুন"
+                                            title="Delete"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -376,12 +375,12 @@ export const AdminMediaPage: React.FC = () => {
                                         {isCopied ? (
                                             <>
                                                 <Check className="w-3 h-3 text-emerald-600" />
-                                                <span>কপি হয়েছে</span>
+                                                <span>Copied</span>
                                             </>
                                         ) : (
                                             <>
                                                 <Copy className="w-3 h-3" />
-                                                <span>লিংক কপি করুন</span>
+                                                <span>Copy Link</span>
                                             </>
                                         )}
                                     </button>
@@ -396,7 +395,7 @@ export const AdminMediaPage: React.FC = () => {
             {lastPage > 1 && (
                 <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-slate-200">
                     <p className="text-xs text-slate-500 font-medium">
-                        মোট {totalItems} টি মিডিয়া ফাইল (পৃষ্ঠা {page} / {lastPage})
+                        Total {totalItems} media files (Page {page} of {lastPage})
                     </p>
                     <div className="flex items-center gap-2">
                         <button
@@ -404,14 +403,14 @@ export const AdminMediaPage: React.FC = () => {
                             onClick={() => fetchMedia(page - 1, search, filterType)}
                             className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                         >
-                            পূর্ববর্তী
+                            Previous
                         </button>
                         <button
                             disabled={page >= lastPage}
                             onClick={() => fetchMedia(page + 1, search, filterType)}
                             className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                         >
-                            পরবর্তী
+                            Next
                         </button>
                     </div>
                 </div>
@@ -422,7 +421,7 @@ export const AdminMediaPage: React.FC = () => {
                 <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-xl overflow-hidden animate-in fade-in zoom-in-95">
                         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-slate-50">
-                            <h3 className="text-base font-bold text-slate-800">ফাইলের বিস্তারিত বিবরণ</h3>
+                            <h3 className="text-base font-bold text-slate-800">File Details</h3>
                             <button
                                 onClick={() => setSelectedItem(null)}
                                 className="p-1.5 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
@@ -448,21 +447,21 @@ export const AdminMediaPage: React.FC = () => {
                             {/* Details table */}
                             <div className="grid grid-cols-2 gap-3 text-xs bg-slate-50 p-4 rounded-xl border border-slate-100">
                                 <div>
-                                    <span className="text-slate-400 block text-[10px] uppercase">ফাইলের নাম</span>
+                                    <span className="text-slate-400 block text-[10px] uppercase">File Name</span>
                                     <span className="font-semibold text-slate-700 break-all">{selectedItem.file_name}</span>
                                 </div>
                                 <div>
-                                    <span className="text-slate-400 block text-[10px] uppercase">ফাইলের সাইজ</span>
+                                    <span className="text-slate-400 block text-[10px] uppercase">File Size</span>
                                     <span className="font-semibold text-slate-700">{selectedItem.formatted_size}</span>
                                 </div>
                                 <div>
-                                    <span className="text-slate-400 block text-[10px] uppercase">ফাইলের টাইপ</span>
+                                    <span className="text-slate-400 block text-[10px] uppercase">File Type</span>
                                     <span className="font-semibold text-slate-700 uppercase">{selectedItem.file_type} ({selectedItem.mime_type})</span>
                                 </div>
                                 <div>
-                                    <span className="text-slate-400 block text-[10px] uppercase">আপলোড তারিখ</span>
+                                    <span className="text-slate-400 block text-[10px] uppercase">Upload Date</span>
                                     <span className="font-semibold text-slate-700">
-                                        {new Date(selectedItem.created_at).toLocaleDateString('bn-BD')}
+                                        {new Date(selectedItem.created_at).toLocaleDateString('en-US')}
                                     </span>
                                 </div>
                             </div>
@@ -470,7 +469,7 @@ export const AdminMediaPage: React.FC = () => {
                             {/* Public URL field */}
                             <div>
                                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                    পাবলিক ইউআরএল (Public URL)
+                                    Public URL
                                 </label>
                                 <div className="flex items-center gap-2">
                                     <input
@@ -485,7 +484,7 @@ export const AdminMediaPage: React.FC = () => {
                                         className="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs"
                                     >
                                         <Copy className="w-3.5 h-3.5" />
-                                        <span>কপি</span>
+                                        <span>Copy</span>
                                     </button>
                                 </div>
                             </div>
@@ -501,7 +500,7 @@ export const AdminMediaPage: React.FC = () => {
                                 className="text-xs font-semibold text-rose-600 hover:text-rose-700 flex items-center gap-1.5"
                             >
                                 <Trash2 className="w-4 h-4" />
-                                <span>ফাইলটি মুছে ফেলুন</span>
+                                <span>Delete File</span>
                             </button>
                             <a
                                 href={selectedItem.url}
@@ -510,7 +509,7 @@ export const AdminMediaPage: React.FC = () => {
                                 className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg text-xs font-semibold flex items-center gap-1.5"
                             >
                                 <Eye className="w-3.5 h-3.5" />
-                                <span>ফুল ভিউ</span>
+                                <span>Full View</span>
                             </a>
                         </div>
                     </div>
@@ -524,9 +523,9 @@ export const AdminMediaPage: React.FC = () => {
                         <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4">
                             <Trash2 className="w-6 h-6" />
                         </div>
-                        <h3 className="text-base font-bold text-slate-800">আপনি কি নিশ্চিত?</h3>
+                        <h3 className="text-base font-bold text-slate-800">Are you sure?</h3>
                         <p className="text-xs text-slate-500 mt-1.5">
-                            "{deleteModalItem.file_name}" ফাইলটি সম্পূর্ণ ডিলিট হয়ে যাবে এবং এটি যে সমস্ত কোর্সে বা পেজে ব্যবহার করা হয়েছে সেখানে আর দেখাবে না।
+                            "{deleteModalItem.file_name}" will be permanently deleted and will no longer appear where it was used.
                         </p>
                         <div className="flex items-center justify-center gap-3 mt-6">
                             <button
@@ -534,7 +533,7 @@ export const AdminMediaPage: React.FC = () => {
                                 onClick={() => setDeleteModalItem(null)}
                                 className="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-xs font-semibold hover:bg-slate-50"
                             >
-                                বাতিল
+                                Cancel
                             </button>
                             <button
                                 type="button"
@@ -543,7 +542,7 @@ export const AdminMediaPage: React.FC = () => {
                                 className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50 flex items-center gap-1.5 shadow-xs"
                             >
                                 {deleting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
-                                <span>হ্যাঁ, মুছে ফেলুন</span>
+                                <span>Yes, Delete</span>
                             </button>
                         </div>
                     </div>

@@ -78,7 +78,7 @@ const DropZone: React.FC<DropZoneProps> = ({
                 >
                     <div className="flex items-center gap-2 text-xs font-bold">
                         <Plus className={`w-4 h-4 ${isActive ? 'animate-bounce text-sky-600' : ''}`} />
-                        <span>{isActive ? 'এখানে ড্রপ করুন (Drop Here)' : 'ড্রপ জোন'}</span>
+                        <span>{isActive ? 'Drop Here' : 'Drop Zone'}</span>
                     </div>
                 </div>
             ) : onQuickAdd ? (
@@ -89,7 +89,7 @@ const DropZone: React.FC<DropZoneProps> = ({
                         className="px-3 py-1 bg-sky-600 hover:bg-sky-700 text-white font-bold text-[10px] rounded-full shadow-md flex items-center gap-1 cursor-pointer"
                     >
                         <Plus className="w-3 h-3" />
-                        <span>এখানে উইজেট যোগ করুন</span>
+                        <span>Add Widget Here</span>
                     </button>
                 </div>
             ) : null}
@@ -187,9 +187,9 @@ export const AdminPageBuilderPage: React.FC = () => {
                 meta_title: page.meta_title,
                 meta_description: page.meta_description,
             });
-            showToast('ডিজাইন সফলভাবে সংরক্ষিত হয়েছে!');
+            showToast('Design saved successfully!');
         } catch (err: any) {
-            alert(err.response?.data?.message || 'সংরক্ষণে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to save design.');
         } finally {
             setSaving(false);
         }
@@ -209,26 +209,26 @@ export const AdminPageBuilderPage: React.FC = () => {
                     type: 'hero',
                     title: 'Hero Banner',
                     settings: {
-                        badge: 'নতুন ব্যাচে ভর্তি চলছে',
-                        titlePart1: 'সেরা শিক্ষকদের সাথে',
-                        titleHighlight: 'সহজ ও আকর্ষণীয়ভাবে',
-                        titlePart2: 'পড়াশোনা ও পরীক্ষার প্রস্তুতি',
-                        subtitle: 'আপনার পড়াশোনার যেকোনো ডাউট সমাধান ও সম্পূর্ণ গাইডলাইন নিয়ে আমরা আছি পাশে।',
-                        browseCoursesBtn: 'সকল কোর্স দেখুন',
+                        badge: 'Admissions Open for New Batch',
+                        titlePart1: 'Learn with Top Educators',
+                        titleHighlight: 'Easily and Effectively',
+                        titlePart2: 'Study & Exam Preparation',
+                        subtitle: 'Comprehensive guidelines and round-the-clock doubt solving to help you succeed in exams.',
+                        browseCoursesBtn: 'Browse All Courses',
                         browseCoursesLink: '/courses',
-                        startFreeClassBtn: 'ফ্রি ক্লাস শুরু করুন',
+                        startFreeClassBtn: 'Start Free Class',
                         startFreeClassLink: '/courses',
-                        trust1: '১০,০০০+ শিক্ষার্থী',
-                        trust2: 'লাইফটাইম এক্সেস',
-                        trust3: '২৪/৭ ডাউট সলভ',
-                        cardBadge: 'লাইভ স্ট্যাটাস',
-                        physicsTitle: 'এইচএসসি পদার্থবিজ্ঞান',
-                        physicsSub: 'ভিডিও ও অধ্যায়ভিত্তিক নোট',
-                        teachersTitle: 'অভিজ্ঞ শিক্ষক মণ্ডলী',
-                        teachersSub: 'টপ বিশ্ববিদ্যালয় শিক্ষক',
-                        studyMatTitle: 'স্টাডি ম্যাটেরিয়াল',
-                        studyMatSub: 'হ্যান্ডনোট ও মডেল টেস্ট',
-                        joinTodayBtn: 'আজই জয়েন করুন',
+                        trust1: '10,000+ Students',
+                        trust2: 'Lifetime Access',
+                        trust3: '24/7 Doubt Solving',
+                        cardBadge: 'Live Status',
+                        physicsTitle: 'HSC Physics',
+                        physicsSub: 'Video & Chapter-wise Notes',
+                        teachersTitle: 'Experienced Faculty',
+                        teachersSub: 'Top University Educators',
+                        studyMatTitle: 'Study Materials',
+                        studyMatSub: 'Handnotes & Model Tests',
+                        joinTodayBtn: 'Join Today',
                     }
                 };
                 break;
@@ -239,19 +239,19 @@ export const AdminPageBuilderPage: React.FC = () => {
                     type: 'course_tabs',
                     title: 'Course Tabs & Grid',
                     settings: {
-                        headingTag: 'কোর্সসমূহ',
-                        headingTitle: 'জনপ্রিয় প্রিমিয়াম ও স্পেশাল কোর্স',
-                        viewAllText: 'সকল কোর্স',
+                        headingTag: 'Courses',
+                        headingTitle: 'Popular Premium & Special Courses',
+                        viewAllText: 'All Courses',
                         viewAllLink: '/courses',
                         limit: 12,
                         showAllTab: true,
-                        allTabLabel: 'সকল কোর্স',
+                        allTabLabel: 'All Courses',
                         dynamicCategories: false,
                         selectedCategorySlugs: dbCategories
                             .filter(c => c.slug !== 'free-courses' && c.slug !== 'paid-courses')
                             .map(c => c.slug),
                         tabs: [
-                            { id: 'tab_all', label: 'সকল কোর্স', type: 'category', categorySlug: 'all' },
+                            { id: 'tab_all', label: 'All Courses', type: 'category', categorySlug: 'all' },
                             ...dbCategories
                                 .filter(c => c.slug !== 'free-courses' && c.slug !== 'paid-courses')
                                 .slice(0, 5)
@@ -274,8 +274,8 @@ export const AdminPageBuilderPage: React.FC = () => {
                     settings: {
                         containerWidth: 'boxed',
                         bgColor: '#ffffff',
-                        html: '<div class="p-8 text-center bg-sky-50 rounded-2xl border border-sky-200">\n  <h2 class="text-2xl font-bold text-sky-900 mb-2">কাস্টম HTML উইজেট</h2>\n  <p class="text-slate-600">এখানে আপনি নিজের পছন্দমতো যেকোনো HTML কোড এবং নিচে CSS লিখে ডিজাইন করতে পারেন।</p>\n</div>',
-                        css: '/* কাস্টম CSS কোড */\n',
+                        html: '<div class="p-8 text-center bg-sky-50 rounded-2xl border border-sky-200">\n  <h2 class="text-2xl font-bold text-sky-900 mb-2">Custom HTML Widget</h2>\n  <p class="text-slate-600">You can add your custom HTML code and styling here.</p>\n</div>',
+                        css: '/* Custom scoped CSS */\n',
                     }
                 };
                 break;
@@ -286,13 +286,13 @@ export const AdminPageBuilderPage: React.FC = () => {
                     type: 'features',
                     title: 'Why Choose Us',
                     settings: {
-                        sectionTag: 'আমাদের বিশেষত্ব',
-                        sectionTitle: 'কেন Novonex Academy সেরা?',
-                        sectionSub: 'আমরা শুধুমাত্র ভিডিও দিই না, নিশ্চিত করি প্রতিটি বিষয়ের গভীর ধারণা।',
+                        sectionTag: 'Our Highlights',
+                        sectionTitle: 'Why Choose Monologue Edu?',
+                        sectionSub: 'We don\'t just deliver videos; we build conceptual mastery.',
                         items: [
-                            { id: '1', icon: 'Award', title: 'অভিজ্ঞ শিক্ষক', desc: 'শীর্ষ বিশ্ববিদ্যালয়ের শিক্ষকগণের সরাসরি তত্ত্বাবধানে প্রস্তুত লেকচার।' },
-                            { id: '2', icon: 'HelpCircle', title: 'ডাউট সলভিং', desc: 'প্রতিটি ক্লাসের নিচে সরাসরি প্রশ্ন করার সুযোগ।' },
-                            { id: '3', icon: 'Clock', title: 'মোবাইল ফ্রেন্ডলি', desc: 'স্বচ্ছন্দে যেকোনো ডিভাইস থেকে ক্লাস করার সুবিধা।' },
+                            { id: '1', icon: 'Award', title: 'Expert Faculty', desc: 'Lectures prepared under direct supervision of top university professors.' },
+                            { id: '2', icon: 'HelpCircle', title: 'Dedicated Doubt Solving', desc: 'Ask questions directly beneath every lecture video.' },
+                            { id: '3', icon: 'Clock', title: 'Mobile Friendly', desc: 'Smooth learning experience across phone, tablet, and PC.' },
                         ]
                     }
                 };
@@ -304,10 +304,10 @@ export const AdminPageBuilderPage: React.FC = () => {
                     type: 'cta_banner',
                     title: 'Call to Action Banner',
                     settings: {
-                        badge: 'ভর্তি চলছে',
-                        title: 'আজই যুক্ত হোন আপনার স্বপ্নের লক্ষ্যপূরণে',
-                        subtitle: 'বাংলাদেশের সেরা অনলাইন এডুকেশন প্ল্যাটফর্মে হাজারো শিক্ষার্থীর সাথে পড়াশোনা শুরু করুন।',
-                        buttonText: 'কোর্সসমূহ দেখুন',
+                        badge: 'Enrollment Open',
+                        title: 'Join Today to Achieve Your Dream Goal',
+                        subtitle: 'Study alongside thousands of motivated learners on Bangladesh\'s premier education platform.',
+                        buttonText: 'Explore Courses',
                         buttonLink: '/courses',
                         bgColor: 'sky',
                     }
@@ -320,7 +320,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                     type: 'rich_text',
                     title: 'Rich Content / Policy',
                     settings: {
-                        content: '<h2>এখানে আপনার শিরোনাম লিখুন</h2>\n<p>এখানে বিস্তারিত প্যারাগ্রাফ বা বিষয়বস্তু লিখুন। আপনি যেকোনো ফরম্যাট বা বুলেট পয়েন্ট ব্যবহার করতে পারেন।</p>'
+                        content: '<h2>Write your heading here</h2>\n<p>Write your detailed article, terms, or policy guidelines here. Supports rich formatting and lists.</p>'
                     }
                 };
                 break;
@@ -331,8 +331,8 @@ export const AdminPageBuilderPage: React.FC = () => {
                     type: 'video_embed',
                     title: 'Video Embed',
                     settings: {
-                        title: 'আমাদের পরিচিতি ভিডিও',
-                        subtitle: 'Novonex Academy কিভাবে কাজ করে তা বিস্তারিত দেখুন',
+                        title: 'Introduction to Our Platform',
+                        subtitle: 'See how Monologue Edu helps students excel',
                         videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
                     }
                 };
@@ -345,10 +345,10 @@ export const AdminPageBuilderPage: React.FC = () => {
                     title: 'Stats Counter',
                     settings: {
                         stats: [
-                            { label: 'সন্তুষ্ট শিক্ষার্থী', value: '১০,০০০+' },
-                            { label: 'রেকর্ডেড লেকচার', value: '৫০০+' },
-                            { label: 'কোর্সসমূহ', value: '২০+' },
-                            { label: 'সফলতার হার', value: '৯৮%' },
+                            { label: 'Enrolled Students', value: '10,000+' },
+                            { label: 'Video Lessons', value: '500+' },
+                            { label: 'Total Courses', value: '20+' },
+                            { label: 'Success Rate', value: '98%' },
                         ]
                     }
                 };
@@ -364,7 +364,7 @@ export const AdminPageBuilderPage: React.FC = () => {
         setBlocks(newBlocks);
         setSelectedBlockId(newBlock.id);
         setActiveSidebarTab('inspector');
-        showToast('উইজেট যোগ করা হয়েছে');
+        showToast('Widget added');
     };
 
     /* Drag & Drop Event Handlers */
@@ -404,7 +404,7 @@ export const AdminPageBuilderPage: React.FC = () => {
 
         if (draggedWidgetType) {
             handleAddBlock(draggedWidgetType, targetIndex);
-            showToast('নতুন উইজেট ড্রপ করে বসানো হয়েছে!');
+            showToast('New widget placed!');
         } else if (draggedBlockIndex !== null) {
             if (draggedBlockIndex === targetIndex || draggedBlockIndex === targetIndex - 1) {
                 handleDragEnd();
@@ -416,7 +416,7 @@ export const AdminPageBuilderPage: React.FC = () => {
             newBlocks.splice(insertAt, 0, moved);
             setBlocks(newBlocks);
             setSelectedBlockId(moved.id);
-            showToast('ব্লকের অবস্থান ড্রপ করে পরিবর্তন করা হয়েছে!');
+            showToast('Block position reordered!');
         }
         handleDragEnd();
     };
@@ -443,18 +443,18 @@ export const AdminPageBuilderPage: React.FC = () => {
         newBlocks.splice(index + 1, 0, clone);
         setBlocks(newBlocks);
         setSelectedBlockId(clone.id);
-        showToast('উইজেট ডুপ্লিকেট করা হয়েছে');
+        showToast('Widget duplicated');
     };
 
     const handleDeleteBlock = (index: number) => {
-        if (!confirm('আপনি কি এই উইজেটটি মুছে ফেলতে চান?')) return;
+        if (!confirm('Are you sure you want to delete this widget?')) return;
         const newBlocks = [...blocks];
         const [removed] = newBlocks.splice(index, 1);
         setBlocks(newBlocks);
         if (selectedBlockId === removed.id) {
             setSelectedBlockId(newBlocks[0]?.id || null);
         }
-        showToast('উইজেট মুছে ফেলা হয়েছে');
+        showToast('Widget deleted');
     };
 
     const handleUpdateSelectedSettings = (key: string, value: any) => {
@@ -480,7 +480,7 @@ export const AdminPageBuilderPage: React.FC = () => {
             <div className="h-screen flex items-center justify-center bg-slate-900 text-white">
                 <div className="text-center space-y-3">
                     <div className="w-10 h-10 border-3 border-sky-500 border-t-transparent rounded-full animate-spin mx-auto" />
-                    <div className="text-sm font-bold">ভিজ্যুয়াল বিল্ডার লোড হচ্ছে...</div>
+                    <div className="text-sm font-bold">Loading visual builder...</div>
                 </div>
             </div>
         );
@@ -490,9 +490,9 @@ export const AdminPageBuilderPage: React.FC = () => {
         return (
             <div className="p-8 text-center space-y-4">
                 <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
-                <h2 className="text-xl font-bold">পেজ পাওয়া যায়নি</h2>
+                <h2 className="text-xl font-bold">Page not found</h2>
                 <Link to="/admin/pages" className="inline-block px-4 py-2 bg-sky-600 text-white rounded-xl text-sm">
-                    পেজ তালিকায় ফিরে যান
+                    Back to pages list
                 </Link>
             </div>
         );
@@ -518,7 +518,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                     <Link
                         to="/admin/pages"
                         className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
-                        title="পেজ তালিকায় ফিরে যান"
+                        title="Back to pages list"
                     >
                         <ArrowLeft className="w-4 h-4" />
                     </Link>
@@ -530,7 +530,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                         <span className="text-xs text-slate-400 font-mono">({publicUrl})</span>
                         {page.is_system && (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                                সিস্টেম পেজ
+                                System Page
                             </span>
                         )}
                     </div>
@@ -543,7 +543,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                             deviceView === 'desktop' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'
                         }`}
-                        title="ডেস্কটপ ভিউ (Desktop 100%)"
+                        title="Desktop View (100%)"
                     >
                         <Monitor className="w-4 h-4" />
                     </button>
@@ -552,7 +552,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                             deviceView === 'tablet' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'
                         }`}
-                        title="ট্যাবলেট ভিউ (Tablet 768px)"
+                        title="Tablet View (768px)"
                     >
                         <Tablet className="w-4 h-4" />
                     </button>
@@ -561,7 +561,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                         className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                             deviceView === 'mobile' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'
                         }`}
-                        title="মোবাইল ভিউ (Mobile 375px)"
+                        title="Mobile View (375px)"
                     >
                         <Smartphone className="w-4 h-4" />
                     </button>
@@ -578,8 +578,8 @@ export const AdminPageBuilderPage: React.FC = () => {
                                 : 'bg-amber-950/60 text-amber-400 border-amber-800/80'
                         }`}
                     >
-                        <option value="published" className="bg-slate-900 text-white">প্রকাশিত (Published)</option>
-                        <option value="draft" className="bg-slate-900 text-white">ড্রাফট (Draft)</option>
+                        <option value="published" className="bg-slate-900 text-white">Published</option>
+                        <option value="draft" className="bg-slate-900 text-white">Draft</option>
                     </select>
 
                     <a
@@ -587,10 +587,10 @@ export const AdminPageBuilderPage: React.FC = () => {
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white text-xs font-bold border border-slate-700/60 transition-colors"
-                        title="নতুন ট্যাবে প্রিভিউ দেখুন"
+                        title="Preview in new tab"
                     >
                         <ExternalLink className="w-3.5 h-3.5" />
-                        <span>প্রিভিউ</span>
+                        <span>Preview</span>
                     </a>
 
                     <button
@@ -599,7 +599,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                         className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-sky-500/20 transition-all disabled:opacity-50 cursor-pointer"
                     >
                         <Save className="w-3.5 h-3.5" />
-                        <span>{saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন (Ctrl+S)'}</span>
+                        <span>{saving ? 'Saving...' : 'Save (Ctrl+S)'}</span>
                     </button>
                 </div>
             </header>
@@ -623,7 +623,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                             }`}
                         >
                             <Plus className="w-3.5 h-3.5" />
-                            <span>উইজেটস</span>
+                            <span>Widgets</span>
                         </button>
                         <button
                             onClick={() => setActiveSidebarTab('inspector')}
@@ -634,7 +634,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                             }`}
                         >
                             <Sliders className="w-3.5 h-3.5" />
-                            <span>সেটিংস / এডিটর</span>
+                            <span>Settings</span>
                         </button>
                         <button
                             onClick={() => setActiveSidebarTab('css')}
@@ -656,11 +656,11 @@ export const AdminPageBuilderPage: React.FC = () => {
                             <div className="space-y-4">
                                 <div className="p-3 bg-sky-950/60 border border-sky-800/80 rounded-xl text-[11px] text-sky-300 flex items-center gap-2.5">
                                     <GripVertical className="w-4 h-4 text-sky-400 shrink-0 animate-pulse" />
-                                    <span>যেকোনো উইজেট <strong>টেনে এনে (Drag & Drop)</strong> ক্যানভাসে ছাড়ুন, অথবা ক্লিক করুন।</span>
+                                    <span><strong>Drag & Drop</strong> any widget onto the canvas, or click to append.</span>
                                 </div>
 
                                 <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                                    উইজেটস তালিকা (Widgets)
+                                    Available Widgets
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2.5">
@@ -677,7 +677,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                         </div>
                                         <div>
                                             <div className="text-xs font-bold text-white group-hover:text-sky-400">Custom HTML/CSS</div>
-                                            <div className="text-[10px] text-slate-400">র কোড ও নিজস্ব ডিজাইন</div>
+                                            <div className="text-[10px] text-slate-400">Raw code & custom design</div>
                                         </div>
                                     </button>
 
@@ -693,8 +693,8 @@ export const AdminPageBuilderPage: React.FC = () => {
                                             <BookOpen className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">কোর্স ট্যাব ও গ্রিড</div>
-                                            <div className="text-[10px] text-slate-400">ক্যাটাগরি বা কাস্টম ট্যাব</div>
+                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">Course Tabs & Grid</div>
+                                            <div className="text-[10px] text-slate-400">Category or custom tabs</div>
                                         </div>
                                     </button>
 
@@ -710,8 +710,8 @@ export const AdminPageBuilderPage: React.FC = () => {
                                             <Sparkles className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">হিরো ব্যানার (Hero)</div>
-                                            <div className="text-[10px] text-slate-400">টাইটেল, বাটন ও কার্ড</div>
+                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">Hero Banner</div>
+                                            <div className="text-[10px] text-slate-400">Title, buttons & cards</div>
                                         </div>
                                     </button>
 
@@ -727,8 +727,8 @@ export const AdminPageBuilderPage: React.FC = () => {
                                             <Award className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">ফিচার গ্রিড (Why Us)</div>
-                                            <div className="text-[10px] text-slate-400">আইকন ও বিশেষত্ব কার্ড</div>
+                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">Why Choose Us</div>
+                                            <div className="text-[10px] text-slate-400">Features & value points</div>
                                         </div>
                                     </button>
 
@@ -744,8 +744,8 @@ export const AdminPageBuilderPage: React.FC = () => {
                                             <Zap className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">CTA ব্যানার</div>
-                                            <div className="text-[10px] text-slate-400">হাই ইমপ্যাক্ট অফার বক্স</div>
+                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">CTA Banner</div>
+                                            <div className="text-[10px] text-slate-400">High-impact conversion box</div>
                                         </div>
                                     </button>
 
@@ -761,8 +761,8 @@ export const AdminPageBuilderPage: React.FC = () => {
                                             <FileText className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">কনটেন্ট / পলিসি টেক্সট</div>
-                                            <div className="text-[10px] text-slate-400">হেডিং ও অনুচ্ছেদ</div>
+                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">Content / Policy</div>
+                                            <div className="text-[10px] text-slate-400">Headings & rich paragraphs</div>
                                         </div>
                                     </button>
 
@@ -778,8 +778,8 @@ export const AdminPageBuilderPage: React.FC = () => {
                                             <Video className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">ভিডিও এম্বেড</div>
-                                            <div className="text-[10px] text-slate-400">ইউটিউব বা ভিমিও প্লেয়ার</div>
+                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">Video Embed</div>
+                                            <div className="text-[10px] text-slate-400">YouTube or Vimeo player</div>
                                         </div>
                                     </button>
 
@@ -795,8 +795,8 @@ export const AdminPageBuilderPage: React.FC = () => {
                                             <BarChart3 className="w-4 h-4" />
                                         </div>
                                         <div>
-                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">পরিসংখ্যান (Stats)</div>
-                                            <div className="text-[10px] text-slate-400">কাউন্টার ও মেট্রিক বক্স</div>
+                                            <div className="text-xs font-bold text-white group-hover:text-sky-400">Stats Counter</div>
+                                            <div className="text-[10px] text-slate-400">Animated metric counters</div>
                                         </div>
                                     </button>
                                 </div>
@@ -809,14 +809,14 @@ export const AdminPageBuilderPage: React.FC = () => {
                                 {!selectedBlock ? (
                                     <div className="p-8 text-center text-slate-500 space-y-2">
                                         <Sliders className="w-8 h-8 text-slate-600 mx-auto" />
-                                        <p className="text-xs font-bold">ক্যানভাস থেকে যেকোনো উইজেটে ক্লিক করুন</p>
+                                        <p className="text-xs font-bold">Click any widget on the canvas to configure</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-5">
                                         <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                                             <div>
                                                 <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400">
-                                                    উইজেট টাইপ: {selectedBlock.type}
+                                                    Widget Type: {selectedBlock.type}
                                                 </span>
                                                 <h3 className="font-bold text-sm text-white">{selectedBlock.title}</h3>
                                             </div>
@@ -829,7 +829,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                         {selectedBlock.type === 'course_tabs' && (
                                             <div className="space-y-4 text-xs">
                                                 <div>
-                                                    <label className="block text-slate-400 font-bold mb-1">হেডিং ট্যাগ (Tag)</label>
+                                                    <label className="block text-slate-400 font-bold mb-1">Heading Tag</label>
                                                     <input
                                                         type="text"
                                                         value={selectedBlock.settings.headingTag || ''}
@@ -839,7 +839,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                 </div>
 
                                                 <div>
-                                                    <label className="block text-slate-400 font-bold mb-1">মূল শিরোনাম (Title)</label>
+                                                    <label className="block text-slate-400 font-bold mb-1">Main Title</label>
                                                     <input
                                                         type="text"
                                                         value={selectedBlock.settings.headingTitle || ''}
@@ -849,7 +849,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                 </div>
 
                                                 <div>
-                                                    <label className="block text-slate-400 font-bold mb-1">কোর্স সংখ্যা প্রদর্শন লিমিট</label>
+                                                    <label className="block text-slate-400 font-bold mb-1">Course Display Limit</label>
                                                     <input
                                                         type="number"
                                                         value={selectedBlock.settings.limit || 12}
@@ -858,11 +858,11 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                     />
                                                 </div>
 
-                                                {/* CATEGORY SELECTION IN BUILDER (Core User Request!) */}
+                                                {/* CATEGORY SELECTION IN BUILDER */}
                                                 <div className="pt-2 border-t border-slate-800 space-y-3">
                                                     <div className="flex items-center justify-between">
                                                         <label className="block text-slate-300 font-bold">
-                                                            প্রদর্শিত ক্যাটাগরি ফিল্টার (Categories to Show)
+                                                            Categories to Show
                                                         </label>
                                                         <div className="flex items-center gap-2 text-[10px]">
                                                             <button
@@ -871,7 +871,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                     const validCats = dbCategories.filter(c => c.slug !== 'free-courses' && c.slug !== 'paid-courses');
                                                                     const allSlugs = validCats.map(c => c.slug);
                                                                     const newTabs = [
-                                                                        { id: 'tab_all', label: selectedBlock.settings.allTabLabel || 'সকল কোর্স', type: 'category' as const, categorySlug: 'all' },
+                                                                        { id: 'tab_all', label: selectedBlock.settings.allTabLabel || 'All Courses', type: 'category' as const, categorySlug: 'all' },
                                                                         ...validCats.map(c => ({
                                                                             id: `tab_${c.slug}`,
                                                                             label: c.name,
@@ -884,7 +884,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                 }}
                                                                 className="text-sky-400 hover:text-sky-300 font-bold cursor-pointer"
                                                             >
-                                                                সব সিলেক্ট
+                                                                Select All
                                                             </button>
                                                             <span className="text-slate-600">•</span>
                                                             <button
@@ -892,18 +892,18 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                 onClick={() => {
                                                                     handleUpdateSelectedSettings('selectedCategorySlugs', []);
                                                                     handleUpdateSelectedSettings('tabs', [
-                                                                        { id: 'tab_all', label: selectedBlock.settings.allTabLabel || 'সকল কোর্স', type: 'category' as const, categorySlug: 'all' }
+                                                                        { id: 'tab_all', label: selectedBlock.settings.allTabLabel || 'All Courses', type: 'category' as const, categorySlug: 'all' }
                                                                     ]);
                                                                 }}
                                                                 className="text-slate-400 hover:text-slate-300 cursor-pointer"
                                                             >
-                                                                ক্লিয়ার
+                                                                Clear
                                                             </button>
                                                         </div>
                                                     </div>
 
                                                     <p className="text-[11px] text-slate-400">
-                                                        নিচে যেসব ক্যাটাগরিতে টিক চিহ্ন দেবেন, শুধুমাত্র সেগুলোই পেজের ট্যাবে শো করবে।
+                                                        Only selected categories will appear in the tabs.
                                                     </p>
 
                                                     <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
@@ -939,7 +939,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                                 const currentTabs: CourseTabItem[] = selectedBlock.settings.tabs || [];
                                                                                 const allTab = currentTabs.find(t => t.categorySlug === 'all') || {
                                                                                     id: 'tab_all',
-                                                                                    label: 'সকল কোর্স',
+                                                                                    label: 'All Courses',
                                                                                     type: 'category' as const,
                                                                                     categorySlug: 'all',
                                                                                 };
@@ -964,7 +964,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                         <span className="truncate flex-1">{cat.name}</span>
                                                                         {cat.courses_count !== undefined && (
                                                                             <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-400">
-                                                                                {cat.courses_count} কোর্স
+                                                                                {cat.courses_count} course(s)
                                                                             </span>
                                                                         )}
                                                                     </label>
@@ -973,17 +973,17 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                     </div>
                                                 </div>
 
-                                                {/* TABS CONFIGURATION (Core Request!) */}
+                                                {/* TABS CONFIGURATION */}
                                                 <div className="pt-2 border-t border-slate-800 space-y-3">
                                                     <div className="flex items-center justify-between">
-                                                        <label className="block text-slate-300 font-bold">ট্যাবসমূহ পরিচালনা ও কাস্টমাইজেশন</label>
+                                                        <label className="block text-slate-300 font-bold">Manage Tabs</label>
                                                         <button
                                                             type="button"
                                                             onClick={() => {
                                                                 const currentTabs: CourseTabItem[] = selectedBlock.settings.tabs || [];
                                                                 const newTab: CourseTabItem = {
                                                                     id: `tab_${Date.now()}`,
-                                                                    label: 'নতুন ট্যাব',
+                                                                    label: 'New Tab',
                                                                     type: 'category',
                                                                     categorySlug: 'all',
                                                                 };
@@ -991,7 +991,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                             }}
                                                             className="px-2.5 py-1 bg-sky-600/80 hover:bg-sky-600 text-white font-bold text-[11px] rounded-lg cursor-pointer"
                                                         >
-                                                            + ট্যাব যোগ করুন
+                                                            + Add Tab
                                                         </button>
                                                     </div>
 
@@ -999,7 +999,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                         {(selectedBlock.settings.tabs || []).map((tab: CourseTabItem, tabIdx: number) => (
                                                             <div key={tab.id} className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2.5">
                                                                 <div className="flex items-center justify-between">
-                                                                    <span className="font-bold text-white text-[11px]">ট্যাব #{tabIdx + 1}</span>
+                                                                    <span className="font-bold text-white text-[11px]">Tab #{tabIdx + 1}</span>
                                                                     <button
                                                                         type="button"
                                                                         onClick={() => {
@@ -1013,38 +1013,22 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                     </button>
                                                                 </div>
 
-                                                                <div className="grid grid-cols-2 gap-2">
-                                                                    <div>
-                                                                        <label className="block text-slate-400 text-[10px] mb-1">ট্যাবের নাম (বাংলা)</label>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={tab.label}
-                                                                            onChange={(e) => {
-                                                                                const updated = [...selectedBlock.settings.tabs];
-                                                                                updated[tabIdx].label = e.target.value;
-                                                                                handleUpdateSelectedSettings('tabs', updated);
-                                                                            }}
-                                                                            className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-lg text-white"
-                                                                        />
-                                                                    </div>
-                                                                    <div>
-                                                                        <label className="block text-slate-400 text-[10px] mb-1">Tab Label (English - ঐচ্ছিক)</label>
-                                                                        <input
-                                                                            type="text"
-                                                                            value={(tab as any).label_en || ''}
-                                                                            onChange={(e) => {
-                                                                                const updated = [...selectedBlock.settings.tabs];
-                                                                                (updated[tabIdx] as any).label_en = e.target.value;
-                                                                                handleUpdateSelectedSettings('tabs', updated);
-                                                                            }}
-                                                                            placeholder="ঐচ্ছিক"
-                                                                            className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-lg text-white"
-                                                                        />
-                                                                    </div>
+                                                                <div>
+                                                                    <label className="block text-slate-400 text-[10px] mb-1">Tab Label</label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={tab.label}
+                                                                        onChange={(e) => {
+                                                                            const updated = [...selectedBlock.settings.tabs];
+                                                                            updated[tabIdx].label = e.target.value;
+                                                                            handleUpdateSelectedSettings('tabs', updated);
+                                                                        }}
+                                                                        className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-lg text-white"
+                                                                    />
                                                                 </div>
 
                                                                 <div>
-                                                                    <label className="block text-slate-400 text-[10px] mb-1">ট্যাবের ধরন (Tab Type)</label>
+                                                                    <label className="block text-slate-400 text-[10px] mb-1">Tab Type</label>
                                                                     <select
                                                                         value={tab.type}
                                                                         onChange={(e) => {
@@ -1054,32 +1038,32 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                         }}
                                                                         className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-lg text-white font-bold"
                                                                     >
-                                                                        <option value="category">কোর্স ক্যাটাগরি (Category Courses)</option>
-                                                                        <option value="html">কাস্টম HTML উইজেট (Custom HTML)</option>
+                                                                        <option value="category">Category Courses</option>
+                                                                        <option value="html">Custom HTML Widget</option>
                                                                     </select>
                                                                 </div>
 
                                                                 {tab.type === 'category' ? (
                                                                     <div>
-                                                                        <label className="block text-slate-400 text-[10px] mb-1">কোন ক্যাটাগরি দেখাবেন?</label>
+                                                                        <label className="block text-slate-400 text-[10px] mb-1">Category</label>
                                                                         <select
                                                                             value={tab.categorySlug || 'all'}
                                                                             onChange={(e) => {
-                                                                                const updated = [...selectedBlock.settings.tabs];
-                                                                                updated[tabIdx].categorySlug = e.target.value;
-                                                                                handleUpdateSelectedSettings('tabs', updated);
-                                                                            }}
-                                                                            className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-lg text-white font-bold"
-                                                                        >
-                                                                            <option value="all">সকল কোর্স (All Courses)</option>
-                                                                            {dbCategories.map(cat => (
-                                                                                <option key={cat.id} value={cat.slug}>{cat.name} ({cat.slug})</option>
-                                                                            ))}
-                                                                        </select>
-                                                                    </div>
+                                                                            const updated = [...selectedBlock.settings.tabs];
+                                                                            updated[tabIdx].categorySlug = e.target.value;
+                                                                            handleUpdateSelectedSettings('tabs', updated);
+                                                                        }}
+                                                                        className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-lg text-white font-bold"
+                                                                    >
+                                                                        <option value="all">All Courses</option>
+                                                                        {dbCategories.map(cat => (
+                                                                            <option key={cat.id} value={cat.slug}>{cat.name} ({cat.slug})</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
                                                                 ) : (
                                                                     <div className="space-y-2">
-                                                                        <label className="block text-slate-400 text-[10px]">এই ট্যাবের জন্য কাস্টম HTML কোড</label>
+                                                                        <label className="block text-slate-400 text-[10px]">Custom HTML Code for this Tab</label>
                                                                         <textarea
                                                                             rows={4}
                                                                             value={tab.htmlContent || ''}
@@ -1088,7 +1072,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                                 updated[tabIdx].htmlContent = e.target.value;
                                                                                 handleUpdateSelectedSettings('tabs', updated);
                                                                             }}
-                                                                            placeholder="<div>আপনার ডিজাইন...</div>"
+                                                                            placeholder="<div>Custom content...</div>"
                                                                             className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-lg text-white font-mono text-[11px]"
                                                                         />
                                                                     </div>
@@ -1104,32 +1088,32 @@ export const AdminPageBuilderPage: React.FC = () => {
                                         {selectedBlock.type === 'html_widget' && (
                                             <div className="space-y-4 text-xs">
                                                 <div>
-                                                    <label className="block text-slate-400 font-bold mb-1">কন্টেইনার প্রস্থ (Width)</label>
+                                                    <label className="block text-slate-400 font-bold mb-1">Container Width</label>
                                                     <select
                                                         value={selectedBlock.settings.containerWidth || 'boxed'}
                                                         onChange={(e) => handleUpdateSelectedSettings('containerWidth', e.target.value)}
                                                         className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-bold"
                                                     >
-                                                        <option value="boxed">Boxed (মাঝখানে নির্দিষ্ট প্রস্থ)</option>
-                                                        <option value="full">Full Width (সম্পূর্ণ স্ক্রিন)</option>
+                                                        <option value="boxed">Boxed (Centered Container)</option>
+                                                        <option value="full">Full Width (100% Screen)</option>
                                                     </select>
                                                 </div>
 
                                                 <div>
-                                                    <label className="block text-slate-400 font-bold mb-1">ব্যাকগ্রাউন্ড কালার (HEX বা CSS)</label>
+                                                    <label className="block text-slate-400 font-bold mb-1">Background Color (HEX or CSS)</label>
                                                     <input
                                                         type="text"
                                                         value={selectedBlock.settings.bgColor || ''}
                                                         onChange={(e) => handleUpdateSelectedSettings('bgColor', e.target.value)}
-                                                        placeholder="#ffffff অথবা transparent"
+                                                        placeholder="#ffffff or transparent"
                                                         className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono"
                                                     />
                                                 </div>
 
                                                 <div>
                                                     <label className="block text-slate-300 font-bold mb-1 flex items-center justify-between">
-                                                        <span>HTML কোড</span>
-                                                        <span className="text-[10px] text-amber-400">লাইভ রেন্ডার হবে</span>
+                                                        <span>HTML Code</span>
+                                                        <span className="text-[10px] text-amber-400">Live Rendered</span>
                                                     </label>
                                                     <textarea
                                                         rows={10}
@@ -1141,8 +1125,8 @@ export const AdminPageBuilderPage: React.FC = () => {
 
                                                 <div>
                                                     <label className="block text-slate-300 font-bold mb-1 flex items-center justify-between">
-                                                        <span>কাস্টম CSS কোড (Scoped)</span>
-                                                        <span className="text-[10px] text-sky-400">স্টাইলিং</span>
+                                                        <span>Custom Scoped CSS</span>
+                                                        <span className="text-[10px] text-sky-400">Styling</span>
                                                     </label>
                                                     <textarea
                                                         rows={6}
@@ -1158,100 +1142,48 @@ export const AdminPageBuilderPage: React.FC = () => {
                                         {/* --- 3. HERO SETTINGS --- */}
                                         {selectedBlock.type === 'hero' && (
                                             <div className="space-y-4 text-xs">
-                                                <div className="p-2.5 rounded-lg bg-sky-950/40 border border-sky-800/40 text-[11px] text-sky-300">
-                                                    💡 ইংরেজি ফিল্ড ঐচ্ছিক। ফাঁকা রাখলে মূল লেখাটিই বাংলা ও ইংরেজি উভয় মোডে প্রদর্শিত হবে।
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">টপ ব্যাজ (Badge)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.badge || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('badge', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">Badge (English Mode)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.badge_en || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('badge_en', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                            placeholder="ঐচ্ছিক"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">টাইটেল ১ম অংশ (বাংলা)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.titlePart1 || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('titlePart1', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">Title Part 1 (English)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.titlePart1_en || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('titlePart1_en', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                            placeholder="ঐচ্ছিক"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">রঙিন টেক্সট (বাংলা)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.titleHighlight || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('titleHighlight', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sky-400 font-bold"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">Highlight (English)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.titleHighlight_en || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('titleHighlight_en', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sky-400 font-bold"
-                                                            placeholder="ঐচ্ছিক"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">টাইটেল ২য় অংশ (বাংলা)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.titlePart2 || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('titlePart2', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">Title Part 2 (English)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.titlePart2_en || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('titlePart2_en', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                            placeholder="ঐচ্ছিক"
-                                                        />
-                                                    </div>
+                                                <div>
+                                                    <label className="block text-slate-400 font-bold mb-1">Top Badge</label>
+                                                    <input
+                                                        type="text"
+                                                        value={selectedBlock.settings.badge || ''}
+                                                        onChange={(e) => handleUpdateSelectedSettings('badge', e.target.value)}
+                                                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
+                                                    />
                                                 </div>
 
                                                 <div>
-                                                    <label className="block text-slate-400 font-bold mb-1">সাবটাইটেল / বিবরণ (বাংলা)</label>
+                                                    <label className="block text-slate-400 font-bold mb-1">Title Part 1</label>
+                                                    <input
+                                                        type="text"
+                                                        value={selectedBlock.settings.titlePart1 || ''}
+                                                        onChange={(e) => handleUpdateSelectedSettings('titlePart1', e.target.value)}
+                                                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-slate-400 font-bold mb-1">Highlighted Text</label>
+                                                    <input
+                                                        type="text"
+                                                        value={selectedBlock.settings.titleHighlight || ''}
+                                                        onChange={(e) => handleUpdateSelectedSettings('titleHighlight', e.target.value)}
+                                                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sky-400 font-bold"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-slate-400 font-bold mb-1">Title Part 2</label>
+                                                    <input
+                                                        type="text"
+                                                        value={selectedBlock.settings.titlePart2 || ''}
+                                                        onChange={(e) => handleUpdateSelectedSettings('titlePart2', e.target.value)}
+                                                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-slate-400 font-bold mb-1">Subtitle / Description</label>
                                                     <textarea
                                                         rows={2}
                                                         value={selectedBlock.settings.subtitle || ''}
@@ -1259,20 +1191,10 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                         className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
                                                     />
                                                 </div>
-                                                <div>
-                                                    <label className="block text-slate-400 font-bold mb-1">Subtitle (English Mode - ঐচ্ছিক)</label>
-                                                    <textarea
-                                                        rows={2}
-                                                        value={selectedBlock.settings.subtitle_en || ''}
-                                                        onChange={(e) => handleUpdateSelectedSettings('subtitle_en', e.target.value)}
-                                                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                        placeholder="ঐচ্ছিক"
-                                                    />
-                                                </div>
 
-                                                <div className="grid grid-cols-3 gap-2">
+                                                <div className="grid grid-cols-2 gap-2">
                                                     <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">১ম বাটন (বাংলা)</label>
+                                                        <label className="block text-slate-400 font-bold mb-1">Primary Button</label>
                                                         <input
                                                             type="text"
                                                             value={selectedBlock.settings.browseCoursesBtn || ''}
@@ -1281,17 +1203,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">১ম বাটন (English)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.browseCoursesBtn_en || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('browseCoursesBtn_en', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                            placeholder="ঐচ্ছিক"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">১ম বাটন লিংক</label>
+                                                        <label className="block text-slate-400 font-bold mb-1">Button Link</label>
                                                         <input
                                                             type="text"
                                                             value={selectedBlock.settings.browseCoursesLink || ''}
@@ -1306,57 +1218,29 @@ export const AdminPageBuilderPage: React.FC = () => {
                                         {/* --- 4. CTA BANNER SETTINGS --- */}
                                         {selectedBlock.type === 'cta_banner' && (
                                             <div className="space-y-4 text-xs">
-                                                <div className="p-2.5 rounded-lg bg-sky-950/40 border border-sky-800/40 text-[11px] text-sky-300">
-                                                    💡 ইংরেজি ফিল্ড ঐচ্ছিক। ফাঁকা রাখলে মূল লেখাটিই উভয় মোডে প্রদর্শিত হবে।
+                                                <div>
+                                                    <label className="block text-slate-400 font-bold mb-1">Title</label>
+                                                    <input
+                                                        type="text"
+                                                        value={selectedBlock.settings.title || ''}
+                                                        onChange={(e) => handleUpdateSelectedSettings('title', e.target.value)}
+                                                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-bold"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-slate-400 font-bold mb-1">Subtitle</label>
+                                                    <textarea
+                                                        rows={2}
+                                                        value={selectedBlock.settings.subtitle || ''}
+                                                        onChange={(e) => handleUpdateSelectedSettings('subtitle', e.target.value)}
+                                                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
+                                                    />
                                                 </div>
 
                                                 <div className="grid grid-cols-2 gap-2">
                                                     <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">শিরোনাম (বাংলা)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.title || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('title', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-bold"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">Title (English Mode)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.title_en || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('title_en', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-bold"
-                                                            placeholder="ঐচ্ছিক"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">বিবরণ (বাংলা)</label>
-                                                        <textarea
-                                                            rows={2}
-                                                            value={selectedBlock.settings.subtitle || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('subtitle', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">Subtitle (English Mode)</label>
-                                                        <textarea
-                                                            rows={2}
-                                                            value={selectedBlock.settings.subtitle_en || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('subtitle_en', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                            placeholder="ঐচ্ছিক"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-3 gap-2">
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">বাটন (বাংলা)</label>
+                                                        <label className="block text-slate-400 font-bold mb-1">Button Text</label>
                                                         <input
                                                             type="text"
                                                             value={selectedBlock.settings.buttonText || ''}
@@ -1365,17 +1249,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">Button (English)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.buttonText_en || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('buttonText_en', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                            placeholder="ঐচ্ছিক"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">বাটন লিংক</label>
+                                                        <label className="block text-slate-400 font-bold mb-1">Button Link</label>
                                                         <input
                                                             type="text"
                                                             value={selectedBlock.settings.buttonLink || ''}
@@ -1391,7 +1265,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                         {selectedBlock.type === 'rich_text' && (
                                             <div className="space-y-4 text-xs">
                                                 <div>
-                                                    <label className="block text-slate-400 font-bold mb-1">কনটেন্ট HTML</label>
+                                                    <label className="block text-slate-400 font-bold mb-1">Content HTML</label>
                                                     <textarea
                                                         rows={10}
                                                         value={selectedBlock.settings.content || ''}
@@ -1406,62 +1280,38 @@ export const AdminPageBuilderPage: React.FC = () => {
                                         {selectedBlock.type === 'video_embed' && (
                                             <div className="space-y-4 text-xs">
                                                 <div className="p-2.5 rounded-lg bg-emerald-950/40 border border-emerald-800/40 text-[11px] text-emerald-300">
-                                                    ✨ YouTube লিংক দিলে তা আধুনিক <strong>Plyr.js</strong> প্লেয়ারে প্লে হবে এবং YouTube-এর লিংক বা ব্র্যান্ডিং সম্পূর্ণরূপে গোপন রাখা হবে।
+                                                    ✨ YouTube links play inside modern Plyr.js with clean interface and hidden branding.
                                                 </div>
 
                                                 <div>
-                                                    <label className="block text-slate-400 font-bold mb-1">ভিডিও লিংক (YouTube / Vimeo / MP4)</label>
+                                                    <label className="block text-slate-400 font-bold mb-1">Video URL (YouTube / Vimeo / MP4)</label>
                                                     <input
                                                         type="text"
                                                         value={selectedBlock.settings.videoUrl || ''}
                                                         onChange={(e) => handleUpdateSelectedSettings('videoUrl', e.target.value)}
-                                                        placeholder="https://www.youtube.com/watch?v=... বা https://youtu.be/..."
+                                                        placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
                                                         className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white font-mono"
                                                     />
                                                 </div>
 
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">শিরোনাম (বাংলা)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.title || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('title', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">Title (English Mode)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.title_en || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('title_en', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                            placeholder="ঐচ্ছিক (ফাঁকা রাখলে মূল শিরোনাম দেখাবে)"
-                                                        />
-                                                    </div>
+                                                <div>
+                                                    <label className="block text-slate-400 font-bold mb-1">Title</label>
+                                                    <input
+                                                        type="text"
+                                                        value={selectedBlock.settings.title || ''}
+                                                        onChange={(e) => handleUpdateSelectedSettings('title', e.target.value)}
+                                                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
+                                                    />
                                                 </div>
 
-                                                <div className="grid grid-cols-2 gap-2">
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">সাবটাইটেল (বাংলা)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.subtitle || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('subtitle', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-slate-400 font-bold mb-1">Subtitle (English Mode)</label>
-                                                        <input
-                                                            type="text"
-                                                            value={selectedBlock.settings.subtitle_en || ''}
-                                                            onChange={(e) => handleUpdateSelectedSettings('subtitle_en', e.target.value)}
-                                                            className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
-                                                            placeholder="ঐচ্ছিক"
-                                                        />
-                                                    </div>
+                                                <div>
+                                                    <label className="block text-slate-400 font-bold mb-1">Subtitle</label>
+                                                    <input
+                                                        type="text"
+                                                        value={selectedBlock.settings.subtitle || ''}
+                                                        onChange={(e) => handleUpdateSelectedSettings('subtitle', e.target.value)}
+                                                        className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-white"
+                                                    />
                                                 </div>
                                             </div>
                                         )}
@@ -1474,16 +1324,16 @@ export const AdminPageBuilderPage: React.FC = () => {
                         {activeSidebarTab === 'css' && (
                             <div className="space-y-4 text-xs">
                                 <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                                    এই পুরো পেজের জন্য গ্লোবাল CSS
+                                    Global CSS for this Page
                                 </div>
                                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                                    এখানে আপনি যেকোনো কাস্টম CSS ক্লাস ও স্টাইল লিখতে পারেন। এটি লাইভ ক্যানভাস এবং পাবলিশড পেজে স্বয়ংক্রিয়ভাবে কার্যকর হবে।
+                                    Write any custom CSS rules here. They will automatically apply to both the live canvas and the published page.
                                 </p>
                                 <textarea
                                     rows={16}
                                     value={customCss}
                                     onChange={(e) => setCustomCss(e.target.value)}
-                                    placeholder="/* উদাহরণ: */&#10;.custom-title { color: #0284c7; }&#10;section { scroll-margin-top: 80px; }"
+                                    placeholder="/* Example: */&#10;.custom-title { color: #0284c7; }&#10;section { scroll-margin-top: 80px; }"
                                     className="w-full p-3 bg-slate-950 border border-slate-800 rounded-xl text-sky-400 font-mono text-xs leading-relaxed focus:border-sky-500"
                                 />
                             </div>
@@ -1495,7 +1345,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                 <button
                     onClick={() => setSidebarOpen(!sidebarOpen)}
                     className="self-center -ml-3 z-30 w-6 h-12 bg-slate-800 hover:bg-sky-600 text-slate-400 hover:text-white rounded-r-lg border border-l-0 border-slate-700 flex items-center justify-center transition-colors cursor-pointer"
-                    title={sidebarOpen ? 'সাইডবার লুকান' : 'সাইডবার দেখান'}
+                    title={sidebarOpen ? 'Hide sidebar' : 'Show sidebar'}
                 >
                     {sidebarOpen ? <PanelLeftClose className="w-3.5 h-3.5" /> : <PanelLeftOpen className="w-3.5 h-3.5" />}
                 </button>
@@ -1526,10 +1376,10 @@ export const AdminPageBuilderPage: React.FC = () => {
                             >
                                 <Layers className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                                 <h3 className="text-xl font-bold text-slate-700">
-                                    {isDragging ? 'উইজেটটি এখানে ছেড়ে দিন (Drop Here)!' : 'এই পেজে এখনো কোনো উইজেট যোগ করা হয়নি'}
+                                    {isDragging ? 'Drop widget here!' : 'No widgets added to this page yet'}
                                 </h3>
                                 <p className="text-sm text-slate-500 max-w-md mx-auto mt-2">
-                                    বামপাশের "উইজেটস" প্যানেল থেকে যেকোনো উইজেট টেনে এনে (Drag & Drop) এখানে ফেলুন, অথবা ক্লিক করে যোগ করুন।
+                                    Drag and drop any widget from the left panel here, or click to add.
                                 </p>
                                 {!isDragging && (
                                     <button
@@ -1538,7 +1388,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                         className="mt-6 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 text-white font-bold text-sm shadow-md cursor-pointer hover:bg-sky-700"
                                     >
                                         <Plus className="w-4 h-4" />
-                                        <span>হিরো ব্যানার যোগ করুন</span>
+                                        <span>Add Hero Banner</span>
                                     </button>
                                 )}
                             </div>
@@ -1582,10 +1432,10 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                     {/* Drag to Reorder Handle */}
                                                     <div 
                                                         className="px-2 py-1 flex items-center gap-1 text-slate-300 hover:text-white cursor-grab active:cursor-grabbing rounded hover:bg-slate-800"
-                                                        title="টেনে যেকোনো স্থানে ড্রপ করুন (Drag to Reorder)"
+                                                        title="Drag to reorder"
                                                     >
                                                         <GripVertical className="w-3.5 h-3.5 text-sky-400" />
-                                                        <span className="text-[10px] font-bold">সরান</span>
+                                                        <span className="text-[10px] font-bold">Move</span>
                                                     </div>
 
                                                     <div className="h-3 w-px bg-slate-700" />
@@ -1601,7 +1451,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                         onClick={(e) => { e.stopPropagation(); handleMoveBlock(idx, 'up'); }}
                                                         disabled={idx === 0}
                                                         className="p-1 rounded hover:bg-slate-800 disabled:opacity-30 cursor-pointer"
-                                                        title="উপরে নিন"
+                                                        title="Move Up"
                                                     >
                                                         <ChevronUp className="w-3.5 h-3.5" />
                                                     </button>
@@ -1611,7 +1461,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                         onClick={(e) => { e.stopPropagation(); handleMoveBlock(idx, 'down'); }}
                                                         disabled={idx === blocks.length - 1}
                                                         className="p-1 rounded hover:bg-slate-800 disabled:opacity-30 cursor-pointer"
-                                                        title="নিচে নিন"
+                                                        title="Move Down"
                                                     >
                                                         <ChevronDown className="w-3.5 h-3.5" />
                                                     </button>
@@ -1620,11 +1470,11 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                         type="button"
                                                         onClick={(e) => { 
                                                             e.stopPropagation(); 
-                                                            setSelectedBlockId(block.id); 
-                                                            setActiveSidebarTab('inspector'); 
+                                                             setSelectedBlockId(block.id); 
+                                                             setActiveSidebarTab('inspector'); 
                                                         }}
                                                         className="p-1 rounded hover:bg-slate-800 cursor-pointer text-sky-400"
-                                                        title="এডিট সেটিংস"
+                                                        title="Edit Settings"
                                                     >
                                                         <Sliders className="w-3.5 h-3.5" />
                                                     </button>
@@ -1633,7 +1483,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                         type="button"
                                                         onClick={(e) => { e.stopPropagation(); handleDuplicateBlock(idx); }}
                                                         className="p-1 rounded hover:bg-slate-800 cursor-pointer"
-                                                        title="ক্লোন"
+                                                        title="Clone"
                                                     >
                                                         <Copy className="w-3.5 h-3.5" />
                                                     </button>
@@ -1642,7 +1492,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                         type="button"
                                                         onClick={(e) => { e.stopPropagation(); handleDeleteBlock(idx); }}
                                                         className="p-1 rounded hover:bg-rose-900/50 text-rose-400 cursor-pointer"
-                                                        title="মুছুন"
+                                                        title="Delete"
                                                     >
                                                         <Trash2 className="w-3.5 h-3.5" />
                                                     </button>

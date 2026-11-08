@@ -121,11 +121,11 @@ export const AdminPagesPage: React.FC = () => {
         setSyncingCategories(true);
         try {
             const res = await apiClient.post('/admin/pages/sync-categories');
-            showToast(res.data?.message || 'সকল ক্যাটাগরি পেজ সফলভাবে সিঙ্ক করা হয়েছে!');
+            showToast(res.data?.message || 'All category pages synced successfully!');
             fetchPages();
             fetchCategories();
         } catch {
-            showToast('ক্যাটাগরি পেজ সিঙ্কে সমস্যা হয়েছে।');
+            showToast('Failed to sync category pages.');
         } finally {
             setSyncingCategories(false);
         }
@@ -156,14 +156,14 @@ export const AdminPagesPage: React.FC = () => {
             setCreateModalOpen(false);
             setCreateTitle('');
             setCreateSlug('');
-            showToast('নতুন পেজ সফলভাবে তৈরি হয়েছে!');
+            showToast('New page created successfully!');
             fetchPages();
 
             if (res.data?.page?.id) {
                 navigate(`/admin/pages/${res.data.page.id}/builder`);
             }
         } catch (err: any) {
-            setCreateError(err.response?.data?.message || 'পেজ তৈরিতে সমস্যা হয়েছে।');
+            setCreateError(err.response?.data?.message || 'Failed to create page.');
         } finally {
             setCreating(false);
         }
@@ -227,10 +227,10 @@ export const AdminPagesPage: React.FC = () => {
                 selected_categories: selectedCategorySlugs,
             });
             setEditModalOpen(false);
-            showToast('পেজের বিবরণ ও ক্যাটাগরি ফিল্টার সফলভাবে আপডেট করা হয়েছে।');
+            showToast('Page details and category filters updated successfully.');
             fetchPages();
         } catch (err: any) {
-            setUpdateError(err.response?.data?.message || 'আপডেটে সমস্যা হয়েছে।');
+            setUpdateError(err.response?.data?.message || 'Failed to update page.');
         } finally {
             setUpdating(false);
         }
@@ -239,20 +239,20 @@ export const AdminPagesPage: React.FC = () => {
     const handleToggleStatus = async (page: CustomPage) => {
         try {
             await apiClient.post(`/admin/pages/${page.id}/toggle-status`);
-            showToast(`'${page.title}' এর স্ট্যাটাস পরিবর্তন করা হয়েছে।`);
+            showToast(`'${page.title}' status changed.`);
             fetchPages();
         } catch {
-            showToast('স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে।');
+            showToast('Failed to change status.');
         }
     };
 
     const handleDuplicate = async (page: CustomPage) => {
         try {
             await apiClient.post(`/admin/pages/${page.id}/duplicate`);
-            showToast(`'${page.title}' সফলভাবে ক্লোন করা হয়েছে।`);
+            showToast(`'${page.title}' cloned successfully.`);
             fetchPages();
         } catch {
-            showToast('ক্লোন করতে সমস্যা হয়েছে।');
+            showToast('Failed to clone page.');
         }
     };
 
@@ -267,10 +267,10 @@ export const AdminPagesPage: React.FC = () => {
         try {
             await apiClient.delete(`/admin/pages/${pageToDelete.id}`);
             setDeleteModalOpen(false);
-            showToast('পেজ সফলভাবে ডিলিট করা হয়েছে।');
+            showToast('Page deleted successfully.');
             fetchPages();
         } catch (err: any) {
-            alert(err.response?.data?.message || 'ডিলিট করতে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to delete page.');
         } finally {
             setDeleting(false);
         }
@@ -305,10 +305,10 @@ export const AdminPagesPage: React.FC = () => {
                 <div>
                     <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
                         <Layers className="w-7 h-7 text-sky-600" />
-                        <span>পেজসমূহ ও ভিজ্যুয়াল কাস্টমাইজার</span>
+                        <span>Pages & Visual Customizer</span>
                     </h1>
                     <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                        হোমপেজ, সকল কোর্স ও ক্যাটাগরি পেজসমূহকে ভিজ্যুয়াল বিল্ডার দিয়ে কাস্টমাইজ করুন।
+                        Customize homepage, all courses, and category pages with the visual builder.
                     </p>
                 </div>
 
@@ -318,10 +318,10 @@ export const AdminPagesPage: React.FC = () => {
                         onClick={handleSyncCategories}
                         disabled={syncingCategories}
                         className="inline-flex items-center gap-2 px-4 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-all cursor-pointer disabled:opacity-50"
-                        title="ডাটাবেজের সকল কোর্স ক্যাটাগরি পেজ হিসেবে সিঙ্ক করুন"
+                        title="Sync all database course categories as pages"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${syncingCategories ? 'animate-spin text-sky-600' : 'text-slate-600'}`} />
-                        <span>{syncingCategories ? 'সিঙ্ক হচ্ছে...' : 'ক্যাটাগরি পেজ সিঙ্ক করুন'}</span>
+                        <span>{syncingCategories ? 'Syncing...' : 'Sync Category Pages'}</span>
                     </button>
 
                     <button
@@ -329,12 +329,10 @@ export const AdminPagesPage: React.FC = () => {
                         className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-sky-600 text-white font-bold text-sm hover:bg-sky-700 shadow-md shadow-sky-600/20 transition-all cursor-pointer"
                     >
                         <Plus className="w-4 h-4" />
-                        <span>নতুন পেজ তৈরি করুন</span>
+                        <span>Create New Page</span>
                     </button>
                 </div>
             </div>
-
-
 
             {/* Filter and Search Bar */}
             <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
@@ -343,7 +341,7 @@ export const AdminPagesPage: React.FC = () => {
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="পেজের নাম বা স্লাগ খুঁজুন..."
+                        placeholder="Search by page name or slug..."
                         className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                     />
                     <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -359,7 +357,7 @@ export const AdminPagesPage: React.FC = () => {
                                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                     >
-                        সকল পেজ ({stats.total})
+                        All Pages ({stats.total})
                     </button>
                     <button
                         onClick={() => setPageTypeFilter('system')}
@@ -369,7 +367,7 @@ export const AdminPagesPage: React.FC = () => {
                                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                     >
-                        মূল পেজসমূহ ({stats.system_pages || 0})
+                        System Pages ({stats.system_pages || 0})
                     </button>
                     <button
                         onClick={() => setPageTypeFilter('category')}
@@ -379,7 +377,7 @@ export const AdminPagesPage: React.FC = () => {
                                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                     >
-                        ক্যাটাগরি পেজসমূহ ({stats.category_pages || 0})
+                        Category Pages ({stats.category_pages || 0})
                     </button>
                     <button
                         onClick={() => setPageTypeFilter('custom')}
@@ -389,7 +387,7 @@ export const AdminPagesPage: React.FC = () => {
                                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                     >
-                        কাস্টম পেজ
+                        Custom Pages
                     </button>
                 </div>
             </div>
@@ -399,24 +397,24 @@ export const AdminPagesPage: React.FC = () => {
                 {loading ? (
                     <div className="p-12 text-center text-slate-400">
                         <div className="w-8 h-8 border-3 border-sky-600 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-                        <span className="text-sm">পেজ লোড হচ্ছে...</span>
+                        <span className="text-sm">Loading pages...</span>
                     </div>
                 ) : pages.length === 0 ? (
                     <div className="p-12 text-center text-slate-500 space-y-3">
                         <FileText className="w-12 h-12 text-slate-300 mx-auto" />
-                        <p className="font-bold text-base text-slate-700">কোনো পেজ পাওয়া যায়নি</p>
-                        <p className="text-xs text-slate-400">ক্যাটাগরি পেজ সিঙ্ক করতে উপরের বাটনে ক্লিক করুন।</p>
+                        <p className="font-bold text-base text-slate-700">No pages found</p>
+                        <p className="text-xs text-slate-400">Click the sync button above to import category pages.</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-slate-600">
                             <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold text-xs uppercase tracking-wider">
                                 <tr>
-                                    <th className="px-6 py-4">পেজের নাম ও স্লাগ</th>
-                                    <th className="px-6 py-4">ধরন (Type)</th>
-                                    <th className="px-6 py-4">স্ট্যাটাস</th>
-                                    <th className="px-6 py-4">ব্লক সংখ্যা</th>
-                                    <th className="px-6 py-4 text-right">কার্যক্রম (Actions)</th>
+                                    <th className="px-6 py-4">Page Name & Slug</th>
+                                    <th className="px-6 py-4">Type</th>
+                                    <th className="px-6 py-4">Status</th>
+                                    <th className="px-6 py-4">Blocks</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
@@ -434,12 +432,12 @@ export const AdminPagesPage: React.FC = () => {
                                                             </span>
                                                             {page.is_system && (
                                                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-200">
-                                                                    সিস্টেম পেজ
+                                                                    System Page
                                                                 </span>
                                                             )}
                                                             {isCatPage && (
                                                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800 border border-purple-200">
-                                                                    ক্যাটাগরি পেজ
+                                                                    Category Page
                                                                 </span>
                                                             )}
                                                         </div>
@@ -464,7 +462,7 @@ export const AdminPagesPage: React.FC = () => {
                                                         ? 'bg-purple-50 text-purple-700 border border-purple-200'
                                                         : 'bg-slate-100 text-slate-700'
                                                 }`}>
-                                                    {page.is_system ? 'মূল পেজ' : isCatPage ? 'কোর্স ক্যাটাগরি' : 'কাস্টম'}
+                                                    {page.is_system ? 'System' : isCatPage ? 'Category' : 'Custom'}
                                                 </span>
                                             </td>
 
@@ -476,18 +474,18 @@ export const AdminPagesPage: React.FC = () => {
                                                             ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200'
                                                             : 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200'
                                                     }`}
-                                                    title="ক্লিক করে স্ট্যাটাস পরিবর্তন করুন"
+                                                    title="Click to toggle status"
                                                 >
                                                     <span className={`w-2 h-2 rounded-full ${
                                                         page.status === 'published' ? 'bg-emerald-500' : 'bg-amber-500'
                                                     }`} />
-                                                    <span>{page.status === 'published' ? 'প্রকাশিত' : 'ড্রাফট'}</span>
+                                                    <span>{page.status === 'published' ? 'Published' : 'Draft'}</span>
                                                 </button>
                                             </td>
 
                                             <td className="px-6 py-4">
                                                 <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg">
-                                                    {Array.isArray(page.blocks) ? page.blocks.length : 0} টি ব্লক
+                                                    {Array.isArray(page.blocks) ? page.blocks.length : 0} blocks
                                                 </span>
                                             </td>
 
@@ -497,17 +495,17 @@ export const AdminPagesPage: React.FC = () => {
                                                     <Link
                                                         to={`/admin/pages/${page.id}/builder`}
                                                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 text-white font-bold text-xs hover:from-sky-700 hover:to-indigo-700 shadow-sm shadow-sky-600/30 transition-all cursor-pointer"
-                                                        title="ভিজ্যুয়াল বিল্ডার ওপেন করুন"
+                                                        title="Open Visual Builder"
                                                     >
                                                         <Sparkles className="w-3.5 h-3.5" />
-                                                        <span>বিল্ডার (Builder)</span>
+                                                        <span>Builder</span>
                                                     </Link>
 
-                                                    {/* Edit Settings (Includes Category selector for Courses/Categories) */}
+                                                    {/* Edit Settings */}
                                                     <button
                                                         onClick={() => openEditModal(page)}
                                                         className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-                                                        title="পেজ তথ্য ও ক্যাটাগরি এডিট"
+                                                        title="Edit page details and categories"
                                                     >
                                                         <Sliders className="w-4 h-4" />
                                                     </button>
@@ -516,7 +514,7 @@ export const AdminPagesPage: React.FC = () => {
                                                     <button
                                                         onClick={() => handleDuplicate(page)}
                                                         className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer"
-                                                        title="ক্লোন / ডুপ্লিকেট করুন"
+                                                        title="Clone / Duplicate"
                                                     >
                                                         <Copy className="w-4 h-4" />
                                                     </button>
@@ -526,14 +524,14 @@ export const AdminPagesPage: React.FC = () => {
                                                         <button
                                                             onClick={() => confirmDelete(page)}
                                                             className="p-2 rounded-xl text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
-                                                            title="পেজ ডিলিট করুন"
+                                                            title="Delete page"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
                                                     ) : (
                                                         <span 
                                                             className="p-2 rounded-xl text-slate-300 cursor-not-allowed" 
-                                                            title="সিস্টেম পেজ ডিলিট করা সম্ভব নয়"
+                                                            title="System pages cannot be deleted"
                                                         >
                                                             <Trash2 className="w-4 h-4 opacity-40" />
                                                         </span>
@@ -553,7 +551,7 @@ export const AdminPagesPage: React.FC = () => {
             <Modal
                 isOpen={createModalOpen}
                 onClose={() => setCreateModalOpen(false)}
-                title="নতুন পেজ তৈরি করুন"
+                title="Create New Page"
                 maxWidth="md"
             >
                 <form onSubmit={handleCreatePage} className="space-y-4">
@@ -566,21 +564,21 @@ export const AdminPagesPage: React.FC = () => {
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            পেজের নাম / শিরোনাম <span className="text-rose-500">*</span>
+                            Page Title <span className="text-rose-500">*</span>
                         </label>
                         <input
                             type="text"
                             required
                             value={createTitle}
                             onChange={(e) => handleTitleChange(e.target.value)}
-                            placeholder="যেমন: পদার্থবিজ্ঞান স্পেশাল ব্যাচ"
+                            placeholder="e.g. Physics Special Batch"
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                         />
                     </div>
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            ইউআরএল স্লাগ (URL Slug) <span className="text-rose-500">*</span>
+                            URL Slug <span className="text-rose-500">*</span>
                         </label>
                         <div className="relative">
                             <span className="absolute left-3.5 top-3 text-xs font-mono text-slate-400">/p/</span>
@@ -593,12 +591,12 @@ export const AdminPagesPage: React.FC = () => {
                                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                             />
                         </div>
-                        <p className="text-[11px] text-slate-400 mt-1">শুধুমাত্র ছোটহাতের অক্ষর, সংখ্যা ও হাইফেন (-) ব্যবহার করুন।</p>
+                        <p className="text-[11px] text-slate-400 mt-1">Use lowercase letters, numbers, and hyphens (-) only.</p>
                     </div>
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            স্টার্টার টেমপ্লেট
+                            Starter Template
                         </label>
                         <div className="grid grid-cols-3 gap-2">
                             <button
@@ -610,8 +608,8 @@ export const AdminPagesPage: React.FC = () => {
                                         : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                                 }`}
                             >
-                                <div className="font-bold text-xs mb-0.5">ফাঁকা পেজ (Blank)</div>
-                                <div className="text-[11px] text-slate-500">শুরু থেকে উইজেট যোগ করুন</div>
+                                <div className="font-bold text-xs mb-0.5">Blank Page</div>
+                                <div className="text-[11px] text-slate-500">Add widgets from scratch</div>
                             </button>
 
                             <button
@@ -623,8 +621,8 @@ export const AdminPagesPage: React.FC = () => {
                                         : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                                 }`}
                             >
-                                <div className="font-bold text-xs mb-0.5">কনটেন্ট / পলিসি</div>
-                                <div className="text-[11px] text-slate-500">ব্যানার ও প্যারাগ্রাফ ব্লক</div>
+                                <div className="font-bold text-xs mb-0.5">Content / Policy</div>
+                                <div className="text-[11px] text-slate-500">Banner and text blocks</div>
                             </button>
 
                             <button
@@ -636,15 +634,15 @@ export const AdminPagesPage: React.FC = () => {
                                         : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
                                 }`}
                             >
-                                <div className="font-bold text-xs mb-0.5">হোমপেজ টেমপ্লেট</div>
-                                <div className="text-[11px] text-slate-500">হিরো, কোর্স ও ফিচার সহ</div>
+                                <div className="font-bold text-xs mb-0.5">Homepage Template</div>
+                                <div className="text-[11px] text-slate-500">Hero, courses, and features</div>
                             </button>
                         </div>
                     </div>
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            স্ট্যাটাস
+                            Status
                         </label>
                         <div className="flex items-center gap-4">
                             <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
@@ -656,7 +654,7 @@ export const AdminPagesPage: React.FC = () => {
                                     onChange={() => setCreateStatus('draft')}
                                     className="text-sky-600 focus:ring-sky-500"
                                 />
-                                <span>ড্রাফট (অপ্রকাশিত)</span>
+                                <span>Draft</span>
                             </label>
                             <label className="flex items-center gap-2 text-xs font-bold text-slate-700 cursor-pointer">
                                 <input
@@ -667,7 +665,7 @@ export const AdminPagesPage: React.FC = () => {
                                     onChange={() => setCreateStatus('published')}
                                     className="text-sky-600 focus:ring-sky-500"
                                 />
-                                <span>সরাসরি প্রকাশ করুন (Published)</span>
+                                <span>Published</span>
                             </label>
                         </div>
                     </div>
@@ -678,14 +676,14 @@ export const AdminPagesPage: React.FC = () => {
                             onClick={() => setCreateModalOpen(false)}
                             className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer"
                         >
-                            বাতিল
+                            Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={creating}
                             className="px-6 py-2.5 rounded-xl bg-sky-600 text-white font-bold text-xs hover:bg-sky-700 shadow-md shadow-sky-600/30 transition-all disabled:opacity-50 cursor-pointer"
                         >
-                            {creating ? 'তৈরি হচ্ছে...' : 'তৈরি করুন ও বিল্ডারে যান'}
+                            {creating ? 'Creating...' : 'Create & Open Builder'}
                         </button>
                     </div>
                 </form>
@@ -695,7 +693,7 @@ export const AdminPagesPage: React.FC = () => {
             <Modal
                 isOpen={editModalOpen}
                 onClose={() => setEditModalOpen(false)}
-                title="পেজের বিবরণ ও ক্যাটাগরি ফিল্টার"
+                title="Page Details & Category Filters"
                 maxWidth="lg"
             >
                 <form onSubmit={handleUpdateDetails} className="space-y-4">
@@ -709,7 +707,7 @@ export const AdminPagesPage: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                পেজের নাম / শিরোনাম <span className="text-rose-500">*</span>
+                                Page Title <span className="text-rose-500">*</span>
                             </label>
                             <input
                                 type="text"
@@ -722,7 +720,7 @@ export const AdminPagesPage: React.FC = () => {
 
                         <div>
                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                ইউআরএল স্লাগ (URL Slug)
+                                URL Slug
                             </label>
                             <input
                                 type="text"
@@ -733,19 +731,19 @@ export const AdminPagesPage: React.FC = () => {
                                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white disabled:opacity-60"
                             />
                             {editingPage?.is_system && ['home', 'courses'].includes(editingPage?.slug || '') && (
-                                <p className="text-[11px] text-amber-600 mt-1">সিস্টেম পেজের স্লাগ পরিবর্তনযোগ্য নয়।</p>
+                                <p className="text-[11px] text-amber-600 mt-1">System page slug cannot be modified.</p>
                             )}
                         </div>
                     </div>
 
-                    {/* Category Selector Section for Courses / Category Pages (Core User Request!) */}
+                    {/* Category Selector Section for Courses / Category Pages */}
                     {isCoursesOrCategoryPage && (
                         <div className="p-4 bg-gradient-to-br from-sky-50 to-indigo-50/60 rounded-2xl border border-sky-100 space-y-3">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <Tag className="w-4 h-4 text-sky-600" />
                                     <label className="block text-xs font-bold text-slate-800">
-                                        প্রদর্শিত ক্যাটাগরি নির্বাচন (Categories to Show in Tabs)
+                                        Categories to Show in Tabs
                                     </label>
                                 </div>
                                 <div className="flex items-center gap-2 text-[11px]">
@@ -754,7 +752,7 @@ export const AdminPagesPage: React.FC = () => {
                                         onClick={selectAllCategories}
                                         className="text-sky-600 hover:text-sky-700 font-bold cursor-pointer"
                                     >
-                                        সব নির্বাচন করুন
+                                        Select All
                                     </button>
                                     <span className="text-slate-300">•</span>
                                     <button
@@ -762,12 +760,12 @@ export const AdminPagesPage: React.FC = () => {
                                         onClick={clearAllCategories}
                                         className="text-slate-500 hover:text-slate-700 font-semibold cursor-pointer"
                                     >
-                                        সব বাতিল করুন
+                                        Clear All
                                     </button>
                                 </div>
                             </div>
                             <p className="text-[11px] text-slate-500">
-                                পেজের ট্যাব বারে কোন কোন ক্যাটাগরি দেখাবেন তা নির্বাচন করুন। (পেইড ও ফ্রি কোর্স ট্যাব আর প্রদর্শিত হবে না)
+                                Choose which categories to display in the tab bar.
                             </p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 max-h-52 overflow-y-auto scrollbar-thin">
                                 {availableCategories.map((cat) => {
@@ -793,7 +791,7 @@ export const AdminPagesPage: React.FC = () => {
                                             </div>
                                             {cat.courses_count !== undefined && cat.courses_count > 0 && (
                                                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                                                    {cat.courses_count} কোর্স
+                                                    {cat.courses_count} course(s)
                                                 </span>
                                             )}
                                         </label>
@@ -806,27 +804,27 @@ export const AdminPagesPage: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                স্ট্যাটাস
+                                Status
                             </label>
                             <select
                                 value={editStatus}
                                 onChange={(e) => setEditStatus(e.target.value as any)}
                                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                             >
-                                <option value="published">প্রকাশিত (Published)</option>
-                                <option value="draft">ড্রাফট (Draft)</option>
+                                <option value="published">Published</option>
+                                <option value="draft">Draft</option>
                             </select>
                         </div>
 
                         <div>
                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                মেটা টাইটেল (Meta Title - SEO)
+                                Meta Title (SEO)
                             </label>
                             <input
                                 type="text"
                                 value={editMetaTitle}
                                 onChange={(e) => setEditMetaTitle(e.target.value)}
-                                placeholder="গুগল সার্চে প্রদর্শিত টাইটেল"
+                                placeholder="Title shown in search engines"
                                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                             />
                         </div>
@@ -834,13 +832,13 @@ export const AdminPagesPage: React.FC = () => {
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            মেটা ডেসক্রিপশন (Meta Description - SEO)
+                            Meta Description (SEO)
                         </label>
                         <textarea
                             rows={3}
                             value={editMetaDesc}
                             onChange={(e) => setEditMetaDesc(e.target.value)}
-                            placeholder="পেজ সম্পর্কিত সংক্ষিপ্ত বিবরণ..."
+                            placeholder="Brief page summary..."
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white resize-none"
                         />
                     </div>
@@ -851,14 +849,14 @@ export const AdminPagesPage: React.FC = () => {
                             onClick={() => setEditModalOpen(false)}
                             className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer"
                         >
-                            বাতিল
+                            Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={updating}
                             className="px-6 py-2.5 rounded-xl bg-sky-600 text-white font-bold text-xs hover:bg-sky-700 shadow-md shadow-sky-600/30 transition-all disabled:opacity-50 cursor-pointer"
                         >
-                            {updating ? 'সংরক্ষণ হচ্ছে...' : 'পরিবর্তন সংরক্ষণ করুন'}
+                            {updating ? 'Saving...' : 'Save Changes'}
                         </button>
                     </div>
                 </form>
@@ -868,12 +866,12 @@ export const AdminPagesPage: React.FC = () => {
             <Modal
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
-                title="পেজ ডিলিট নিশ্চিতকরণ"
+                title="Confirm Page Deletion"
                 maxWidth="sm"
             >
                 <div className="space-y-4">
                     <p className="text-sm text-slate-600">
-                        আপনি কি নিশ্চিতভাবে <span className="font-bold text-slate-900">"{pageToDelete?.title}"</span> পেজটি ডিলিট করতে চান? এই পেজের সকল ডিজাইন ও কনটেন্ট স্থায়ীভাবে মুছে যাবে।
+                        Are you sure you want to delete the page <span className="font-bold text-slate-900">"{pageToDelete?.title}"</span>? All design blocks and content will be permanently lost.
                     </p>
 
                     <div className="flex items-center justify-end gap-3 pt-2">
@@ -881,14 +879,14 @@ export const AdminPagesPage: React.FC = () => {
                             onClick={() => setDeleteModalOpen(false)}
                             className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-xs hover:bg-slate-50 cursor-pointer"
                         >
-                            বাতিল
+                            Cancel
                         </button>
                         <button
                             onClick={handleDeletePage}
                             disabled={deleting}
                             className="px-5 py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs hover:bg-rose-700 shadow-md shadow-rose-600/30 transition-all disabled:opacity-50 cursor-pointer"
                         >
-                            {deleting ? 'ডিলিট হচ্ছে...' : 'হ্যাঁ, ডিলিট করুন'}
+                            {deleting ? 'Deleting...' : 'Yes, Delete'}
                         </button>
                     </div>
                 </div>

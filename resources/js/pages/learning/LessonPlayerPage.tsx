@@ -57,7 +57,7 @@ export const LessonPlayerPage: React.FC = () => {
             setCompletedLessonIds(data.completed_lesson_ids || []);
             setIsCompleted(data.is_completed || false);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'ক্লাস অ্যাক্সেস করতে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to access lesson.');
             navigate(`/courses`);
         } finally {
             setLoading(false);
@@ -99,9 +99,9 @@ export const LessonPlayerPage: React.FC = () => {
             });
             setComments(prev => [data.comment, ...prev]);
             setCommentText('');
-            alert('আপনার প্রশ্ন পোস্ট হয়েছে। কোর্স শিক্ষককে নোটিফিকেশন পাঠানো হয়েছে।');
+            alert('Your question has been posted. A notification was sent to the course instructor.');
         } catch (err: any) {
-            alert(err.response?.data?.message || 'মন্তব্য পাঠাতে ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to submit comment.');
         } finally {
             setSubmittingComment(false);
         }
@@ -140,7 +140,7 @@ export const LessonPlayerPage: React.FC = () => {
             <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white">
                 <div className="flex items-center gap-3">
                     <PlayCircle className="w-8 h-8 text-sky-400 animate-spin" />
-                    <span className="text-sm font-bold">ক্লাস লোড হচ্ছে...</span>
+                    <span className="text-sm font-bold">Loading lesson...</span>
                 </div>
             </div>
         );
@@ -174,13 +174,13 @@ export const LessonPlayerPage: React.FC = () => {
                     <Link
                         to="/student/my-courses"
                         className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
-                        title="কোর্স তালিকায় ফিরুন"
+                        title="Back to Course List"
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                     <div className="truncate">
                         <span className="text-[10px] font-bold text-sky-400 uppercase tracking-wider block">
-                            {lesson.section?.title || 'ক্লাস রুম'}
+                            {lesson.section?.title || 'Classroom'}
                         </span>
                         <h2 className="text-sm sm:text-base font-bold text-white truncate">
                             {lesson.title}
@@ -201,7 +201,7 @@ export const LessonPlayerPage: React.FC = () => {
                     >
                         {isCompleted ? <Check className="w-4 h-4 text-emerald-400" /> : <Circle className="w-4 h-4" />}
                         <span className="hidden sm:inline">
-                            {isCompleted ? 'সম্পন্ন হয়েছে' : 'সম্পন্ন চিহ্নিত করুন'}
+                            {isCompleted ? 'Completed' : 'Mark as Complete'}
                         </span>
                     </button>
 
@@ -209,7 +209,7 @@ export const LessonPlayerPage: React.FC = () => {
                     <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
                         className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
-                        title="সিলেবাস ও লেসন তালিকা"
+                        title="Syllabus & Lesson List"
                     >
                         <BookOpen className="w-5 h-5" />
                     </button>
@@ -234,9 +234,7 @@ export const LessonPlayerPage: React.FC = () => {
                             <div className="text-center p-8 text-slate-500 space-y-2">
                                 <PlayCircle className="w-12 h-12 mx-auto text-slate-600" />
                                 <p className="text-xs">
-                                    {language === 'en'
-                                        ? 'No video is attached to this lesson. Please read the notes below.'
-                                        : 'এই লেসনে কোনো ভিডিও সংযুক্ত নেই। নিচের নোট পড়ুন।'}
+                                    No video is attached to this lesson. Please read the notes below.
                                 </p>
                             </div>
                         )}
@@ -251,7 +249,7 @@ export const LessonPlayerPage: React.FC = () => {
                                     className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs flex items-center gap-1.5 transition-colors"
                                 >
                                     <ChevronLeft className="w-4 h-4" />
-                                    <span className="hidden sm:inline">পূর্ববর্তী ক্লাস:</span>
+                                    <span className="hidden sm:inline">Previous Lesson:</span>
                                     <span className="max-w-[120px] truncate">{prevLesson.title}</span>
                                 </button>
                             ) : <div />}
@@ -263,14 +261,14 @@ export const LessonPlayerPage: React.FC = () => {
                                     onClick={() => navigate(`/learning/${courseId}/lessons/${nextLesson.id}`)}
                                     className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-md"
                                 >
-                                    <span className="hidden sm:inline">পরবর্তী ক্লাস:</span>
+                                    <span className="hidden sm:inline">Next Lesson:</span>
                                     <span className="max-w-[120px] truncate">{nextLesson.title}</span>
                                     <ChevronRight className="w-4 h-4" />
                                 </button>
                             ) : (
                                 <span className="text-xs text-emerald-400 font-bold flex items-center gap-1">
                                     <Sparkles className="w-4 h-4" />
-                                    কোর্সের শেষ ক্লাস!
+                                    Last lesson of the course!
                                 </span>
                             )}
                         </div>
@@ -295,7 +293,7 @@ export const LessonPlayerPage: React.FC = () => {
                             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
                                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                                     <Paperclip className="w-4 h-4 text-sky-400" />
-                                    <span>ডাউনলোডযোগ্য স্টাডি ম্যাটেরিয়াল ({lesson.attachments.length})</span>
+                                    <span>Downloadable Study Materials ({lesson.attachments.length})</span>
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {lesson.attachments.map((att) => (
@@ -326,7 +324,7 @@ export const LessonPlayerPage: React.FC = () => {
                             <div className="flex items-center justify-between">
                                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                                     <MessageSquare className="w-5 h-5 text-sky-400" />
-                                    <span>প্রশ্ন ও আলোচনা ফোরাম ({comments.length})</span>
+                                    <span>Q&A & Discussion Forum ({comments.length})</span>
                                 </h3>
                             </div>
 
@@ -336,7 +334,7 @@ export const LessonPlayerPage: React.FC = () => {
                                     rows={3}
                                     value={commentText}
                                     onChange={(e) => setCommentText(e.target.value)}
-                                    placeholder="এই লেসনে আপনার কোনো ডাউট বা প্রশ্ন থাকলে লিখুন..."
+                                    placeholder="Type your question or doubt about this lesson..."
                                     className="w-full p-4 bg-slate-900 border border-slate-800 rounded-2xl text-xs sm:text-sm text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-sky-500"
                                 />
                                 <div className="flex justify-end">
@@ -346,7 +344,7 @@ export const LessonPlayerPage: React.FC = () => {
                                         className="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 transition-all disabled:opacity-50"
                                     >
                                         <Send className="w-3.5 h-3.5" />
-                                        <span>{submittingComment ? 'পোস্ট হচ্ছে...' : 'প্রশ্ন পোস্ট করুন'}</span>
+                                        <span>{submittingComment ? 'Posting...' : 'Post Question'}</span>
                                     </button>
                                 </div>
                             </form>
@@ -355,7 +353,7 @@ export const LessonPlayerPage: React.FC = () => {
                             <div className="space-y-4">
                                 {comments.length === 0 ? (
                                     <p className="text-xs text-slate-500 text-center py-6">
-                                        এখনও কোনো প্রশ্ন করা হয়নি। আপনার কোনো জিজ্ঞাসা থাকলে প্রথম প্রশ্নটি করুন!
+                                        No questions asked yet. Be the first to ask a question!
                                     </p>
                                 ) : (
                                     comments.map((comment) => (
@@ -371,12 +369,12 @@ export const LessonPlayerPage: React.FC = () => {
                                                     <div>
                                                         <h4 className="text-xs font-bold text-white">{comment.user.name}</h4>
                                                         <span className="text-[10px] text-slate-500 capitalize">
-                                                            {comment.user.role === 'student' ? 'শিক্ষার্থী' : 'শিক্ষক'}
+                                                            {comment.user.role === 'student' ? 'Student' : 'Instructor'}
                                                         </span>
                                                     </div>
                                                 </div>
                                                 <span className="text-[10px] text-slate-500">
-                                                    {new Date(comment.created_at).toLocaleDateString('bn-BD')}
+                                                    {new Date(comment.created_at).toLocaleDateString('en-US')}
                                                 </span>
                                             </div>
 
@@ -396,11 +394,11 @@ export const LessonPlayerPage: React.FC = () => {
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="font-bold text-sky-400">{reply.user.name}</span>
                                                                     <span className="text-[9px] bg-sky-950 text-sky-300 border border-sky-800 px-1.5 py-0.2 rounded font-semibold">
-                                                                        {reply.user.role === 'teacher' ? 'শিক্ষক' : 'রিপ্লাই'}
+                                                                        {reply.user.role === 'teacher' ? 'Instructor' : 'Reply'}
                                                                     </span>
                                                                 </div>
                                                                 <span className="text-[9px] text-slate-500">
-                                                                    {new Date(reply.created_at).toLocaleDateString('bn-BD')}
+                                                                    {new Date(reply.created_at).toLocaleDateString('en-US')}
                                                                 </span>
                                                             </div>
                                                             <p className="text-slate-300 pl-1">{reply.content}</p>
@@ -417,20 +415,20 @@ export const LessonPlayerPage: React.FC = () => {
                                                             type="text"
                                                             value={replyText[comment.id] || ''}
                                                             onChange={(e) => setReplyText(prev => ({ ...prev, [commentId(comment.id)]: e.target.value }))}
-                                                            placeholder="মন্তব্যের উত্তর লিখুন..."
+                                                            placeholder="Type your reply..."
                                                             className="flex-1 px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-xl text-xs text-white"
                                                         />
                                                         <button
                                                             onClick={() => handlePostReply(comment.id)}
                                                             className="px-4 py-1.5 bg-sky-600 text-white font-bold text-xs rounded-xl"
                                                         >
-                                                            পাঠান
+                                                            Send
                                                         </button>
                                                         <button
                                                             onClick={() => setActiveReplyId(null)}
                                                             className="px-3 py-1.5 text-slate-400 text-xs"
                                                         >
-                                                            বাতিল
+                                                            Cancel
                                                         </button>
                                                     </div>
                                                 ) : (
@@ -438,7 +436,7 @@ export const LessonPlayerPage: React.FC = () => {
                                                         onClick={() => setActiveReplyId(comment.id)}
                                                         className="text-[11px] font-bold text-sky-400 hover:text-sky-300"
                                                     >
-                                                        উত্তর দিন
+                                                        Reply
                                                     </button>
                                                 )}
                                             </div>
@@ -469,16 +467,16 @@ export const LessonPlayerPage: React.FC = () => {
                     <div className="h-16 px-5 border-b border-slate-800 flex items-center justify-between shrink-0">
                         <h3 className="font-bold text-sm text-white flex items-center gap-2">
                             <BookOpen className="w-4 h-4 text-sky-400" />
-                            <span>{language === 'en' ? 'Curriculum' : 'কোর্স কারিকুলাম'}</span>
+                            <span>Curriculum</span>
                         </h3>
                         <div className="flex items-center gap-2">
                             <span className="text-xs font-semibold text-slate-400">
-                                {completedLessonIds.length} / {allLessons.length} {language === 'en' ? 'Done' : 'সম্পন্ন'}
+                                {completedLessonIds.length} / {allLessons.length} Done
                             </span>
                             <button
                                 onClick={() => setSidebarOpen(false)}
                                 className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors lg:hidden"
-                                title={language === 'en' ? 'Close' : 'বন্ধ করুন'}
+                                title="Close"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -489,7 +487,7 @@ export const LessonPlayerPage: React.FC = () => {
                         {sections.map((section, sIndex) => (
                             <div key={section.id} className="p-3">
                                 <div className="px-3 py-2 text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                    {language === 'en' ? `Section ${sIndex + 1}:` : `সেকশন ${sIndex + 1}:`} {section.title}
+                                    Section {sIndex + 1}: {section.title}
                                 </div>
                                 <div className="space-y-1">
                                     {section.lessons?.map((l) => {
@@ -515,7 +513,7 @@ export const LessonPlayerPage: React.FC = () => {
                                                     <span className="truncate">{l.title}</span>
                                                 </div>
                                                 <span className={`text-[10px] shrink-0 ${isCurrent ? 'text-sky-100' : 'text-slate-500'}`}>
-                                                    {l.duration_minutes}{language === 'en' ? 'm' : 'মি.'}
+                                                    {l.duration_minutes}m
                                                 </span>
                                             </Link>
                                         );

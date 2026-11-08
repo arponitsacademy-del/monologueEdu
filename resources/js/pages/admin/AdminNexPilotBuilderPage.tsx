@@ -103,7 +103,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
             setTheoryTopics(data.theory_topics || []);
             setPracticeTopics(data.practice_topics || []);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'বিল্ডার ডাটা লোড করতে সমস্যা হয়েছে।');
+            setError(err.response?.data?.message || 'Failed to load builder data.');
         } finally {
             setLoading(false);
         }
@@ -118,12 +118,12 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
         // Default smart templates for prompt
         if (activeMode === 'theory') {
             setTopicPrompt(
-                'এই টপিকে শিক্ষার্থীদের বিষয়টির মূল ধারণা সহজে বাস্তব উদাহরণ দিয়ে বোঝাবে। কোনো জটিল সূত্র থাকলে সেটির ব্যাখ্যা ধাপে ধাপে দেবে এবং শিক্ষার্থীদের প্রশ্ন করে নিশ্চিত হবে তারা বুঝতে পেরেছে কিনা।'
+                'In this topic, teach students the core concepts with clear real-world examples. Break down complex formulas step-by-step and ask follow-up questions to verify understanding.'
             );
             setTopicMaterials('');
         } else {
             setTopicPrompt(
-                'শিক্ষার্থীদের প্রথমে সহজ থেকে শুরু করে এক এক করে প্র্যাকটিস প্রবলেম দেবে। তারা সমাধান শেয়ার করলে সঠিক হয়েছে কিনা যাচাই করবে। ভুল হলে সরাসরি উত্তর না দিয়ে হিন্ট দেবে। শিক্ষার্থী না পারলে তখন সম্পূর্ণ সমাধান ব্যাখ্যা করবে।'
+                'Give students practice problems one by one starting from simple to challenging. Verify student solutions when submitted. If incorrect, provide hints rather than revealing the answer directly. If they struggle after hints, explain the full step-by-step solution.'
             );
             setTopicMaterials('');
         }
@@ -155,7 +155,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
             });
             setAttachments(prev => [...prev, data]);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'ফাইল আপলোড করতে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to upload file.');
         } finally {
             setUploadingFile(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -199,7 +199,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
             }
             setTopicModalOpen(false);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'টপিক সংরক্ষণ ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to save topic.');
         } finally {
             setSavingTopic(false);
         }
@@ -218,7 +218,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
             setDeleteModalOpen(false);
             setTopicToDelete(null);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'টপিক মুছে ফেলা সম্ভব হয়নি।');
+            alert(err.response?.data?.message || 'Failed to delete topic.');
         } finally {
             setDeleting(false);
         }
@@ -270,7 +270,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                 {
                     id: Date.now() + 1,
                     role: 'assistant',
-                    content: `⚠️ এরর: ${err.response?.data?.message || 'AI উত্তর জেনারেট করতে ব্যর্থ হয়েছে। OpenAI API কী ঠিক আছে কিনা যাচাই করুন।'}`,
+                    content: `⚠️ Error: ${err.response?.data?.message || 'Failed to generate AI response. Please check your OpenAI API key.'}`,
                     created_at: new Date().toISOString(),
                 },
             ]);
@@ -283,7 +283,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
         return (
             <div className="p-20 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
                 <Loader2 className="w-8 h-8 animate-spin text-sky-600" />
-                <span className="text-xs font-bold">বিল্ডার লোড হচ্ছে...</span>
+                <span className="text-xs font-bold">Loading builder...</span>
             </div>
         );
     }
@@ -292,9 +292,9 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
         return (
             <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-rose-200 text-rose-800 dark:text-rose-300">
                 <AlertCircle className="w-10 h-10 mx-auto mb-2 text-rose-600" />
-                <h4 className="font-bold">{error || 'পাইলট পাওয়া যায়নি।'}</h4>
+                <h4 className="font-bold">{error || 'Pilot not found.'}</h4>
                 <Link to="/admin/nexpilot" className="mt-4 inline-block text-xs font-bold text-sky-600 underline">
-                    NexPilot তালিকায় ফিরে যান
+                    Back to NexPilot list
                 </Link>
             </div>
         );
@@ -324,9 +324,9 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
                             <BookOpen className="w-3.5 h-3.5 text-sky-600" />
-                            <span>কোর্স: <strong>{pilotData.course_title}</strong></span>
+                            <span>Course: <strong>{pilotData.course_title}</strong></span>
                             <span className="text-slate-300 mx-1">•</span>
-                            <span>বাজেট লিমিট: <strong>${parseFloat(pilotData.max_usd_limit).toFixed(2)}</strong></span>
+                            <span>Budget Limit: <strong>${parseFloat(pilotData.max_usd_limit).toFixed(2)}</strong></span>
                         </p>
                     </div>
                 </div>
@@ -337,7 +337,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                         className="px-3.5 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-300 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors"
                     >
                         <Edit3 className="w-3.5 h-3.5" />
-                        <span>পাইলট তথ্য এডিট</span>
+                        <span>Edit Pilot Details</span>
                     </Link>
                 </div>
             </div>
@@ -354,7 +354,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                     }`}
                 >
                     <BookOpen className="w-4 h-4" />
-                    <span className="text-sm">Theory (থিওরি)</span>
+                    <span className="text-sm">Theory</span>
                     <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
                         activeMode === 'theory' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                     }`}>
@@ -372,7 +372,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                     }`}
                 >
                     <Sparkles className="w-4 h-4 text-amber-300" />
-                    <span className="text-sm">Practice (প্র্যাকটিস)</span>
+                    <span className="text-sm">Practice</span>
                     <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
                         activeMode === 'practice' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
                     }`}>
@@ -385,12 +385,12 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800">
                 <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span>{activeMode === 'theory' ? '📖 থিওরি টপিক বিল্ডার' : '🎯 প্র্যাকটিস টপিক বিল্ডার'}</span>
+                        <span>{activeMode === 'theory' ? '📖 Theory Topic Builder' : '🎯 Practice Topic Builder'}</span>
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                         {activeMode === 'theory'
-                            ? 'স্লাইড, নোট বা বইয়ের বিষয়বস্তু আপলোড করে প্রম্পট দিন যাতে AI শিক্ষার্থীদের এই টপিক চমৎকারভাবে পড়ায়।'
-                            : 'টপিক অনুযায়ী প্র্যাকটিস প্রবলেম, গাইডেন্স ও সলভিং রুলস প্রম্পট দিয়ে সেট করুন।'}
+                            ? 'Upload slides, notes, or book chapters and customize prompts so the AI teaches students clearly.'
+                            : 'Set practice problems, guidance, and problem-solving prompt rules for each topic.'}
                     </p>
                 </div>
 
@@ -404,7 +404,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                     }`}
                 >
                     <Plus className="w-4 h-4" />
-                    <span>{activeMode === 'theory' ? 'নতুন থিওরি টপিক যোগ করুন' : 'নতুন প্র্যাকটিস টপিক যোগ করুন'}</span>
+                    <span>{activeMode === 'theory' ? 'Add New Theory Topic' : 'Add New Practice Topic'}</span>
                 </button>
             </div>
 
@@ -416,10 +416,10 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                     </div>
                     <div>
                         <h4 className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                            কোনো {activeMode === 'theory' ? 'থিওরি' : 'প্র্যাকটিস'} টপিক যোগ করা হয়নি
+                            No {activeMode === 'theory' ? 'theory' : 'practice'} topics added yet
                         </h4>
                         <p className="text-xs text-slate-400 mt-0.5">
-                            শিক্ষার্থীদের শেখানোর জন্য প্রথম টপিক তৈরি করে প্রম্পট এবং স্টাডি ম্যাটেরিয়াল যুক্ত করুন।
+                            Create the first topic and add prompts and study materials to teach students.
                         </p>
                     </div>
                     <button
@@ -428,7 +428,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                         className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-900 dark:bg-slate-800 text-white font-bold text-xs rounded-xl hover:bg-slate-800 cursor-pointer"
                     >
                         <Plus className="w-4 h-4" />
-                        <span>প্রথম টপিক তৈরি করুন</span>
+                        <span>Create First Topic</span>
                     </button>
                 </div>
             ) : (
@@ -468,10 +468,10 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                                             type="button"
                                             onClick={() => handleOpenPlayground(topic)}
                                             className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 text-indigo-700 dark:text-indigo-300 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-colors cursor-pointer border border-indigo-200/60 dark:border-indigo-800"
-                                            title="AI কীভাবে পড়াবে পরীক্ষা করুন"
+                                            title="Test how AI teaches this topic"
                                         >
                                             <Play className="w-3.5 h-3.5 fill-current" />
-                                            <span>টেস্ট চ্যাট</span>
+                                            <span>Test Chat</span>
                                         </button>
 
                                         {/* Edit */}
@@ -479,7 +479,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                                             type="button"
                                             onClick={() => handleOpenEditModal(topic)}
                                             className="p-1.5 text-slate-500 hover:text-slate-800 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 cursor-pointer"
-                                            title="এডিট"
+                                            title="Edit"
                                         >
                                             <Edit3 className="w-4 h-4" />
                                         </button>
@@ -492,7 +492,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                                                 setDeleteModalOpen(true);
                                             }}
                                             className="p-1.5 text-rose-500 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/40 rounded-lg hover:bg-rose-100 cursor-pointer"
-                                            title="মুছে ফেলুন"
+                                            title="Delete"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -502,7 +502,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                                 {/* Teaching / Practice Prompt Snippet */}
                                 <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800/80 text-xs text-slate-700 dark:text-slate-300 space-y-1">
                                     <span className="font-bold text-[11px] text-slate-400 block uppercase tracking-wider">
-                                        {topic.type === 'theory' ? 'AI শিক্ষাদান প্রম্পট:' : 'প্র্যাকটিস ও সলভিং প্রম্পট:'}
+                                        {topic.type === 'theory' ? 'AI Teaching Prompt:' : 'Practice & Solving Prompt:'}
                                     </span>
                                     <p className="line-clamp-2 italic leading-relaxed text-slate-600 dark:text-slate-400 font-serif">
                                         "{topic.prompt}"
@@ -514,7 +514,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                                     <div className="flex flex-wrap items-center gap-2 pt-1">
                                         <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
                                             <Paperclip className="w-3 h-3" />
-                                            <span>সংযুক্ত ফাইল ({topic.attachments?.length}):</span>
+                                            <span>Attached Files ({topic.attachments?.length}):</span>
                                         </span>
                                         {topic.attachments?.map((att, attIdx) => (
                                             <a
@@ -541,20 +541,20 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
             <Modal
                 isOpen={topicModalOpen}
                 onClose={() => setTopicModalOpen(false)}
-                title={editingTopic ? 'টপিক এডিট করুন' : (activeMode === 'theory' ? 'নতুন থিওরি টপিক তৈরি' : 'নতুন প্র্যাকটিস টপিক তৈরি')}
+                title={editingTopic ? 'Edit Topic' : (activeMode === 'theory' ? 'Create New Theory Topic' : 'Create New Practice Topic')}
             >
                 <form onSubmit={handleSaveTopic} className="space-y-4 max-h-[75vh] overflow-y-auto px-1">
                     {/* Topic Title */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                            টপিকের নাম / অধ্যায় <span className="text-rose-500">*</span>
+                            Topic Name / Chapter <span className="text-rose-500">*</span>
                         </label>
                         <input
                             type="text"
                             required
                             value={topicTitle}
                             onChange={(e) => setTopicTitle(e.target.value)}
-                            placeholder="e.g. ভেক্টর যোগ ও সামান্তরিক সূত্র"
+                            placeholder="e.g. Vector Addition & Parallelogram Law"
                             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
                         />
                     </div>
@@ -562,13 +562,13 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                     {/* Topic Description */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                            সংক্ষিপ্ত বিবরণ (ঐচ্ছিক)
+                            Short Description (Optional)
                         </label>
                         <input
                             type="text"
                             value={topicDescription}
                             onChange={(e) => setTopicDescription(e.target.value)}
-                            placeholder="টপিকের মূল বিষয়ের সারাংশ..."
+                            placeholder="Summary of key concepts..."
                             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
                         />
                     </div>
@@ -576,7 +576,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                     {/* AI Prompt */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                            AI-কে দেওয়া প্রম্পট / নির্দেশনা (Prompt) <span className="text-rose-500">*</span>
+                            AI Prompt / Instructions <span className="text-rose-500">*</span>
                         </label>
                         <textarea
                             rows={4}
@@ -584,27 +584,27 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                             value={topicPrompt}
                             onChange={(e) => setTopicPrompt(e.target.value)}
                             placeholder={activeMode === 'theory' 
-                                ? 'AI কীভাবে শিক্ষার্থীদের এই থিওরি শেখাবে, কোন কোন বিষয়ের ওপর জোর দেবে...' 
-                                : 'AI কীভাবে শিক্ষার্থীদের এক এক করে প্র্যাকটিস প্রবলেম দেবে, কীভাবে হিন্ট দেবে এবং কখন সলভ দেবে...'}
+                                ? 'How AI should teach this theory to students and what to emphasize...' 
+                                : 'How AI should pose practice problems, give hints, and reveal solutions...'}
                             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500 leading-relaxed font-mono"
                         />
                         <p className="text-[11px] text-slate-400 mt-1">
                             {activeMode === 'theory' 
-                                ? 'টিপস: আপনি এখানে লিখে দিতে পারেন AI যেন সহজ উদাহরণ দিয়ে বোঝায় এবং শেষে প্রশ্ন করে যাচাই করে।' 
-                                : 'টিপস: AI যেন একবারে একটি প্রশ্ন দেয় এবং শিক্ষার্থী না পারলে ধাপে ধাপে হিন্ট দেয়।'}
+                                ? 'Tip: You can instruct the AI to explain with simple examples and test the student with questions at the end.' 
+                                : 'Tip: Instruct the AI to present one question at a time and give incremental hints if the student gets stuck.'}
                         </p>
                     </div>
 
                     {/* Reference Materials / Notes Text */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                            রেফারেন্স নোট, বইয়ের টেক্সট বা লেকচার কনটেন্ট (ঐচ্ছিক)
+                            Reference Notes, Book Text, or Lecture Content (Optional)
                         </label>
                         <textarea
                             rows={3}
                             value={topicMaterials}
                             onChange={(e) => setTopicMaterials(e.target.value)}
-                            placeholder="বইয়ের সংজ্ঞা, সূত্র, অথবা গাণিতিক সমস্যার সেট এখানে সরাসরি পেস্ট করতে পারেন..."
+                            placeholder="Paste textbook definitions, formulas, or problem sets directly here..."
                             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500 leading-relaxed"
                         />
                     </div>
@@ -612,7 +612,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                     {/* File Attachments (Slides, Books, PDFs) */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            স্লাইড, হ্যান্ডনোট বা বইয়ের ফাইল আপলোড (PDF, Slide, Image)
+                            Upload Slides, Notes, or Textbook Files (PDF, Slide, Image)
                         </label>
 
                         <div className="flex items-center gap-2">
@@ -630,9 +630,9 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                                 className="px-3.5 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                             >
                                 {uploadingFile ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5 text-sky-600" />}
-                                <span>{uploadingFile ? 'আপলোড হচ্ছে...' : 'ফাইল আপলোড করুন'}</span>
+                                <span>{uploadingFile ? 'Uploading...' : 'Upload File'}</span>
                             </button>
-                            <span className="text-[11px] text-slate-400">সর্বোচ্চ ৩০MB</span>
+                            <span className="text-[11px] text-slate-400">Max 30MB</span>
                         </div>
 
                         {/* Uploaded attachments list */}
@@ -667,14 +667,14 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                             onClick={() => setTopicModalOpen(false)}
                             className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 cursor-pointer"
                         >
-                            বাতিল
+                            Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={savingTopic}
                             className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors cursor-pointer"
                         >
-                            {savingTopic ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন'}
+                            {savingTopic ? 'Saving...' : 'Save Topic'}
                         </button>
                     </div>
                 </form>
@@ -684,11 +684,11 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
             <Modal
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
-                title="টপিক মুছে ফেলার নিশ্চয়তা"
+                title="Confirm Topic Deletion"
             >
                 <div className="space-y-4">
                     <p className="text-xs text-slate-600 dark:text-slate-300">
-                        আপনি কি নিশ্চিত যে <strong>"{topicToDelete?.title}"</strong> টপিকটি মুছে ফেলতে চান?
+                        Are you sure you want to delete <strong>"{topicToDelete?.title}"</strong>?
                     </p>
                     <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                         <button
@@ -696,7 +696,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                             onClick={() => setDeleteModalOpen(false)}
                             className="px-3 py-1.5 text-xs font-bold text-slate-500"
                         >
-                            বাতিল
+                            Cancel
                         </button>
                         <button
                             type="button"
@@ -704,7 +704,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                             disabled={deleting}
                             className="px-4 py-1.5 bg-rose-600 text-white font-bold text-xs rounded-xl"
                         >
-                            {deleting ? 'মুছে ফেলা হচ্ছে...' : 'হ্যাঁ, মুছে ফেলুন'}
+                            {deleting ? 'Deleting...' : 'Yes, Delete'}
                         </button>
                     </div>
                 </div>
@@ -714,17 +714,17 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
             <Modal
                 isOpen={playgroundModalOpen}
                 onClose={() => setPlaygroundModalOpen(false)}
-                title={`লাইভ টেস্ট চ্যাট: ${testingTopic?.title || ''}`}
+                title={`Live Test Chat: ${testingTopic?.title || ''}`}
             >
                 <div className="space-y-4 flex flex-col h-[520px]">
                     {/* Header info badge */}
                     <div className="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
                         <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                             <Bot className="w-4 h-4 text-sky-600" />
-                            <span>মোড: <strong>{testingTopic?.type === 'theory' ? 'Theory Lesson' : 'Practice Problem Coach'}</strong></span>
+                            <span>Mode: <strong>{testingTopic?.type === 'theory' ? 'Theory Lesson' : 'Practice Problem Coach'}</strong></span>
                         </span>
                         <span className="text-[11px] text-slate-400">
-                            মডেল: {pilotData.openai_model}
+                            Model: {pilotData.openai_model}
                         </span>
                     </div>
 
@@ -734,7 +734,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                             <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-400 space-y-2">
                                 <Sparkles className="w-8 h-8 text-sky-500/50" />
                                 <p className="text-xs font-medium">
-                                    নিচে যেকোনো প্রশ্ন বা 'হাই' লিখে শুরু করুন। AI আপনার প্রম্পট অনুযায়ী উত্তর দেবে।
+                                    Type any question or 'Hi' below to begin. The AI will respond based on your customized prompt.
                                 </p>
                             </div>
                         ) : (
@@ -770,7 +770,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                         {sendingChat && (
                             <div className="flex gap-2.5 items-center text-slate-400 text-xs italic pl-9">
                                 <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600" />
-                                <span>NexPilot উত্তর তৈরি করছে...</span>
+                                <span>NexPilot is generating response...</span>
                             </div>
                         )}
                         <div ref={chatEndRef} />
@@ -782,7 +782,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                             type="text"
                             value={inputMessage}
                             onChange={(e) => setInputMessage(e.target.value)}
-                            placeholder="এখানে মেসেজ লিখুন (যেমন: এই সূত্রটি বুঝিয়ে দাও)..."
+                            placeholder="Type a message here (e.g. Explain this formula)..."
                             disabled={sendingChat}
                             className="flex-1 px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-2 focus:ring-sky-500"
                         />
@@ -792,7 +792,7 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
                             className="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-colors disabled:opacity-50 cursor-pointer"
                         >
                             <Send className="w-3.5 h-3.5" />
-                            <span>পাঠান</span>
+                            <span>Send</span>
                         </button>
                     </form>
                 </div>
@@ -800,4 +800,3 @@ export const AdminNexPilotBuilderPage: React.FC = () => {
         </div>
     );
 };
-

@@ -67,12 +67,12 @@ export const AiMarkdownMessage: React.FC<AiMarkdownMessageProps> = ({ content, c
                                     {copiedIndex === currentIdx ? (
                                         <>
                                             <Check className="w-3 h-3 text-emerald-400" />
-                                            <span className="text-emerald-400">কপি হয়েছে</span>
+                                            <span className="text-emerald-400">Copied</span>
                                         </>
                                     ) : (
                                         <>
                                             <Copy className="w-3 h-3" />
-                                            <span>কপি</span>
+                                            <span>Copy</span>
                                         </>
                                     )}
                                 </button>

@@ -79,7 +79,7 @@ export const AdminSettingsPage: React.FC = () => {
             });
             setVdoTestResult({
                 success: Boolean(data.success),
-                message: data.message || (data.success ? 'কানেকশন সফল!' : 'কানেকশন ব্যর্থ হয়েছে।')
+                message: data.message || (data.success ? 'Connection successful!' : 'Connection failed.')
             });
             if (data.success) {
                 setVdoHasSecret(true);
@@ -87,7 +87,7 @@ export const AdminSettingsPage: React.FC = () => {
         } catch (err: any) {
             setVdoTestResult({
                 success: false,
-                message: err.response?.data?.message || 'কানেকশন ব্যর্থ হয়েছে। API Secret Key সঠিক কিনা যাচাই করুন।'
+                message: err.response?.data?.message || 'Connection failed. Please verify that your API Secret Key is correct.'
             });
         } finally {
             setVdoTesting(false);
@@ -106,18 +106,18 @@ export const AdminSettingsPage: React.FC = () => {
             });
             if (data.success !== false) {
                 setVdoHasSecret(Boolean(data.settings?.has_api_secret ?? true));
-                setVdoSuccessMsg(data.message || 'VdoCipher কনফিগারেশন সফলভাবে সংরক্ষণ করা হয়েছে!');
+                setVdoSuccessMsg(data.message || 'VdoCipher configuration saved successfully!');
                 setTimeout(() => setVdoSuccessMsg(null), 4000);
             } else {
                 setVdoTestResult({
                     success: false,
-                    message: data.message || 'সেটিংস সংরক্ষণ ব্যর্থ হয়েছে।'
+                    message: data.message || 'Failed to save settings.'
                 });
             }
         } catch (err: any) {
             setVdoTestResult({
                 success: false,
-                message: err.response?.data?.message || 'VdoCipher সেটিংস সংরক্ষণ করতে ব্যর্থ হয়েছে।'
+                message: err.response?.data?.message || 'Failed to save VdoCipher settings.'
             });
         } finally {
             setVdoSaving(false);
@@ -153,7 +153,7 @@ export const AdminSettingsPage: React.FC = () => {
             setTimeout(() => setSuccessMessage(null), 4000);
         } catch (err: any) {
             setSuccessMessage(null);
-            alert(err.response?.data?.message || 'সেটিংস সংরক্ষণ ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to save settings.');
         } finally {
             setSaving(false);
         }
@@ -199,11 +199,11 @@ export const AdminSettingsPage: React.FC = () => {
                                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                                     <span>VdoCipher Configuration</span>
                                     <span className="text-xs font-semibold px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full border border-indigo-200">
-                                        DRM ভিডিও হোস্টিং
+                                        DRM Video Hosting
                                     </span>
                                 </h3>
                                 <p className="text-xs text-slate-500">
-                                    কোর্সের ভিডিও পাইরেসি রোধে VdoCipher DRM ও ডাইনামিক স্টুডেন্ট ওয়াটারমার্ক কনফিগার করুন
+                                    Configure VdoCipher DRM and dynamic student watermarks to prevent course video piracy
                                 </p>
                             </div>
                         </div>
@@ -212,12 +212,12 @@ export const AdminSettingsPage: React.FC = () => {
                             {vdoHasSecret ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                    <span>কনফিগারেশন সক্রিয়</span>
+                                    <span>Active Configuration</span>
                                 </span>
                             ) : (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
                                     <span className="w-2 h-2 rounded-full bg-amber-500" />
-                                    <span>Secret Key প্রয়োজন</span>
+                                    <span>Secret Key Required</span>
                                 </span>
                             )}
                         </div>
@@ -250,10 +250,10 @@ export const AdminSettingsPage: React.FC = () => {
                         <div className="flex items-center justify-between p-4 bg-slate-50/80 rounded-2xl border border-slate-200/80">
                             <div className="space-y-0.5">
                                 <label className="text-sm font-bold text-slate-800 cursor-pointer">
-                                    VdoCipher ইন্টিগ্রেশন সক্রিয় করুন (Enable VdoCipher DRM)
+                                    Enable VdoCipher DRM Integration
                                 </label>
                                 <p className="text-xs text-slate-500">
-                                    সক্রিয় থাকলে কোর্স বিল্ডারে সরাসরি কম্প্রেশনসহ VdoCipher-এ ভিডিও আপলোড করার অপশন উন্মুক্ত হবে
+                                    When enabled, directly upload videos with client compression to VdoCipher in the course builder
                                 </p>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
@@ -280,7 +280,7 @@ export const AdminSettingsPage: React.FC = () => {
                                     rel="noreferrer"
                                     className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
                                 >
-                                    <span>VdoCipher ড্যাশবোর্ড থেকে নিন</span>
+                                    <span>Get from VdoCipher Dashboard</span>
                                     <ExternalLink className="w-3 h-3" />
                                 </a>
                             </div>
@@ -290,20 +290,20 @@ export const AdminSettingsPage: React.FC = () => {
                                     type={vdoShowSecret ? 'text' : 'password'}
                                     value={vdoSecret}
                                     onChange={(e) => setVdoSecret(e.target.value)}
-                                    placeholder="আপনার VdoCipher API Secret Key পেস্ট করুন..."
+                                    placeholder="Paste your VdoCipher API Secret Key..."
                                     className="w-full pl-4 pr-11 py-3 bg-white border border-slate-200 rounded-xl text-sm font-mono focus:ring-2 focus:ring-indigo-500 transition-all"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setVdoShowSecret(!vdoShowSecret)}
                                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                                    title={vdoShowSecret ? 'হাইড করুন' : 'দেখান'}
+                                    title={vdoShowSecret ? 'Hide' : 'Show'}
                                 >
                                     {vdoShowSecret ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                 </button>
                             </div>
                             <p className="text-[11px] text-slate-400 mt-1">
-                                এই সিক্রেট দিয়ে সরাসরি ক্লাউড আপলোড ও DRM সুরক্ষিত ওটিপি (OTP) জেনারেট করা হয়।
+                                This secret key is used for direct cloud uploads and DRM OTP playback generation.
                             </p>
                         </div>
 
@@ -312,10 +312,10 @@ export const AdminSettingsPage: React.FC = () => {
                             <div className="space-y-0.5">
                                 <label className="text-sm font-bold text-slate-800 cursor-pointer flex items-center gap-1.5">
                                     <Sparkles className="w-4 h-4 text-amber-500" />
-                                    <span>ডাইনামিক স্টুডেন্ট ওয়াটারমার্ক (Dynamic Watermark)</span>
+                                    <span>Dynamic Student Watermark</span>
                                 </label>
                                 <p className="text-xs text-slate-500">
-                                    ভিডিও চলার সময় শিক্ষার্থীর মোবাইল নম্বর ও নাম স্বয়ংক্রিয়ভাবে ভেসে থাকবে যাতে স্ক্রিন রেকর্ড বন্ধ হয়
+                                    Displays the student's name and mobile number moving across the video to deter screen recording
                                 </p>
                             </div>
                             <label className="relative inline-flex items-center cursor-pointer">
@@ -340,12 +340,12 @@ export const AdminSettingsPage: React.FC = () => {
                                 {vdoTesting ? (
                                     <>
                                         <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-600" />
-                                        <span>কানেকশন টেস্ট হচ্ছে...</span>
+                                        <span>Testing connection...</span>
                                     </>
                                 ) : (
                                     <>
                                         <Video className="w-3.5 h-3.5 text-indigo-600" />
-                                        <span>কানেকশন টেস্ট করুন</span>
+                                        <span>Test Connection</span>
                                     </>
                                 )}
                             </button>
@@ -359,12 +359,12 @@ export const AdminSettingsPage: React.FC = () => {
                                 {vdoSaving ? (
                                     <>
                                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                        <span>সংরক্ষণ হচ্ছে...</span>
+                                        <span>Saving...</span>
                                     </>
                                 ) : (
                                     <>
                                         <Save className="w-3.5 h-3.5" />
-                                        <span>VdoCipher সংরক্ষণ করুন</span>
+                                        <span>Save VdoCipher Settings</span>
                                     </>
                                 )}
                             </button>
@@ -397,7 +397,7 @@ export const AdminSettingsPage: React.FC = () => {
                                         type="email"
                                         value={contactEmail}
                                         onChange={(e) => setContactEmail(e.target.value)}
-                                        placeholder="support@novonex.edu.bd"
+                                        placeholder="support@monologueedu.com"
                                         className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500"
                                     />
                                 </div>

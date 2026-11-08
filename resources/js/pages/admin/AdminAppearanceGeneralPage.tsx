@@ -50,7 +50,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
     useEffect(() => {
         if (settings) {
             setFaviconUrl(settings.favicon_url || '');
-            setSiteName(settings.site_name || 'Novonex Academy');
+            setSiteName(settings.site_name || 'Monologue Edu');
             setSiteTagline(settings.site_tagline || 'Premier Online Learning & EdTech Platform');
             setPrimaryColor(settings.primary_color || '#0ea5e9');
             setSecondaryColor(settings.secondary_color || '#0f172a');
@@ -63,7 +63,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
 
         // Validation for size (< 10MB)
         if (file.size > 10 * 1024 * 1024) {
-            alert('ফাইল সাইজ ১০ মেগাবাইটের কম হতে হবে।');
+            alert('File size must be under 10 MB.');
             return;
         }
 
@@ -80,7 +80,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                 setFaviconUrl(uploadedUrl);
             }
         } catch (err: any) {
-            alert(err.response?.data?.message || 'ফ্যাভিকন ফাইল আপলোড করতে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to upload favicon file.');
         } finally {
             setUploadingFavicon(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -96,7 +96,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
         try {
             const payload = {
                 favicon_url: faviconUrl.trim() || null,
-                site_name: siteName.trim() || 'Novonex Academy',
+                site_name: siteName.trim() || 'Monologue Edu',
                 site_tagline: siteTagline.trim() || '',
                 primary_color: primaryColor,
                 secondary_color: secondaryColor,
@@ -121,7 +121,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
             setSuccessMessage(data.message || t.appearanceGeneral.successMsg);
             setTimeout(() => setSuccessMessage(null), 4000);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'সেটিংস সংরক্ষণ করতে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to save settings.');
         } finally {
             setSaving(false);
         }
@@ -129,10 +129,10 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
 
     // Reset to defaults
     const handleResetDefaults = () => {
-        if (confirm('আপনি কি ডিফল্ট ফ্যাভিকন ও সাইট সেটিংস রিসেট করতে চান?')) {
+        if (confirm('Are you sure you want to reset favicon and site settings to defaults?')) {
             setFaviconUrl('');
-            setSiteName('Novonex Academy');
-            setSiteTagline("বাংলাদেশ'র প্রিমিয়াম এডটেক প্ল্যাটফর্ম");
+            setSiteName('Monologue Edu');
+            setSiteTagline("Premier Online Learning Platform");
             setPrimaryColor('#0ea5e9');
             setSecondaryColor('#0f172a');
         }
@@ -257,7 +257,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                                     )}
                                 </div>
                                 <span className="text-xs font-semibold truncate">
-                                    {siteName || 'Novonex Academy'} {siteTagline ? `| ${siteTagline}` : ''}
+                                    {siteName || 'Monologue Edu'} {siteTagline ? `| ${siteTagline}` : ''}
                                 </span>
                                 <button type="button" className="text-slate-400 hover:text-white ml-auto">
                                     <X className="w-3 h-3" />
@@ -267,14 +267,14 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                             {/* Inactive Tab Example */}
                             <div className="px-3 py-2 text-slate-400 hover:text-slate-200 text-xs flex items-center gap-2 rounded-t-xl transition hidden sm:flex">
                                 <span className="w-3 h-3 rounded-full bg-slate-700 inline-block"></span>
-                                <span className="truncate max-w-[100px]">ড্যাশবোর্ড - Novonex</span>
+                                <span className="truncate max-w-[100px]">Dashboard - Monologue</span>
                             </div>
 
                             {/* New Tab Button */}
                             <button
                                 type="button"
                                 className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition"
-                                title="নতুন ট্যাব"
+                                title="New Tab"
                             >
                                 <Plus className="w-3.5 h-3.5" />
                             </button>
@@ -302,11 +302,11 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                         <div className="flex-1 bg-slate-950/80 px-3 py-1.5 rounded-xl border border-slate-700/80 flex items-center gap-2 text-slate-300 font-mono text-[11px]">
                             <Lock className="w-3 h-3 text-emerald-400 shrink-0" />
                             <span className="text-emerald-400 font-medium">https://</span>
-                            <span className="text-slate-100 font-bold">novonex.edu.bd</span>
+                            <span className="text-slate-100 font-bold">monologueedu.com</span>
                             <span className="text-slate-500">/</span>
                             <span className="ml-auto flex items-center gap-1.5 text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                                 <ShieldCheck className="w-3 h-3" />
-                                <span>SSL সুরক্ষিত</span>
+                                <span>SSL Secured</span>
                             </span>
                         </div>
                     </div>
@@ -315,13 +315,13 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                     <div className="p-6 bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 text-center space-y-2">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-400 border border-sky-500/20">
                             <CheckCircle2 className="w-3.5 h-3.5 text-sky-400" />
-                            <span>লাইভ প্রিভিউ সক্রিয়: ব্রাউজারের ট্যাবে আপনার ফ্যাভিকনটি এভাবেই প্রদর্শিত হবে</span>
+                            <span>Live Preview Active: This is how your favicon and title appear in the browser tab</span>
                         </div>
                         <h4 className="text-base sm:text-lg font-bold text-slate-200">
-                            {siteName || 'Novonex Academy'}
+                            {siteName || 'Monologue Edu'}
                         </h4>
                         <p className="text-xs text-slate-400 max-w-md mx-auto">
-                            {siteTagline || "বাংলাদেশ'র প্রিমিয়াম এডটেক প্ল্যাটফর্ম"}
+                            {siteTagline || "Empowering Education Across Bangladesh"}
                         </p>
                     </div>
                 </div>
@@ -378,7 +378,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                     <div className="lg:col-span-5 space-y-4">
                         <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-4">
                             <div className="text-xs font-bold text-slate-700 flex items-center justify-between">
-                                <span>বিভিন্ন সাইজে প্রিভিউ (Multi-Size Previews):</span>
+                                <span>Multi-Size Previews:</span>
                                 <span className="text-[10px] text-slate-400">1:1 Square</span>
                             </div>
 
@@ -400,7 +400,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                                         )}
                                     </div>
                                     <span className="text-[10px] font-bold text-slate-600">16 × 16</span>
-                                    <span className="text-[9px] text-slate-400">ট্যাব</span>
+                                    <span className="text-[9px] text-slate-400">Tab</span>
                                 </div>
 
                                 {/* 32x32 px Retina / Taskbar */}
@@ -419,7 +419,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                                         )}
                                     </div>
                                     <span className="text-[10px] font-bold text-slate-600">32 × 32</span>
-                                    <span className="text-[9px] text-slate-400">রেটিনা</span>
+                                    <span className="text-[9px] text-slate-400">Retina</span>
                                 </div>
 
                                 {/* 48x48 px Bookmark / Shortcut */}
@@ -438,7 +438,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                                         )}
                                     </div>
                                     <span className="text-[10px] font-bold text-slate-600">48 × 48</span>
-                                    <span className="text-[9px] text-slate-400">বুকমার্ক</span>
+                                    <span className="text-[9px] text-slate-400">Bookmark</span>
                                 </div>
 
                                 {/* 64x64 px High-Res */}
@@ -457,7 +457,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                                         )}
                                     </div>
                                     <span className="text-[10px] font-bold text-slate-600">64 × 64</span>
-                                    <span className="text-[9px] text-slate-400">অ্যাপ আইকন</span>
+                                    <span className="text-[9px] text-slate-400">App Icon</span>
                                 </div>
                             </div>
                         </div>
@@ -467,7 +467,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                     <div className="lg:col-span-7 space-y-4">
                         <div className="space-y-3">
                             <label className="block text-xs font-bold text-slate-700">
-                                ফ্যাভিকন নির্বাচন করুন (Upload or Pick Favicon):
+                                Upload or Pick Favicon:
                             </label>
 
                             <div className="flex flex-wrap gap-2.5">
@@ -514,7 +514,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
 
                             <div className="pt-1">
                                 <label className="block text-[11px] font-semibold text-slate-500 mb-1">
-                                    অথবা সরাসরি ইমেজ URL পেস্ট করুন:
+                                    Or paste image URL directly:
                                 </label>
                                 <input
                                     type="text"
@@ -568,10 +568,10 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                             required
                             value={siteName}
                             onChange={(e) => setSiteName(e.target.value)}
-                            placeholder="যেমন: Novonex Academy"
+                            placeholder="e.g. Monologue Edu"
                             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:bg-white"
                         />
-                        <p className="text-[11px] text-slate-400 mt-1">ব্রাউজার ট্যাবে সাইটের প্রধান শিরোনাম হিসেবে দেখা যাবে</p>
+                        <p className="text-[11px] text-slate-400 mt-1">Appears as the primary title in browser tabs</p>
                     </div>
 
                     <div>
@@ -582,10 +582,10 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                             type="text"
                             value={siteTagline}
                             onChange={(e) => setSiteTagline(e.target.value)}
-                            placeholder="যেমন: Bangladesh's Premier EdTech Platform"
+                            placeholder="e.g. Empowering Education Across Bangladesh"
                             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500 focus:bg-white"
                         />
-                        <p className="text-[11px] text-slate-400 mt-1">ট্যাবের টাইটেলে সাইটের নামের পাশে প্রদর্শিত হবে</p>
+                        <p className="text-[11px] text-slate-400 mt-1">Appears next to the site name in browser tabs</p>
                     </div>
                 </div>
 
@@ -612,7 +612,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                                 style={{ backgroundColor: primaryColor }}
                                 className="h-8 px-3 rounded-lg text-white text-[11px] font-bold flex items-center shadow-xs"
                             >
-                                বাটন প্রিভিউ
+                                Button Preview
                             </div>
                         </div>
                     </div>
@@ -638,7 +638,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                                 style={{ backgroundColor: secondaryColor }}
                                 className="h-8 px-3 rounded-lg text-white text-[11px] font-bold flex items-center shadow-xs"
                             >
-                                ফুটার ব্যাকগ্রাউন্ড
+                                Footer Background
                             </div>
                         </div>
                     </div>
@@ -663,7 +663,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                 isOpen={isMediaModalOpen}
                 onClose={() => setIsMediaModalOpen(false)}
                 filterType="image"
-                title="ফ্যাভিকনের জন্য ছবি বাছাই করুন"
+                title="Select Favicon Image"
                 onSelect={(url) => {
                     setFaviconUrl(url);
                     setIsMediaModalOpen(false);

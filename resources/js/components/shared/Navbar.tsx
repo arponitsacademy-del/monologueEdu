@@ -34,7 +34,7 @@ export const Navbar: React.FC = () => {
         headerSettings?.brand_title,
         headerSettings?.brand_title_en,
         language
-    ) || (settings?.site_name ? settings.site_name.split(' ')[0] : 'Novonex');
+    ) || (settings?.site_name ? settings.site_name.split(' ')[0] : 'Monologue');
 
     const brandSubtitle = getLocalizedText(
         headerSettings?.brand_subtitle,
@@ -42,7 +42,7 @@ export const Navbar: React.FC = () => {
         language
     ) || (settings?.site_name && settings.site_name.split(' ').length > 1
         ? settings.site_name.split(' ').slice(1).join(' ')
-        : 'Academy');
+        : 'Edu');
 
     const announcementText = getLocalizedText(
         headerSettings?.announcement_text,
@@ -54,7 +54,7 @@ export const Navbar: React.FC = () => {
         headerSettings?.cta_button_text,
         headerSettings?.cta_button_text_en,
         language
-    ) || (language === 'en' ? 'Enroll Now' : 'ভর্তি হন');
+    ) || 'Enroll Now';
 
     const rawMenuItems = headerSettings?.menu_items && headerSettings.menu_items.length > 0
         ? headerSettings.menu_items
@@ -93,7 +93,7 @@ export const Navbar: React.FC = () => {
                             href={headerSettings.announcement_link}
                             className="underline font-bold hover:opacity-90 inline-flex items-center gap-1 text-xs"
                         >
-                            <span>{language === 'en' ? 'View Details' : 'বিস্তারিত দেখুন'}</span>
+                            <span>View Details</span>
                             <span>→</span>
                         </a>
                     )}

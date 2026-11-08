@@ -193,11 +193,11 @@ export const AdminAffiliateMembersPage: React.FC = () => {
         try {
             setProcessingPayout(true);
             const res = await apiClient.put(`/admin/affiliate/payouts/${selectedPayout.id}`, payoutActionForm);
-            setAlertMessage({ type: 'success', text: res.data.message || 'পেআউট স্টেটাস সফলভাবে আপডেট করা হয়েছে।' });
+            setAlertMessage({ type: 'success', text: res.data.message || 'Payout status updated successfully.' });
             setActionModalOpen(false);
             fetchPayouts();
         } catch (err: any) {
-            setAlertMessage({ type: 'error', text: err.response?.data?.message || 'আপডেট ব্যর্থ হয়েছে।' });
+            setAlertMessage({ type: 'error', text: err.response?.data?.message || 'Update failed.' });
         } finally {
             setProcessingPayout(false);
         }
@@ -209,10 +209,10 @@ export const AdminAffiliateMembersPage: React.FC = () => {
             <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <Users className="h-7 w-7 text-indigo-600" />
-                    অ্যাফিলিয়েট সদস্য ও পেআউট রিকোয়েস্ট
+                    Affiliate Members & Payout Requests
                 </h1>
                 <p className="text-sm text-gray-600 mt-1">
-                    অ্যাফিলিয়েটদের তালিকা পর্যবেক্ষণ করুন, উপার্জিত কমিশন নিরীক্ষা করুন এবং উত্তোলনের রিকোয়েস্ট অনুমোদন করুন।
+                    Monitor registered affiliates, audit generated commissions, and review and approve withdrawal requests.
                 </p>
             </div>
 
@@ -250,7 +250,7 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                     }`}
                 >
                     <Users className="h-4 w-4" />
-                    অ্যাফিলিয়েট সদস্যগণ
+                    Affiliate Members
                 </button>
                 <button
                     onClick={() => setActiveTab('commissions')}
@@ -261,7 +261,7 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                     }`}
                 >
                     <TrendingUp className="h-4 w-4" />
-                    কমিশন হিস্ট্রি
+                    Commission History
                 </button>
                 <button
                     onClick={() => setActiveTab('payouts')}
@@ -272,7 +272,7 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                     }`}
                 >
                     <CreditCard className="h-4 w-4" />
-                    উত্তোলন / পেআউট রিকোয়েস্ট
+                    Withdrawal / Payout Requests
                 </button>
             </div>
 
@@ -293,7 +293,7 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                 type="text"
                                 value={searchAffiliate}
                                 onChange={(e) => setSearchAffiliate(e.target.value)}
-                                placeholder="নাম, ইমেইল, মোবাইল বা কোড দিয়ে খুঁজুন..."
+                                placeholder="Search by name, email, phone, or code..."
                                 className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                             />
                         </form>
@@ -307,15 +307,15 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                 }}
                                 className="px-3 py-2 border border-gray-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-indigo-500"
                             >
-                                <option value="">সব স্ট্যাটাস</option>
-                                <option value="active">সক্রিয় (Active)</option>
-                                <option value="suspended">স্থগিত (Suspended)</option>
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="suspended">Suspended</option>
                             </select>
                             <button
                                 onClick={fetchAffiliates}
                                 className="px-4 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
                             >
-                                ফিল্টার করুন
+                                Filter
                             </button>
                         </div>
                     </div>
@@ -325,33 +325,33 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                         {loadingAffiliates ? (
                             <div className="flex flex-col items-center justify-center p-12 text-gray-400">
                                 <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mb-2" />
-                                <span className="text-sm font-medium">অ্যাফিলিয়েট তালিকা লোড হচ্ছে...</span>
+                                <span className="text-sm font-medium">Loading affiliate list...</span>
                             </div>
                         ) : affiliates.length === 0 ? (
                             <div className="text-center py-12 px-4">
                                 <Users className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                                <p className="text-sm font-medium text-gray-500">কোনো অ্যাফিলিয়েট পার্টনার পাওয়া যায়নি</p>
+                                <p className="text-sm font-medium text-gray-500">No affiliate partners found</p>
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm text-gray-600">
                                     <thead className="bg-gray-50/75 border-b border-gray-200 text-xs uppercase font-semibold text-gray-600">
                                         <tr>
-                                            <th className="px-6 py-3.5">সদস্যের নাম ও তথ্য</th>
-                                            <th className="px-6 py-3.5">রেফারেল কোড</th>
-                                            <th className="px-6 py-3.5 text-center">ক্লিক সংখ্যা</th>
-                                            <th className="px-6 py-3.5 text-center">সফল অর্ডার</th>
-                                            <th className="px-6 py-3.5">বর্তমান ব্যালেন্স</th>
-                                            <th className="px-6 py-3.5">মোট উপার্জন</th>
-                                            <th className="px-6 py-3.5">স্ট্যাটাস</th>
-                                            <th className="px-6 py-3.5 text-right">যোগদানের তারিখ</th>
+                                            <th className="px-6 py-3.5">Member Information</th>
+                                            <th className="px-6 py-3.5">Referral Code</th>
+                                            <th className="px-6 py-3.5 text-center">Clicks</th>
+                                            <th className="px-6 py-3.5 text-center">Orders</th>
+                                            <th className="px-6 py-3.5">Current Balance</th>
+                                            <th className="px-6 py-3.5">Total Earned</th>
+                                            <th className="px-6 py-3.5">Status</th>
+                                            <th className="px-6 py-3.5 text-right">Joined Date</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
                                         {affiliates.map((aff) => (
                                             <tr key={aff.id} className="hover:bg-gray-50/60 transition-colors">
                                                 <td className="px-6 py-4">
-                                                    <div className="font-semibold text-gray-900">{aff.user?.name || 'অজ্ঞাত'}</div>
+                                                    <div className="font-semibold text-gray-900">{aff.user?.name || 'Unknown'}</div>
                                                     <div className="text-xs text-gray-500">{aff.user?.email}</div>
                                                     {aff.user?.phone && (
                                                         <div className="text-xs text-gray-400">{aff.user?.phone}</div>
@@ -363,7 +363,7 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                                         <button
                                                             onClick={() => handleCopy(aff.affiliate_code)}
                                                             className="text-gray-400 hover:text-indigo-600 transition-colors"
-                                                            title="কপি করুন"
+                                                            title="Copy Code"
                                                         >
                                                             {copiedCode === aff.affiliate_code ? (
                                                                 <Check className="h-3 w-3 text-emerald-600" />
@@ -393,11 +393,11 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                                                 : 'bg-red-50 text-red-700 border border-red-200'
                                                         }`}
                                                     >
-                                                        {aff.status === 'active' ? 'সক্রিয়' : 'স্থগিত'}
+                                                        {aff.status === 'active' ? 'Active' : 'Suspended'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-right text-xs text-gray-500">
-                                                    {new Date(aff.created_at).toLocaleDateString('bn-BD', {
+                                                    {new Date(aff.created_at).toLocaleDateString('en-US', {
                                                         year: 'numeric',
                                                         month: 'short',
                                                         day: 'numeric',
@@ -430,7 +430,7 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                 type="text"
                                 value={searchCommission}
                                 onChange={(e) => setSearchCommission(e.target.value)}
-                                placeholder="অর্ডার নম্বর বা অ্যাফিলিয়েট নাম দিয়ে খুঁজুন..."
+                                placeholder="Search by order number or affiliate name..."
                                 className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                             />
                         </form>
@@ -438,7 +438,7 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                             onClick={fetchCommissions}
                             className="px-4 py-2 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
                         >
-                            খুঁজুন
+                            Search
                         </button>
                     </div>
 
@@ -447,27 +447,27 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                         {loadingCommissions ? (
                             <div className="flex flex-col items-center justify-center p-12 text-gray-400">
                                 <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mb-2" />
-                                <span className="text-sm font-medium">কমিশন রেকর্ড লোড হচ্ছে...</span>
+                                <span className="text-sm font-medium">Loading commission records...</span>
                             </div>
                         ) : commissions.length === 0 ? (
                             <div className="text-center py-12 px-4">
                                 <TrendingUp className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                                <p className="text-sm font-medium text-gray-500">কোনো কমিশন ট্রানজেকশন পাওয়া যায়নি</p>
+                                <p className="text-sm font-medium text-gray-500">No commission transactions found</p>
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm text-gray-600">
                                     <thead className="bg-gray-50/75 border-b border-gray-200 text-xs uppercase font-semibold text-gray-600">
                                         <tr>
-                                            <th className="px-6 py-3.5">অর্ডার #</th>
-                                            <th className="px-6 py-3.5">অ্যাফিলিয়েট পার্টনার</th>
-                                            <th className="px-6 py-3.5">কোর্স</th>
-                                            <th className="px-6 py-3.5">অর্ডার ভ্যালু</th>
-                                            <th className="px-6 py-3.5">কমিশন রেট</th>
-                                            <th className="px-6 py-3.5">উপার্জিত কমিশন</th>
-                                            <th className="px-6 py-3.5">ক্রেতা</th>
-                                            <th className="px-6 py-3.5">স্ট্যাটাস</th>
-                                            <th className="px-6 py-3.5 text-right">তারিখ</th>
+                                            <th className="px-6 py-3.5">Order #</th>
+                                            <th className="px-6 py-3.5">Affiliate Partner</th>
+                                            <th className="px-6 py-3.5">Course</th>
+                                            <th className="px-6 py-3.5">Order Value</th>
+                                            <th className="px-6 py-3.5">Commission Rate</th>
+                                            <th className="px-6 py-3.5">Earned Commission</th>
+                                            <th className="px-6 py-3.5">Buyer</th>
+                                            <th className="px-6 py-3.5">Status</th>
+                                            <th className="px-6 py-3.5 text-right">Date</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
@@ -508,11 +508,11 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                                                 : 'bg-red-50 text-red-700 border border-red-200'
                                                         }`}
                                                     >
-                                                        {comm.status === 'approved' ? 'অনুমোদিত' : comm.status === 'pending' ? 'অপেক্ষমাণ' : 'বাতিল'}
+                                                        {comm.status === 'approved' ? 'Approved' : comm.status === 'pending' ? 'Pending' : 'Cancelled'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-right text-xs text-gray-500">
-                                                    {new Date(comm.created_at).toLocaleDateString('bn-BD', {
+                                                    {new Date(comm.created_at).toLocaleDateString('en-US', {
                                                         year: 'numeric',
                                                         month: 'short',
                                                         day: 'numeric',
@@ -534,7 +534,7 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                     {/* Filters */}
                     <div className="bg-white rounded-xl border border-gray-200 p-4 flex gap-4 items-center justify-between shadow-xs">
                         <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-gray-600">স্ট্যাটাস ফিল্টার:</span>
+                            <span className="text-xs font-semibold text-gray-600">Status Filter:</span>
                             <select
                                 value={payoutStatusFilter}
                                 onChange={(e) => {
@@ -543,17 +543,17 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                 }}
                                 className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs bg-white focus:ring-2 focus:ring-indigo-500"
                             >
-                                <option value="">সব রিকোয়েস্ট</option>
-                                <option value="pending">অপেক্ষমাণ (Pending)</option>
-                                <option value="approved">অনুমোদিত (Approved / Paid)</option>
-                                <option value="rejected">বাতিল (Rejected / Refunded)</option>
+                                <option value="">All Requests</option>
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved / Paid</option>
+                                <option value="rejected">Rejected / Refunded</option>
                             </select>
                         </div>
                         <button
                             onClick={fetchPayouts}
                             className="px-3 py-1.5 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                         >
-                            রিফ্রেশ করুন
+                            Refresh
                         </button>
                     </div>
 
@@ -562,26 +562,26 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                         {loadingPayouts ? (
                             <div className="flex flex-col items-center justify-center p-12 text-gray-400">
                                 <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mb-2" />
-                                <span className="text-sm font-medium">পেআউট রিকোয়েস্ট লোড হচ্ছে...</span>
+                                <span className="text-sm font-medium">Loading payout requests...</span>
                             </div>
                         ) : payouts.length === 0 ? (
                             <div className="text-center py-12 px-4">
                                 <CreditCard className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                                <p className="text-sm font-medium text-gray-500">কোনো পেআউট রিকোয়েস্ট পাওয়া যায়নি</p>
+                                <p className="text-sm font-medium text-gray-500">No payout requests found</p>
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left text-sm text-gray-600">
                                     <thead className="bg-gray-50/75 border-b border-gray-200 text-xs uppercase font-semibold text-gray-600">
                                         <tr>
-                                            <th className="px-6 py-3.5">অ্যাফিলিয়েট সদস্য</th>
-                                            <th className="px-6 py-3.5">পেমেন্ট মেথড</th>
-                                            <th className="px-6 py-3.5">অ্যাকাউন্ট নম্বর</th>
-                                            <th className="px-6 py-3.5">পরিমাণ</th>
-                                            <th className="px-6 py-3.5">স্ট্যাটাস</th>
-                                            <th className="px-6 py-3.5">TrxID / রেফারেন্স</th>
-                                            <th className="px-6 py-3.5">অনুরোধের সময়</th>
-                                            <th className="px-6 py-3.5 text-right">অ্যাকশন</th>
+                                            <th className="px-6 py-3.5">Affiliate Member</th>
+                                            <th className="px-6 py-3.5">Payment Method</th>
+                                            <th className="px-6 py-3.5">Account Number</th>
+                                            <th className="px-6 py-3.5">Amount</th>
+                                            <th className="px-6 py-3.5">Status</th>
+                                            <th className="px-6 py-3.5">TrxID / Reference</th>
+                                            <th className="px-6 py-3.5">Requested At</th>
+                                            <th className="px-6 py-3.5 text-right">Action</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-200">
@@ -612,14 +612,14 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                                                 : 'bg-red-50 text-red-700 border border-red-200'
                                                         }`}
                                                     >
-                                                        {p.status === 'approved' ? 'পরিশোধিত' : p.status === 'pending' ? 'অপেক্ষমাণ' : 'বাতিল'}
+                                                        {p.status === 'approved' ? 'Paid' : p.status === 'pending' ? 'Pending' : 'Cancelled'}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-xs font-mono text-gray-600">
                                                     {p.transaction_ref || '—'}
                                                 </td>
                                                 <td className="px-6 py-4 text-xs text-gray-500">
-                                                    {new Date(p.created_at).toLocaleDateString('bn-BD', {
+                                                    {new Date(p.created_at).toLocaleDateString('en-US', {
                                                         year: 'numeric',
                                                         month: 'short',
                                                         day: 'numeric',
@@ -633,10 +633,10 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                                             onClick={() => handleOpenPayoutModal(p)}
                                                             className="px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors shadow-xs"
                                                         >
-                                                            যাচাই ও অ্যাকশন
+                                                            Review & Action
                                                         </button>
                                                     ) : (
-                                                        <span className="text-xs text-gray-400">সম্পন্ন</span>
+                                                        <span className="text-xs text-gray-400">Completed</span>
                                                     )}
                                                 </td>
                                             </tr>
@@ -663,32 +663,32 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                         <div className="mb-5">
                             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                                 <CreditCard className="h-5 w-5 text-indigo-600" />
-                                পেআউট রিকোয়েস্ট যাচাইকরণ
+                                Review Payout Request
                             </h2>
                             <p className="text-xs text-gray-500 mt-1">
-                                অ্যাফিলিয়েট পার্টনার: {selectedPayout.affiliate?.user?.name} ({selectedPayout.affiliate?.affiliate_code})
+                                Affiliate Partner: {selectedPayout.affiliate?.user?.name} ({selectedPayout.affiliate?.affiliate_code})
                             </p>
                         </div>
 
                         {/* Summary of request */}
                         <div className="bg-indigo-50/60 border border-indigo-100 rounded-xl p-3.5 mb-4 text-sm space-y-1.5">
                             <div className="flex justify-between">
-                                <span className="text-gray-600 text-xs">উত্তোলনের পরিমাণ:</span>
+                                <span className="text-gray-600 text-xs">Withdrawal Amount:</span>
                                 <span className="font-bold text-indigo-900 text-base">৳{Number(selectedPayout.amount).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-600 text-xs">পেমেন্ট মেথড:</span>
+                                <span className="text-gray-600 text-xs">Payment Method:</span>
                                 <span className="font-semibold text-gray-800 uppercase text-xs">{selectedPayout.payment_method}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-gray-600 text-xs">অ্যাকাউন্ট নম্বর:</span>
+                                <span className="text-gray-600 text-xs">Account Number:</span>
                                 <span className="font-mono font-bold text-gray-900">{selectedPayout.account_number}</span>
                             </div>
                         </div>
 
                         <form onSubmit={handleProcessPayout} className="space-y-4">
                             <div>
-                                <label className="text-xs font-semibold text-gray-700 block mb-1.5">সিদ্ধান্ত নিন</label>
+                                <label className="text-xs font-semibold text-gray-700 block mb-1.5">Select Decision</label>
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         type="button"
@@ -700,7 +700,7 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                         }`}
                                     >
                                         <CheckCircle2 className="h-4 w-4" />
-                                        অনুমোদন (Paid)
+                                        Approve (Paid)
                                     </button>
                                     <button
                                         type="button"
@@ -712,12 +712,12 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                         }`}
                                     >
                                         <XCircle className="h-4 w-4" />
-                                        বাতিল (Refund)
+                                        Reject (Refund)
                                     </button>
                                 </div>
                                 {payoutActionForm.status === 'rejected' && (
                                     <p className="text-xs text-red-600 mt-1.5">
-                                        * বাতিল করা হলে কর্তনকৃত টাকা স্বয়ংক্রিয়ভাবে সদস্যের অ্যাকাউন্টে ফেরত যাবে।
+                                        * If rejected, the deducted amount will automatically be refunded back to the member's wallet balance.
                                     </p>
                                 )}
                             </div>
@@ -725,13 +725,13 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                             {payoutActionForm.status === 'approved' && (
                                 <div>
                                     <label className="text-xs font-semibold text-gray-700 block mb-1">
-                                        ট্রানজেকশন আইডি (TrxID) / রেফারেন্স
+                                        Transaction ID (TrxID) / Reference
                                     </label>
                                     <input
                                         type="text"
                                         value={payoutActionForm.transaction_ref}
                                         onChange={(e) => setPayoutActionForm({ ...payoutActionForm, transaction_ref: e.target.value })}
-                                        placeholder="যেমন: BKL89239824"
+                                        placeholder="e.g. BKL89239824"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:ring-2 focus:ring-indigo-500"
                                         required={payoutActionForm.status === 'approved'}
                                     />
@@ -740,13 +740,13 @@ export const AdminAffiliateMembersPage: React.FC = () => {
 
                             <div>
                                 <label className="text-xs font-semibold text-gray-700 block mb-1">
-                                    অ্যাডমিন নোট (ঐচ্ছিক)
+                                    Admin Notes (Optional)
                                 </label>
                                 <textarea
                                     rows={2}
                                     value={payoutActionForm.admin_notes}
                                     onChange={(e) => setPayoutActionForm({ ...payoutActionForm, admin_notes: e.target.value })}
-                                    placeholder="কোনো বার্তা বা মন্তব্য থাকলে লিখুন..."
+                                    placeholder="Enter any reference notes or remarks..."
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
                                 />
                             </div>
@@ -757,7 +757,7 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                     onClick={() => setActionModalOpen(false)}
                                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                                 >
-                                    বাতিল
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
@@ -765,7 +765,7 @@ export const AdminAffiliateMembersPage: React.FC = () => {
                                     className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50"
                                 >
                                     {processingPayout && <Loader2 className="h-4 w-4 animate-spin" />}
-                                    কনফার্ম করুন
+                                    Confirm Action
                                 </button>
                             </div>
                         </form>
@@ -775,4 +775,3 @@ export const AdminAffiliateMembersPage: React.FC = () => {
         </div>
     );
 };
-

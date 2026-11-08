@@ -53,7 +53,7 @@ export const TeacherProfilePage: React.FC = () => {
             setCourses(res.data.courses || []);
         } catch (err: any) {
             console.error('Failed to load teacher profile', err);
-            setError('শিক্ষকের প্রোফাইল তথ্য পাওয়া যায়নি।');
+            setError('Teacher profile not found.');
         } finally {
             setLoading(false);
         }
@@ -63,7 +63,7 @@ export const TeacherProfilePage: React.FC = () => {
         return (
             <div className="min-h-[60vh] flex flex-col items-center justify-center text-slate-400">
                 <Loader2 className="w-10 h-10 animate-spin text-sky-600 mb-3" />
-                <p className="text-sm font-semibold">শিক্ষকের প্রোফাইল লোড হচ্ছে...</p>
+                <p className="text-sm font-semibold">Loading instructor profile...</p>
             </div>
         );
     }
@@ -74,13 +74,13 @@ export const TeacherProfilePage: React.FC = () => {
                 <div className="w-16 h-16 rounded-2xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 flex items-center justify-center mx-auto">
                     <GraduationCap className="w-8 h-8" />
                 </div>
-                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">{error || 'শিক্ষকের তথ্য পাওয়া যায়নি'}</h2>
-                <p className="text-sm text-slate-500">অনুগ্রহ করে সঠিক শিক্ষকের প্রোফাইল লিংক চেক করুন।</p>
+                <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">{error || 'Instructor Information Not Found'}</h2>
+                <p className="text-sm text-slate-500">Please verify the instructor profile URL and try again.</p>
                 <Link
                     to="/"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 text-white font-bold text-xs hover:bg-sky-700 transition-colors shadow-md"
                 >
-                    হোমপেজে ফিরে যান
+                    Back to Home
                 </Link>
             </div>
         );
@@ -94,10 +94,10 @@ export const TeacherProfilePage: React.FC = () => {
             <div className="border-b border-slate-200/80 dark:border-slate-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                     <Link to="/" className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors">
-                        হোমপেজ
+                        Home
                     </Link>
                     <ChevronRight className="w-3.5 h-3.5" />
-                    <span>শিক্ষক প্রোফাইল</span>
+                    <span>Instructors</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                     <span className="font-semibold text-slate-800 dark:text-slate-200">{teacher.name}</span>
                 </div>
@@ -120,7 +120,7 @@ export const TeacherProfilePage: React.FC = () => {
                                     {initial}
                                 </div>
                             )}
-                            <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-2xl shadow-lg border-2 border-white dark:border-slate-800" title="ভেরিফাইড শিক্ষক">
+                            <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-2 rounded-2xl shadow-lg border-2 border-white dark:border-slate-800" title="Verified Instructor">
                                 <CheckCircle2 className="w-5 h-5" />
                             </div>
                         </div>
@@ -130,7 +130,7 @@ export const TeacherProfilePage: React.FC = () => {
                             <div>
                                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 text-xs font-bold border border-purple-200/60 dark:border-purple-800/60 mb-2">
                                     <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                                    <span>মনোলগ এডু ফ্যাকাল্টি মেম্বার</span>
+                                    <span>Monologue Edu Faculty Member</span>
                                 </div>
                                 <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
                                     {teacher.name}
@@ -144,30 +144,30 @@ export const TeacherProfilePage: React.FC = () => {
                             {teacher.institution && (
                                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-semibold border border-slate-200 dark:border-slate-700">
                                     <GraduationCap className="w-4 h-4 text-sky-500 shrink-0" />
-                                    <span>শিক্ষা প্রতিষ্ঠান: <strong>{teacher.institution}</strong></span>
+                                    <span>Institution / Education: <strong>{teacher.institution}</strong></span>
                                 </div>
                             )}
 
                             {/* Bio */}
                             <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed max-w-3xl">
-                                {teacher.bio || 'মনোলগ এডুর একজন অভিজ্ঞ ও নিষ্ঠাবান শিক্ষক। শিক্ষার্থীদের ধারণা পরিষ্কার করা ও পরীক্ষায় সর্বোচ্চ সাফল্য অর্জনে সাহায্য করাই যার মূল লক্ষ্য।'}
+                                {teacher.bio || 'Dedicated educator and mentor at Monologue Edu committed to delivering interactive, high-quality lessons and empowering students toward academic excellence.'}
                             </p>
 
                             {/* Quick Stats Bar */}
                             <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-4 text-xs font-semibold">
                                 <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80">
                                     <BookOpen className="w-4 h-4 text-indigo-500" />
-                                    <span>পরিচালিত কোর্স: <strong className="text-slate-900 dark:text-slate-100 font-bold">{teacher.courses_count} টি</strong></span>
+                                    <span>Courses: <strong className="text-slate-900 dark:text-slate-100 font-bold">{teacher.courses_count}</strong></span>
                                 </div>
 
                                 <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80">
                                     <Users className="w-4 h-4 text-emerald-500" />
-                                    <span>মোট শিক্ষার্থী: <strong className="text-slate-900 dark:text-slate-100 font-bold">{teacher.total_students}+ জন</strong></span>
+                                    <span>Total Students: <strong className="text-slate-900 dark:text-slate-100 font-bold">{teacher.total_students}+</strong></span>
                                 </div>
 
                                 <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80">
                                     <Star className="w-4 h-4 text-amber-500 fill-amber-400" />
-                                    <span>শিক্ষার্থী রেটিং: <strong className="text-slate-900 dark:text-slate-100 font-bold">৫.০ (সর্বোচ্চ)</strong></span>
+                                    <span>Instructor Rating: <strong className="text-slate-900 dark:text-slate-100 font-bold">5.0 (Top Rated)</strong></span>
                                 </div>
                             </div>
                         </div>
@@ -181,23 +181,23 @@ export const TeacherProfilePage: React.FC = () => {
                     <div>
                         <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                             <BookOpen className="w-6 h-6 text-sky-600" />
-                            <span>এই শিক্ষকের পরিচালিত কোর্সসমূহ</span>
+                            <span>Courses by this Instructor</span>
                         </h2>
                         <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                            {teacher.name} স্যারের সাথে প্রস্তুতি নিয়ে নিজের দক্ষতা বাড়ান
+                            Learn and advance your skills with courses instructed by {teacher.name}
                         </p>
                     </div>
 
                     <span className="text-xs font-bold px-3 py-1 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 self-start sm:self-auto">
-                        মোট {courses.length} টি কোর্স
+                        {courses.length} Active Courses
                     </span>
                 </div>
 
                 {courses.length === 0 ? (
                     <div className="bg-white dark:bg-slate-900 rounded-3xl p-12 text-center border border-slate-200/80 dark:border-slate-800 space-y-3">
                         <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto" />
-                        <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">বর্তমানে কোনো সক্রিয় কোর্স নেই</h3>
-                        <p className="text-xs text-slate-400">এই শিক্ষকের নতুন কোর্স শীঘ্রই যুক্ত হবে।</p>
+                        <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">No active courses right now</h3>
+                        <p className="text-xs text-slate-400">New courses by this instructor will be announced soon.</p>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -222,7 +222,7 @@ export const TeacherProfilePage: React.FC = () => {
                                         )}
                                         {course.sale_price && course.sale_price < course.price && (
                                             <span className="absolute top-3 right-3 px-2.5 py-1 text-xs font-black bg-rose-500 text-white rounded-lg shadow-md">
-                                                বিশেষ ছাড়
+                                                Special Offer
                                             </span>
                                         )}
                                     </div>
@@ -230,9 +230,9 @@ export const TeacherProfilePage: React.FC = () => {
                                     {/* Details */}
                                     <div className="p-5 space-y-3">
                                         <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-400">
-                                            <span>{course.lessons_count || 0} টি ক্লাস</span>
+                                            <span>{course.lessons_count || 0} Lessons</span>
                                             <span>•</span>
-                                            <span>{course.enrollments_count || 0} জন শিক্ষার্থী</span>
+                                            <span>{course.enrollments_count || 0} Students</span>
                                         </div>
 
                                         <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
@@ -240,7 +240,7 @@ export const TeacherProfilePage: React.FC = () => {
                                         </h3>
 
                                         <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                                            {course.short_description || 'জাতীয় শিক্ষাক্রম অনুযায়ী সম্পূর্ণ সিলেবাস কভার করা হয়েছে।'}
+                                            {course.short_description || 'Comprehensive syllabus designed for in-depth conceptual mastery.'}
                                         </p>
                                     </div>
                                 </div>
@@ -248,10 +248,10 @@ export const TeacherProfilePage: React.FC = () => {
                                 {/* Footer & Action */}
                                 <div className="p-5 pt-0 space-y-3">
                                     <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                        <span className="text-xs text-slate-500">কোর্স ফি:</span>
+                                        <span className="text-xs text-slate-500">Course Fee:</span>
                                         <div className="text-right">
                                             {course.price === 0 ? (
-                                                <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">ফ্রি</span>
+                                                <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">Free</span>
                                             ) : (
                                                 <div className="flex items-baseline gap-1.5">
                                                     <span className="text-lg font-black text-slate-900 dark:text-white">
@@ -271,7 +271,7 @@ export const TeacherProfilePage: React.FC = () => {
                                         to={`/courses/${course.slug}`}
                                         className="w-full py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-sky-600/20"
                                     >
-                                        <span>কোর্সের বিস্তারিত ও ভর্তি</span>
+                                        <span>View Course & Enroll</span>
                                         <ArrowRight className="w-3.5 h-3.5" />
                                     </Link>
                                 </div>

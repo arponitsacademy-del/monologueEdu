@@ -85,7 +85,7 @@ export const AdminNexPilotsPage: React.FC = () => {
             setTimeout(() => setStudentsSuccessMsg(null), 3000);
             fetchPilots();
         } catch (err: any) {
-            alert(err.response?.data?.message || 'অ্যাক্সেস পরিবর্তনে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to toggle access.');
         } finally {
             setActionLoading(null);
         }
@@ -93,7 +93,7 @@ export const AdminNexPilotsPage: React.FC = () => {
 
     const handleGrantAll = async () => {
         if (!selectedPilotForStudents) return;
-        if (!window.confirm('আপনি কি এই কোর্সের সকল এনরোল্ড শিক্ষার্থীকে NexPilot সক্রিয় করে দিতে চান?')) return;
+        if (!window.confirm('Are you sure you want to enable NexPilot for all enrolled students in this course?')) return;
         setActionLoading('grant-all');
         try {
             const { data } = await apiClient.post(`/admin/nexpilot/${selectedPilotForStudents.id}/grant-all`);
@@ -102,7 +102,7 @@ export const AdminNexPilotsPage: React.FC = () => {
             setTimeout(() => setStudentsSuccessMsg(null), 4000);
             fetchPilots();
         } catch (err: any) {
-            alert(err.response?.data?.message || 'সকলকে অ্যাক্সেস দিতে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to grant access to all students.');
         } finally {
             setActionLoading(null);
         }
@@ -117,7 +117,7 @@ export const AdminNexPilotsPage: React.FC = () => {
             setDeleteModalOpen(false);
             setPilotToDelete(null);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'পাইলট মুছে ফেলা সম্ভব হয়নি।');
+            alert(err.response?.data?.message || 'Failed to delete pilot.');
         } finally {
             setDeleting(false);
         }
@@ -134,13 +134,13 @@ export const AdminNexPilotsPage: React.FC = () => {
                         </div>
                         <div>
                             <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                                <span>NexPilot AI পাইলট</span>
+                                <span>NexPilot AI Assistant</span>
                                 <span className="px-2.5 py-0.5 text-xs font-bold bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 rounded-full border border-sky-200 dark:border-sky-800">
                                     OpenAI Powered
                                 </span>
                             </h2>
                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                কোর্স ভিত্তিক পার্সোনাল AI শিক্ষক এবং প্র্যাকটিস সলভিং কোচ ম্যানেজমেন্ট
+                                Course-specific personal AI tutor and practice solving coach management
                             </p>
                         </div>
                     </div>
@@ -160,7 +160,7 @@ export const AdminNexPilotsPage: React.FC = () => {
                         className="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl flex items-center gap-2 shadow-md shadow-sky-600/20 transition-all cursor-pointer"
                     >
                         <Plus className="w-4 h-4" />
-                        <span>নতুন পাইলট তৈরি করুন</span>
+                        <span>Create New Pilot</span>
                     </Link>
                 </div>
             </div>
@@ -173,7 +173,7 @@ export const AdminNexPilotsPage: React.FC = () => {
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="কোর্স বা পাইলটের নাম দিয়ে খুঁজুন..."
+                        placeholder="Search by course or pilot name..."
                         className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
                     />
                 </div>
@@ -183,7 +183,7 @@ export const AdminNexPilotsPage: React.FC = () => {
             {loading ? (
                 <div className="p-16 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
                     <Loader2 className="w-8 h-8 animate-spin text-sky-600" />
-                    <span className="text-xs font-bold">NexPilot তালিকা লোড হচ্ছে...</span>
+                    <span className="text-xs font-bold">Loading NexPilot list...</span>
                 </div>
             ) : pilots.length === 0 ? (
                 <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
@@ -191,15 +191,15 @@ export const AdminNexPilotsPage: React.FC = () => {
                         <Bot className="w-8 h-8" />
                     </div>
                     <div>
-                        <h4 className="text-base font-bold text-slate-800 dark:text-slate-200">কোনো NexPilot পাওয়া যায়নি</h4>
-                        <p className="text-xs text-slate-400 mt-1">আপনার কোর্সের জন্য প্রথম AI পাইলট তৈরি করুন।</p>
+                        <h4 className="text-base font-bold text-slate-800 dark:text-slate-200">No NexPilot found</h4>
+                        <p className="text-xs text-slate-400 mt-1">Create the first AI pilot for your course.</p>
                     </div>
                     <Link
                         to="/admin/nexpilot/new"
                         className="inline-flex items-center gap-2 px-5 py-2.5 bg-sky-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-sky-700"
                     >
                         <Plus className="w-4 h-4" />
-                        <span>নতুন পাইলট যুক্ত করুন</span>
+                        <span>Add New Pilot</span>
                     </Link>
                 </div>
             ) : (
@@ -217,7 +217,7 @@ export const AdminNexPilotsPage: React.FC = () => {
                                         <div className="flex items-center gap-2">
                                             <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center gap-1">
                                                 <BookOpen className="w-3 h-3 text-sky-600" />
-                                                <span className="truncate max-w-[200px]">{course?.title || 'কোর্স নেই'}</span>
+                                                <span className="truncate max-w-[200px]">{course?.title || 'No course'}</span>
                                             </span>
                                             <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-semibold border border-indigo-200/60 dark:border-indigo-800">
                                                 {pilot.openai_model || 'gpt-4o-mini'}
@@ -229,7 +229,7 @@ export const AdminNexPilotsPage: React.FC = () => {
                                                 ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300' 
                                                 : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
                                         }`}>
-                                            {pilot.is_active ? 'সক্রিয়' : 'নিষ্ক্রিয়'}
+                                            {pilot.is_active ? 'Active' : 'Inactive'}
                                         </span>
                                     </div>
 
@@ -239,32 +239,32 @@ export const AdminNexPilotsPage: React.FC = () => {
                                             <span>{pilot.title}</span>
                                         </h3>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                                            {pilot.short_description || 'কোর্সের সাথে শিক্ষার্থীদের সার্বক্ষণিক AI শিক্ষক ও প্র্যাকটিস কোচ।'}
+                                            {pilot.short_description || '24/7 personal AI tutor and practice coach for enrolled students.'}
                                         </p>
                                     </div>
 
                                     {/* Metrics Pill Grid */}
                                     <div className="grid grid-cols-3 gap-2.5 pt-2">
                                         <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
-                                            <p className="text-[10px] font-semibold text-slate-400">অ্যাড-অন ফি</p>
+                                            <p className="text-[10px] font-semibold text-slate-400">Add-on Fee</p>
                                             <p className="text-sm font-black text-sky-600 dark:text-sky-400 mt-0.5">
-                                                {pilot.price > 0 ? formatBDT(pilot.price) : 'ফ্রি'}
+                                                {pilot.price > 0 ? formatBDT(pilot.price) : 'Free'}
                                             </p>
                                         </div>
 
                                         <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
-                                            <p className="text-[10px] font-semibold text-slate-400">সর্বোচ্চ বাজেট/শিক্ষার্থী</p>
+                                            <p className="text-[10px] font-semibold text-slate-400">Max Budget / Student</p>
                                             <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
                                                 ${parseFloat(pilot.max_usd_limit || 2).toFixed(2)}
                                             </p>
                                         </div>
 
                                         <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800 text-center">
-                                            <p className="text-[10px] font-semibold text-slate-400">টপিক সংখ্যা</p>
+                                            <p className="text-[10px] font-semibold text-slate-400">Topics Count</p>
                                             <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mt-1">
-                                                <span className="text-indigo-600">{pilot.theory_topics_count || 0} থিওরি</span>
+                                                <span className="text-indigo-600">{pilot.theory_topics_count || 0} Theory</span>
                                                 <span className="text-slate-300 mx-1">•</span>
-                                                <span className="text-sky-600">{pilot.practice_topics_count || 0} প্র্যাকটিস</span>
+                                                <span className="text-sky-600">{pilot.practice_topics_count || 0} Practice</span>
                                             </p>
                                         </div>
                                     </div>
@@ -277,10 +277,10 @@ export const AdminNexPilotsPage: React.FC = () => {
                                             type="button"
                                             onClick={() => openStudentsModal(pilot)}
                                             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-bold text-xs transition-colors cursor-pointer border border-sky-100 dark:border-sky-900"
-                                            title="শিক্ষার্থীদের NexPilot অ্যাক্সেস দেখতে ও নিয়ন্ত্রণ করতে ক্লিক করুন"
+                                            title="View and manage student NexPilot access"
                                         >
                                             <Users className="w-3.5 h-3.5 text-sky-600" />
-                                            <span>শিক্ষার্থী তালিকা ({pilot.students_count || 0})</span>
+                                            <span>Student Access ({pilot.students_count || 0})</span>
                                         </button>
                                     </div>
 
@@ -291,14 +291,14 @@ export const AdminNexPilotsPage: React.FC = () => {
                                             className="px-3.5 py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-sm shadow-sky-600/20 transition-all cursor-pointer"
                                         >
                                             <Wrench className="w-3.5 h-3.5" />
-                                            <span>বিল্ডার (Builder)</span>
+                                            <span>Builder</span>
                                         </Link>
 
                                         {/* Edit Button */}
                                         <Link
                                             to={`/admin/nexpilot/${pilot.id}/edit`}
                                             className="p-2 text-slate-600 dark:text-slate-300 hover:text-slate-900 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 transition-colors"
-                                            title="এডিট করুন"
+                                            title="Edit"
                                         >
                                             <Edit3 className="w-4 h-4" />
                                         </Link>
@@ -311,7 +311,7 @@ export const AdminNexPilotsPage: React.FC = () => {
                                                 setDeleteModalOpen(true);
                                             }}
                                             className="p-2 text-rose-600 hover:text-rose-700 bg-rose-50 dark:bg-rose-950/40 rounded-xl hover:bg-rose-100 transition-colors cursor-pointer"
-                                            title="মুছে ফেলুন"
+                                            title="Delete"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -327,12 +327,12 @@ export const AdminNexPilotsPage: React.FC = () => {
             <Modal
                 isOpen={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
-                title="NexPilot মুছে ফেলার নিশ্চয়তা"
+                title="Confirm NexPilot Deletion"
             >
                 <div className="space-y-4">
                     <p className="text-xs text-slate-600 dark:text-slate-300">
-                        আপনি কি নিশ্চিত যে <strong>"{pilotToDelete?.title}"</strong> মুছে ফেলতে চান?
-                        এর সকল থিওরি ও প্র্যাকটিস টপিক এবং চ্যাট হিস্ট্রি ডিলিট হয়ে যাবে।
+                        Are you sure you want to delete <strong>"{pilotToDelete?.title}"</strong>?
+                        All associated theory, practice topics, and chat histories will be permanently removed.
                     </p>
                     <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                         <button
@@ -340,7 +340,7 @@ export const AdminNexPilotsPage: React.FC = () => {
                             onClick={() => setDeleteModalOpen(false)}
                             className="px-3 py-1.5 text-xs font-bold text-slate-500"
                         >
-                            বাতিল
+                            Cancel
                         </button>
                         <button
                             type="button"
@@ -348,7 +348,7 @@ export const AdminNexPilotsPage: React.FC = () => {
                             disabled={deleting}
                             className="px-4 py-1.5 bg-rose-600 text-white font-bold text-xs rounded-xl"
                         >
-                            {deleting ? 'মুছে ফেলা হচ্ছে...' : 'হ্যাঁ, মুছে ফেলুন'}
+                            {deleting ? 'Deleting...' : 'Yes, Delete'}
                         </button>
                     </div>
                 </div>
@@ -358,17 +358,17 @@ export const AdminNexPilotsPage: React.FC = () => {
             <Modal
                 isOpen={studentsModalOpen}
                 onClose={() => setStudentsModalOpen(false)}
-                title={`${selectedPilotForStudents?.title || 'পাইলট'} - শিক্ষার্থী অ্যাক্সেস`}
+                title={`${selectedPilotForStudents?.title || 'Pilot'} - Student Access`}
             >
                 <div className="space-y-4">
                     {/* Header info & Grant all */}
                     <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
                             <span className="text-xs font-bold text-slate-900 dark:text-white block">
-                                কোর্স: {selectedPilotForStudents?.course?.title || 'কোর্স'}
+                                Course: {selectedPilotForStudents?.course?.title || 'Course'}
                             </span>
                             <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                                মোট এনরোল্ড শিক্ষার্থী: <strong>{studentsList.length}</strong> জন
+                                Total Enrolled Students: <strong>{studentsList.length}</strong>
                             </span>
                         </div>
 
@@ -380,7 +380,7 @@ export const AdminNexPilotsPage: React.FC = () => {
                                 className="px-3.5 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-xs transition-all flex items-center gap-1.5 shrink-0 disabled:opacity-50 cursor-pointer"
                             >
                                 <Sparkles className="w-3.5 h-3.5" />
-                                <span>{actionLoading === 'grant-all' ? 'প্রসেস হচ্ছে...' : 'সকলকে NexPilot অ্যাক্সেস দিন'}</span>
+                                <span>{actionLoading === 'grant-all' ? 'Processing...' : 'Grant NexPilot to All'}</span>
                             </button>
                         )}
                     </div>
@@ -395,11 +395,11 @@ export const AdminNexPilotsPage: React.FC = () => {
                     {loadingStudents ? (
                         <div className="p-10 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
                             <Loader2 className="w-6 h-6 animate-spin text-sky-600" />
-                            <span className="text-xs">শিক্ষার্থী তালিকা লোড হচ্ছে...</span>
+                            <span className="text-xs">Loading student list...</span>
                         </div>
                     ) : studentsList.length === 0 ? (
                         <div className="p-8 text-center text-slate-400 text-xs">
-                            এই কোর্সে বর্তমানে কোনো এনরোল্ড শিক্ষার্থী পাওয়া যায়নি।
+                            No enrolled students found in this course.
                         </div>
                     ) : (
                         <div className="max-h-96 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800 border border-slate-100 dark:border-slate-800 rounded-2xl">
@@ -420,7 +420,7 @@ export const AdminNexPilotsPage: React.FC = () => {
                                                 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                                                 : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                                         }`}>
-                                            {st.has_nexpilot ? 'NexPilot সক্রিয়' : 'নিষ্ক্রিয়'}
+                                            {st.has_nexpilot ? 'NexPilot Active' : 'Inactive'}
                                         </span>
 
                                         <button
@@ -435,7 +435,7 @@ export const AdminNexPilotsPage: React.FC = () => {
                                         >
                                             {actionLoading === st.enrollment_id
                                                 ? '...'
-                                                : st.has_nexpilot ? 'বন্ধ করুন' : 'সক্রিয় করুন'}
+                                                : st.has_nexpilot ? 'Revoke Access' : 'Grant Access'}
                                         </button>
                                     </div>
                                 </div>
@@ -449,7 +449,7 @@ export const AdminNexPilotsPage: React.FC = () => {
                             onClick={() => setStudentsModalOpen(false)}
                             className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl"
                         >
-                            বন্ধ করুন
+                            Close
                         </button>
                     </div>
                 </div>
@@ -457,4 +457,3 @@ export const AdminNexPilotsPage: React.FC = () => {
         </div>
     );
 };
-

@@ -70,7 +70,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
             setCostInput(data.cost_per_1k_input || 0.00015);
             setCostOutput(data.cost_per_1k_output || 0.00060);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'কনফিগারেশন লোড করতে সমস্যা হয়েছে।');
+            setError(err.response?.data?.message || 'Failed to load configuration.');
         } finally {
             setLoading(false);
         }
@@ -90,13 +90,13 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
             const latency = Date.now() - startTime;
             setTestResult({
                 success: true,
-                message: data.message || 'OpenAI API সফলভাবে সংযুক্ত হয়েছে!',
+                message: data.message || 'OpenAI API successfully connected!',
                 latency,
             });
         } catch (err: any) {
             setTestResult({
                 success: false,
-                message: err.response?.data?.message || 'সংযোগ ব্যর্থ হয়েছে। অনুগ্রহ করে আপনার API Key চেক করুন।'
+                message: err.response?.data?.message || 'Connection failed. Please check your API Key.'
             });
         } finally {
             setTesting(false);
@@ -125,7 +125,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
             await fetchSettings();
             setTimeout(() => setSaveSuccess(false), 4000);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'সংরক্ষণ ব্যর্থ হয়েছে।');
+            setError(err.response?.data?.message || 'Failed to save configuration.');
         } finally {
             setSaving(false);
         }
@@ -135,7 +135,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
         return (
             <div className="p-20 text-center text-slate-400 flex flex-col items-center justify-center gap-3">
                 <RefreshCw className="w-8 h-8 animate-spin text-sky-600" />
-                <span className="text-xs font-bold">AI কনফিগারেশন লোড হচ্ছে...</span>
+                <span className="text-xs font-bold">Loading AI configuration...</span>
             </div>
         );
     }
@@ -156,7 +156,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                             </span>
                         </h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                            একবার কানেক্ট করলেই সকল কোর্সের NexPilot থিওরি ও প্র্যাকটিস চ্যাটবটে এই মডেল ব্যবহৃত হবে।
+                            Once connected, this model will be utilized by all NexPilot theory and practice tutors.
                         </p>
                     </div>
                 </div>
@@ -169,7 +169,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                         className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer shadow-2xs"
                     >
                         {testing ? <RefreshCw className="w-3.5 h-3.5 animate-spin text-sky-600" /> : <Zap className="w-3.5 h-3.5 text-amber-500" />}
-                        <span>{testing ? 'টেস্ট হচ্ছে...' : 'কানেকশন টেস্ট করুন'}</span>
+                        <span>{testing ? 'Testing...' : 'Test Connection'}</span>
                     </button>
                 </div>
             </div>
@@ -183,13 +183,13 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                         </div>
                         <div>
                             <div className="font-bold text-sm text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
-                                <span>OpenAI মডেল সফলভাবে কানেক্টেড রয়েছে</span>
+                                <span>OpenAI Model Successfully Connected</span>
                                 <span className="text-[11px] font-mono font-normal px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300">
                                     {defaultModel}
                                 </span>
                             </div>
                             <p className="text-xs text-emerald-700/90 dark:text-emerald-300/80 mt-0.5">
-                                সমস্ত কোর্সের NexPilot এআই টিউটর স্বয়ংক্রিয়ভাবে সক্রিয় রয়েছে। সেভ করা চাবি: <span className="font-mono font-bold">{maskedKey}</span>
+                                NexPilot AI tutors are active across all courses. Saved key: <span className="font-mono font-bold">{maskedKey}</span>
                             </p>
                         </div>
                     </div>
@@ -205,10 +205,10 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                     </div>
                     <div>
                         <div className="font-bold text-sm text-amber-900 dark:text-amber-100">
-                            OpenAI API Key এখনও যুক্ত করা হয়নি
+                            OpenAI API Key Not Added Yet
                         </div>
                         <p className="text-xs text-amber-700/90 dark:text-amber-300/80 mt-0.5">
-                            NexPilot চ্যাটবট সচল করতে নিচে আপনার OpenAI API Secret Key দিন এবং "সংরক্ষণ করুন" বাটনে ক্লিক করুন।
+                            To enable the NexPilot assistant, enter your OpenAI API Secret Key below and click "Save Configuration".
                         </p>
                     </div>
                 </div>
@@ -230,7 +230,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                         <div className="font-bold">{testResult.message}</div>
                         {testResult.latency && (
                             <div className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-0.5 font-mono">
-                                রেসপন্স টাইম: {testResult.latency}ms
+                                Response time: {testResult.latency}ms
                             </div>
                         )}
                     </div>
@@ -249,7 +249,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
             {saveSuccess && (
                 <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center gap-2">
                     <Check className="w-4 h-4 text-emerald-600" />
-                    <span>AI Model কনফিগারেশন সফলভাবে সেভ করা হয়েছে এবং সর্বত্র আপডেট হয়েছে!</span>
+                    <span>AI Model configuration saved and updated globally!</span>
                 </div>
             )}
 
@@ -267,7 +267,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 text-xs text-sky-600 dark:text-sky-400 font-bold hover:underline"
                         >
-                            <span>OpenAI থেকে চাবি নিন</span>
+                            <span>Get API key from OpenAI</span>
                             <ExternalLink className="w-3 h-3" />
                         </a>
                     </div>
@@ -277,7 +277,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                             type={showKey ? 'text' : 'password'}
                             value={apiKey}
                             onChange={(e) => setApiKey(e.target.value)}
-                            placeholder={hasExistingKey ? 'নতুন চাবি দিয়ে পরিবর্তন করতে চাইলে লিখুন (অন্যথায় খালি রাখুন)' : 'sk-proj-...'}
+                            placeholder={hasExistingKey ? 'Enter new key to replace existing (or leave empty)' : 'sk-proj-...'}
                             className="w-full pl-4 pr-11 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
                         />
                         <button
@@ -292,7 +292,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                     {hasExistingKey && !apiKey && (
                         <p className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 font-medium">
                             <Check className="w-3.5 h-3.5" />
-                            <span>বর্তমানে সেভ করা চাবি: <strong className="font-mono">{maskedKey}</strong> সক্রিয় রয়েছে।</span>
+                            <span>Currently saved key: <strong className="font-mono">{maskedKey}</strong> is active.</span>
                         </p>
                     )}
                 </div>
@@ -301,7 +301,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                 <div className="p-6 sm:p-7 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-5">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-indigo-600" />
-                        <span>ডিফল্ট AI মডেল নির্বাচন</span>
+                        <span>Default AI Model Selection</span>
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -323,7 +323,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                                 </span>
                             </div>
                             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                                অত্যন্ত দ্রুতগতির, সাশ্রয়ী ও স্মার্ট। প্রতি $1.00 ডলারে প্রায় ২০ লক্ষ টোকেন প্রসেস করতে পারে। অধিকাংশ কোর্সের জন্য সেরা পছন্দ।
+                                Extremely fast, cost-effective and smart. Can process ~2M tokens per $1.00. Recommended for most courses.
                             </p>
                         </div>
 
@@ -345,7 +345,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                                 </span>
                             </div>
                             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                                সর্বোচ্চ বুদ্ধিমত্তা ও জটিল গাণিতিক/বিজ্ঞানভিত্তিক সমস্যা সমাধানে অত্যন্ত পারদর্শী। ডিপ লার্নিং ও অ্যাডভান্সড কোর্সের জন্য আদর্শ।
+                                Highest intelligence and highly adept at complex mathematical/scientific reasoning. Ideal for deep learning & advanced courses.
                             </p>
                         </div>
 
@@ -362,7 +362,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                                 gpt-4-turbo
                             </span>
                             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                                শক্তিশালী ও নির্ভরযোগ্য জিপিটি-৪ টার্বো ইঞ্জিন।
+                                Powerful and dependable GPT-4 Turbo engine.
                             </p>
                         </div>
 
@@ -379,7 +379,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                                 gpt-3.5-turbo
                             </span>
                             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                                ক্লাসিক লিগ্যাসি মডেল। সাধারণ প্রশ্নোত্তর ও বেসিক চ্যাটের জন্য কার্যকর।
+                                Classic legacy model. Effective for general Q&A and basic chat.
                             </p>
                         </div>
                     </div>
@@ -389,17 +389,17 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                 <div className="p-6 sm:p-7 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <MessageSquareQuote className="w-4 h-4 text-emerald-600" />
-                        <span>সার্বিক শিক্ষক নির্দেশনা (Global System Persona)</span>
+                        <span>Global System Persona & Instructions</span>
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                        সমস্ত কোর্সের চ্যাটবটের বেসিক আচরণ, ভাষা ও শিক্ষণীয় টোন কেমন হবে তা এখানে লিখে দিতে পারেন।
+                        Define the baseline personality, demeanor, tone, and teaching style across all course chatbots.
                     </p>
 
                     <textarea
                         rows={3}
                         value={globalSystemPrompt}
                         onChange={(e) => setGlobalSystemPrompt(e.target.value)}
-                        placeholder="যেমন: সর্বদা বাংলায় সুন্দর ও বন্ধুসুলভ টোনে শিক্ষার্থীদের প্রশ্নের উত্তর দেবে। প্রতিটি জটিল ধারণা সহজ বাস্তব জীবনের উদাহরণ দিয়ে বুঝিয়ে দেবে..."
+                        placeholder="e.g. Always respond in a warm, encouraging tone. Explain complex ideas with intuitive real-world examples and KaTeX mathematical notation..."
                         className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
                     />
                 </div>
@@ -408,7 +408,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                 <div className="p-6 sm:p-7 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <Sliders className="w-4 h-4 text-slate-600" />
-                        <span>অ্যাডভান্সড প্যারামিটার ও টোকেন রেট</span>
+                        <span>Advanced Parameters & Token Rates</span>
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -427,9 +427,9 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                                 className="w-full cursor-pointer accent-sky-600 mt-2"
                             />
                             <div className="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
-                                <span>সঠিক/নিখুঁত (0.0)</span>
-                                <span>ব্যালেন্সড (0.7)</span>
-                                <span>সৃজনশীল (1.0)</span>
+                                <span>Precise (0.0)</span>
+                                <span>Balanced (0.7)</span>
+                                <span>Creative (1.0)</span>
                             </div>
                         </div>
 
@@ -446,7 +446,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                                 onChange={(e) => setCostInput(parseFloat(e.target.value) || 0)}
                                 className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold"
                             />
-                            <p className="text-[10px] text-slate-400 mt-1">ডিফল্ট $0.00015 (gpt-4o-mini)</p>
+                            <p className="text-[10px] text-slate-400 mt-1">Default $0.00015 (gpt-4o-mini)</p>
                         </div>
 
                         {/* Output Cost per 1K Tokens */}
@@ -462,7 +462,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                                 onChange={(e) => setCostOutput(parseFloat(e.target.value) || 0)}
                                 className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold"
                             />
-                            <p className="text-[10px] text-slate-400 mt-1">ডিফল্ট $0.00060 (gpt-4o-mini)</p>
+                            <p className="text-[10px] text-slate-400 mt-1">Default $0.00060 (gpt-4o-mini)</p>
                         </div>
                     </div>
                 </div>
@@ -475,11 +475,10 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                         className="px-8 py-3 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-lg shadow-sky-600/25 flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
                     >
                         <Save className="w-4 h-4" />
-                        <span>{saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন (Save Configuration)'}</span>
+                        <span>{saving ? 'Saving...' : 'Save Configuration'}</span>
                     </button>
                 </div>
             </form>
         </div>
     );
 };
-

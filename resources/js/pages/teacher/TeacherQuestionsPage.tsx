@@ -44,31 +44,31 @@ export const TeacherQuestionsPage: React.FC = () => {
             }));
 
             setReplyText(prev => ({ ...prev, [commentId]: '' }));
-            alert('উত্তর সফলভাবে পাঠানো হয়েছে এবং শিক্ষার্থী নোটিফিকেশন পেয়েছে।');
+            alert('Reply submitted successfully and the student has been notified.');
         } catch (err: any) {
-            alert(err.response?.data?.message || 'উত্তর পাঠাতে ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to submit reply.');
         } finally {
             setSubmittingId(null);
         }
     };
 
     if (loading) {
-        return <div className="p-12 text-center text-slate-400">প্রশ্ন লোড হচ্ছে...</div>;
+        return <div className="p-12 text-center text-slate-400">Loading questions...</div>;
     }
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto pb-16">
             <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">শিক্ষার্থীদের প্রশ্নোত্তর ফোরাম</h2>
-                <p className="text-xs text-slate-500 mt-0.5">আপনার কোর্সের লেসন সংক্রান্ত যেকোনো প্রশ্নের উত্তর দিন</p>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Student Q&A Forum</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Answer course and lesson questions asked by enrolled students</p>
             </div>
 
             <div className="space-y-6">
                 {questions.length === 0 ? (
                     <div className="p-12 text-center text-slate-400 bg-white rounded-3xl border border-slate-200">
                         <MessageSquare className="w-10 h-10 text-slate-300 mx-auto mb-2" />
-                        <h4 className="font-bold text-slate-700">কোনো নতুন প্রশ্ন নেই</h4>
-                        <p className="text-xs">শিক্ষার্থীরা প্রশ্ন করলে এখানে দেখতে পাবেন।</p>
+                        <h4 className="font-bold text-slate-700">No new questions</h4>
+                        <p className="text-xs">When students ask questions in your lessons, they will show up here.</p>
                     </div>
                 ) : (
                     questions.map((q) => (
@@ -87,7 +87,7 @@ export const TeacherQuestionsPage: React.FC = () => {
                                     </div>
                                 </div>
                                 <span className="text-[10px] text-slate-400">
-                                    {new Date(q.created_at).toLocaleDateString('bn-BD')}
+                                    {new Date(q.created_at).toLocaleDateString('en-US')}
                                 </span>
                             </div>
 
@@ -100,14 +100,14 @@ export const TeacherQuestionsPage: React.FC = () => {
                             {q.replies && q.replies.length > 0 && (
                                 <div className="space-y-2 pl-4 border-l-2 border-sky-200">
                                     <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                                        পূর্ববর্তী উত্তরসমূহ:
+                                        Previous Replies:
                                     </span>
                                     {q.replies.map((reply: any) => (
                                         <div key={reply.id} className="p-3 rounded-xl bg-sky-50/50 border border-sky-100 text-xs">
                                             <div className="font-bold text-sky-950 flex items-center gap-1.5">
                                                 <span>{reply.user?.name}</span>
                                                 <span className="text-[10px] font-semibold text-sky-600 bg-sky-100 px-1.5 py-0.2 rounded">
-                                                    {reply.user?.role === 'teacher' ? 'শিক্ষক' : 'অ্যাডমিন'}
+                                                    {reply.user?.role === 'teacher' ? 'Teacher' : 'Admin'}
                                                 </span>
                                             </div>
                                             <p className="text-slate-700 mt-1">{reply.content}</p>
@@ -122,7 +122,7 @@ export const TeacherQuestionsPage: React.FC = () => {
                                     type="text"
                                     value={replyText[q.id] || ''}
                                     onChange={(e) => setReplyText(prev => ({ ...prev, [q.id]: e.target.value }))}
-                                    placeholder="আপনার উত্তর লিখুন..."
+                                    placeholder="Type your reply..."
                                     className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-sky-500 focus:bg-white"
                                 />
                                 <button
@@ -131,7 +131,7 @@ export const TeacherQuestionsPage: React.FC = () => {
                                     className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-md shadow-sky-600/20 disabled:opacity-50"
                                 >
                                     <Send className="w-3.5 h-3.5" />
-                                    <span>{submittingId === q.id ? 'পাঠানো হচ্ছে...' : 'উত্তর দিন'}</span>
+                                    <span>{submittingId === q.id ? 'Sending...' : 'Reply'}</span>
                                 </button>
                             </div>
                         </div>

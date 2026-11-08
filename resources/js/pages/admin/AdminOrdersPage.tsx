@@ -47,7 +47,7 @@ export const AdminOrdersPage: React.FC = () => {
     };
 
     const handleConfirmPayment = async (orderId: number) => {
-        if (!window.confirm('আপনি কি এই অর্ডারের পেমেন্ট নিশ্চিত করতে এবং শিক্ষার্থীর কোর্সটি সক্রিয় করতে চান?')) return;
+        if (!window.confirm('Are you sure you want to confirm payment for this order and activate the student enrollment?')) return;
 
         setProcessingId(orderId);
         try {
@@ -58,14 +58,14 @@ export const AdminOrdersPage: React.FC = () => {
             }
             alert(data.message);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'পেমেন্ট অনুমোদনে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to approve payment.');
         } finally {
             setProcessingId(null);
         }
     };
 
     const handleRejectPayment = async (orderId: number) => {
-        const reason = window.prompt('পেমেন্ট বাতিলের কারণ লিখুন (ঐচ্ছিক):');
+        const reason = window.prompt('Enter reason for rejecting payment (optional):');
         if (reason === null) return;
 
         setProcessingId(orderId);
@@ -77,7 +77,7 @@ export const AdminOrdersPage: React.FC = () => {
             }
             alert(data.message);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'পেমেন্ট বাতিল ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to reject payment.');
         } finally {
             setProcessingId(null);
         }
@@ -86,8 +86,8 @@ export const AdminOrdersPage: React.FC = () => {
     return (
         <div className="space-y-6 max-w-7xl">
             <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">অর্ডার ও পেমেন্ট ব্যবস্থাপনা</h2>
-                <p className="text-xs text-slate-500 mt-0.5">ম্যানুয়াল বিকাশ/নগদ পেমেন্ট যাচাই ও কোর্স এনরোলমেন্ট অনুমোদন</p>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Orders & Payments Management</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Verify manual mobile payments (bKash/Nagad) and approve course enrollments</p>
             </div>
 
             {/* Filter Bar */}
@@ -97,7 +97,7 @@ export const AdminOrdersPage: React.FC = () => {
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="অর্ডার নম্বর, শিক্ষার্থীর নাম বা ফোন..."
+                        placeholder="Order number, student name or phone..."
                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500"
                     />
                     <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -109,10 +109,10 @@ export const AdminOrdersPage: React.FC = () => {
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700"
                     >
-                        <option value="">সকল পেমেন্ট স্ট্যাটাস</option>
-                        <option value="pending">যাচাইকরণ বাকি (Pending)</option>
-                        <option value="paid">পরিশোধিত ও সক্রিয় (Paid)</option>
-                        <option value="failed">বাতিল / ব্যর্থ (Failed)</option>
+                        <option value="">All Payment Statuses</option>
+                        <option value="pending">Pending Verification</option>
+                        <option value="paid">Paid & Active</option>
+                        <option value="failed">Rejected / Failed</option>
                     </select>
                 </div>
             </div>
@@ -123,26 +123,26 @@ export const AdminOrdersPage: React.FC = () => {
                     <table className="w-full text-left text-xs">
                         <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider border-b border-slate-100">
                             <tr>
-                                <th className="py-4 px-6">অর্ডার নম্বর</th>
-                                <th className="py-4 px-4">শিক্ষার্থী</th>
-                                <th className="py-4 px-4">কোর্স</th>
-                                <th className="py-4 px-4">মূল্য</th>
-                                <th className="py-4 px-4">পদ্ধতি ও TrxID</th>
-                                <th className="py-4 px-4">স্ট্যাটাস</th>
-                                <th className="py-4 px-6 text-right">অ্যাকশন</th>
+                                <th className="py-4 px-6">Order Number</th>
+                                <th className="py-4 px-4">Student</th>
+                                <th className="py-4 px-4">Course</th>
+                                <th className="py-4 px-4">Amount</th>
+                                <th className="py-4 px-4">Method & TrxID</th>
+                                <th className="py-4 px-4">Status</th>
+                                <th className="py-4 px-6 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
                             {loading ? (
                                 <tr>
                                     <td colSpan={7} className="py-12 text-center text-slate-400">
-                                        অর্ডারের তথ্য লোড হচ্ছে...
+                                        Loading orders...
                                     </td>
                                 </tr>
                             ) : orders.length === 0 ? (
                                 <tr>
                                     <td colSpan={7} className="py-12 text-center text-slate-400">
-                                        কোনো অর্ডার খুঁজে পাওয়া যায়নি।
+                                        No orders found.
                                     </td>
                                 </tr>
                             ) : (
@@ -179,15 +179,15 @@ export const AdminOrdersPage: React.FC = () => {
                                             <td className="py-4 px-4">
                                                 {order.payment_status === 'paid' ? (
                                                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800">
-                                                        পরিশোধিত
+                                                        Paid
                                                     </span>
                                                 ) : order.payment_status === 'pending' ? (
                                                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-amber-100 text-amber-800">
-                                                        যাচাইকরণ বাকি
+                                                        Pending
                                                     </span>
                                                 ) : (
                                                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase bg-rose-100 text-rose-800">
-                                                        বাতিল
+                                                        Failed
                                                     </span>
                                                 )}
                                             </td>
@@ -197,7 +197,7 @@ export const AdminOrdersPage: React.FC = () => {
                                                     <button
                                                         onClick={() => setViewOrder(order)}
                                                         className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg"
-                                                        title="বিস্তারিত দেখুন"
+                                                        title="View Details"
                                                     >
                                                         <Eye className="w-4 h-4" />
                                                     </button>
@@ -208,17 +208,17 @@ export const AdminOrdersPage: React.FC = () => {
                                                                 onClick={() => handleConfirmPayment(order.id)}
                                                                 disabled={processingId === order.id}
                                                                 className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs shadow-xs disabled:opacity-50"
-                                                                title="পেমেন্ট অনুমোদন ও এনরোলমেন্ট সক্রিয় করুন"
+                                                                title="Approve payment & activate enrollment"
                                                             >
-                                                                অনুমোদন
+                                                                Approve
                                                             </button>
                                                             <button
                                                                 onClick={() => handleRejectPayment(order.id)}
                                                                 disabled={processingId === order.id}
                                                                 className="px-2.5 py-1 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-lg text-xs disabled:opacity-50"
-                                                                title="বাতিল করুন"
+                                                                title="Reject payment"
                                                             >
-                                                                বাতিল
+                                                                Reject
                                                             </button>
                                                         </>
                                                     )}
@@ -237,26 +237,26 @@ export const AdminOrdersPage: React.FC = () => {
             <Modal
                 isOpen={Boolean(viewOrder)}
                 onClose={() => setViewOrder(null)}
-                title="অর্ডারের পূর্ণাঙ্গ বিবরণ"
+                title="Order Details"
                 maxWidth="md"
             >
                 {viewOrder && (
                     <div className="space-y-4 text-xs text-slate-700">
                         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                             <div className="flex justify-between font-mono font-bold text-slate-900 border-b border-slate-200 pb-2">
-                                <span>অর্ডার নম্বর:</span>
+                                <span>Order Number:</span>
                                 <span>{viewOrder.order_number}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-500">শিক্ষার্থী:</span>
+                                <span className="text-slate-500">Student:</span>
                                 <span className="font-bold text-slate-800">{viewOrder.user?.name}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-500">মোবাইল নম্বর:</span>
+                                <span className="text-slate-500">Phone Number:</span>
                                 <span className="font-mono">{viewOrder.user?.phone}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-500">কোর্সের নাম:</span>
+                                <span className="text-slate-500">Course Name:</span>
                                 <span className="font-bold text-slate-800">{viewOrder.course?.title}</span>
                             </div>
                         </div>
@@ -264,32 +264,32 @@ export const AdminOrdersPage: React.FC = () => {
                         {/* Payment Breakdown */}
                         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                             <div className="flex justify-between">
-                                <span className="text-slate-500">নিয়মিত মূল্য:</span>
+                                <span className="text-slate-500">Regular Price:</span>
                                 <span>{formatBDT(viewOrder.original_price)}</span>
                             </div>
                             <div className="flex justify-between text-emerald-600">
-                                <span>ছাড়:</span>
+                                <span>Discount:</span>
                                 <span>- {formatBDT(viewOrder.discount_amount)}</span>
                             </div>
                             <div className="flex justify-between font-bold text-slate-900 text-sm border-t border-slate-200 pt-2">
-                                <span>চূড়ান্ত প্রদেয়:</span>
+                                <span>Final Payable:</span>
                                 <span className="text-sky-600">{formatBDT(viewOrder.final_amount)}</span>
                             </div>
                         </div>
 
                         {/* Trx Info */}
                         <div className="p-4 bg-sky-50/50 rounded-2xl border border-sky-200 space-y-2">
-                            <h4 className="font-bold text-sky-950 uppercase text-[11px]">পেমেন্ট ট্রানজেকশন তথ্য</h4>
+                            <h4 className="font-bold text-sky-950 uppercase text-[11px]">Payment Transaction Details</h4>
                             <div className="flex justify-between">
-                                <span className="text-slate-500">পদ্ধতি:</span>
+                                <span className="text-slate-500">Method:</span>
                                 <span className="font-bold uppercase">{viewOrder.payment_method.replace('manual_', '')}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-500">প্রেরক মোবাইল:</span>
+                                <span className="text-slate-500">Sender Phone:</span>
                                 <span className="font-mono font-bold text-slate-800">{viewOrder.latest_payment?.sender_phone || 'N/A'}</span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-slate-500">ট্রানজেকশন আইডি:</span>
+                                <span className="text-slate-500">Transaction ID:</span>
                                 <span className="font-mono font-bold text-sky-700 text-sm">{viewOrder.latest_payment?.transaction_ref || 'N/A'}</span>
                             </div>
                         </div>
@@ -300,13 +300,13 @@ export const AdminOrdersPage: React.FC = () => {
                                     onClick={() => handleConfirmPayment(viewOrder.id)}
                                     className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition-colors"
                                 >
-                                    পেমেন্ট অনুমোদন ও এনরোল করুন
+                                    Approve Payment & Enroll
                                 </button>
                                 <button
                                     onClick={() => handleRejectPayment(viewOrder.id)}
                                     className="py-3 px-6 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold rounded-xl transition-colors"
                                 >
-                                    বাতিল
+                                    Reject
                                 </button>
                             </div>
                         )}

@@ -177,10 +177,10 @@ export const CheckoutPage: React.FC = () => {
                 setStoredReferralCode(data.code, data.cookie_days || 30);
                 setReferralMessage({ type: 'success', text: data.message });
             } else {
-                setReferralMessage({ type: 'error', text: data.message || 'রেফারেল কোডটি কার্যকর নয়।' });
+                setReferralMessage({ type: 'error', text: data.message || 'Referral code is invalid or expired.' });
             }
         } catch (err: any) {
-            setReferralMessage({ type: 'error', text: err.response?.data?.message || 'রেফারেল কোডটি সঠিক নয়।' });
+            setReferralMessage({ type: 'error', text: err.response?.data?.message || 'Invalid referral code.' });
         } finally {
             setCheckingReferral(false);
         }
@@ -205,22 +205,22 @@ export const CheckoutPage: React.FC = () => {
 
     const getMethodTypeLabel = (type: ManualPaymentType) => {
         if (type === 'payment') {
-            return language === 'en' ? 'Payment' : 'পেমেন্ট';
+            return 'Payment';
         }
         if (type === 'cash_out') {
-            return language === 'en' ? 'Cash Out' : 'ক্যাশ আউট';
+            return 'Cash Out';
         }
-        return language === 'en' ? 'Send Money' : 'সেন্ড মানি';
+        return 'Send Money';
     };
 
     const getAccountTypeBadge = (type: ManualPaymentType) => {
         if (type === 'payment') {
-            return language === 'en' ? 'Merchant' : 'মার্চেন্ট';
+            return 'Merchant';
         }
         if (type === 'cash_out') {
-            return language === 'en' ? 'Agent' : 'এজেন্ট';
+            return 'Agent';
         }
-        return language === 'en' ? 'Personal' : 'ব্যক্তিগত';
+        return 'Personal';
     };
 
     const handleCopyNumber = () => {
@@ -249,7 +249,7 @@ export const CheckoutPage: React.FC = () => {
 
             navigate(`/order-status/${data.order.order_number}`, { state: { order: data.order } });
         } catch (err: any) {
-            setError(err.response?.data?.message || (language === 'en' ? 'Failed to process order.' : 'অর্ডার সম্পন্ন করতে সমস্যা হয়েছে।'));
+            setError(err.response?.data?.message || 'Failed to process order.');
         } finally {
             setSubmitting(false);
         }
@@ -258,7 +258,7 @@ export const CheckoutPage: React.FC = () => {
     if (loading || !course) {
         return (
             <div className="max-w-4xl mx-auto px-4 py-20 text-center text-slate-400">
-                {language === 'en' ? 'Loading checkout information...' : 'তথ্য লোড হচ্ছে...'}
+                Loading checkout information...
             </div>
         );
     }
@@ -267,10 +267,10 @@ export const CheckoutPage: React.FC = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="mb-8">
                 <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                    {language === 'en' ? 'Checkout & Payment' : 'চেকআউট ও পেমেন্ট'}
+                    Checkout & Payment
                 </h1>
                 <p className="text-sm text-slate-500 mt-1">
-                    {language === 'en' ? 'Submit payment details to confirm your course enrollment' : 'কোর্সে ভর্তি নিশ্চিত করতে পেমেন্ট তথ্য সাবমিট করুন'}
+                    Submit payment details to confirm your course enrollment
                 </p>
             </div>
 
@@ -280,12 +280,12 @@ export const CheckoutPage: React.FC = () => {
                     {/* Payment Provider Selection */}
                     <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6">
                         <h3 className="text-lg font-bold text-slate-900">
-                            {language === 'en' ? 'Select Payment Method' : 'পেমেন্ট মেথড নির্বাচন করুন'}
+                            Select Payment Method
                         </h3>
 
                         {availableGateways.length === 0 ? (
                             <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
-                                {language === 'en' ? 'No payment gateway is currently available. Please contact support.' : 'বর্তমানে কোনো ম্যানুয়াল পেমেন্ট গেটওয়ে চালু নেই। অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।'}
+                                No payment gateway is currently available. Please contact support.
                             </div>
                         ) : (
                             <div className={`grid grid-cols-${Math.min(availableGateways.length, 3)} gap-3`}>
@@ -318,9 +318,7 @@ export const CheckoutPage: React.FC = () => {
                                 <div className="font-bold text-slate-900 flex items-center justify-between">
                                     <span className="flex items-center gap-1.5">
                                         <span>
-                                            {language === 'en' 
-                                                ? `Payment Instructions (${activeGateway.title}):` 
-                                                : `পেমেন্ট নির্দেশনা (${activeGateway.title}):`}
+                                            Payment Instructions ({activeGateway.title}):
                                         </span>
                                     </span>
                                     <button
@@ -329,18 +327,16 @@ export const CheckoutPage: React.FC = () => {
                                         className="inline-flex items-center gap-1 text-sky-600 font-bold hover:underline cursor-pointer"
                                     >
                                         {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                                        <span>{copied ? (language === 'en' ? 'Copied' : 'কপি হয়েছে') : (language === 'en' ? 'Copy Number' : 'নম্বর কপি করুন')}</span>
+                                        <span>{copied ? 'Copied' : 'Copy Number'}</span>
                                     </button>
                                 </div>
 
                                 <p className="leading-relaxed">
-                                    {language === 'en' 
-                                        ? `1. Open your ${activeGateway.title} app or dial code and select ${getMethodTypeLabel(currentType)}.` 
-                                        : `১. আপনার ${activeGateway.title} অ্যাপ অথবা ইউএসএসডি কোড ডায়াল করে ${getMethodTypeLabel(currentType)} সিলেক্ট করুন।`}
+                                    {`1. Open your ${activeGateway.title} app or dial code and select ${getMethodTypeLabel(currentType)}.`}
                                 </p>
 
                                 <div className="flex items-center gap-2 pt-0.5">
-                                    <span>{language === 'en' ? '2. Recipient Number: ' : '২. প্রাপক নম্বর: '}</span>
+                                    <span>2. Recipient Number: </span>
                                     <strong className="font-mono text-sm text-slate-900 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200 shadow-2xs">
                                         {currentNumber}
                                     </strong>
@@ -350,24 +346,22 @@ export const CheckoutPage: React.FC = () => {
                                 </div>
 
                                 <p className="pt-0.5">
-                                    {language === 'en' ? '3. Send Amount: ' : '৩. টাকার পরিমাণ: '}
+                                    3. Send Amount: 
                                     <strong className="text-slate-900">{formatBDT(totalPayable)}</strong>
                                 </p>
 
                                 {/* Custom instruction note from admin if provided */}
-                                {((language === 'en' && activeGateway.config?.instructions_en) || activeGateway.config?.instructions) && (
+                                {(activeGateway.config?.instructions_en || activeGateway.config?.instructions) && (
                                     <div className="p-3 bg-white rounded-xl border border-slate-200/90 text-slate-600 leading-relaxed font-normal">
                                         <span className="font-semibold text-slate-800 block mb-0.5">
-                                            {language === 'en' ? 'Special Instruction:' : 'বিশেষ নির্দেশ:'}
+                                            Special Instruction:
                                         </span>
-                                        {language === 'en' && activeGateway.config?.instructions_en 
-                                            ? activeGateway.config.instructions_en 
-                                            : activeGateway.config?.instructions}
+                                        {activeGateway.config?.instructions_en || activeGateway.config?.instructions}
                                     </div>
                                 )}
 
                                 <p className="pt-0.5 text-slate-500">
-                                    {language === 'en' ? '4. Enter the TrxID below after successful transfer.' : '৪. সফলভাবে পাঠানোর পর প্রাপ্ত Transaction ID (TrxID) নিচে লিখে সাবমিট করুন।'}
+                                    4. Enter the TrxID below after successful transfer.
                                 </p>
                             </div>
                         )}
@@ -383,7 +377,7 @@ export const CheckoutPage: React.FC = () => {
                         <form onSubmit={handleSubmitOrder} className="space-y-4">
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                    {language === 'en' ? 'Sender Mobile Number' : 'যে নম্বর থেকে টাকা পাঠিয়েছেন (Sender Mobile)'}
+                                    Sender Mobile Number
                                 </label>
                                 <input
                                     type="text"
@@ -397,27 +391,27 @@ export const CheckoutPage: React.FC = () => {
 
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                    {language === 'en' ? 'Transaction ID (TrxID)' : 'ট্রানজেকশন আইডি (Transaction ID / TrxID)'}
+                                    Transaction ID (TrxID)
                                 </label>
                                 <input
                                     type="text"
                                     required
                                     value={transactionRef}
                                     onChange={(e) => setTransactionRef(e.target.value)}
-                                    placeholder={language === 'en' ? 'e.g. 9J3K8LQZ' : 'যেমন: 9J3K8LQZ'}
+                                    placeholder="e.g. 9J3K8LQZ"
                                     className="w-full px-4 py-3 font-mono uppercase bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                                 />
                             </div>
 
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                    {language === 'en' ? 'Additional Notes (Optional)' : 'অতিরিক্ত কোনো মন্তব্য (ঐচ্ছিক)'}
+                                    Additional Notes (Optional)
                                 </label>
                                 <input
                                     type="text"
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
-                                    placeholder={language === 'en' ? 'Any special note or reference' : 'কোনো বিশেষ মন্তব্য থাকলে লিখুন'}
+                                    placeholder="Any special note or reference"
                                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                                 />
                             </div>
@@ -425,9 +419,9 @@ export const CheckoutPage: React.FC = () => {
                             <button
                                 type="submit"
                                 disabled={submitting}
-                                className="w-full py-4 bg-sky-600 hover:bg-sky-700 text-white font-bold text-base rounded-xl shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-4"
+                                className="w-full py-4 bg-sky-600 hover:bg-sky-700 text-white font-bold text-base rounded-xl shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-4 cursor-pointer"
                             >
-                                <span>{submitting ? (language === 'en' ? 'Processing Order...' : 'অর্ডার প্রসেস হচ্ছে...') : (language === 'en' ? 'Payment Completed & Confirm Order' : 'পেমেন্ট সম্পন্ন হয়েছে ও সাবমিট করুন')}</span>
+                                <span>{submitting ? 'Processing Order...' : 'Payment Completed & Confirm Order'}</span>
                                 <ArrowRight className="w-5 h-5" />
                             </button>
                         </form>
@@ -438,7 +432,7 @@ export const CheckoutPage: React.FC = () => {
                 <div className="lg:col-span-5">
                     <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6">
                         <h3 className="text-lg font-bold text-slate-900 border-b border-slate-100 pb-4">
-                            {language === 'en' ? 'Order Summary' : 'অর্ডার সামারি'}
+                            Order Summary
                         </h3>
 
                         {/* Course Card Preview */}
@@ -454,7 +448,7 @@ export const CheckoutPage: React.FC = () => {
                             </div>
                             <div>
                                 <h4 className="text-sm font-bold text-slate-900 line-clamp-2">{course.title}</h4>
-                                <p className="text-xs text-slate-500 mt-1">{course.lessons_count || 0} {language === 'en' ? 'Lessons' : 'টি ক্লাস'}</p>
+                                <p className="text-xs text-slate-500 mt-1">{course.lessons_count || 0} Lessons</p>
                             </div>
                         </div>
 
@@ -480,14 +474,14 @@ export const CheckoutPage: React.FC = () => {
                                         <div className="flex items-center justify-between gap-2">
                                             <span className="font-black text-sm text-slate-900 flex items-center gap-1.5">
                                                 <Sparkles className="w-4 h-4 text-amber-500" />
-                                                <span>NexPilot AI টিউটর</span>
+                                                <span>NexPilot AI Tutor</span>
                                             </span>
                                             <span className="font-black text-sm text-indigo-600">
                                                 +{formatBDT(nexpilot.price)}
                                             </span>
                                         </div>
                                         <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                                            {nexpilot.short_description || 'সম্পূর্ণ কোর্সের থিওরি ও প্র্যাকটিসে সার্বক্ষণিক পার্সোনালাইজড এআই টিউটর সহায়তা।'}
+                                            {nexpilot.short_description || 'Comprehensive 24/7 personalized AI tutor assistance across all theory and practice.'}
                                         </p>
                                         <div className="mt-2.5 flex items-center gap-2">
                                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700">
@@ -514,7 +508,7 @@ export const CheckoutPage: React.FC = () => {
                                             <div className="flex items-center gap-1.5">
                                                 <span className="font-mono font-bold text-xs text-emerald-900">{appliedReferral.code}</span>
                                                 <span className="text-[10px] font-bold px-1.5 py-0.5 bg-emerald-200/80 text-emerald-800 rounded">
-                                                    {appliedReferral.discount_amount > 0 ? `৳${appliedReferral.discount_amount} ছাড়` : 'কোড সক্রিয়'}
+                                                    {appliedReferral.discount_amount > 0 ? `৳${appliedReferral.discount_amount} Off` : 'Code Active'}
                                                 </span>
                                             </div>
                                             <p className="text-[11px] text-emerald-700 mt-0.5">
@@ -526,7 +520,7 @@ export const CheckoutPage: React.FC = () => {
                                         type="button"
                                         onClick={handleRemoveReferral}
                                         className="text-slate-400 hover:text-red-500 p-1 transition-colors"
-                                        title="কোড বাতিল করুন"
+                                        title="Remove code"
                                     >
                                         <X className="w-4 h-4" />
                                     </button>
@@ -535,14 +529,14 @@ export const CheckoutPage: React.FC = () => {
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
                                         <Tag className="w-3.5 h-3.5 text-indigo-500" />
-                                        <span>{language === 'en' ? 'Have a Referral or Promo Code?' : 'রেফারেল বা প্রোমো কোড আছে?'}</span>
+                                        <span>Have a Referral or Promo Code?</span>
                                     </label>
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
                                             value={referralInput}
                                             onChange={(e) => setReferralInput(e.target.value.toUpperCase())}
-                                            placeholder="যেমন: MONO2026"
+                                            placeholder="e.g. MONO2026"
                                             className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono uppercase focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                                         />
                                         <button
@@ -552,7 +546,7 @@ export const CheckoutPage: React.FC = () => {
                                             className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-colors disabled:opacity-50 shrink-0 flex items-center gap-1"
                                         >
                                             {checkingReferral && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                                            <span>{language === 'en' ? 'Apply' : 'প্রয়োগ'}</span>
+                                            <span>Apply</span>
                                         </button>
                                     </div>
                                     {referralMessage && referralMessage.type === 'error' && (
@@ -567,13 +561,13 @@ export const CheckoutPage: React.FC = () => {
                         {/* Pricing Breakdown */}
                         <div className="space-y-3 pt-4 border-t border-slate-100 text-sm">
                             <div className="flex justify-between text-slate-600">
-                                <span>{language === 'en' ? 'Regular Course Fee' : 'কোর্সের নিয়মিত ফি'}</span>
+                                <span>Regular Course Fee</span>
                                 <span className="font-semibold">{formatBDT(course.price)}</span>
                             </div>
 
                             {course.sale_price && course.sale_price < course.price && (
                                 <div className="flex justify-between text-emerald-600 font-medium">
-                                    <span>{language === 'en' ? `Discount (${course.discount_percent}%)` : `বিশেষ ছাড় (${course.discount_percent}%)`}</span>
+                                    <span>Special Discount ({course.discount_percent}%)</span>
                                     <span>- {formatBDT(course.price - course.sale_price)}</span>
                                 </div>
                             )}
@@ -582,7 +576,7 @@ export const CheckoutPage: React.FC = () => {
                                 <div className="flex justify-between text-emerald-600 font-medium">
                                     <span className="flex items-center gap-1.5">
                                         <Tag className="w-3.5 h-3.5 text-emerald-500" />
-                                        <span>{language === 'en' ? 'Referral Discount' : 'রেফারেল ডিসকাউন্ট'} ({appliedReferral?.code})</span>
+                                        <span>Referral Discount ({appliedReferral?.code})</span>
                                     </span>
                                     <span className="font-semibold">- {formatBDT(referralDiscount)}</span>
                                 </div>
@@ -592,14 +586,14 @@ export const CheckoutPage: React.FC = () => {
                                 <div className="flex justify-between text-indigo-600 font-medium">
                                     <span className="flex items-center gap-1.5">
                                         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                                        <span>NexPilot AI লার্নিং অ্যাসিস্ট্যান্ট</span>
+                                        <span>NexPilot AI Learning Assistant</span>
                                     </span>
                                     <span className="font-semibold">+{formatBDT(nexpilot.price)}</span>
                                 </div>
                             )}
 
                             <div className="flex justify-between text-lg font-black text-slate-900 pt-3 border-t border-slate-100">
-                                <span>{language === 'en' ? 'Total Payable' : 'মোট প্রদেয়'}</span>
+                                <span>Total Payable</span>
                                 <span className="text-sky-600">{formatBDT(totalPayable)}</span>
                             </div>
                         </div>
@@ -608,10 +602,10 @@ export const CheckoutPage: React.FC = () => {
                         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-xs text-emerald-800 space-y-1.5">
                             <div className="flex items-center gap-1.5 font-bold">
                                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                                <span>{language === 'en' ? 'Secure & Verified Transaction' : 'নিরাপদ ও বিশ্বস্ত লেনদেন'}</span>
+                                <span>Secure & Verified Transaction</span>
                             </div>
                             <p className="text-emerald-700/90 leading-relaxed">
-                                {language === 'en' ? 'Your course will be unlocked immediately once the payment is verified, and you will receive SMS confirmation.' : 'পেমেন্ট যাচাই হওয়ার সাথে সাথেই আপনার কোর্সটি আনলক হয়ে যাবে এবং এসএমএস ও নোটিফিকেশনের মাধ্যমে জানিয়ে দেওয়া হবে।'}
+                                Your course will be unlocked immediately once the payment is verified, and you will receive SMS confirmation.
                             </p>
                         </div>
                     </div>

@@ -118,7 +118,7 @@ export const StudentExamRoomPage: React.FC = () => {
             });
             setAnswersState(initialAns);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'পরীক্ষা শুরু করতে ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to start exam.');
             navigate('/student/my-courses');
         } finally {
             setLoading(false);
@@ -175,7 +175,7 @@ export const StudentExamRoomPage: React.FC = () => {
                 }));
             }
         } catch (err) {
-            alert('খাতার ছবি আপলোড করতে ব্যর্থ হয়েছে। পুনরায় চেষ্টা করুন।');
+            alert('Failed to upload sheet image. Please try again.');
         } finally {
             setUploadingPaperId(null);
         }
@@ -192,7 +192,7 @@ export const StudentExamRoomPage: React.FC = () => {
     };
 
     const handleAutoSubmit = () => {
-        alert('আপনার পরীক্ষার নির্ধারিত সময় শেষ হয়েছে! উত্তরপত্র স্বয়ংক্রিয়ভাবে জমা নেওয়া হচ্ছে।');
+        alert('Your allocated exam time has expired! Your answers are being submitted automatically.');
         submitAnswers();
     };
 
@@ -213,7 +213,7 @@ export const StudentExamRoomPage: React.FC = () => {
             setResultData(res.data.summary);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err: any) {
-            alert(err.response?.data?.message || 'উত্তরপত্র জমা দিতে ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to submit exam answers.');
         } finally {
             setSubmitting(false);
         }
@@ -229,7 +229,7 @@ export const StudentExamRoomPage: React.FC = () => {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center text-slate-400">
                 <Loader2 className="w-8 h-8 animate-spin text-sky-500 mb-3" />
-                <p className="text-sm font-medium">পরীক্ষা কক্ষ প্রস্তুত হচ্ছে...</p>
+                <p className="text-sm font-medium">Preparing exam room...</p>
             </div>
         );
     }
@@ -250,7 +250,7 @@ export const StudentExamRoomPage: React.FC = () => {
                         </div>
 
                         <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-                            পরীক্ষার ফলাফল (Exam Result)
+                            Exam Result
                         </h1>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                             {exam?.title}
@@ -260,14 +260,14 @@ export const StudentExamRoomPage: React.FC = () => {
                         <div className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-sky-500/10 border border-amber-300 dark:border-amber-800/60">
                             <Award className="w-5 h-5 text-amber-500" />
                             <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                                আপনার মেধা স্থান (Merit Position): <span className="text-amber-600 dark:text-amber-400 text-lg">#{resultData.merit_position}</span>
+                                Your Rank (Merit Position): <span className="text-amber-600 dark:text-amber-400 text-lg">#{resultData.merit_position}</span>
                             </span>
                         </div>
 
                         {/* Score Big Display */}
                         <div className="mt-8 py-6 border-y border-slate-100 dark:border-slate-800 flex items-center justify-center gap-8">
                             <div>
-                                <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">প্রাপ্ত নম্বর</p>
+                                <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Marks Obtained</p>
                                 <p className="text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
                                     {resultData.obtained_marks}
                                     <span className="text-lg font-normal text-slate-400"> / {resultData.total_marks}</span>
@@ -275,7 +275,7 @@ export const StudentExamRoomPage: React.FC = () => {
                             </div>
                             <div className="h-12 w-px bg-slate-200 dark:bg-slate-800" />
                             <div>
-                                <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">শতকরা হার</p>
+                                <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Percentage</p>
                                 <p className="text-4xl font-extrabold text-sky-600 dark:text-sky-400 mt-1">
                                     {percentage}%
                                 </p>
@@ -287,7 +287,7 @@ export const StudentExamRoomPage: React.FC = () => {
                             <div className="mt-4 p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-xs text-amber-800 dark:text-amber-300 flex items-center justify-center gap-2">
                                 <FileText className="w-4 h-4 shrink-0 text-amber-600" />
                                 <span>
-                                    এই পরীক্ষায় লিখিত প্রশ্ন রয়েছে। শিক্ষক আপনার খাতা চেক করার পর চূড়ান্ত নম্বর ও মেধা স্থান আরও হালনাগাদ হবে।
+                                    This exam contains written paper questions. Your final marks and merit rank will be updated after instructor evaluation.
                                 </span>
                             </div>
                         )}
@@ -295,28 +295,28 @@ export const StudentExamRoomPage: React.FC = () => {
                         {/* Detailed Metrics Grid */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
                             <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40">
-                                <p className="text-xs text-emerald-700 dark:text-emerald-300 font-medium">সঠিক উত্তর</p>
+                                <p className="text-xs text-emerald-700 dark:text-emerald-300 font-medium">Correct Answers</p>
                                 <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">
                                     {resultData.total_correct}
                                 </p>
                             </div>
 
                             <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40">
-                                <p className="text-xs text-rose-700 dark:text-rose-300 font-medium">ভুল উত্তর</p>
+                                <p className="text-xs text-rose-700 dark:text-rose-300 font-medium">Wrong Answers</p>
                                 <p className="text-2xl font-bold text-rose-700 dark:text-rose-300 mt-0.5">
                                     {resultData.total_wrong}
                                 </p>
                             </div>
 
                             <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
-                                <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">উত্তর দেওয়া হয়নি</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">Skipped</p>
                                 <p className="text-2xl font-bold text-slate-700 dark:text-slate-200 mt-0.5">
                                     {resultData.total_skipped}
                                 </p>
                             </div>
 
                             <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40">
-                                <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">নেগেটিভ কর্তন</p>
+                                <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">Negative Deduction</p>
                                 <p className="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-0.5">
                                     -{resultData.negative_marks_deducted}
                                 </p>
@@ -330,20 +330,20 @@ export const StudentExamRoomPage: React.FC = () => {
                                 className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-md shadow-indigo-600/20"
                             >
                                 <ClipboardList className="w-4 h-4" />
-                                <span>সকল পরীক্ষার হিস্ট্রি ও বিস্তারিত রিভিউ</span>
+                                <span>All Exams History & Review</span>
                             </Link>
                             <button
                                 onClick={() => window.print()}
                                 className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-2"
                             >
                                 <Printer className="w-4 h-4 text-slate-500" />
-                                <span>PDF ডাউনলোড / প্রিন্ট</span>
+                                <span>Download PDF / Print</span>
                             </button>
                             <Link
                                 to="/student/my-courses"
                                 className="px-4 py-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-xs font-semibold transition-all"
                             >
-                                কোর্স ড্যাশবোর্ডে ফিরুন
+                                Return to Courses
                             </Link>
                         </div>
                     </div>
@@ -363,8 +363,8 @@ export const StudentExamRoomPage: React.FC = () => {
                             {exam?.title}
                         </h2>
                         <p className="text-xs text-slate-400">
-                            মোট প্রশ্ন: {questions.length} • মোট নম্বর: {exam?.total_marks}
-                            {exam?.has_negative_marking && ` • নেগেটিভ মার্কিং: -${exam.negative_marks}`}
+                            Total Questions: {questions.length} • Total Marks: {exam?.total_marks}
+                            {exam?.has_negative_marking && ` • Negative Marking: -${exam.negative_marks}`}
                         </p>
                     </div>
 
@@ -401,10 +401,10 @@ export const StudentExamRoomPage: React.FC = () => {
                                     <div>
                                         <div className="flex items-center gap-2 flex-wrap mb-1">
                                             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                                                {isWritten ? 'লিখিত প্রশ্ন' : isMultiple ? 'একাধিক উত্তর (Multi-select)' : 'একক উত্তর (Single choice)'}
+                                                {isWritten ? 'Written Paper' : isMultiple ? 'Multi-select' : 'Single Choice'}
                                             </span>
                                             <span className="text-xs font-bold text-emerald-600">
-                                                [{q.marks} মার্ক]
+                                                [{q.marks} Marks]
                                             </span>
                                         </div>
                                         <MathView
@@ -460,10 +460,10 @@ export const StudentExamRoomPage: React.FC = () => {
                                     <div className="p-4 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 text-xs text-amber-900 dark:text-amber-200 space-y-1">
                                         <p className="font-semibold flex items-center gap-1.5">
                                             <FileText className="w-4 h-4 text-amber-600" />
-                                            <span>উত্তরপত্র জমা দেওয়ার নির্দেশনা:</span>
+                                            <span>Written Submission Guidelines:</span>
                                         </p>
                                         <p>
-                                            আপনার খাতায় পরিষ্কারভাবে উত্তর লিখুন। এরপর আপনার মোবাইলের ক্যামেরা দিয়ে খাতার প্রতিটি পৃষ্ঠার স্পষ্ট ছবি তুলে বা পিডিএফ ফাইল তৈরি করে নিচে আপলোড করুন।
+                                            Write your answers clearly on your exam sheets. Then take clear photos with your camera/mobile or upload a PDF document below.
                                         </p>
                                     </div>
 
@@ -472,7 +472,7 @@ export const StudentExamRoomPage: React.FC = () => {
                                         {/* Camera capture button */}
                                         <label className="cursor-pointer px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center gap-2 shadow-sm transition-all">
                                             <Camera className="w-4 h-4" />
-                                            <span>ছবি তুলুন (Take Photo)</span>
+                                            <span>Take Photo</span>
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -486,7 +486,7 @@ export const StudentExamRoomPage: React.FC = () => {
                                         {/* File upload button */}
                                         <label className="cursor-pointer px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 text-slate-800 dark:text-slate-200 text-xs font-semibold flex items-center gap-2 shadow-sm transition-all">
                                             <Upload className="w-4 h-4 text-slate-500" />
-                                            <span>ছবি বা PDF ফাইল বাছাই করুন</span>
+                                            <span>Select Image or PDF Files</span>
                                             <input
                                                 type="file"
                                                 accept="image/*,application/pdf"
@@ -500,7 +500,7 @@ export const StudentExamRoomPage: React.FC = () => {
                                         {uploadingPaperId === q.id && (
                                             <div className="flex items-center gap-1.5 text-xs text-sky-500">
                                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                                <span>আপলোড হচ্ছে...</span>
+                                                <span>Uploading...</span>
                                             </div>
                                         )}
                                     </div>
@@ -508,14 +508,14 @@ export const StudentExamRoomPage: React.FC = () => {
                                     {/* Uploaded attachments preview */}
                                     {ans.attachments.length > 0 && (
                                         <div className="space-y-2">
-                                            <p className="text-xs font-semibold text-slate-500">আপলোডকৃত উত্তরপত্রের পাতাসমূহ ({ans.attachments.length}):</p>
+                                            <p className="text-xs font-semibold text-slate-500">Uploaded Sheets ({ans.attachments.length}):</p>
                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                                 {ans.attachments.map((file, aIdx) => (
                                                     <div key={aIdx} className="relative group rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
                                                         {file.file_type === 'pdf' ? (
                                                             <div className="h-28 flex flex-col items-center justify-center p-2 text-center">
                                                                 <FileText className="w-8 h-8 text-rose-500" />
-                                                                <span className="text-[10px] text-slate-600 truncate mt-1">PDF পাতা {aIdx + 1}</span>
+                                                                <span className="text-[10px] text-slate-600 truncate mt-1">PDF Page {aIdx + 1}</span>
                                                             </div>
                                                         ) : (
                                                             <div className="h-28">
@@ -530,12 +530,12 @@ export const StudentExamRoomPage: React.FC = () => {
                                                             type="button"
                                                             onClick={() => removeAttachment(q.id, aIdx)}
                                                             className="absolute top-1 right-1 p-1 rounded-full bg-slate-900/80 text-white hover:bg-rose-600 transition-colors"
-                                                            title="মুছে ফেলুন"
+                                                            title="Delete sheet"
                                                         >
                                                             <X className="w-3.5 h-3.5" />
                                                         </button>
                                                         <span className="absolute bottom-1 left-1 bg-slate-900/80 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">
-                                                            পাতা {aIdx + 1}
+                                                            Page {aIdx + 1}
                                                         </span>
                                                     </div>
                                                 ))}
@@ -553,12 +553,12 @@ export const StudentExamRoomPage: React.FC = () => {
             <div className="fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 py-3.5 px-4 shadow-lg">
                 <div className="max-w-4xl mx-auto flex items-center justify-between">
                     <div className="text-xs text-slate-500">
-                        সব প্রশ্নের উত্তর দেওয়া শেষ হলে সাবমিট বাটনে চাপ দিন।
+                        Click submit when you have answered all questions.
                     </div>
                     <button
                         type="button"
                         onClick={() => {
-                            if (window.confirm('আপনি কি নিশ্চিত যে উত্তরপত্র জমা দিতে চান? জমা দেওয়ার পর আর পরিবর্তন করা যাবে না।')) {
+                            if (window.confirm('Are you sure you want to submit your exam answers? You cannot change your submission once submitted.')) {
                                 submitAnswers();
                             }
                         }}
@@ -568,12 +568,12 @@ export const StudentExamRoomPage: React.FC = () => {
                         {submitting ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                <span>জমা নেওয়া হচ্ছে...</span>
+                                <span>Submitting...</span>
                             </>
                         ) : (
                             <>
                                 <Send className="w-4 h-4" />
-                                <span>উত্তরপত্র জমা দিন (Submit Exam)</span>
+                                <span>Submit Exam</span>
                             </>
                         )}
                     </button>

@@ -4,13 +4,9 @@ import { apiClient } from '../../api/client';
 import { SmsSetting } from '../../types';
 import { 
     MessageSquareText, 
-    Key, 
     Save, 
     Send, 
     CheckCircle2, 
-    AlertCircle, 
-    ShieldCheck, 
-    Clock, 
     RefreshCw,
     Sliders
 } from 'lucide-react';
@@ -64,9 +60,9 @@ export const AdminSmsPage: React.FC = () => {
             });
             setSettings(prev => prev ? { ...prev, ...data.settings } : data.settings);
             setApiToken('');
-            alert(data.message);
+            alert(data.message || 'Settings saved successfully.');
         } catch (err: any) {
-            alert(err.response?.data?.message || 'সেটিংস সেভ করতে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to save settings.');
         } finally {
             setSaving(false);
         }
@@ -74,7 +70,7 @@ export const AdminSmsPage: React.FC = () => {
 
     const handleSendTestSms = async () => {
         if (!testPhone) {
-            alert('মোবাইল নম্বর লিখুন');
+            alert('Please enter a mobile phone number.');
             return;
         }
 
@@ -84,17 +80,17 @@ export const AdminSmsPage: React.FC = () => {
             const { data } = await apiClient.post('/admin/sms-settings/test', {
                 phone: testPhone,
             });
-            setTestResult(data.message);
+            setTestResult(data.message || 'Test SMS sent successfully.');
             fetchSettings();
         } catch (err: any) {
-            setTestResult(err.response?.data?.message || 'টেস্ট এসএমএস পাঠাতে ব্যর্থ হয়েছে।');
+            setTestResult(err.response?.data?.message || 'Failed to send test SMS.');
         } finally {
             setSendingTest(false);
         }
     };
 
     if (loading || !settings) {
-        return <div className="p-12 text-center text-slate-400">এসএমএস সেটিংস লোড হচ্ছে...</div>;
+        return <div className="p-12 text-center text-slate-400">Loading SMS settings...</div>;
     }
 
     return (
@@ -104,20 +100,20 @@ export const AdminSmsPage: React.FC = () => {
             <div className="bg-white p-2 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center gap-2">
                 <div className="flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-sky-600 text-white shadow-sm flex items-center justify-center gap-2">
                     <Sliders className="w-4 h-4 text-white" />
-                    <span>এসএমএস কনফিগারেশন (Configuration)</span>
+                    <span>SMS Configuration</span>
                 </div>
                 <Link
                     to="/admin/sms-marketing"
                     className="flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center gap-2 transition"
                 >
                     <Send className="w-4 h-4 text-slate-500" />
-                    <span>এসএমএস মার্কেটিং ও বাল্ক সেন্ডার (Marketing)</span>
+                    <span>SMS Marketing & Bulk Sender</span>
                 </Link>
             </div>
 
             <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">GreenWeb এসএমএস গেটওয়ে কনফিগারেশন</h2>
-                <p className="text-xs text-slate-500 mt-0.5">অফিসিয়াল গ্রিনওয়েব এসএমএস এপিআই ও রেজিস্ট্রেশন ওটিপি ভেরিফিকেশন ম্যানেজমেন্ট</p>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">GreenWeb SMS Gateway Configuration</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Official GreenWeb SMS API and registration OTP verification management</p>
             </div>
 
             {/* Provider Notice */}
@@ -126,9 +122,9 @@ export const AdminSmsPage: React.FC = () => {
                     <MessageSquareText className="w-5 h-5" />
                 </div>
                 <div className="text-xs text-sky-900 space-y-1">
-                    <h4 className="font-bold text-sm">প্রোভাইডার: GreenWeb Bangladesh (greenweb.com.bd)</h4>
+                    <h4 className="font-bold text-sm">Provider: GreenWeb Bangladesh (greenweb.com.bd)</h4>
                     <p className="text-sky-800/80 leading-relaxed">
-                        লারাভেল ব্যাকএন্ডে অফিসিয়াল GreenWeb API আর্কিটেকচার যুক্ত করা হয়েছে। এপিআই টোকেন ডাটাবেজে এনক্রিপ্ট করে সুরক্ষিত রাখা হয় এবং ফ্রন্টএন্ডে কখনও উন্মুক্ত করা হয় না।
+                        Official GreenWeb API architecture is integrated into the backend. The API token is securely encrypted in the database and never exposed to the frontend.
                     </p>
                 </div>
             </div>
@@ -139,20 +135,20 @@ export const AdminSmsPage: React.FC = () => {
                     {/* API Token */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            GreenWeb API Token (এপিআই টোকেন) *
+                            GreenWeb API Token *
                         </label>
                         <div className="space-y-2">
                             <input
                                 type="text"
                                 value={apiToken}
                                 onChange={(e) => setApiToken(e.target.value)}
-                                placeholder={settings.api_token_masked || 'আপনার GreenWeb API টোকেন লিখুন'}
+                                placeholder={settings.api_token_masked || 'Enter your GreenWeb API token'}
                                 className="w-full px-4 py-3 font-mono bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                             />
                             {settings.has_token && (
                                 <p className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
                                     <CheckCircle2 className="w-3.5 h-3.5" />
-                                    বর্তমান টোকেন সংরক্ষিত আছে: {settings.api_token_masked}
+                                    Current token is securely stored: {settings.api_token_masked}
                                 </p>
                             )}
                         </div>
@@ -161,13 +157,13 @@ export const AdminSmsPage: React.FC = () => {
                     {/* Sender ID */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            সেন্ডার আইডি / মাস্কিং নাম (ঐচ্ছিক)
+                            Sender ID / Masking Name (Optional)
                         </label>
                         <input
                             type="text"
                             value={senderId}
                             onChange={(e) => setSenderId(e.target.value)}
-                            placeholder="যেমন: Novonex (অনুমোদিত হলে)"
+                            placeholder="e.g., MonologueEdu (if approved)"
                             className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                         />
                     </div>
@@ -183,8 +179,8 @@ export const AdminSmsPage: React.FC = () => {
                                 className="w-5 h-5 mt-0.5 text-sky-600 rounded border-slate-300"
                             />
                             <div>
-                                <span className="block text-xs font-bold text-slate-800">এসএমএস গেটওয়ে সক্রিয় (SMS Enabled)</span>
-                                <span className="text-[11px] text-slate-500">অন থাকলে গ্রাহকের নম্বরে মেসেজ পাঠানো হবে</span>
+                                <span className="block text-xs font-bold text-slate-800">SMS Gateway Active</span>
+                                <span className="text-[11px] text-slate-500">If enabled, automated SMS notifications will be dispatched to users</span>
                             </div>
                         </label>
 
@@ -197,8 +193,8 @@ export const AdminSmsPage: React.FC = () => {
                                 className="w-5 h-5 mt-0.5 text-sky-600 rounded border-slate-300"
                             />
                             <div>
-                                <span className="block text-xs font-bold text-slate-800">মোবাইল নম্বর ওটিপি যাচাইকরণ (Strict Mobile OTP Verification)</span>
-                                <span className="text-[11px] text-slate-500">অন থাকলে মোবাইল নম্বর ওটিপি দিয়ে ভেরিফাই ছাড়া অ্যাকাউন্ট খোলা যাবে না। যাচাই সফল হলে সরাসরি সক্রিয় অ্যাকাউন্ট তৈরি হবে, কোনো নিষ্ক্রিয় অ্যাকাউন্ট খোলা হবে না।</span>
+                                <span className="block text-xs font-bold text-slate-800">Strict Mobile OTP Verification</span>
+                                <span className="text-[11px] text-slate-500">If enabled, registration requires phone verification via OTP before active account creation</span>
                             </div>
                         </label>
                     </div>
@@ -207,7 +203,7 @@ export const AdminSmsPage: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                ওটিপির মেয়াদ (Expiration Minutes)
+                                OTP Expiration (Minutes)
                             </label>
                             <input
                                 type="number"
@@ -222,7 +218,7 @@ export const AdminSmsPage: React.FC = () => {
 
                         <div>
                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                পুনরায় ওটিপি চাওয়ার বিরতি (Resend Cooldown Seconds)
+                                Resend Cooldown (Seconds)
                             </label>
                             <input
                                 type="number"
@@ -242,16 +238,16 @@ export const AdminSmsPage: React.FC = () => {
                         className="px-6 py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-xl shadow-md shadow-sky-600/30 flex items-center gap-2 transition-all disabled:opacity-50"
                     >
                         <Save className="w-4 h-4" />
-                        <span>{saving ? 'সংরক্ষণ হচ্ছে...' : 'কনফিগারেশন সংরক্ষণ করুন'}</span>
+                        <span>{saving ? 'Saving...' : 'Save Configuration'}</span>
                     </button>
                 </form>
             </div>
 
             {/* Test Connection / SMS Box */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
-                <h3 className="text-base font-bold text-slate-900">টেস্ট এসএমএস টেস্ট করুন</h3>
+                <h3 className="text-base font-bold text-slate-900">Send Test SMS</h3>
                 <p className="text-xs text-slate-500">
-                    আপনার মোবাইল নম্বর লিখে টেস্ট মেসেজ পাঠিয়ে GreenWeb গেটওয়ের সংযোগ পরীক্ষা করুন।
+                    Enter your mobile number to send a test message and verify the GreenWeb gateway connection.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center gap-3">
@@ -268,13 +264,13 @@ export const AdminSmsPage: React.FC = () => {
                         className="w-full sm:w-auto px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors disabled:opacity-50"
                     >
                         <Send className="w-3.5 h-3.5" />
-                        <span>{sendingTest ? 'পাঠানো হচ্ছে...' : 'টেস্ট মেসেজ পাঠান'}</span>
+                        <span>{sendingTest ? 'Sending...' : 'Send Test SMS'}</span>
                     </button>
                 </div>
 
                 {testResult && (
                     <div className="p-3 rounded-xl bg-slate-100 text-slate-800 font-mono text-xs">
-                        ফলাফল: {testResult}
+                        Result: {testResult}
                     </div>
                 )}
             </div>
@@ -282,10 +278,10 @@ export const AdminSmsPage: React.FC = () => {
             {/* Recent SMS Delivery Logs */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 className="text-base font-bold text-slate-900">সাম্প্রতিক এসএমএস লগ (Delivery Audit Logs)</h3>
+                    <h3 className="text-base font-bold text-slate-900">Recent SMS Delivery Audit Logs</h3>
                     <button onClick={fetchSettings} className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1">
                         <RefreshCw className="w-3.5 h-3.5" />
-                        <span>রিফ্রেশ</span>
+                        <span>Refresh</span>
                     </button>
                 </div>
 
@@ -293,10 +289,10 @@ export const AdminSmsPage: React.FC = () => {
                     <table className="w-full text-left text-xs">
                         <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider">
                             <tr>
-                                <th className="py-3 px-4 rounded-l-lg">মোবাইল</th>
-                                <th className="py-3 px-4">মেসেজ</th>
-                                <th className="py-3 px-4">স্ট্যাটাস</th>
-                                <th className="py-3 px-4 rounded-r-lg">তারিখ ও সময়</th>
+                                <th className="py-3 px-4 rounded-l-lg">Phone</th>
+                                <th className="py-3 px-4">Message</th>
+                                <th className="py-3 px-4">Status</th>
+                                <th className="py-3 px-4 rounded-r-lg">Date & Time</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
@@ -317,13 +313,13 @@ export const AdminSmsPage: React.FC = () => {
                                             </span>
                                         </td>
                                         <td className="py-3 px-4 text-slate-400">
-                                            {new Date(log.created_at).toLocaleString('bn-BD')}
+                                            {new Date(log.created_at).toLocaleString('en-US')}
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={4} className="py-6 text-center text-slate-400">কোনো লগ নেই।</td>
+                                    <td colSpan={4} className="py-6 text-center text-slate-400">No logs found.</td>
                                 </tr>
                             )}
                         </tbody>

@@ -56,7 +56,7 @@ export const AdminCourseCategoriesPage: React.FC = () => {
         return text
             .toLowerCase()
             .trim()
-            .replace(/[^\w\u0980-\u09FF -]+/g, '')
+            .replace(/[^\w -]+/g, '')
             .replace(/\s+/g, '-')
             .replace(/-+/g, '-');
     };
@@ -93,7 +93,7 @@ export const AdminCourseCategoriesPage: React.FC = () => {
         setFormError(null);
 
         if (!formName.trim()) {
-            setFormError('ক্যাটাগরির নাম দেওয়া বাধ্যতামূলক।');
+            setFormError('Category name is required.');
             return;
         }
 
@@ -108,17 +108,17 @@ export const AdminCourseCategoriesPage: React.FC = () => {
             if (editingCategory) {
                 const { data } = await apiClient.put(`/admin/categories/${editingCategory.id}`, payload);
                 setCategories(prev => prev.map(c => c.id === editingCategory.id ? data.category : c));
-                setSuccessMessage('ক্যাটাগরি সফলভাবে আপডেট করা হয়েছে!');
+                setSuccessMessage('Category updated successfully!');
             } else {
                 const { data } = await apiClient.post('/admin/categories', payload);
                 setCategories(prev => [data.category, ...prev]);
-                setSuccessMessage('নতুন ক্যাটাগরি সফলভাবে তৈরি করা হয়েছে!');
+                setSuccessMessage('New category created successfully!');
             }
 
             setModalOpen(false);
             setTimeout(() => setSuccessMessage(null), 4000);
         } catch (err: any) {
-            setFormError(err.response?.data?.message || 'ক্যাটাগরি সংরক্ষণ করতে ব্যর্থ হয়েছে।');
+            setFormError(err.response?.data?.message || 'Failed to save category.');
         } finally {
             setSaving(false);
         }
@@ -126,8 +126,8 @@ export const AdminCourseCategoriesPage: React.FC = () => {
 
     const handleDelete = async (cat: Category) => {
         const confirmMsg = cat.courses_count && cat.courses_count > 0
-            ? `সতর্কতা: "${cat.name}" ক্যাটাগরির সাথে ${cat.courses_count}টি কোর্স যুক্ত রয়েছে। ক্যাটাগরি মুছে ফেললে কোর্সগুলো অক্ষত থাকবে কিন্তু ক্যাটাগরি ম্যাপিং বিচ্ছিন্ন হবে। আপনি কি নিশ্চিত?`
-            : `আপনি কি নিশ্চিতভাবে "${cat.name}" ক্যাটাগরি মুছে ফেলতে চান?`;
+            ? `Warning: "${cat.name}" category is currently linked to ${cat.courses_count} courses. Deleting it will unlink the courses. Are you sure?`
+            : `Are you sure you want to delete "${cat.name}" category?`;
 
         if (!window.confirm(confirmMsg)) return;
 
@@ -135,10 +135,10 @@ export const AdminCourseCategoriesPage: React.FC = () => {
         try {
             await apiClient.delete(`/admin/categories/${cat.id}`);
             setCategories(prev => prev.filter(c => c.id !== cat.id));
-            setSuccessMessage(`"${cat.name}" ক্যাটাগরি সফলভাবে মুছে ফেলা হয়েছে।`);
+            setSuccessMessage(`"${cat.name}" category deleted successfully.`);
             setTimeout(() => setSuccessMessage(null), 4000);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'ক্যাটাগরি মুছতে ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to delete category.');
         } finally {
             setDeletingId(null);
         }
@@ -160,10 +160,10 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
                         <Tag className="w-7 h-7 text-sky-600" />
-                        <span>কোর্স ক্যাটাগরি ব্যবস্থাপনা</span>
+                        <span>Course Category Management</span>
                     </h1>
                     <p className="text-sm text-slate-500 mt-1">
-                        ফ্রি কোর্স, পেইড কোর্স, একাডেমিক বা অ্যাডমিশন সহ যেকোনো ক্যাটাগরি তৈরি ও নিয়ন্ত্রণ করুন
+                        Create and manage course categories including Free Courses, Paid Courses, Academic, or Admission.
                     </p>
                 </div>
                 <button
@@ -171,7 +171,7 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                     className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-sky-600 text-white font-bold text-sm shadow-lg shadow-sky-600/30 hover:bg-sky-700 transition-all cursor-pointer shrink-0"
                 >
                     <Plus className="w-4 h-4" />
-                    <span>নতুন ক্যাটাগরি যোগ করুন</span>
+                    <span>Add New Category</span>
                 </button>
             </div>
 
@@ -190,8 +190,8 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                         <FolderPlus className="w-6 h-6" />
                     </div>
                     <div>
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">মোট ক্যাটাগরি</div>
-                        <div className="text-2xl font-black text-slate-900 mt-0.5">{categories.length} টি</div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Categories</div>
+                        <div className="text-2xl font-black text-slate-900 mt-0.5">{categories.length}</div>
                     </div>
                 </div>
 
@@ -200,8 +200,8 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                         <Layers className="w-6 h-6" />
                     </div>
                     <div>
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">কোর্সযুক্ত ক্যাটাগরি</div>
-                        <div className="text-2xl font-black text-slate-900 mt-0.5">{activeCategoriesCount} টি</div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Categories</div>
+                        <div className="text-2xl font-black text-slate-900 mt-0.5">{activeCategoriesCount}</div>
                     </div>
                 </div>
 
@@ -210,8 +210,8 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                         <BookOpen className="w-6 h-6" />
                     </div>
                     <div>
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">মোট কোর্স অ্যাসাইনমেন্ট</div>
-                        <div className="text-2xl font-black text-slate-900 mt-0.5">{totalCoursesMapped} বার</div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Assignments</div>
+                        <div className="text-2xl font-black text-slate-900 mt-0.5">{totalCoursesMapped}</div>
                     </div>
                 </div>
             </div>
@@ -223,7 +223,7 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="ক্যাটাগরির নাম বা স্লাগ খুঁজুন..."
+                        placeholder="Search category by name or slug..."
                         className="w-full pl-11 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                     />
                     <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -235,16 +235,16 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                 {loading ? (
                     <div className="p-12 text-center text-slate-400 space-y-3">
                         <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-slate-200 border-t-sky-600" />
-                        <p className="text-sm font-semibold">ক্যাটাগরি তালিকা লোড হচ্ছে...</p>
+                        <p className="text-sm font-semibold">Loading categories...</p>
                     </div>
                 ) : filteredCategories.length === 0 ? (
                     <div className="p-12 text-center space-y-3">
                         <div className="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400 mx-auto">
                             <Tag className="w-7 h-7" />
                         </div>
-                        <h3 className="text-base font-bold text-slate-800">কোনো ক্যাটাগরি পাওয়া যায়নি</h3>
+                        <h3 className="text-base font-bold text-slate-800">No categories found</h3>
                         <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                            {search ? 'অনুসন্ধানের সাথে মেলে এমন কোনো ক্যাটাগরি নেই।' : 'বর্তমানে কোনো ক্যাটাগরি তৈরি করা হয়নি। উপরের বাটন দিয়ে নতুন ক্যাটাগরি তৈরি করুন।'}
+                            {search ? 'No categories match your search criteria.' : 'No categories created yet. Click the button above to add a category.'}
                         </p>
                     </div>
                 ) : (
@@ -252,11 +252,11 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-slate-200 bg-slate-50/75 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                                    <th className="py-4 px-6">ক্যাটাগরির নাম</th>
-                                    <th className="py-4 px-6">স্লাগ (URL Slug)</th>
-                                    <th className="py-4 px-6">বিবরণ</th>
-                                    <th className="py-4 px-6 text-center">কোর্স সংখ্যা</th>
-                                    <th className="py-4 px-6 text-right">অ্যাকশন</th>
+                                    <th className="py-4 px-6">Category Name</th>
+                                    <th className="py-4 px-6">URL Slug</th>
+                                    <th className="py-4 px-6">Description</th>
+                                    <th className="py-4 px-6 text-center">Courses Count</th>
+                                    <th className="py-4 px-6 text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-700">
@@ -275,7 +275,7 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                                             </span>
                                         </td>
                                         <td className="py-4 px-6 max-w-xs truncate text-xs text-slate-500">
-                                            {cat.description || <span className="text-slate-300 italic">কোনো বিবরণ নেই</span>}
+                                            {cat.description || <span className="text-slate-300 italic">No description</span>}
                                         </td>
                                         <td className="py-4 px-6 text-center">
                                             <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
@@ -284,7 +284,7 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                                                     : 'bg-slate-100 text-slate-500'
                                             }`}>
                                                 <BookOpen className="w-3 h-3" />
-                                                {cat.courses_count || 0} টি কোর্স
+                                                {cat.courses_count || 0} Courses
                                             </span>
                                         </td>
                                         <td className="py-4 px-6 text-right">
@@ -293,14 +293,14 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                                                     href={`/courses?category=${cat.slug}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    title="ওয়েবসাইটে দেখুন"
+                                                    title="View on website"
                                                     className="p-2 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition-colors"
                                                 >
                                                     <ExternalLink className="w-4 h-4" />
                                                 </a>
                                                 <button
                                                     onClick={() => handleOpenEdit(cat)}
-                                                    title="সম্পাদনা করুন"
+                                                    title="Edit Category"
                                                     className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-colors cursor-pointer"
                                                 >
                                                     <Edit className="w-4 h-4" />
@@ -308,7 +308,7 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                                                 <button
                                                     onClick={() => handleDelete(cat)}
                                                     disabled={deletingId === cat.id}
-                                                    title="মুছে ফেলুন"
+                                                    title="Delete Category"
                                                     className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
@@ -327,7 +327,7 @@ export const AdminCourseCategoriesPage: React.FC = () => {
             <Modal
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
-                title={editingCategory ? 'ক্যাটাগরি সম্পাদনা করুন' : 'নতুন ক্যাটাগরি তৈরি করুন'}
+                title={editingCategory ? 'Edit Category' : 'Create New Category'}
             >
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {formError && (
@@ -339,14 +339,14 @@ export const AdminCourseCategoriesPage: React.FC = () => {
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            ক্যাটাগরির নাম *
+                            Category Name *
                         </label>
                         <input
                             type="text"
                             required
                             value={formName}
                             onChange={(e) => handleNameChange(e.target.value)}
-                            placeholder="যেমন: ফ্রি কোর্স, পেইড কোর্স, এইচএসসি ফিজিক্স"
+                            placeholder="e.g. Free Courses, Paid Courses, HSC Physics"
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                         />
                     </div>
@@ -354,9 +354,9 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                     <div>
                         <div className="flex items-center justify-between mb-1.5">
                             <label className="block text-xs font-bold text-slate-700">
-                                স্লাগ (URL Slug)
+                                URL Slug
                             </label>
-                            <span className="text-[10px] text-slate-400 font-medium">ইংরেজি ছোট অক্ষরে স্লাগ হবে</span>
+                            <span className="text-[10px] text-slate-400 font-medium">Lowercase letters, numbers, hyphens</span>
                         </div>
                         <input
                             type="text"
@@ -365,20 +365,20 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                                 setIsCustomSlug(true);
                                 setFormSlug(e.target.value);
                             }}
-                            placeholder="যেমন: free-courses, hsc-physics"
+                            placeholder="e.g. free-courses, hsc-physics"
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                         />
                     </div>
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            সংক্ষিপ্ত বিবরণ (ঐচ্ছিক)
+                            Brief Description (Optional)
                         </label>
                         <textarea
                             rows={3}
                             value={formDescription}
                             onChange={(e) => setFormDescription(e.target.value)}
-                            placeholder="এই ক্যাটাগরি সম্পর্কিত সংক্ষিপ্ত তথ্য লিখুন..."
+                            placeholder="Enter a short description of this category..."
                             className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                         />
                     </div>
@@ -389,14 +389,14 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                             onClick={() => setModalOpen(false)}
                             className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 cursor-pointer"
                         >
-                            বাতিল করুন
+                            Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={saving}
                             className="px-6 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-md shadow-sky-600/30 flex items-center gap-2 cursor-pointer disabled:opacity-50"
                         >
-                            <span>{saving ? 'সংরক্ষণ হচ্ছে...' : editingCategory ? 'আপডেট করুন' : 'তৈরি করুন'}</span>
+                            <span>{saving ? 'Saving...' : editingCategory ? 'Update Category' : 'Create Category'}</span>
                         </button>
                     </div>
                 </form>

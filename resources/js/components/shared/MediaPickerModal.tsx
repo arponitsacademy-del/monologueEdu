@@ -28,7 +28,7 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
     onClose,
     onSelect,
     filterType = 'image',
-    title = 'মিডিয়া লাইব্রেরি থেকে ছবি বা ফাইল বাছাই করুন'
+    title = 'Select image or file from media library'
 }) => {
     const [activeTab, setActiveTab] = useState<'library' | 'upload'>('library');
     const [items, setItems] = useState<MediaItem[]>([]);
@@ -93,7 +93,7 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
             setSelectedItem(newMedia);
             setActiveTab('library');
         } catch (err: any) {
-            const msg = err.response?.data?.message || 'ফাইল আপলোড করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।';
+            const msg = err.response?.data?.message || 'Failed to upload file. Please try again.';
             setUploadError(msg);
         } finally {
             setUploading(false);
@@ -150,7 +150,7 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                     <div>
                         <h3 className="text-lg font-bold text-slate-800">{title}</h3>
                         <p className="text-xs text-slate-500 mt-0.5">
-                            ছবি নির্বাচন করুন অথবা আপনার ডিভাইস থেকে নতুন আপলোড করুন
+                            Select an image or upload a new one from your device
                         </p>
                     </div>
                     <button
@@ -171,7 +171,7 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                                 : 'border-transparent text-slate-500 hover:text-slate-700'
                         }`}
                     >
-                        মিডিয়া লাইব্রেরি (Media Library)
+                        Media Library
                     </button>
                     <button
                         onClick={() => setActiveTab('upload')}
@@ -181,7 +181,7 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                                 : 'border-transparent text-slate-500 hover:text-slate-700'
                         }`}
                     >
-                        নতুন আপলোড (Upload New)
+                        Upload New
                     </button>
                 </div>
 
@@ -209,8 +209,8 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                             {uploading ? (
                                 <div className="flex flex-col items-center">
                                     <Loader2 className="w-12 h-12 text-sky-600 animate-spin mb-4" />
-                                    <p className="font-semibold text-slate-700 text-base">ফাইল আপলোড হচ্ছে...</p>
-                                    <p className="text-xs text-slate-400 mt-1">অনুগ্রহ করে কয়েক সেকেন্ড অপেক্ষা করুন</p>
+                                    <p className="font-semibold text-slate-700 text-base">Uploading file...</p>
+                                    <p className="text-xs text-slate-400 mt-1">Please wait a few moments</p>
                                 </div>
                             ) : (
                                 <>
@@ -218,13 +218,13 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                                         <UploadCloud className="w-8 h-8" />
                                     </div>
                                     <h4 className="font-bold text-slate-800 text-base mb-1">
-                                        ফাইল ড্র্যাগ করে ড্রপ করুন অথবা ব্রাউজ করুন
+                                        Drag & drop files here or browse
                                     </h4>
                                     <p className="text-xs text-slate-500 max-w-sm mb-4">
-                                        PNG, JPG, WEBP, SVG ইত্যাদি ফাইল অনুমোদিত (সর্বোচ্চ ৫০ মেগাবাইট)
+                                        PNG, JPG, WEBP, SVG files supported (max 50 MB)
                                     </p>
                                     <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold rounded-lg shadow-sm">
-                                        কম্পিউটার থেকে বাছুন
+                                        Choose from computer
                                     </span>
                                 </>
                             )}
@@ -243,7 +243,7 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                                     <Search className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
                                     <input
                                         type="text"
-                                        placeholder="ফাইলের নাম লিখে খুঁজুন..."
+                                        placeholder="Search by file name..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="w-full pl-9 pr-3 py-2 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
@@ -256,7 +256,7 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                                     className="inline-flex items-center gap-1.5 px-3 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 transition"
                                 >
                                     <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-                                    রিফ্রেশ
+                                    Refresh
                                 </button>
                             </div>
 
@@ -264,14 +264,14 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                             {loading && items.length === 0 ? (
                                 <div className="py-20 flex flex-col items-center justify-center text-slate-400">
                                     <Loader2 className="w-8 h-8 animate-spin text-sky-600 mb-2" />
-                                    <p className="text-xs">মিডিয়া ফাইলসমূহ লোড হচ্ছে...</p>
+                                    <p className="text-xs">Loading media files...</p>
                                 </div>
                             ) : items.length === 0 ? (
                                 <div className="py-16 text-center bg-white rounded-xl border border-slate-200">
                                     <ImageIcon className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                                    <p className="font-semibold text-slate-600 text-sm">কোনো মিডিয়া ফাইল পাওয়া যায়নি</p>
+                                    <p className="font-semibold text-slate-600 text-sm">No media files found</p>
                                     <p className="text-xs text-slate-400 mt-1">
-                                        উপরে "নতুন আপলোড" ট্যাব থেকে ছবি বা ফাইল যুক্ত করুন
+                                        Add images or files using the "Upload New" tab above
                                     </p>
                                 </div>
                             ) : (
@@ -323,17 +323,17 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                                         onClick={() => fetchMedia(page - 1, searchTerm)}
                                         className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 disabled:opacity-50 bg-white"
                                     >
-                                        পূর্ববর্তী
+                                        Previous
                                     </button>
                                     <span className="text-xs text-slate-500 font-medium">
-                                        পৃষ্ঠা {page} / {lastPage}
+                                        Page {page} of {lastPage}
                                     </span>
                                     <button
                                         disabled={page >= lastPage}
                                         onClick={() => fetchMedia(page + 1, searchTerm)}
                                         className="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 disabled:opacity-50 bg-white"
                                     >
-                                        পরবর্তী
+                                        Next
                                     </button>
                                 </div>
                             )}
@@ -346,10 +346,10 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                     <div className="text-xs text-slate-500">
                         {selectedItem ? (
                             <span className="font-medium text-slate-700">
-                                নির্বাচিত: <span className="text-sky-600 font-semibold">{selectedItem.file_name}</span>
+                                Selected: <span className="text-sky-600 font-semibold">{selectedItem.file_name}</span>
                             </span>
                         ) : (
-                            <span>একটি ফাইল সিলেক্ট করুন বা ডাবল ক্লিক করুন</span>
+                            <span>Select a file or double-click to choose</span>
                         )}
                     </div>
                     <div className="flex items-center gap-2">
@@ -358,7 +358,7 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                             onClick={onClose}
                             className="px-4 py-2 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition"
                         >
-                            বাতিল
+                            Cancel
                         </button>
                         <button
                             type="button"
@@ -366,7 +366,7 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                             onClick={handleConfirm}
                             className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-xs font-semibold shadow-sm disabled:opacity-50 transition"
                         >
-                            বাছাই সম্পন্ন করুন
+                            Confirm Selection
                         </button>
                     </div>
                 </div>

@@ -64,56 +64,56 @@ const MATH_SYMBOLS = [
 // Equation Templates categories
 const EQUATION_TEMPLATES = [
     {
-        category: 'বীজগণিত ও সাধারণ (Algebra)',
+        category: 'Algebra & Arithmetic',
         items: [
-            { name: 'ভগ্নাংশ (Fraction)', template: '$\\frac{a}{b}$', preview: '\\frac{a}{b}' },
-            { name: 'বর্গমূল (Square Root)', template: '$\\sqrt{x}$', preview: '\\sqrt{x}' },
-            { name: 'n-তম মূল (Nth Root)', template: '$\\sqrt[n]{x}$', preview: '\\sqrt[n]{x}' },
-            { name: 'পাওয়ার / সূচক (Power)', template: '$x^{2}$', preview: 'x^{2}' },
-            { name: 'দ্বিঘাত সূত্র (Quadratic)', template: '$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$', preview: 'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}' },
-            { name: 'বর্গের সূত্র', template: '$$(a+b)^2 = a^2 + 2ab + b^2$$', preview: '(a+b)^2 = a^2 + 2ab + b^2' },
+            { name: 'Fraction', template: '$\\frac{a}{b}$', preview: '\\frac{a}{b}' },
+            { name: 'Square Root', template: '$\\sqrt{x}$', preview: '\\sqrt{x}' },
+            { name: 'N-th Root', template: '$\\sqrt[n]{x}$', preview: '\\sqrt[n]{x}' },
+            { name: 'Power / Exponent', template: '$x^{2}$', preview: 'x^{2}' },
+            { name: 'Quadratic Formula', template: '$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$', preview: 'x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}' },
+            { name: 'Binomial Square', template: '$$(a+b)^2 = a^2 + 2ab + b^2$$', preview: '(a+b)^2 = a^2 + 2ab + b^2' },
         ]
     },
     {
-        category: 'ক্যালকুলাস ও লিমিট (Calculus & Limits)',
+        category: 'Calculus & Limits',
         items: [
-            { name: 'ডিফারেন্সিয়েশন', template: '$\\frac{dy}{dx}$', preview: '\\frac{dy}{dx}' },
-            { name: 'অনির্দিষ্ট সমাকলন', template: '$$\\int f(x) dx$$', preview: '\\int f(x) dx' },
-            { name: 'নির্দিষ্ট সমাকলন', template: '$$\\int_{a}^{b} f(x) dx$$', preview: '\\int_{a}^{b} f(x) dx' },
-            { name: 'লিমিট (Limit)', template: '$$\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1$$', preview: '\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1' },
-            { name: 'সামেশন (Summation)', template: '$$\\sum_{i=1}^{n} i$$', preview: '\\sum_{i=1}^{n} i' },
-            { name: 'আংশিক অন্তরীকরণ', template: '$\\frac{\\partial f}{\\partial x}$', preview: '\\frac{\\partial f}{\\partial x}' },
+            { name: 'Derivative', template: '$\\frac{dy}{dx}$', preview: '\\frac{dy}{dx}' },
+            { name: 'Indefinite Integral', template: '$$\\int f(x) dx$$', preview: '\\int f(x) dx' },
+            { name: 'Definite Integral', template: '$$\\int_{a}^{b} f(x) dx$$', preview: '\\int_{a}^{b} f(x) dx' },
+            { name: 'Limit', template: '$$\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1$$', preview: '\\lim_{x \\to 0} \\frac{\\sin x}{x} = 1' },
+            { name: 'Summation', template: '$$\\sum_{i=1}^{n} i$$', preview: '\\sum_{i=1}^{n} i' },
+            { name: 'Partial Derivative', template: '$\\frac{\\partial f}{\\partial x}$', preview: '\\frac{\\partial f}{\\partial x}' },
         ]
     },
     {
-        category: 'ত্রিকোণমিতি ও জ্যামিতি (Trigonometry)',
+        category: 'Trigonometry & Geometry',
         items: [
-            { name: 'সাইন স্কয়ার প্লাস কস স্কয়ার', template: '$$\\sin^2\\theta + \\cos^2\\theta = 1$$', preview: '\\sin^2\\theta + \\cos^2\\theta = 1' },
-            { name: 'ট্যান থিটা', template: '$\\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta}$', preview: '\\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta}' },
-            { name: 'ত্রিভুজের ক্ষেত্রফল', template: '$$\\text{Area} = \\frac{1}{2}bh$$', preview: '\\text{Area} = \\frac{1}{2}bh' },
-            { name: 'বৃত্তের ক্ষেত্রফল', template: '$$A = \\pi r^2$$', preview: 'A = \\pi r^2' },
-            { name: 'কোণ (Angle)', template: '$\\angle ABC = 90^\\circ$', preview: '\\angle ABC = 90^\\circ' },
+            { name: 'Pythagorean Identity', template: '$$\\sin^2\\theta + \\cos^2\\theta = 1$$', preview: '\\sin^2\\theta + \\cos^2\\theta = 1' },
+            { name: 'Tangent Ratio', template: '$\\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta}$', preview: '\\tan\\theta = \\frac{\\sin\\theta}{\\cos\\theta}' },
+            { name: 'Triangle Area', template: '$$\\text{Area} = \\frac{1}{2}bh$$', preview: '\\text{Area} = \\frac{1}{2}bh' },
+            { name: 'Circle Area', template: '$$A = \\pi r^2$$', preview: 'A = \\pi r^2' },
+            { name: 'Angle', template: '$\\angle ABC = 90^\\circ$', preview: '\\angle ABC = 90^\\circ' },
         ]
     },
     {
-        category: 'পদার্থবিজ্ঞান ও ভেক্টর (Physics & Vectors)',
+        category: 'Physics & Vectors',
         items: [
-            { name: 'ভেক্টর ডট গুণন', template: '$$\\vec{A} \\cdot \\vec{B} = AB \\cos\\theta$$', preview: '\\vec{A} \\cdot \\vec{B} = AB \\cos\\theta' },
-            { name: 'ভেক্টর ক্রস গুণন', template: '$$\\vec{A} \\times \\vec{B} = AB \\sin\\theta \\hat{\\eta}$$', preview: '\\vec{A} \\times \\vec{B} = AB \\sin\\theta \\hat{\\eta}' },
-            { name: 'একক ভেক্টর', template: '$\\hat{i}, \\hat{j}, \\hat{k}$', preview: '\\hat{i}, \\hat{j}, \\hat{k}' },
-            { name: 'নিউটনের ২য় সূত্র', template: '$$\\vec{F} = m\\vec{a}$$', preview: '\\vec{F} = m\\vec{a}' },
-            { name: 'গতি সমীকরণ (১)', template: '$$v = u + at$$', preview: 'v = u + at' },
-            { name: 'গতি সমীকরণ (২)', template: '$$s = ut + \\frac{1}{2}at^2$$', preview: 's = ut + \\frac{1}{2}at^2' },
-            { name: 'গতি সমীকরণ (৩)', template: '$$v^2 = u^2 + 2as$$', preview: 'v^2 = u^2 + 2as' },
-            { name: 'গতিশক্তি', template: '$$E_k = \\frac{1}{2}mv^2$$', preview: 'E_k = \\frac{1}{2}mv^2' },
+            { name: 'Vector Dot Product', template: '$$\\vec{A} \\cdot \\vec{B} = AB \\cos\\theta$$', preview: '\\vec{A} \\cdot \\vec{B} = AB \\cos\\theta' },
+            { name: 'Vector Cross Product', template: '$$\\vec{A} \\times \\vec{B} = AB \\sin\\theta \\hat{\\eta}$$', preview: '\\vec{A} \\times \\vec{B} = AB \\sin\\theta \\hat{\\eta}' },
+            { name: 'Unit Vectors', template: '$\\hat{i}, \\hat{j}, \\hat{k}$', preview: '\\hat{i}, \\hat{j}, \\hat{k}' },
+            { name: 'Newton’s 2nd Law', template: '$$\\vec{F} = m\\vec{a}$$', preview: '\\vec{F} = m\\vec{a}' },
+            { name: 'Kinematics (v = u + at)', template: '$$v = u + at$$', preview: 'v = u + at' },
+            { name: 'Kinematics (s = ut + 1/2 at²)', template: '$$s = ut + \\frac{1}{2}at^2$$', preview: 's = ut + \\frac{1}{2}at^2' },
+            { name: 'Kinematics (v² = u² + 2as)', template: '$$v^2 = u^2 + 2as$$', preview: 'v^2 = u^2 + 2as' },
+            { name: 'Kinetic Energy', template: '$$E_k = \\frac{1}{2}mv^2$$', preview: 'E_k = \\frac{1}{2}mv^2' },
         ]
     },
     {
-        category: 'ম্যাট্রিক্স ও সেট (Matrices & Sets)',
+        category: 'Matrices & Sets',
         items: [
-            { name: '২x২ ম্যাট্রিক্স', template: '$$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$', preview: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}' },
-            { name: '২x২ নির্ণায়ক (Determinant)', template: '$$\\begin{vmatrix} a & b \\\\ c & d \\end{vmatrix}$$', preview: '\\begin{vmatrix} a & b \\\\ c & d \\end{vmatrix}' },
-            { name: 'সেট ও উপাদান', template: '$x \\in A \\cup B$', preview: 'x \\in A \\cup B' },
+            { name: '2x2 Matrix', template: '$$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$', preview: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}' },
+            { name: '2x2 Determinant', template: '$$\\begin{vmatrix} a & b \\\\ c & d \\end{vmatrix}$$', preview: '\\begin{vmatrix} a & b \\\\ c & d \\end{vmatrix}' },
+            { name: 'Set Union & Element', template: '$x \\in A \\cup B$', preview: 'x \\in A \\cup B' },
         ]
     }
 ];
@@ -122,7 +122,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
     value,
     onChange,
     label,
-    placeholder = 'এখানে প্রশ্ন লিখুন...',
+    placeholder = 'Enter question text or math formulas here...',
     minHeight = '140px',
     required = false,
 }) => {
@@ -198,7 +198,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                         W
                     </span>
                     <span className="text-xs font-bold tracking-tight">
-                        {label || 'প্রশ্ন এডিটর (Microsoft Word Math Style)'}
+                        {label || 'Question Editor (Microsoft Word Math Style)'}
                         {required && <span className="text-rose-300 ml-1">*</span>}
                     </span>
                     <span className="px-2 py-0.5 rounded-full bg-blue-500/30 text-[10px] font-semibold text-blue-100 hidden sm:inline-block">
@@ -214,10 +214,10 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                         className={`px-2.5 py-1 rounded-md flex items-center gap-1 font-medium transition-colors ${
                             viewMode === 'split' ? 'bg-white text-slate-800 shadow-xs' : 'text-blue-100 hover:text-white'
                         }`}
-                        title="এডিটর ও স্টুডেন্ট প্রিভিউ পাশাপাশি দেখুন"
+                        title="View Editor and Preview side-by-side"
                     >
                         <Columns className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">স্প্লিট ভিউ (Split)</span>
+                        <span className="hidden sm:inline">Split View</span>
                     </button>
                     <button
                         type="button"
@@ -225,10 +225,10 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                         className={`px-2.5 py-1 rounded-md flex items-center gap-1 font-medium transition-colors ${
                             viewMode === 'editor' ? 'bg-white text-slate-800 shadow-xs' : 'text-blue-100 hover:text-white'
                         }`}
-                        title="শুধু এডিটর"
+                        title="Editor only"
                     >
                         <Edit3 className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">এডিটর (Editor)</span>
+                        <span className="hidden sm:inline">Editor</span>
                     </button>
                     <button
                         type="button"
@@ -236,10 +236,10 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                         className={`px-2.5 py-1 rounded-md flex items-center gap-1 font-medium transition-colors ${
                             viewMode === 'preview' ? 'bg-white text-slate-800 shadow-xs' : 'text-blue-100 hover:text-white'
                         }`}
-                        title="শিক্ষার্থীদের ভিউ"
+                        title="Preview only"
                     >
                         <Eye className="w-3.5 h-3.5" />
-                        <span className="hidden sm:inline">প্রিভিউ (Preview)</span>
+                        <span className="hidden sm:inline">Preview</span>
                     </button>
                 </div>
             </div>
@@ -257,7 +257,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                         }`}
                     >
-                        হোম (Text Tools)
+                        Home (Formatting)
                     </button>
                     <button
                         type="button"
@@ -269,7 +269,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                         }`}
                     >
                         <Calculator className="w-3.5 h-3.5 text-sky-500" />
-                        <span>সমীকরণ ও গণিত (Equations)</span>
+                        <span>Equations</span>
                     </button>
                     <button
                         type="button"
@@ -280,11 +280,11 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                         }`}
                     >
-                        প্রতীকমালা (Symbols)
+                        Symbols
                     </button>
 
                     <div className="ml-auto text-[11px] text-slate-500 hidden md:block">
-                        গণিত ও সূত্র লেখার জন্য <code className="bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded text-sky-600">$...$</code> ব্যবহার করুন
+                        Use <code className="bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded text-sky-600">$...$</code> for inline and <code className="bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded text-sky-600">$$...$$</code> for block formulas
                     </div>
                 </div>
 
@@ -297,7 +297,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 type="button"
                                 onClick={handleBold}
                                 className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-                                title="Bold (বোল্ড)"
+                                title="Bold"
                             >
                                 <Bold className="w-4 h-4" />
                             </button>
@@ -305,7 +305,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 type="button"
                                 onClick={handleItalic}
                                 className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-                                title="Italic (ইটালিক)"
+                                title="Italic"
                             >
                                 <Italic className="w-4 h-4" />
                             </button>
@@ -313,7 +313,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 type="button"
                                 onClick={handleUnderline}
                                 className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-                                title="Underline (আন্ডারলাইন)"
+                                title="Underline"
                             >
                                 <Underline className="w-4 h-4" />
                             </button>
@@ -333,7 +333,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 type="button"
                                 onClick={handleSuperscript}
                                 className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-                                title="Superscript / ঘাত (x²)"
+                                title="Superscript (x²)"
                             >
                                 <Superscript className="w-4 h-4" />
                             </button>
@@ -341,7 +341,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 type="button"
                                 onClick={handleSubscript}
                                 className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
-                                title="Subscript / সাবস্ক্রিপ্ট (x₂)"
+                                title="Subscript (x₂)"
                             >
                                 <Subscript className="w-4 h-4" />
                             </button>
@@ -373,17 +373,17 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 type="button"
                                 onClick={handleEquationWrap}
                                 className="px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 text-sky-700 dark:text-sky-300 text-xs font-bold border border-sky-200 dark:border-sky-800 flex items-center gap-1"
-                                title="ইনলাইন সমীকরণ তৈরি করুন ($...$)"
+                                title="Insert Inline Math ($...$)"
                             >
-                                <span>∑ ইনলাইন Math ($x$)</span>
+                                <span>∑ Inline Math ($x$)</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={handleBlockEquationWrap}
                                 className="px-2.5 py-1 rounded-lg bg-violet-50 dark:bg-violet-950/50 hover:bg-violet-100 text-violet-700 dark:text-violet-300 text-xs font-bold border border-violet-200 dark:border-violet-800 flex items-center gap-1"
-                                title="বড় সমীকরণ ব্লক তৈরি করুন ($$...$$)"
+                                title="Insert Display Math Block ($$...$$)"
                             >
-                                <span>ব্লক সমীকরণ ($$)</span>
+                                <span>Block Math ($$)</span>
                             </button>
                         </div>
 
@@ -394,7 +394,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                             className="ml-auto px-3 py-1 rounded-lg bg-[#2b579a] hover:bg-[#204070] text-white text-xs font-bold shadow-xs flex items-center gap-1.5"
                         >
                             <Calculator className="w-3.5 h-3.5" />
-                            <span>ইকুয়েশন বিল্ডার (Equation)</span>
+                            <span>Equation Builder</span>
                         </button>
                     </div>
                 )}
@@ -406,52 +406,52 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                             type="button"
                             onClick={() => insertAtCursor('$\\frac{a}{b}$ ')}
                             className="px-2 py-1 bg-white dark:bg-slate-900 hover:bg-sky-50 text-slate-800 dark:text-slate-200 font-serif font-bold rounded-md border border-slate-200 dark:border-slate-700 shadow-xs"
-                            title="ভগ্নাংশ: \frac{a}{b}"
+                            title="Fraction: \frac{a}{b}"
                         >
-                            a/b (ভগ্নাংশ)
+                            a/b (Fraction)
                         </button>
                         <button
                             type="button"
                             onClick={() => insertAtCursor('$\\sqrt{x}$ ')}
                             className="px-2 py-1 bg-white dark:bg-slate-900 hover:bg-sky-50 text-slate-800 dark:text-slate-200 font-serif font-bold rounded-md border border-slate-200 dark:border-slate-700 shadow-xs"
-                            title="বর্গমূল: \sqrt{x}"
+                            title="Square Root: \sqrt{x}"
                         >
-                            √x (বর্গমূল)
+                            √x (Root)
                         </button>
                         <button
                             type="button"
                             onClick={() => insertAtCursor('$\\sqrt[n]{x}$ ')}
                             className="px-2 py-1 bg-white dark:bg-slate-900 hover:bg-sky-50 text-slate-800 dark:text-slate-200 font-serif font-bold rounded-md border border-slate-200 dark:border-slate-700 shadow-xs"
                         >
-                            ⁿ√x (মূল)
+                            ⁿ√x (Nth Root)
                         </button>
                         <button
                             type="button"
                             onClick={() => insertAtCursor('$\\int_{a}^{b} f(x) dx$ ')}
                             className="px-2 py-1 bg-white dark:bg-slate-900 hover:bg-sky-50 text-slate-800 dark:text-slate-200 font-serif font-bold rounded-md border border-slate-200 dark:border-slate-700 shadow-xs"
                         >
-                            ∫ সমাকলন
+                            ∫ Integral
                         </button>
                         <button
                             type="button"
                             onClick={() => insertAtCursor('$\\lim_{x \\to 0} f(x)$ ')}
                             className="px-2 py-1 bg-white dark:bg-slate-900 hover:bg-sky-50 text-slate-800 dark:text-slate-200 font-serif font-bold rounded-md border border-slate-200 dark:border-slate-700 shadow-xs"
                         >
-                            lim লিমিট
+                            lim Limit
                         </button>
                         <button
                             type="button"
                             onClick={() => insertAtCursor('$\\sum_{i=1}^{n}$ ')}
                             className="px-2 py-1 bg-white dark:bg-slate-900 hover:bg-sky-50 text-slate-800 dark:text-slate-200 font-serif font-bold rounded-md border border-slate-200 dark:border-slate-700 shadow-xs"
                         >
-                            ∑ সামেশন
+                            ∑ Summation
                         </button>
                         <button
                             type="button"
                             onClick={() => insertAtCursor('$\\vec{F} = m\\vec{a}$ ')}
                             className="px-2 py-1 bg-white dark:bg-slate-900 hover:bg-sky-50 text-slate-800 dark:text-slate-200 font-serif font-bold rounded-md border border-slate-200 dark:border-slate-700 shadow-xs"
                         >
-                            F⃗ = ma⃗ (ভেক্টর)
+                            F⃗ = ma⃗ (Vector)
                         </button>
                         <button
                             type="button"
@@ -465,7 +465,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                             onClick={() => insertAtCursor('$$\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$$ ')}
                             className="px-2 py-1 bg-white dark:bg-slate-900 hover:bg-sky-50 text-slate-800 dark:text-slate-200 font-serif font-bold rounded-md border border-slate-200 dark:border-slate-700 shadow-xs"
                         >
-                            [ম্যাট্রিক্স]
+                            [Matrix]
                         </button>
 
                         <button
@@ -473,7 +473,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                             onClick={() => setEquationModalOpen(true)}
                             className="ml-auto px-3 py-1 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs flex items-center gap-1"
                         >
-                            <span>সকল সমীকরণ টেমপ্লেট...</span>
+                            <span>All Equation Templates...</span>
                         </button>
                     </div>
                 )}
@@ -487,7 +487,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 type="button"
                                 onClick={() => handleInsertSymbol(`$${s.latex}$`)}
                                 className="w-7 h-7 bg-white dark:bg-slate-900 hover:bg-sky-100 hover:text-sky-700 text-slate-800 dark:text-slate-200 font-serif font-semibold text-sm rounded border border-slate-200 dark:border-slate-700 flex items-center justify-center transition-colors shadow-xs"
-                                title={`ইনসার্ট করুন: ${s.latex}`}
+                                title={`Insert: ${s.latex}`}
                             >
                                 {s.label}
                             </button>
@@ -504,9 +504,9 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                         <div className="bg-slate-50/50 dark:bg-slate-950/40 px-3 py-1 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
                             <span className="font-semibold uppercase tracking-wider flex items-center gap-1.5">
                                 <Edit3 className="w-3.5 h-3.5 text-sky-500" />
-                                <span>ওয়ার্ড ডকুমেন্ট এডিটর</span>
+                                <span>Word Document Editor</span>
                             </span>
-                            <span>{value.length} অক্ষর</span>
+                            <span>{value.length} characters</span>
                         </div>
                         <textarea
                             ref={textareaRef}
@@ -526,10 +526,10 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                         <div className="bg-slate-50 dark:bg-slate-950/60 px-3 py-1 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
                             <span className="font-semibold uppercase tracking-wider flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
                                 <Eye className="w-3.5 h-3.5" />
-                                <span>লাইভ গণিত ও প্রশ্ন প্রিভিউ (Live Preview)</span>
+                                <span>Live Math & Question Preview</span>
                             </span>
                             <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.2 rounded font-semibold">
-                                শিক্ষার্থী যেমন দেখবে
+                                Student View
                             </span>
                         </div>
                         <div
@@ -540,7 +540,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 <MathView content={value} />
                             ) : (
                                 <div className="text-slate-400 italic text-xs">
-                                    প্রশ্ন লেখার সাথে সাথে এখানে লাইভ সমীকরণ প্রিভিউ দেখতে পাবেন...
+                                    Type your question or formula above to see a real-time preview here...
                                 </div>
                             )}
                         </div>
@@ -559,10 +559,10 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 </div>
                                 <div>
                                     <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                                        গাণিতিক সমীকরণ লাইব্রেরি (Math Equation Palette)
+                                        Math Equation Palette
                                     </h3>
                                     <p className="text-xs text-slate-500">
-                                        যেকোনো সূত্রে ক্লিক করে সরাসরি প্রশ্নে যোগ করুন
+                                        Click any formula template to insert directly into your question
                                     </p>
                                 </div>
                             </div>
@@ -579,7 +579,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
                             <div className="flex items-center justify-between">
                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                                    <span>কাস্টম LaTeX সমীকরণ লিখুন</span>
+                                    <span>Write Custom LaTeX Formula</span>
                                 </label>
                                 <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer">
                                     <input
@@ -588,7 +588,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                         onChange={e => setIsBlockMath(e.target.checked)}
                                         className="rounded text-sky-600 focus:ring-sky-500"
                                     />
-                                    <span>ব্লক ডিসপ্লে মোড ($$)</span>
+                                    <span>Block Display Mode ($$)</span>
                                 </label>
                             </div>
                             <div className="flex items-center gap-2">
@@ -596,7 +596,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                     type="text"
                                     value={customLatex}
                                     onChange={e => setCustomLatex(e.target.value)}
-                                    placeholder="যেমন: \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} অথবা x^2 + y^2 = r^2"
+                                    placeholder="e.g. \frac{-b \pm \sqrt{b^2 - 4ac}}{2a} or x^2 + y^2 = r^2"
                                     className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono focus:ring-2 focus:ring-sky-500"
                                 />
                                 <button
@@ -606,14 +606,14 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                     className="px-4 py-2 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-xs shrink-0 flex items-center gap-1.5"
                                 >
                                     <Check className="w-3.5 h-3.5" />
-                                    <span>যোগ করুন</span>
+                                    <span>Insert</span>
                                 </button>
                             </div>
 
                             {/* Live KaTeX Preview of Custom Input */}
                             {customLatex.trim() && (
                                 <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-sky-100 dark:border-sky-900/60">
-                                    <div className="text-[10px] font-bold uppercase text-sky-600 mb-1">প্রিভিউ:</div>
+                                    <div className="text-[10px] font-bold uppercase text-sky-600 mb-1">Preview:</div>
                                     <MathView content={isBlockMath ? `$$${customLatex}$$` : `$${customLatex}$`} />
                                 </div>
                             )}
@@ -653,7 +653,7 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 onClick={() => setEquationModalOpen(false)}
                                 className="px-5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl hover:bg-slate-200"
                             >
-                                বন্ধ করুন
+                                Close
                             </button>
                         </div>
                     </div>

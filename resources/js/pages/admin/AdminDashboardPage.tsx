@@ -62,8 +62,8 @@ export const AdminDashboardPage: React.FC = () => {
             {/* Top Quick Actions Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">ওভারভিউ ও অ্যানালিটিক্স</h2>
-                    <p className="text-xs text-slate-500 mt-0.5">রিয়েল-টাইম প্ল্যাটফর্ম পারফরম্যান্স ও রাজস্ব মেট্রিকস</p>
+                    <h2 className="text-2xl font-black text-slate-900 tracking-tight">Overview & Analytics</h2>
+                    <p className="text-xs text-slate-500 mt-0.5">Real-time platform performance and revenue metrics</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Link
@@ -71,14 +71,14 @@ export const AdminDashboardPage: React.FC = () => {
                         className="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-md shadow-sky-600/20 flex items-center gap-1.5 transition-all"
                     >
                         <Plus className="w-4 h-4" />
-                        <span>নতুন কোর্স তৈরি</span>
+                        <span>Create New Course</span>
                     </Link>
                     <Link
                         to="/admin/orders?payment_status=pending"
                         className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md shadow-amber-500/20 flex items-center gap-1.5 transition-all"
                     >
                         <Clock className="w-4 h-4" />
-                        <span>পেন্ডিং অর্ডার ({summary.total_pending_orders})</span>
+                        <span>Pending Orders ({summary.total_pending_orders})</span>
                     </Link>
                 </div>
             </div>
@@ -88,11 +88,11 @@ export const AdminDashboardPage: React.FC = () => {
                 {/* Total Revenue */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                     <div>
-                        <span className="text-xs font-bold text-slate-400 block mb-1">মোট অর্জিত আয়</span>
+                        <span className="text-xs font-bold text-slate-400 block mb-1">Total Revenue Earned</span>
                         <div className="text-2xl font-black text-slate-900">{formatBDT(summary.total_revenue)}</div>
                         <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-0.5 mt-1">
                             <TrendingUp className="w-3.5 h-3.5" />
-                            চলতি মাস: {formatBDT(summary.this_month_revenue)}
+                            This Month: {formatBDT(summary.this_month_revenue)}
                         </span>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center">
@@ -103,10 +103,10 @@ export const AdminDashboardPage: React.FC = () => {
                 {/* Today's Revenue */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                     <div>
-                        <span className="text-xs font-bold text-slate-400 block mb-1">আজকের আয়</span>
+                        <span className="text-xs font-bold text-slate-400 block mb-1">Today's Revenue</span>
                         <div className="text-2xl font-black text-slate-900">{formatBDT(summary.today_revenue)}</div>
                         <span className="text-[11px] font-semibold text-slate-500 mt-1 block">
-                            গতকাল: {formatBDT(summary.yesterday_revenue)}
+                            Yesterday: {formatBDT(summary.yesterday_revenue)}
                         </span>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -120,10 +120,10 @@ export const AdminDashboardPage: React.FC = () => {
                     className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between hover:border-sky-500/50 hover:shadow-md transition-all group"
                 >
                     <div>
-                        <span className="text-xs font-bold text-slate-400 block mb-1 group-hover:text-sky-600 transition-colors">মোট শিক্ষার্থী ও ইউজার</span>
-                        <div className="text-2xl font-black text-slate-900">{summary.total_students} জন</div>
+                        <span className="text-xs font-bold text-slate-400 block mb-1 group-hover:text-sky-600 transition-colors">Total Students & Users</span>
+                        <div className="text-2xl font-black text-slate-900">{summary.total_students}</div>
                         <span className="text-[11px] font-semibold text-slate-500 mt-1 block">
-                            শিক্ষক সংখ্যা: {summary.total_teachers} জন • ইউজার দেখুন &rarr;
+                            Teachers: {summary.total_teachers} • View Users &rarr;
                         </span>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
@@ -134,10 +134,10 @@ export const AdminDashboardPage: React.FC = () => {
                 {/* Total Courses */}
                 <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                     <div>
-                        <span className="text-xs font-bold text-slate-400 block mb-1">মোট কোর্স</span>
-                        <div className="text-2xl font-black text-slate-900">{summary.total_courses} টি</div>
+                        <span className="text-xs font-bold text-slate-400 block mb-1">Total Courses</span>
+                        <div className="text-2xl font-black text-slate-900">{summary.total_courses}</div>
                         <span className="text-[11px] font-semibold text-sky-600 mt-1 block">
-                            প্রকাশিত: {summary.published_courses} • ড্রাফট: {summary.draft_courses}
+                            Published: {summary.published_courses} • Draft: {summary.draft_courses}
                         </span>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -150,11 +150,11 @@ export const AdminDashboardPage: React.FC = () => {
             <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                     <div>
-                        <h3 className="text-base font-bold text-slate-900">গত ৩০ দিনের রাজস্ব ট্রেন্ড (Daily Revenue)</h3>
-                        <p className="text-xs text-slate-400">প্রতিদিনের সফল সেলস ও আয়ের গ্রাফ</p>
+                        <h3 className="text-base font-bold text-slate-900">Last 30 Days Revenue Trend</h3>
+                        <p className="text-xs text-slate-400">Daily successful sales and income graph</p>
                     </div>
                     <Link to="/admin/analytics" className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1">
-                        <span>সম্পূর্ণ রিপোর্ট</span>
+                        <span>Full Report</span>
                         <ArrowUpRight className="w-3.5 h-3.5" />
                     </Link>
                 </div>
@@ -172,8 +172,8 @@ export const AdminDashboardPage: React.FC = () => {
                             <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} />
                             <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} tickLine={false} axisLine={false} tickFormatter={(val) => `৳${val}`} />
                             <Tooltip 
-                                formatter={(val: any) => [`৳${Number(val).toLocaleString()}`, 'রাজস্ব']}
-                                labelFormatter={(label) => `তারিখ: ${label}`}
+                                formatter={(val: any) => [`৳${Number(val).toLocaleString()}`, 'Revenue']}
+                                labelFormatter={(label) => `Date: ${label}`}
                                 contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                             />
                             <Area type="monotone" dataKey="revenue" stroke="#0284c7" strokeWidth={2.5} fillOpacity={1} fill="url(#revenueGradient)" />
@@ -187,9 +187,9 @@ export const AdminDashboardPage: React.FC = () => {
                 {/* Recent Orders */}
                 <div className="lg:col-span-8 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h3 className="text-base font-bold text-slate-900">সাম্প্রতিক সফল অর্ডারসমূহ</h3>
+                        <h3 className="text-base font-bold text-slate-900">Recent Successful Orders</h3>
                         <Link to="/admin/orders" className="text-xs font-bold text-sky-600 hover:text-sky-700">
-                            সকল অর্ডার দেখুন
+                            View All Orders
                         </Link>
                     </div>
 
@@ -197,11 +197,11 @@ export const AdminDashboardPage: React.FC = () => {
                         <table className="w-full text-left text-xs">
                             <thead className="bg-slate-50 text-slate-500 font-bold uppercase tracking-wider">
                                 <tr>
-                                    <th className="py-3 px-4 rounded-l-lg">অর্ডার নম্বর</th>
-                                    <th className="py-3 px-4">শিক্ষার্থী</th>
-                                    <th className="py-3 px-4">কোর্স</th>
-                                    <th className="py-3 px-4">মূল্য</th>
-                                    <th className="py-3 px-4 rounded-r-lg">স্ট্যাটাস</th>
+                                    <th className="py-3 px-4 rounded-l-lg">Order #</th>
+                                    <th className="py-3 px-4">Student</th>
+                                    <th className="py-3 px-4">Course</th>
+                                    <th className="py-3 px-4">Price</th>
+                                    <th className="py-3 px-4 rounded-r-lg">Status</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
@@ -214,7 +214,7 @@ export const AdminDashboardPage: React.FC = () => {
                                             <td className="py-3.5 px-4 font-bold text-slate-900">{formatBDT(o.final_amount)}</td>
                                             <td className="py-3.5 px-4">
                                                 <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-100 text-emerald-800">
-                                                    পরিশোধিত
+                                                    Paid
                                                 </span>
                                             </td>
                                         </tr>
@@ -222,7 +222,7 @@ export const AdminDashboardPage: React.FC = () => {
                                 ) : (
                                     <tr>
                                         <td colSpan={5} className="py-6 text-center text-slate-400">
-                                            কোনো অর্ডার পাওয়া যায়নি।
+                                            No orders found.
                                         </td>
                                     </tr>
                                 )}
@@ -234,9 +234,9 @@ export const AdminDashboardPage: React.FC = () => {
                 {/* Recent Students */}
                 <div className="lg:col-span-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                        <h3 className="text-base font-bold text-slate-900">নতুন নিবন্ধিত শিক্ষার্থী</h3>
+                        <h3 className="text-base font-bold text-slate-900">Newly Registered Students</h3>
                         <Link to="/admin/users" className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1">
-                            <span>সকল ইউজার</span>
+                            <span>All Users</span>
                             <ArrowUpRight className="w-3.5 h-3.5" />
                         </Link>
                     </div>
@@ -259,12 +259,12 @@ export const AdminDashboardPage: React.FC = () => {
                                         </div>
                                     </div>
                                     <span className="text-[10px] text-slate-400 shrink-0">
-                                        {new Date(s.created_at).toLocaleDateString('bn-BD')}
+                                        {new Date(s.created_at).toLocaleDateString('en-US')}
                                     </span>
                                 </Link>
                             ))
                         ) : (
-                            <p className="text-xs text-slate-400 text-center py-4">কোনো শিক্ষার্থী পাওয়া যায়নি।</p>
+                            <p className="text-xs text-slate-400 text-center py-4">No students found.</p>
                         )}
                     </div>
                 </div>

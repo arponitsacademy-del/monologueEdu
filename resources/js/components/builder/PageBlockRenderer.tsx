@@ -78,7 +78,7 @@ const HeroBlock: React.FC<{ block: PageBlock; isBuilder?: boolean }> = ({ block 
     const trust2 = getLocalizedText(s.trust2, s.trust2_en, language) || t.hero.trustLifetime;
     const trust3 = getLocalizedText(s.trust3, s.trust3_en, language) || t.hero.trustDoubts;
 
-    const cardBadge = getLocalizedText(s.cardBadge, s.cardBadge_en, language) || (language === 'en' ? 'Live Academy Status' : 'লাইভ একাডেমি স্ট্যাটাস');
+    const cardBadge = getLocalizedText(s.cardBadge, s.cardBadge_en, language) || 'Live Academy Status';
     const physicsTitle = getLocalizedText(s.physicsTitle, s.physicsTitle_en, language) || t.hero.physicsTitle;
     const physicsSub = getLocalizedText(s.physicsSub, s.physicsSub_en, language) || t.hero.physicsSub;
     const teachersTitle = getLocalizedText(s.teachersTitle, s.teachersTitle_en, language) || t.hero.teachersTitle;
@@ -391,7 +391,7 @@ const CourseTabsBlock: React.FC<{ block: PageBlock; isBuilder?: boolean }> = ({ 
                     )}
                     <div 
                         dangerouslySetInnerHTML={{ 
-                            __html: activeTab.htmlContent || `<div class="text-center text-slate-400 py-8">${language === 'en' ? 'Add custom HTML widget content...' : 'কাস্টম HTML উইজেট কোড লিখুন...'}</div>` 
+                            __html: activeTab.htmlContent || `<div class="text-center text-slate-400 py-8">Add custom HTML widget content...</div>` 
                         }} 
                     />
                 </div>
@@ -441,7 +441,7 @@ const CourseTabsBlock: React.FC<{ block: PageBlock; isBuilder?: boolean }> = ({ 
                                                 ))
                                             ) : (
                                                 <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-900/80 text-white backdrop-blur-xs">
-                                                    {language === 'en' ? 'General' : 'সাধারণ'}
+                                                    General
                                                 </span>
                                             )}
                                         </div>
@@ -506,7 +506,7 @@ const HtmlWidgetBlock: React.FC<{ block: PageBlock; isBuilder?: boolean }> = ({ 
             )}
             <div 
                 dangerouslySetInnerHTML={{ 
-                    __html: s.htmlContent || `<div class="p-8 bg-slate-100 text-slate-400 rounded-2xl text-center text-sm font-mono">${language === 'en' ? 'Custom HTML/CSS Widget Preview...' : 'কাস্টম HTML/CSS উইজেট কোড প্রিভিউ...'}</div>` 
+                    __html: s.htmlContent || `<div class="p-8 bg-slate-100 text-slate-400 rounded-2xl text-center text-sm font-mono">Custom HTML/CSS Widget Preview...</div>` 
                 }} 
             />
         </section>
@@ -607,9 +607,9 @@ const CtaBannerBlock: React.FC<{ block: PageBlock; isBuilder?: boolean }> = ({ b
     const s = block.settings || {};
 
     const badge = getLocalizedText(s.badge, s.badge_en, language);
-    const title = getLocalizedText(s.title, s.title_en, language) || (language === 'en' ? 'Join Novonex Academy Today' : 'আজই যুক্ত হোন Novonex Academy তে');
+    const title = getLocalizedText(s.title, s.title_en, language) || 'Join Monologue Edu Today';
     const subtitle = getLocalizedText(s.subtitle, s.subtitle_en, language);
-    const buttonText = getLocalizedText(s.buttonText, s.buttonText_en, language) || (language === 'en' ? 'Browse Courses' : 'কোর্সসমূহ দেখুন');
+    const buttonText = getLocalizedText(s.buttonText, s.buttonText_en, language) || 'Browse Courses';
 
     const bgGradient = s.bgColor === 'slate'
         ? 'from-slate-900 via-slate-800 to-slate-900'
@@ -653,7 +653,7 @@ const CtaBannerBlock: React.FC<{ block: PageBlock; isBuilder?: boolean }> = ({ b
 const RichTextBlock: React.FC<{ block: PageBlock; isBuilder?: boolean }> = ({ block }) => {
     const { language } = useLanguage();
     const s = block.settings || {};
-    const content = getLocalizedText(s.content, s.content_en, language) || (language === 'en' ? '<p>Add content here...</p>' : '<p>কনটেন্ট লিখুন...</p>');
+    const content = getLocalizedText(s.content, s.content_en, language) || '<p>Add content here...</p>';
 
     return (
         <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -694,7 +694,7 @@ const VideoEmbedBlock: React.FC<{ block: PageBlock; isBuilder?: boolean }> = ({ 
                     <div className="w-full aspect-video flex flex-col items-center justify-center text-slate-400">
                         <PlayCircle className="w-16 h-16 text-slate-600 mb-2" />
                         <span className="text-sm">
-                            {language === 'en' ? 'Please provide a video link' : 'ইউটিউব বা ভিডিও এম্বেড লিঙ্ক দিন'}
+                            Please provide a video link
                         </span>
                     </div>
                 )}
@@ -710,16 +710,11 @@ const StatsCounterBlock: React.FC<{ block: PageBlock; isBuilder?: boolean }> = (
     const { language } = useLanguage();
     const s = block.settings || {};
 
-    const defaultStats = language === 'en' ? [
+    const defaultStats = [
         { label: 'Enrolled Students', value: '10,000+' },
         { label: 'Recorded Lectures', value: '500+' },
         { label: 'Total Courses', value: '20+' },
         { label: 'Success Rate', value: '98%' },
-    ] : [
-        { label: 'সন্তুষ্ট শিক্ষার্থী', value: '১০,০০০+' },
-        { label: 'রেকর্ডেড লেকচার', value: '৫০০+' },
-        { label: 'কোর্সসমূহ', value: '২০+' },
-        { label: 'সফলতার হার', value: '৯৮%' },
     ];
 
     const rawStats = s.stats || defaultStats;

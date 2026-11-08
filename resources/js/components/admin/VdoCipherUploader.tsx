@@ -95,13 +95,13 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
     const formatDuration = (seconds: number): string => {
         const m = Math.floor(seconds / 60);
         const s = Math.floor(seconds % 60);
-        if (m === 0) return `${s} সেকেন্ড`;
-        return `${m} মিনিট ${s > 0 ? `${s} সে.` : ''}`;
+        if (m === 0) return `${s}s`;
+        return `${m}m ${s > 0 ? `${s}s` : ''}`;
     };
 
     const handleFileChange = (file: File) => {
         if (!file.type.startsWith('video/') && !file.name.match(/\.(mp4|mov|avi|mkv|webm|m4v)$/i)) {
-            setErrorMessage('অনুগ্রহ করে একটি সঠিক ভিডিও ফাইল নির্বাচন করুন (MP4, WebM, MOV, MKV)।');
+            setErrorMessage('Please select a valid video file (MP4, WebM, MOV, MKV).');
             return;
         }
 
@@ -147,7 +147,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
 
     const handleStartProcess = async () => {
         if (!selectedFile) {
-            setErrorMessage('অনুগ্রহ করে একটি ভিডিও ফাইল নির্বাচন করুন।');
+            setErrorMessage('Please select a video file.');
             return;
         }
 
@@ -161,7 +161,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
             // STEP 1: WebCodecs Hardware Video Compression (Zero playback speed distortion)
             if (enableCompression && preset !== 'original' && supportsHardwareEncoding) {
                 setStatus('compressing');
-                setStatusMessage('WebCodecs™ হার্ডওয়্যার জিপিইউ দিয়ে ভিডিও অপ্টিমাইজ হচ্ছে...');
+                setStatusMessage('Optimizing video with WebCodecs™ GPU hardware encoding...');
                 setProgress(0);
 
                 const session = new VideoCompressionSession();
@@ -170,7 +170,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                 try {
                     const result = await session.compress(selectedFile, preset, (pct) => {
                         setProgress(pct);
-                        setStatusMessage(`ভিডিও অপ্টিমাইজ ও কম্প্রেস হচ্ছে... ${pct}%`);
+                        setStatusMessage(`Optimizing and compressing video... ${pct}%`);
                     });
 
                     fileToUpload = result.file;
@@ -181,19 +181,19 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                             compressed: result.compressedSize,
                             percentage: result.savedPercentage
                         });
-                        setStatusMessage(`কম্প্রেশন সম্পন্ন! সাইজ কমেছে ${result.savedPercentage}%`);
+                        setStatusMessage(`Compression complete! Size reduced by ${result.savedPercentage}%`);
                     } else {
-                        setStatusMessage('ফাইলটি ইতোমধ্যে অপ্টিমাইজড, মূল ফাইল আপলোড করা হচ্ছে।');
+                        setStatusMessage('File already optimized, proceeding with original file.');
                     }
                 } catch (compErr: any) {
                     if (skipCompressionSignalRef.current) {
                         // User clicked skip compression: smoothly fall back to original
                         fileToUpload = selectedFile;
-                        setStatusMessage('কম্প্রেশন স্কিপ করা হয়েছে, মূল ফাইল আপলোড করা হচ্ছে...');
+                        setStatusMessage('Compression skipped, uploading original file...');
                     } else {
                         console.warn('Compression warning, proceeding with original file:', compErr);
                         fileToUpload = selectedFile;
-                        setStatusMessage('সরাসরি মূল ফাইল আপলোড করা হচ্ছে...');
+                        setStatusMessage('Uploading original file directly...');
                     }
                 } finally {
                     compressionSessionRef.current = null;
@@ -202,7 +202,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
 
             // STEP 2: Request Upload Credentials from backend
             setStatus('requesting');
-            setStatusMessage('VdoCipher ক্লাউড সংযোগ স্থাপন করা হচ্ছে...');
+            setStatusMessage('Connecting to VdoCipher cloud...');
             setProgress(0);
 
             const uploadTitle = (lessonTitle || selectedFile.name.replace(/\.[^/.]+$/, '')).substring(0, 100);
@@ -213,17 +213,17 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
 
             const { clientPayload, videoId } = data;
             if (!clientPayload || !videoId) {
-                throw new Error('VdoCipher আপলোড ক্রেডেনশিয়াল পাওয়া যায়নি।');
+                throw new Error('VdoCipher upload credentials not received.');
             }
 
             const targetUploadUrl = clientPayload.uploadLink || clientPayload.upload_link;
             if (!targetUploadUrl) {
-                throw new Error('VdoCipher S3 আপলোড লিংক পাওয়া যায়নি।');
+                throw new Error('VdoCipher S3 upload link not received.');
             }
 
             // STEP 3: Direct Upload to VdoCipher AWS S3 Bucket
             setStatus('uploading');
-            setStatusMessage('VdoCipher AWS ক্লাউডে সরাসরি আপলোড হচ্ছে...');
+            setStatusMessage('Uploading directly to VdoCipher AWS cloud...');
             setProgress(0);
 
             const formData = new FormData();
@@ -279,11 +279,11 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                             if (speedBytesPerSec > 0) {
                                 const remainingSecs = Math.round(remainingBytes / speedBytesPerSec);
                                 if (remainingSecs < 60) {
-                                    setEtaText(`${remainingSecs} সেকেন্ড বাকি`);
+                                    setEtaText(`${remainingSecs}s remaining`);
                                 } else {
                                     const mins = Math.floor(remainingSecs / 60);
                                     const secs = remainingSecs % 60;
-                                    setEtaText(`${mins} মিনিট ${secs > 0 ? `${secs} সে.` : ''} বাকি`);
+                                    setEtaText(`${mins}m ${secs > 0 ? `${secs}s` : ''} remaining`);
                                 }
                             }
                             lastLoaded = e.loaded;
@@ -310,11 +310,11 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                 };
 
                 xhr.onerror = () => {
-                    reject(new Error('ক্লাউডে ফাইল ট্রান্সফার ব্যাহত হয়েছে। ইন্টারনেট সংযোগ চেক করুন।'));
+                    reject(new Error('Cloud file transfer interrupted. Please check your internet connection.'));
                 };
 
                 xhr.onabort = () => {
-                    reject(new Error('আপলোড বাতিল করা হয়েছে।'));
+                    reject(new Error('Upload was cancelled.'));
                 };
 
                 xhr.send(formData);
@@ -327,12 +327,12 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
             const formattedUrl = `vdocipher://${videoId}`;
             setVideoUrl(formattedUrl);
             onVideoUploaded(formattedUrl);
-            setStatusMessage('ভিডিও সফলভাবে আপলোড হয়েছে! VdoCipher ক্লাউডে এটি এখন DRM দ্বারা সুরক্ষিত।');
+            setStatusMessage('Video uploaded successfully! It is now DRM-protected on VdoCipher cloud.');
 
         } catch (err: any) {
             console.error('VdoCipher Upload Error:', err);
             setStatus('error');
-            setErrorMessage(err.response?.data?.message || err.message || 'ভিডিও আপলোড করতে সমস্যা হয়েছে।');
+            setErrorMessage(err.response?.data?.message || err.message || 'Failed to upload video.');
         }
     };
 
@@ -384,13 +384,13 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                     </div>
                     <div>
                         <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5 flex-wrap">
-                            <span>VdoCipher DRM সুরক্ষিত ভিডিও আপলোড</span>
+                            <span>VdoCipher DRM Protected Video Upload</span>
                             <span className="px-2 py-0.5 text-[10px] font-bold bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300 rounded-full">
-                                পাইরেসি প্রোটেক্টেড
+                                Piracy Protected
                             </span>
                         </h4>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                            WebCodecs™ জিপিইউ কম্প্রেশন ও সরাসরি ক্লাউড আপলোড
+                            WebCodecs™ GPU compression & direct cloud upload
                         </p>
                     </div>
                 </div>
@@ -399,7 +399,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                     <div className="flex items-center gap-2">
                         <span className="text-xs font-semibold px-2.5 py-1 bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 rounded-lg flex items-center gap-1 border border-emerald-200 dark:border-emerald-800">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                            <span>কানেক্টেড</span>
+                            <span>Connected</span>
                         </span>
                     </div>
                 )}
@@ -410,7 +410,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                 <div className="p-3.5 bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 rounded-xl flex items-center justify-between gap-3 text-xs">
                     <div className="flex items-center gap-2 text-emerald-900 dark:text-emerald-200 font-medium truncate">
                         <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                        <span className="truncate">ভিডিও সংরক্ষিত: <strong className="font-mono text-emerald-800 dark:text-emerald-300">{uploadedVideoId}</strong></span>
+                        <span className="truncate">Saved Video: <strong className="font-mono text-emerald-800 dark:text-emerald-300">{uploadedVideoId}</strong></span>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                         <button
@@ -419,7 +419,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                             className="px-2.5 py-1 text-[11px] font-bold bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 rounded-lg hover:bg-emerald-100 dark:hover:bg-slate-700 flex items-center gap-1 transition-all cursor-pointer"
                         >
                             {copied ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                            <span>{copied ? 'কপি হয়েছে' : 'ID কপি'}</span>
+                            <span>{copied ? 'Copied' : 'Copy ID'}</span>
                         </button>
                     </div>
                 </div>
@@ -431,11 +431,11 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                     <div className="flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
                         <span>
-                            কম্প্রেশন সাশ্রয়: <strong>{formatBytes(compressionSaved.original)}</strong> ➔ <strong>{formatBytes(compressionSaved.compressed)}</strong>
+                            Compression Savings: <strong>{formatBytes(compressionSaved.original)}</strong> ➔ <strong>{formatBytes(compressionSaved.compressed)}</strong>
                         </span>
                     </div>
                     <span className="px-2 py-0.5 font-bold bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 rounded-md text-[11px]">
-                        {compressionSaved.percentage}% ডাটা সেভড
+                        {compressionSaved.percentage}% Data Saved
                     </span>
                 </div>
             )}
@@ -452,10 +452,10 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
             <div className="bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200/80 dark:border-sky-800/50 rounded-xl p-3.5 text-xs text-sky-900 dark:text-sky-200 space-y-2">
                 <div className="flex items-center gap-2 font-bold text-sky-800 dark:text-sky-300">
                     <Cpu className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
-                    <span>WebCodecs™ হার্ডওয়্যার ভিডিও কম্প্রেশন প্রযুক্তি</span>
+                    <span>WebCodecs™ Hardware Video Compression Technology</span>
                 </div>
                 <p className="text-[11px] text-slate-600 dark:text-slate-300">
-                    আমরা আধুনিক <strong>WebCodecs API</strong> যুক্ত করেছি যা আপনার কম্পিউটারের GPU দিয়ে ভিডিওকে ফ্রেম-বাই-ফ্রেম নির্ভুল টাইমস্ট্যাম্প সহ দ্রুত কম্প্রেস করে। এতে <strong>ভিডিও স্পিড ফাস্ট হবে না, অডিও পিচ নষ্ট হবে না এবং দৈর্ঘ্য ১০০% ঠিক থাকবে।</strong>
+                    We integrated the modern <strong>WebCodecs API</strong> which leverages your local GPU to compress video frame-by-frame with precise timestamps, ensuring full quality with zero speed or audio distortion.
                 </p>
 
                 {/* Collapsible Personal Data Saver Guide */}
@@ -467,7 +467,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                     >
                         <span className="flex items-center gap-1.5">
                             <Info className="w-3.5 h-3.5" />
-                            <span>হোস্টিং ও ব্যান্ডউইথ তথ্য জানুন</span>
+                            <span>Hosting & Bandwidth Information</span>
                         </span>
                         {showDataTips ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
                     </button>
@@ -475,10 +475,10 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                     {showDataTips && (
                         <div className="mt-2 text-[11px] text-slate-600 dark:text-slate-300 bg-white/90 dark:bg-slate-900/90 p-3 rounded-lg border border-sky-200 dark:border-slate-800 space-y-1.5 animate-in fade-in">
                             <p>
-                                <strong>হোস্টিং সার্ভার ব্যান্ডউইথ: ০ মেগাবাইট!</strong> ভিডিও সরাসরি ব্রাউজার থেকে VdoCipher AWS ক্লাউডে আপলোড হয়, আপনার হোস্টিংয়ের কোনো ব্যান্ডউইথ খরচ হয় না।
+                                <strong>Hosting Server Bandwidth: 0 MB!</strong> Videos upload directly from the browser to VdoCipher AWS S3, consuming zero web hosting bandwidth.
                             </p>
                             <p>
-                                <strong>VdoCipher ক্লাউড অপ্টিমাইজেশন:</strong> VdoCipher ক্লাউড সার্ভার নিজেও 1080p, 720p, 480p ও 360p মাল্টি-কোয়ালিটিতে ড্রিম (DRM) রূপান্তর করে।
+                                <strong>VdoCipher Cloud Optimization:</strong> VdoCipher server automatically transcodes videos into multi-quality DRM streams (1080p, 720p, 480p, 360p).
                             </p>
                         </div>
                     )}
@@ -526,18 +526,18 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                     <div className="flex items-center justify-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1">
                                         <span className="flex items-center gap-1">
                                             <HardDrive className="w-3.5 h-3.5" />
-                                            <span>মূল সাইজ: <strong>{formatBytes(selectedFile.size)}</strong></span>
+                                            <span>Original Size: <strong>{formatBytes(selectedFile.size)}</strong></span>
                                         </span>
                                         {fileDuration && (
                                             <span className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400 font-medium">
                                                 <Clock className="w-3.5 h-3.5" />
-                                                <span>সময়কাল: {formatDuration(fileDuration)}</span>
+                                                <span>Duration: {formatDuration(fileDuration)}</span>
                                             </span>
                                         )}
                                     </div>
                                 </div>
                                 <span className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 hover:underline mt-1">
-                                    অন্য ফাইল পরিবর্তন করতে ক্লিক করুন
+                                    Click to change file
                                 </span>
                             </div>
                         ) : (
@@ -547,7 +547,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                 </div>
                                 <div>
                                     <p className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                                        ক্লিক করে অথবা ড্র্যাগ করে ভিডিও ফাইল নির্বাচন করুন
+                                        Click or drag & drop video file to select
                                     </p>
                                     <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
                                         MP4, MOV, WebM, MKV
@@ -570,7 +570,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                     />
                                     <span className="flex items-center gap-1.5">
                                         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                                        <span>ভিডিও কম্প্রেশন সক্রিয় রাখুন (সাইজ কমানোর জন্য)</span>
+                                        <span>Enable video compression (reduces upload size)</span>
                                     </span>
                                 </label>
                                 <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 dark:text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
@@ -593,7 +593,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                             <span>720p HD</span>
                                             {preset === '720p' && <Check className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />}
                                         </p>
-                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">সর্বোচ্চ সেভিংস (~৫০-৮০%)</p>
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Maximum savings (~50-80%)</p>
                                     </button>
 
                                     <button
@@ -609,7 +609,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                             <span>1080p Full HD</span>
                                             {preset === '1080p' && <Check className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />}
                                         </p>
-                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">হাই কোয়ালিটি</p>
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">High quality</p>
                                     </button>
 
                                     <button
@@ -622,10 +622,10 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                         }`}
                                     >
                                         <p className="text-xs font-bold flex items-center justify-between">
-                                            <span>মূল ফাইল</span>
+                                            <span>Original File</span>
                                             {preset === 'original' && <Check className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />}
                                         </p>
-                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">কম্প্রেশন ছাড়া</p>
+                                        <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Without compression</p>
                                     </button>
                                 </div>
                             )}
@@ -643,8 +643,8 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                 <UploadCloud className="w-4 h-4" />
                                 <span>
                                     {enableCompression && preset !== 'original' 
-                                        ? 'কম্প্রেস করুন ও VdoCipher-এ আপলোড দিন' 
-                                        : 'VdoCipher ক্লাউডে সরাসরি আপলোড করুন'}
+                                        ? 'Compress & Upload to VdoCipher' 
+                                        : 'Upload Directly to VdoCipher Cloud'}
                                 </span>
                             </button>
 
@@ -653,7 +653,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                 onClick={() => setSelectedFile(null)}
                                 className="py-3 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs rounded-xl transition-all cursor-pointer"
                             >
-                                বাতিল
+                                Cancel
                             </button>
                         </div>
                     )}
@@ -666,8 +666,8 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                             className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 underline cursor-pointer"
                         >
                             {showManualInput 
-                                ? 'ফাইল আপলোড মোডে ফিরে যান' 
-                                : 'অথবা পূর্বে আপলোড করা VdoCipher Video ID লিখুন'}
+                                ? 'Back to file upload mode' 
+                                : 'Or enter existing VdoCipher Video ID'}
                         </button>
                     </div>
 
@@ -675,7 +675,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                     {showManualInput && (
                         <div className="p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2 animate-in fade-in">
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                                VdoCipher Video ID লিখুন:
+                                Enter VdoCipher Video ID:
                             </label>
                             <div className="flex gap-2">
                                 <input
@@ -690,7 +690,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                     onClick={handleApplyManualId}
                                     className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg cursor-pointer"
                                 >
-                                    সংরক্ষণ
+                                    Save
                                 </button>
                             </div>
                         </div>
@@ -704,10 +704,10 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                             <Loader2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-spin" />
                             <span className="text-xs font-bold text-slate-800 dark:text-white">
                                 {status === 'compressing' 
-                                    ? 'WebCodecs GPU হার্ডওয়্যার কম্প্রেশন চলছে...' 
+                                    ? 'WebCodecs GPU hardware compression in progress...' 
                                     : status === 'requesting' 
-                                    ? 'VdoCipher ক্লাউড সংযোগ স্থাপন...' 
-                                    : 'VdoCipher AWS ক্লাউডে সরাসরি আপলোড হচ্ছে...'}
+                                    ? 'Connecting to VdoCipher cloud...' 
+                                    : 'Uploading directly to VdoCipher AWS Cloud...'}
                             </span>
                         </div>
                         <span className="text-sm font-black text-indigo-600 dark:text-indigo-400 font-mono">
@@ -726,7 +726,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                     {/* Detailed stats during upload */}
                     {status === 'uploading' && (
                         <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 px-1 font-mono">
-                            <span>{uploadedBytesText || 'আপলোড শুরু হচ্ছে...'}</span>
+                            <span>{uploadedBytesText || 'Starting upload...'}</span>
                             <div className="flex items-center gap-3">
                                 {uploadSpeed && <span className="font-semibold text-slate-700 dark:text-slate-300">{uploadSpeed}</span>}
                                 {etaText && <span className="text-indigo-600 dark:text-indigo-400 font-medium">{etaText}</span>}
@@ -746,7 +746,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                                 className="text-xs font-bold text-indigo-700 hover:text-indigo-900 dark:text-indigo-300 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 rounded-lg flex items-center gap-1.5 transition-all cursor-pointer border border-indigo-200 dark:border-indigo-800"
                             >
                                 <FastForward className="w-3.5 h-3.5" />
-                                <span>কম্প্রেশন স্কিপ করে সরাসরি আপলোড করুন</span>
+                                <span>Skip compression and upload directly</span>
                             </button>
                         )}
 
@@ -755,7 +755,7 @@ export const VdoCipherUploader: React.FC<VdoCipherUploaderProps> = ({
                             onClick={handleCancel}
                             className="text-xs font-bold text-rose-600 hover:text-rose-800 dark:text-rose-400 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 rounded-lg transition-all cursor-pointer"
                         >
-                            বাতিল করুন
+                            Cancel
                         </button>
                     </div>
                 </div>

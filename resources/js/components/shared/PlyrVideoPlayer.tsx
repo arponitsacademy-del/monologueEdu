@@ -63,7 +63,7 @@ const QUALITY_OPTIONS = [
     { label: '720p', detail: 'HD', value: '720p', ytLevel: 'hd720' },
     { label: '480p', detail: 'Standard', value: '480p', ytLevel: 'large' },
     { label: '360p', detail: 'Data Saver', value: '360p', ytLevel: 'medium' },
-    { label: 'Auto', detail: 'স্বয়ংক্রিয়', value: 'auto', ytLevel: 'default' },
+    { label: 'Auto', detail: 'Automatic', value: 'auto', ytLevel: 'default' },
 ];
 
 export const PlyrVideoPlayer: React.FC<PlyrVideoPlayerProps> = ({
@@ -126,7 +126,7 @@ export const PlyrVideoPlayer: React.FC<PlyrVideoPlayerProps> = ({
 
         const selectedOpt = QUALITY_OPTIONS.find(o => o.value === value);
         const label = selectedOpt ? `${selectedOpt.label} (${selectedOpt.detail})` : value;
-        setQualityToast(`ভিডিও কোয়ালিটি: ${label}`);
+        setQualityToast(`Video Quality: ${label}`);
         setTimeout(() => setQualityToast(null), 2400);
     };
 
@@ -215,9 +215,9 @@ export const PlyrVideoPlayer: React.FC<PlyrVideoPlayerProps> = ({
             player.on('error', (event: any) => {
                 const code = event?.detail?.code;
                 if (code === 101 || code === 150) {
-                    setHasError('এই ভিডিওটির মালিক ইউটিউব এম্বেড প্লেব্যাক সীমাবদ্ধ করেছেন।');
+                    setHasError('The owner has restricted playback of this video on embedded sites.');
                 } else if (code === 100) {
-                    setHasError('ভিডিওটি ইউটিউব থেকে মুছে ফেলা হয়েছে বা প্রাইভেট করা হয়েছে।');
+                    setHasError('This video has been removed or set to private on YouTube.');
                 }
             });
 
@@ -295,7 +295,7 @@ export const PlyrVideoPlayer: React.FC<PlyrVideoPlayerProps> = ({
     if (!url) {
         return (
             <div className={`w-full aspect-video bg-slate-900 flex items-center justify-center text-slate-500 text-xs ${className}`}>
-                ভিডিও লিংক পাওয়া যায়নি
+                Video link not found
             </div>
         );
     }
@@ -402,7 +402,7 @@ export const PlyrVideoPlayer: React.FC<PlyrVideoPlayerProps> = ({
                     <div className="absolute inset-0 z-30 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center text-white space-y-2">
                         <AlertCircle className="w-8 h-8 text-rose-500" />
                         <p className="text-sm font-semibold">{hasError}</p>
-                        <p className="text-xs text-slate-400">দয়া করে ইউটিউবে ভিডিওটি পাবলিক বা আনলিস্টেড এবং এম্বেড এনাবল করা আছে কিনা চেক করুন।</p>
+                        <p className="text-xs text-slate-400">Please verify whether the video is public/unlisted and embedding is enabled on YouTube.</p>
                     </div>
                 )}
             </div>
@@ -421,7 +421,7 @@ export const PlyrVideoPlayer: React.FC<PlyrVideoPlayerProps> = ({
                             setQualityOpen((prev) => !prev);
                         }}
                         className="plyr__control !h-7 !px-2.5 !py-0.5 !rounded-md !bg-white/10 hover:!bg-sky-600 !text-white !font-bold !text-[11px] flex items-center gap-1 transition-all border border-white/10"
-                        title="ভিডিও কোয়ালিটি (Quality)"
+                        title="Video Quality"
                         aria-label="Quality settings"
                     >
                         <span className="tracking-wider">
@@ -435,7 +435,7 @@ export const PlyrVideoPlayer: React.FC<PlyrVideoPlayerProps> = ({
                             onClick={(e) => e.stopPropagation()}
                         >
                             <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800 flex items-center justify-between">
-                                <span>ভিডিও কোয়ালিটি</span>
+                                <span>Video Quality</span>
                                 <span className="text-[9px] text-sky-400 font-bold">QUALITY</span>
                             </div>
                             <div className="py-1">

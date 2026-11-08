@@ -155,7 +155,7 @@ export const ExamBuilderPage: React.FC = () => {
 
     const removeOption = (idx: number) => {
         if (questionForm.options.length <= 2) {
-            alert('কমপক্ষে ২টি অপশন থাকতে হবে।');
+            alert('There must be at least 2 options.');
             return;
         }
         const removedId = questionForm.options[idx].id;
@@ -199,7 +199,7 @@ export const ExamBuilderPage: React.FC = () => {
             });
             setQuestionForm(prev => ({ ...prev, attachment_url: res.data.url }));
         } catch (err: any) {
-            alert('ছবি আপলোড করতে ব্যর্থ হয়েছে।');
+            alert('Failed to upload image.');
         } finally {
             setUploadingImage(false);
         }
@@ -210,18 +210,18 @@ export const ExamBuilderPage: React.FC = () => {
         setFormError(null);
 
         if (!questionForm.question_text.trim()) {
-            setFormError('অনুগ্রহ করে প্রশ্ন লিখুন।');
+            setFormError('Please enter the question text.');
             return;
         }
 
         if (questionForm.question_type !== 'written_paper') {
             const emptyOpt = questionForm.options.find(o => !o.text.trim());
             if (emptyOpt) {
-                setFormError('অনুগ্রহ করে সবগুলো অপশনের টেক্সট পূরণ করুন অথবা অতিরিক্ত অপশন ডিলিট করুন।');
+                setFormError('Please fill in all option texts or delete extra options.');
                 return;
             }
             if (questionForm.correct_answers.length === 0) {
-                setFormError('সঠিক উত্তর চিহ্নিত করুন।');
+                setFormError('Please select at least one correct answer.');
                 return;
             }
         }
@@ -247,21 +247,21 @@ export const ExamBuilderPage: React.FC = () => {
 
             setModalOpen(false);
         } catch (err: any) {
-            setFormError(err.response?.data?.message || 'প্রশ্ন সংরক্ষণ ব্যর্থ হয়েছে।');
+            setFormError(err.response?.data?.message || 'Failed to save question.');
         } finally {
             setSaving(false);
         }
     };
 
     const handleDeleteQuestion = async (qId: number) => {
-        if (!window.confirm('এই প্রশ্নটি মুছে ফেলতে চান?')) return;
+        if (!window.confirm('Are you sure you want to delete this question?')) return;
 
         try {
             const res = await apiClient.delete(`/exams/${id}/questions/${qId}`);
             setQuestions(prev => prev.filter(q => q.id !== qId));
             if (exam) setExam({ ...exam, total_marks: res.data.exam_total_marks });
         } catch (err) {
-            alert('প্রশ্ন মুছে ফেলা সম্ভব হয়নি।');
+            alert('Failed to delete question.');
         }
     };
 
@@ -289,7 +289,7 @@ export const ExamBuilderPage: React.FC = () => {
         return (
             <div className="p-16 flex flex-col items-center justify-center text-slate-400">
                 <Loader2 className="w-8 h-8 animate-spin text-sky-500 mb-3" />
-                <p className="text-sm">প্রশ্ন বিল্ডার লোড হচ্ছে...</p>
+                <p className="text-sm">Loading Exam Builder...</p>
             </div>
         );
     }
@@ -315,8 +315,8 @@ export const ExamBuilderPage: React.FC = () => {
                             </span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            {exam?.course ? `কোর্স: ${exam.course.title} • ` : ''}
-                            মোট প্রশ্ন: {questions.length} টি • মোট নম্বর: {exam?.total_marks} মার্ক • সময়: {exam?.duration_minutes} মিনিট
+                            {exam?.course ? `Course: ${exam.course.title} • ` : ''}
+                            Total Questions: {questions.length} • Total Marks: {exam?.total_marks} Marks • Duration: {exam?.duration_minutes} Mins
                         </p>
                     </div>
                 </div>
@@ -327,14 +327,14 @@ export const ExamBuilderPage: React.FC = () => {
                         className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium flex items-center gap-1.5"
                     >
                         <FileText className="w-4 h-4 text-purple-500" />
-                        <span>খাতা মূল্যায়ন ({exam?.submissions_count ?? 0})</span>
+                        <span>Submissions ({exam?.submissions_count ?? 0})</span>
                     </Link>
                     <button
                         onClick={openAddModal}
                         className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-sky-600/20"
                     >
                         <Plus className="w-4 h-4" />
-                        <span>প্রশ্ন যোগ করুন (Add Question)</span>
+                        <span>Add Question</span>
                     </button>
                 </div>
             </div>
@@ -343,16 +343,16 @@ export const ExamBuilderPage: React.FC = () => {
             {questions.length === 0 ? (
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-16 text-center shadow-sm">
                     <Wrench className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                    <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">এখনো কোনো প্রশ্ন যোগ করা হয়নি</h3>
+                    <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">No questions added yet</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-                        MCQ (Single Choice / Multiple Choice) অথবা লিখিত প্রশ্নপত্র (Question Paper) তৈরি করতে নিচে ক্লিক করুন।
+                        Click below to create MCQ (Single Choice / Multiple Choice) or Written Question Paper.
                     </p>
                     <button
                         onClick={openAddModal}
                         className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium shadow-sm shadow-sky-600/20"
                     >
                         <Plus className="w-4 h-4" />
-                        <span>প্রথম প্রশ্ন যোগ করুন</span>
+                        <span>Add First Question</span>
                     </button>
                 </div>
             ) : (
@@ -376,17 +376,17 @@ export const ExamBuilderPage: React.FC = () => {
                                             )}
                                             {q.question_type === 'multiple_choice' && (
                                                 <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800/40">
-                                                    Multiple Choice (বহুনির্বাচনী)
+                                                    Multiple Choice
                                                 </span>
                                             )}
                                             {q.question_type === 'written_paper' && (
                                                 <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40 flex items-center gap-1">
                                                     <FileText className="w-3 h-3" />
-                                                    <span>Question Paper / লিখিত পরীক্ষা</span>
+                                                    <span>Written Question Paper</span>
                                                 </span>
                                             )}
                                             <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
-                                                [{q.marks} মার্ক]
+                                                [{q.marks} Marks]
                                             </span>
                                         </div>
                                         <MathView
@@ -477,7 +477,7 @@ export const ExamBuilderPage: React.FC = () => {
                                     <div className="p-3 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
                                         <FileText className="w-4 h-4 shrink-0 text-amber-600" />
                                         <span>
-                                            শিক্ষার্থীরা পরীক্ষার সময় খাতায় উত্তর লিখে ছবি বা PDF আপলোড করবে। দায়িত্বপ্রাপ্ত শিক্ষক "খাতা ও ফলাফল" অপশন থেকে খাতা মূল্যায়ন ও মার্ক দিতে পারবেন।
+                                            Students will write answers on paper and upload photos or PDF during the exam. The instructor can evaluate submissions from the "Submissions" page.
                                         </span>
                                     </div>
                                 </div>
@@ -494,7 +494,7 @@ export const ExamBuilderPage: React.FC = () => {
                         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                 <Plus className="w-5 h-5 text-sky-500" />
-                                <span>{editingQuestion ? 'প্রশ্ন এডিট করুন' : 'নতুন প্রশ্ন যোগ করুন'}</span>
+                                <span>{editingQuestion ? 'Edit Question' : 'Add New Question'}</span>
                             </h3>
                             <button
                                 onClick={() => setModalOpen(false)}
@@ -515,7 +515,7 @@ export const ExamBuilderPage: React.FC = () => {
                             {/* Question Type Selection */}
                             <div>
                                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
-                                    প্রশ্নের ধরণ (Question Type) <span className="text-rose-500">*</span>
+                                    Question Type <span className="text-rose-500">*</span>
                                 </label>
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                     <button
@@ -531,7 +531,7 @@ export const ExamBuilderPage: React.FC = () => {
                                             <Circle className="w-3.5 h-3.5 text-sky-500" />
                                             <span>Single Choice</span>
                                         </div>
-                                        <p className="text-[11px] text-slate-500 mt-0.5">১টি সঠিক উত্তর (MCQ)</p>
+                                        <p className="text-[11px] text-slate-500 mt-0.5">1 Correct Answer (MCQ)</p>
                                     </button>
 
                                     <button
@@ -547,7 +547,7 @@ export const ExamBuilderPage: React.FC = () => {
                                             <CheckSquare className="w-3.5 h-3.5 text-purple-500" />
                                             <span>Multiple Choice</span>
                                         </div>
-                                        <p className="text-[11px] text-slate-500 mt-0.5">একাধিক সঠিক উত্তর</p>
+                                        <p className="text-[11px] text-slate-500 mt-0.5">Multiple Correct Answers</p>
                                     </button>
 
                                     <button
@@ -561,9 +561,9 @@ export const ExamBuilderPage: React.FC = () => {
                                     >
                                         <div className="font-bold flex items-center gap-1.5">
                                             <FileText className="w-3.5 h-3.5 text-amber-500" />
-                                            <span>Upload Paper (লিখিত)</span>
+                                            <span>Upload Paper (Written)</span>
                                         </div>
-                                        <p className="text-[11px] text-slate-500 mt-0.5">ছবি বা PDF আপলোড করবে</p>
+                                        <p className="text-[11px] text-slate-500 mt-0.5">Upload photo or PDF</p>
                                     </button>
                                 </div>
                             </div>
@@ -573,8 +573,8 @@ export const ExamBuilderPage: React.FC = () => {
                                 <WordMathEditor
                                     value={questionForm.question_text}
                                     onChange={val => setQuestionForm({ ...questionForm, question_text: val })}
-                                    label="প্রশ্ন ও গাণিতিক সমীকরণ (Question & Equations)"
-                                    placeholder="এখানে মাইক্রোসফট ওয়ার্ডের মতো প্রশ্ন ও সমীকরণ লিখুন... যেমন: যদি $x^2 + y^2 = 25$ এবং $x + y = 7$ হয়, তবে $xy$ এর মান কত?"
+                                    label="Question & Mathematical Equations"
+                                    placeholder="Type questions and formulas like Microsoft Word... e.g. If $x^2 + y^2 = 25$ and $x + y = 7$, what is the value of $xy$?"
                                     minHeight="150px"
                                     required
                                 />
@@ -584,7 +584,7 @@ export const ExamBuilderPage: React.FC = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                        এই প্রশ্নের নম্বর (Marks) <span className="text-rose-500">*</span>
+                                        Question Marks <span className="text-rose-500">*</span>
                                     </label>
                                     <input
                                         type="number"
@@ -599,7 +599,7 @@ export const ExamBuilderPage: React.FC = () => {
 
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                        প্রশ্নের ছবি / ডায়াগ্রাম (ঐচ্ছিক)
+                                        Question Image / Diagram (Optional)
                                     </label>
                                     <div className="flex items-center gap-2">
                                         <label className="cursor-pointer px-3 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 flex items-center gap-1.5 shrink-0">
@@ -608,7 +608,7 @@ export const ExamBuilderPage: React.FC = () => {
                                             ) : (
                                                 <Upload className="w-3.5 h-3.5 text-sky-500" />
                                             )}
-                                            <span>{uploadingImage ? 'আপলোড হচ্ছে...' : 'ছবি আপলোড'}</span>
+                                            <span>{uploadingImage ? 'Uploading...' : 'Upload Image'}</span>
                                             <input
                                                 type="file"
                                                 accept="image/*,application/pdf"
@@ -620,13 +620,13 @@ export const ExamBuilderPage: React.FC = () => {
                                         {questionForm.attachment_url && (
                                             <div className="flex items-center gap-1.5 text-xs text-emerald-600 truncate">
                                                 <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                                                <span className="truncate">ছবি যুক্ত হয়েছে</span>
+                                                <span className="truncate">Image attached</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => setQuestionForm({ ...questionForm, attachment_url: '' })}
                                                     className="text-rose-500 hover:underline text-[11px]"
                                                 >
-                                                    (মুছে ফেলুন)
+                                                    (Remove)
                                                 </button>
                                             </div>
                                         )}
@@ -640,12 +640,12 @@ export const ExamBuilderPage: React.FC = () => {
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                                                অপশন ও সঠিক উত্তর নির্ধারণ
+                                                Options & Correct Answer Selection
                                             </p>
                                             <p className="text-[11px] text-slate-400">
                                                 {questionForm.question_type === 'single_choice'
-                                                    ? 'সঠিক উত্তরের বামপাশের গোল চিহ্নে ক্লিক করুন।'
-                                                    : 'একাধিক সঠিক উত্তরের জন্য চেক বক্সে ক্লিক করুন।'}
+                                                    ? 'Click the radio button on the left to set the correct answer.'
+                                                    : 'Check the boxes for multiple correct answers.'}
                                             </p>
                                         </div>
                                         <button
@@ -654,7 +654,7 @@ export const ExamBuilderPage: React.FC = () => {
                                             className="inline-flex items-center gap-1 text-xs font-semibold text-sky-600 hover:text-sky-500"
                                         >
                                             <Plus className="w-3.5 h-3.5" />
-                                            <span>আরও অপশন</span>
+                                            <span>Add Option</span>
                                         </button>
                                     </div>
 
@@ -675,7 +675,7 @@ export const ExamBuilderPage: React.FC = () => {
                                                         type="button"
                                                         onClick={() => toggleCorrectAnswer(opt.id)}
                                                         className="p-1 rounded-full text-slate-400 hover:text-emerald-500 transition-colors shrink-0"
-                                                        title="সঠিক উত্তর হিসেবে চিহ্নিত করুন"
+                                                        title="Mark as correct answer"
                                                     >
                                                         {questionForm.question_type === 'single_choice' ? (
                                                             isChecked ? (
@@ -703,21 +703,21 @@ export const ExamBuilderPage: React.FC = () => {
                                                                 required
                                                                 value={opt.text}
                                                                 onChange={e => handleOptionTextChange(idx, e.target.value)}
-                                                                placeholder={`অপশন ${String.fromCharCode(65 + idx)} এর উত্তর লিখুন... (যেমন: $\\frac{1}{2}$ বা $x^2$)`}
+                                                                placeholder={`Enter option ${String.fromCharCode(65 + idx)} text... (e.g. $\\frac{1}{2}$ or $x^2$)`}
                                                                 className="flex-1 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-sky-500 font-sans"
                                                             />
                                                             <button
                                                                 type="button"
                                                                 onClick={() => openOptionMathModal(idx)}
                                                                 className="px-2.5 py-1 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 text-sky-700 dark:text-sky-300 text-xs font-serif font-bold rounded-lg border border-sky-200 dark:border-sky-800 flex items-center gap-1 shrink-0"
-                                                                title="এই অপশনে সমীকরণ বা সূত্র যোগ করুন"
+                                                                title="Add equation or formula to this option"
                                                             >
-                                                                <span>∑ সমীকরণ</span>
+                                                                <span>∑ Formula</span>
                                                             </button>
                                                         </div>
                                                         {opt.text && (opt.text.includes('$') || opt.text.includes('\\')) && (
                                                             <div className="text-xs px-2.5 py-1 bg-sky-50/80 dark:bg-sky-950/40 rounded-lg text-sky-900 dark:text-sky-200 border border-sky-100 dark:border-sky-900/40">
-                                                                <span className="text-[10px] text-slate-400 mr-2 font-bold uppercase">অপশন প্রিভিউ:</span>
+                                                                <span className="text-[10px] text-slate-400 mr-2 font-bold uppercase">Option Preview:</span>
                                                                 <MathView content={opt.text} inline />
                                                             </div>
                                                         )}
@@ -728,7 +728,7 @@ export const ExamBuilderPage: React.FC = () => {
                                                             type="button"
                                                             onClick={() => removeOption(idx)}
                                                             className="p-1.5 text-slate-400 hover:text-rose-500"
-                                                            title="মুছে ফেলুন"
+                                                            title="Delete option"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
@@ -745,10 +745,10 @@ export const ExamBuilderPage: React.FC = () => {
                                 <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-xs text-amber-800 dark:text-amber-300 space-y-1">
                                     <p className="font-semibold flex items-center gap-1.5">
                                         <FileText className="w-4 h-4 text-amber-600" />
-                                        <span>লিখিত পরীক্ষার নির্দেশনা:</span>
+                                        <span>Written Exam Instructions:</span>
                                     </p>
                                     <p>
-                                        শিক্ষার্থী পরীক্ষার সময় খাতা বা কাগজে উত্তর লিখে ক্যামেরার মাধ্যমে ছবি তুলে অথবা মোবাইল/কম্পিউটার থেকে ছবি/পিডিএফ আপলোড করে জমা দেবে। পরীক্ষা শেষ হলে শিক্ষক তা চেক করে নম্বর প্রদান করতে পারবেন।
+                                        Students will solve questions on paper, take photos with their camera/mobile, or upload PDF files. The assigned teacher can evaluate and award marks once submitted.
                                     </p>
                                 </div>
                             )}
@@ -760,7 +760,7 @@ export const ExamBuilderPage: React.FC = () => {
                                     onClick={() => setModalOpen(false)}
                                     className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                                 >
-                                    বাতিল
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
@@ -770,12 +770,12 @@ export const ExamBuilderPage: React.FC = () => {
                                     {saving ? (
                                         <>
                                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                            <span>সংরক্ষণ হচ্ছে...</span>
+                                            <span>Saving...</span>
                                         </>
                                     ) : (
                                         <>
                                             <Save className="w-3.5 h-3.5" />
-                                            <span>{editingQuestion ? 'আপডেট করুন' : 'প্রশ্ন যোগ করুন'}</span>
+                                            <span>{editingQuestion ? 'Update Question' : 'Add Question'}</span>
                                         </>
                                     )}
                                 </button>
@@ -792,10 +792,10 @@ export const ExamBuilderPage: React.FC = () => {
                         <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
                             <div>
                                 <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <span>অপশন {String.fromCharCode(65 + optionMathModalIndex)} এর সমীকরণ বিল্ডার</span>
+                                    <span>Option {String.fromCharCode(65 + optionMathModalIndex)} Equation Builder</span>
                                 </h3>
                                 <p className="text-xs text-slate-500">
-                                    নিচের সূত্রগুলোতে ক্লিক করে বা টাইপ করে অপশন তৈরি করুন
+                                    Click or type formulas below to formulate option text
                                 </p>
                             </div>
                             <button
@@ -810,13 +810,13 @@ export const ExamBuilderPage: React.FC = () => {
                         {/* Input text / formula */}
                         <div className="space-y-1.5">
                             <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                                অপশন টেক্সট বা LaTeX সমীকরণ:
+                                Option Text or LaTeX Equation:
                             </label>
                             <input
                                 type="text"
                                 value={tempOptionText}
                                 onChange={e => setTempOptionText(e.target.value)}
-                                placeholder="যেমন: $\frac{1}{2}$ বা $\sqrt{3}/2$ বা $x^2 + 1$"
+                                placeholder="e.g. $\frac{1}{2}$ or $\sqrt{3}/2$ or $x^2 + 1$"
                                 className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm font-sans focus:outline-none focus:ring-2 focus:ring-sky-500"
                                 autoFocus
                             />
@@ -825,13 +825,13 @@ export const ExamBuilderPage: React.FC = () => {
                         {/* Live KaTeX Preview */}
                         <div className="p-3 bg-sky-50/50 dark:bg-sky-950/30 rounded-2xl border border-sky-100 dark:border-sky-900/50 space-y-1">
                             <div className="text-[10px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-300">
-                                শিক্ষার্থী যেমন দেখবে (Live Preview):
+                                Live Preview:
                             </div>
                             <div className="min-h-8 flex items-center text-sm font-semibold text-slate-900 dark:text-white">
                                 {tempOptionText.trim() ? (
                                     <MathView content={tempOptionText} inline />
                                 ) : (
-                                    <span className="text-xs text-slate-400 italic">কিছু লিখুন বা নিচের সূত্রে ক্লিক করুন...</span>
+                                    <span className="text-xs text-slate-400 italic">Type text or click common formulas below...</span>
                                 )}
                             </div>
                         </div>
@@ -839,7 +839,7 @@ export const ExamBuilderPage: React.FC = () => {
                         {/* Quick Common Math Formulas for Options */}
                         <div className="space-y-2">
                             <div className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                                সাধারণ বিকল্প সূত্রসমূহ (ক্লিক করে বসান):
+                                Quick Formulas (Click to insert):
                             </div>
                             <div className="grid grid-cols-3 sm:grid-cols-4 gap-1.5">
                                 {[
@@ -878,7 +878,7 @@ export const ExamBuilderPage: React.FC = () => {
                                 onClick={() => setOptionMathModalIndex(null)}
                                 className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
                             >
-                                বাতিল
+                                Cancel
                             </button>
                             <button
                                 type="button"
@@ -886,7 +886,7 @@ export const ExamBuilderPage: React.FC = () => {
                                 className="px-5 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5"
                             >
                                 <Check className="w-3.5 h-3.5" />
-                                <span>অপশনে সংরক্ষণ করুন</span>
+                                <span>Save to Option</span>
                             </button>
                         </div>
                     </div>

@@ -84,7 +84,7 @@ export const ExamFormPage: React.FC = () => {
         setError(null);
 
         if (!formData.title.trim()) {
-            setError('অনুগ্রহ করে পরীক্ষার নাম লিখুন।');
+            setError('Please enter the exam title.');
             return;
         }
 
@@ -110,7 +110,7 @@ export const ExamFormPage: React.FC = () => {
                 navigate(`${basePath}/${newExamId}/builder`);
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'পরীক্ষা সংরক্ষণ করতে ব্যর্থ হয়েছে।');
+            setError(err.response?.data?.message || 'Failed to save exam.');
         } finally {
             setSubmitting(false);
         }
@@ -120,7 +120,7 @@ export const ExamFormPage: React.FC = () => {
         return (
             <div className="p-16 flex flex-col items-center justify-center text-slate-400">
                 <Loader2 className="w-8 h-8 animate-spin text-sky-500 mb-3" />
-                <p className="text-sm">তথ্য লোড হচ্ছে...</p>
+                <p className="text-sm">Loading exam information...</p>
             </div>
         );
     }
@@ -139,10 +139,10 @@ export const ExamFormPage: React.FC = () => {
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
                             <ClipboardList className="w-6 h-6 text-sky-500" />
-                            <span>{isEdit ? 'পরীক্ষা এডিট করুন' : 'নতুন পরীক্ষা তৈরি (Create New Exam)'}</span>
+                            <span>{isEdit ? 'Edit Exam' : 'Create New Exam'}</span>
                         </h1>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            পরীক্ষার মৌলিক তথ্য, সময়, কোর্স এবং নেগেটিভ মার্কিং কনফিগার করুন।
+                            Configure basic exam information, duration, courses, and negative marking.
                         </p>
                     </div>
                 </div>
@@ -160,14 +160,14 @@ export const ExamFormPage: React.FC = () => {
                 {/* 1. Exam Title */}
                 <div>
                     <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-1.5">
-                        পরীক্ষার নাম (Exam Title) <span className="text-rose-500">*</span>
+                        Exam Title <span className="text-rose-500">*</span>
                     </label>
                     <input
                         type="text"
                         required
                         value={formData.title}
                         onChange={e => setFormData({ ...formData, title: e.target.value })}
-                        placeholder="যেমন: পদার্থবিজ্ঞান ১ম পত্র - অধ্যায় ২ মডেল টেস্ট"
+                        placeholder="e.g. Physics Paper 1 - Chapter 2 Model Test"
                         className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                     />
                 </div>
@@ -178,10 +178,10 @@ export const ExamFormPage: React.FC = () => {
                         <GraduationCap className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
                         <div className="space-y-1">
                             <h4 className="text-sm font-bold text-sky-900 dark:text-sky-200">
-                                কোর্স অ্যাসাইনমেন্ট সংক্রান্ত নিয়ম
+                                Course Assignment Guidelines
                             </h4>
                             <p className="text-xs text-sky-800/80 dark:text-sky-300/80 leading-relaxed">
-                                পরীক্ষা তৈরির সময় এখানে কোর্স নির্বাচন করতে হবে না। পরীক্ষাটি তৈরি করার পর যে কোনো কোর্সের ভেতরে গিয়ে (<strong>Course Builder</strong>-এর <strong>"পরীক্ষাসমূহ"</strong> ট্যাব থেকে) এক বা একাধিক কোর্সে এই পরীক্ষা যুক্ত করতে পারবেন।
+                                You don't need to select a course while creating the exam. After creating the exam, you can attach it to one or multiple courses inside any course's <strong>Course Builder</strong> under the <strong>"Exams"</strong> tab.
                             </p>
                         </div>
                     </div>
@@ -189,7 +189,7 @@ export const ExamFormPage: React.FC = () => {
                     {isEdit && attachedCourses.length > 0 && (
                         <div className="pt-2 border-t border-sky-100 dark:border-sky-900/40">
                             <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1.5">
-                                বর্তমানে যুক্ত থাকা কোর্স ({attachedCourses.length}টি):
+                                Currently Attached Courses ({attachedCourses.length}):
                             </p>
                             <div className="flex flex-wrap gap-1.5">
                                 {attachedCourses.map((c: any) => (
@@ -209,13 +209,13 @@ export const ExamFormPage: React.FC = () => {
                 {/* 3. Description / Instructions */}
                 <div>
                     <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-1.5">
-                        পরীক্ষার বিবরণ ও নিয়মাবলী (Description & Instructions)
+                        Description & Instructions
                     </label>
                     <textarea
                         rows={3}
                         value={formData.description}
                         onChange={e => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="পরীক্ষার নিয়মাবলী ও নির্দেশনাবলী এখানে লিখুন..."
+                        placeholder="Write exam instructions and guidelines here..."
                         className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                     />
                 </div>
@@ -226,7 +226,7 @@ export const ExamFormPage: React.FC = () => {
                     <div>
                         <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-1.5 flex items-center gap-1.5">
                             <Clock className="w-4 h-4 text-sky-500" />
-                            <span>পরীক্ষার সময় (মিনিট) <span className="text-rose-500">*</span></span>
+                            <span>Exam Duration (Minutes) <span className="text-rose-500">*</span></span>
                         </label>
                         <input
                             type="number"
@@ -243,7 +243,7 @@ export const ExamFormPage: React.FC = () => {
                     <div>
                         <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-1.5 flex items-center gap-1.5">
                             <Award className="w-4 h-4 text-amber-500" />
-                            <span>মোট নম্বর (Total Marks)</span>
+                            <span>Total Marks</span>
                         </label>
                         <input
                             type="number"
@@ -253,13 +253,13 @@ export const ExamFormPage: React.FC = () => {
                             onChange={e => setFormData({ ...formData, total_marks: Number(e.target.value) })}
                             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                         />
-                        <p className="text-[11px] text-slate-400 mt-1">প্রশ্নের নম্বরের যোগফল দিয়ে পরবর্তীতে অটো-আপডেট হবে।</p>
+                        <p className="text-[11px] text-slate-400 mt-1">Will be automatically updated from the sum of question marks.</p>
                     </div>
 
                     {/* Pass Marks */}
                     <div>
                         <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-1.5">
-                            পাস মার্ক (Pass Marks)
+                            Pass Marks
                         </label>
                         <input
                             type="number"
@@ -276,8 +276,8 @@ export const ExamFormPage: React.FC = () => {
                 <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 space-y-3">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-semibold text-slate-900 dark:text-white">নেগেটিভ মার্কিং (Negative Marking)</p>
-                            <p className="text-xs text-slate-500">ভুল উত্তরের জন্য নম্বর কাটা যাবে কিনা নির্ধারণ করুন।</p>
+                            <p className="text-sm font-semibold text-slate-900 dark:text-white">Negative Marking</p>
+                            <p className="text-xs text-slate-500">Determine whether marks are deducted for incorrect answers.</p>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input
@@ -293,7 +293,7 @@ export const ExamFormPage: React.FC = () => {
                     {formData.has_negative_marking && (
                         <div className="pt-2 border-t border-slate-200 dark:border-slate-700/60 flex items-center gap-3">
                             <label className="text-xs font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                                প্রতিটি ভুল উত্তরের জন্য কর্তন নম্বর:
+                                Deduction per incorrect answer:
                             </label>
                             <input
                                 type="number"
@@ -304,7 +304,7 @@ export const ExamFormPage: React.FC = () => {
                                 className="w-32 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500 text-slate-900 dark:text-white"
                                 placeholder="0.25"
                             />
-                            <span className="text-xs text-slate-400">(যেমন: 0.25 বা 0.50)</span>
+                            <span className="text-xs text-slate-400">(e.g. 0.25 or 0.50)</span>
                         </div>
                     )}
                 </div>
@@ -312,7 +312,7 @@ export const ExamFormPage: React.FC = () => {
                 {/* 6. Status */}
                 <div>
                     <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-1.5">
-                        পরীক্ষার অবস্থা (Status)
+                        Exam Status
                     </label>
                     <div className="flex gap-4">
                         <label className="flex items-center gap-2 text-sm text-slate-800 dark:text-slate-200 cursor-pointer">
@@ -324,7 +324,7 @@ export const ExamFormPage: React.FC = () => {
                                 onChange={e => setFormData({ ...formData, status: e.target.value })}
                                 className="text-sky-600 focus:ring-sky-500"
                             />
-                            <span>Published (শিক্ষার্থীরা দেখতে পাবে)</span>
+                            <span>Published (Visible to enrolled students)</span>
                         </label>
                         <label className="flex items-center gap-2 text-sm text-slate-800 dark:text-slate-200 cursor-pointer">
                             <input
@@ -335,7 +335,7 @@ export const ExamFormPage: React.FC = () => {
                                 onChange={e => setFormData({ ...formData, status: e.target.value })}
                                 className="text-sky-600 focus:ring-sky-500"
                             />
-                            <span>Draft (ড্রাফট হিসেবে সংরক্ষিত)</span>
+                            <span>Draft (Saved as draft)</span>
                         </label>
                     </div>
                 </div>
@@ -346,7 +346,7 @@ export const ExamFormPage: React.FC = () => {
                         to={basePath}
                         className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-800"
                     >
-                        বাতিল (Cancel)
+                        Cancel
                     </Link>
                     <button
                         type="submit"
@@ -356,12 +356,12 @@ export const ExamFormPage: React.FC = () => {
                         {submitting ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                <span>সংরক্ষণ হচ্ছে...</span>
+                                <span>Saving...</span>
                             </>
                         ) : (
                             <>
                                 {isEdit ? <Save className="w-4 h-4" /> : <Wrench className="w-4 h-4" />}
-                                <span>{isEdit ? 'আপডেট করুন' : 'সংরক্ষণ ও প্রশ্ন বিল্ডার-এ যান'}</span>
+                                <span>{isEdit ? 'Save Changes' : 'Save & Open Exam Builder'}</span>
                             </>
                         )}
                     </button>

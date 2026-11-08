@@ -33,22 +33,22 @@ const DEFAULT_HEADER_SETTINGS: HeaderSettings = {
     show_auth_buttons: true,
     logo_url: null,
     logo_height: 44,
-    brand_title: 'Novonex',
-    brand_title_en: 'Novonex',
-    brand_subtitle: 'Academy',
-    brand_subtitle_en: 'Academy',
+    brand_title: 'Monologue',
+    brand_title_en: 'Monologue',
+    brand_subtitle: 'Edu',
+    brand_subtitle_en: 'Edu',
     announcement_enabled: false,
-    announcement_text: '🎉 নতুন ব্যাচে ভর্তি চলছে! ২০% ছাড়ে এখনই এনরোল করুন।',
+    announcement_text: '🎉 New batch admission open! Enroll now with 20% discount.',
     announcement_text_en: '🎉 New batch admission open! Enroll now with 20% discount.',
     announcement_link: '/courses',
     announcement_bg: '#0284c7',
     cta_button_enabled: false,
-    cta_button_text: 'ফ্রি ক্লাস দেখুন',
+    cta_button_text: 'Free Classes',
     cta_button_text_en: 'Free Classes',
     cta_button_link: '/courses',
     menu_items: [
-        { id: '1', label: 'হোম', label_en: 'Home', url: '/', is_external: false, highlight: false },
-        { id: '2', label: 'সকল কোর্স', label_en: 'All Courses', url: '/courses', is_external: false, highlight: true },
+        { id: '1', label: 'Home', label_en: 'Home', url: '/', is_external: false, highlight: false },
+        { id: '2', label: 'All Courses', label_en: 'All Courses', url: '/courses', is_external: false, highlight: true },
     ]
 };
 
@@ -97,7 +97,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                 handleUpdate('logo_url', res.data.media.url);
             }
         } catch (err: any) {
-            alert(err.response?.data?.message || 'লোগো ফাইল আপলোড করতে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to upload logo file.');
         } finally {
             setUploadingLogo(false);
             if (logoFileInputRef.current) logoFileInputRef.current.value = '';
@@ -108,8 +108,8 @@ export const AdminHeaderBuilderPage: React.FC = () => {
     const handleAddMenuItem = () => {
         const newItem: HeaderMenuItem = {
             id: Date.now().toString(),
-            label: 'নতুন মেনু',
-            label_en: '',
+            label: 'New Menu',
+            label_en: 'New Menu',
             url: '/',
             is_external: false,
             highlight: false
@@ -154,26 +154,26 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                 logo_url: headerSettings.logo_url ?? settings?.logo_url ?? null,
             });
             await refreshSettings();
-            setSuccessMessage(data.message || 'হেডার বিল্ডার সেটিংস সফলভাবে সংরক্ষিত হয়েছে!');
+            setSuccessMessage(data.message || 'Header builder settings saved successfully!');
             setTimeout(() => setSuccessMessage(null), 4000);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'সংরক্ষণ করতে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to save header settings.');
         } finally {
             setSaving(false);
         }
     };
 
     const handleResetDefaults = () => {
-        if (window.confirm('আপনি কি নিশ্চিত যে হেডার সেটিংস ডিফল্ট মানে রিসেট করতে চান?')) {
+        if (window.confirm('Are you sure you want to reset header settings to defaults?')) {
             setHeaderSettings(DEFAULT_HEADER_SETTINGS);
         }
     };
 
     // Localized values for Live Preview based on previewLang toggle
-    const previewBrandTitle = getLocalizedText(headerSettings.brand_title, headerSettings.brand_title_en, previewLang) || 'Novonex';
-    const previewBrandSubtitle = getLocalizedText(headerSettings.brand_subtitle, headerSettings.brand_subtitle_en, previewLang) || 'Academy';
+    const previewBrandTitle = getLocalizedText(headerSettings.brand_title, headerSettings.brand_title_en, previewLang) || 'Monologue';
+    const previewBrandSubtitle = getLocalizedText(headerSettings.brand_subtitle, headerSettings.brand_subtitle_en, previewLang) || 'Edu';
     const previewAnnouncementText = getLocalizedText(headerSettings.announcement_text, headerSettings.announcement_text_en, previewLang);
-    const previewCtaText = getLocalizedText(headerSettings.cta_button_text, headerSettings.cta_button_text_en, previewLang) || (previewLang === 'en' ? 'Enroll Now' : 'ভর্তি হন');
+    const previewCtaText = getLocalizedText(headerSettings.cta_button_text, headerSettings.cta_button_text_en, previewLang) || 'Free Classes';
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-16">
@@ -182,10 +182,10 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                 <div>
                     <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
                         <Palette className="w-7 h-7 text-sky-600" />
-                        <span>হেডার বিল্ডার (Header Builder)</span>
+                        <span>Header Builder</span>
                     </h2>
                     <p className="text-xs text-slate-500 mt-0.5">
-                        ওয়েবসাইটের মূল হেডারের লোগো, নেভিগেশন মেনু, নোটিশ বার ও দ্বিভাষিক (বাংলা ও English) ক্যাপশন কাস্টমাইজ করুন
+                        Customize the website header logo, navigation menu, announcement bar, and layout options
                     </p>
                 </div>
                 <div className="flex items-center gap-2.5">
@@ -193,10 +193,10 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                         type="button"
                         onClick={handleResetDefaults}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition cursor-pointer"
-                        title="ডিফল্ট রিসেট"
+                        title="Reset to Defaults"
                     >
                         <RotateCcw className="w-4 h-4 text-slate-500" />
-                        <span>ডিফল্ট রিসেট</span>
+                        <span>Reset to Defaults</span>
                     </button>
                     <button
                         type="button"
@@ -205,7 +205,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                         className="inline-flex items-center gap-2 px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition disabled:opacity-50 cursor-pointer"
                     >
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        <span>{saving ? 'সংরক্ষণ হচ্ছে...' : 'হেডার সংরক্ষণ করুন'}</span>
+                        <span>{saving ? 'Saving...' : 'Save Header'}</span>
                     </button>
                 </div>
             </div>
@@ -222,11 +222,10 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                 <div className="flex flex-wrap items-center justify-between px-2 gap-3 text-xs font-semibold text-slate-400">
                     <div className="flex items-center gap-2">
                         <Eye className="w-4 h-4 text-sky-400" />
-                        <span>লাইভ হেডার প্রিভিউ (Live Header Preview)</span>
+                        <span>Live Header Preview</span>
                     </div>
 
                     <div className="flex items-center gap-3">
-
                         {/* Device Mode Toggle */}
                         <div className="flex items-center gap-1 bg-slate-800/80 p-1 rounded-xl">
                             <button
@@ -237,7 +236,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                 }`}
                             >
                                 <Monitor className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">ডেস্কটপ</span>
+                                <span className="hidden sm:inline">Desktop</span>
                             </button>
                             <button
                                 type="button"
@@ -247,7 +246,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                 }`}
                             >
                                 <Smartphone className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">মোবাইল</span>
+                                <span className="hidden sm:inline">Mobile</span>
                             </button>
                         </div>
                     </div>
@@ -266,7 +265,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                             <span>{previewAnnouncementText}</span>
                             {headerSettings.announcement_link && (
                                 <span className="underline text-[11px] font-bold opacity-90 hover:opacity-100">
-                                    {previewLang === 'en' ? 'View Details →' : 'বিস্তারিত দেখুন →'}
+                                    View Details →
                                 </span>
                             )}
                         </div>
@@ -286,7 +285,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                             ) : (
                                 <div className="flex items-center gap-2">
                                     <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-sm">
-                                        N
+                                        M
                                     </div>
                                     <div>
                                         <span className="text-lg font-black text-slate-900 tracking-tight block">
@@ -349,7 +348,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                         }`}
                     >
                         <ImageIcon className="w-4 h-4" />
-                        <span>লোগো ও ব্র্যান্ডিং</span>
+                        <span>Logo & Branding</span>
                     </button>
                     <button
                         type="button"
@@ -361,7 +360,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                         }`}
                     >
                         <Layers className="w-4 h-4" />
-                        <span>নেভিগেশন মেনু আইটেম ({headerSettings.menu_items?.length || 0})</span>
+                        <span>Navigation Menu ({headerSettings.menu_items?.length || 0})</span>
                     </button>
                     <button
                         type="button"
@@ -373,7 +372,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                         }`}
                     >
                         <Bell className="w-4 h-4" />
-                        <span>টপ নোটিশ বার</span>
+                        <span>Announcement Bar</span>
                     </button>
                     <button
                         type="button"
@@ -385,7 +384,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                         }`}
                     >
                         <Sliders className="w-4 h-4" />
-                        <span>বাটন ও অতিরিক্ত অপশন</span>
+                        <span>Buttons & Options</span>
                     </button>
                 </div>
 
@@ -395,7 +394,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                         <div className="space-y-6">
                             {/* Logo Upload Section */}
                             <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-4">
-                                <h4 className="text-sm font-bold text-slate-900">ওয়েবসাইট লোগো (Header Logo)</h4>
+                                <h4 className="text-sm font-bold text-slate-900">Website Logo (Header Logo)</h4>
                                 <div className="flex flex-col sm:flex-row items-center gap-6">
                                     <div className="w-36 h-20 rounded-xl bg-white border border-slate-200 flex items-center justify-center p-2 shadow-2xs">
                                         {headerSettings.logo_url ? (
@@ -405,7 +404,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                                 className="max-h-full max-w-full object-contain"
                                             />
                                         ) : (
-                                            <span className="text-[11px] text-slate-400 font-medium">লোগো নেই</span>
+                                            <span className="text-[11px] text-slate-400 font-medium">No Logo</span>
                                         )}
                                     </div>
 
@@ -430,12 +429,12 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                                 {uploadingLogo ? (
                                                     <>
                                                         <Loader2 className="w-4 h-4 animate-spin" />
-                                                        <span>আপলোড হচ্ছে...</span>
+                                                        <span>Uploading...</span>
                                                     </>
                                                 ) : (
                                                     <>
                                                         <UploadCloud className="w-4 h-4" />
-                                                        <span>ডিভাইস থেকে আপলোড</span>
+                                                        <span>Upload from Device</span>
                                                     </>
                                                 )}
                                             </button>
@@ -446,7 +445,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                                 className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold border border-slate-200 transition cursor-pointer"
                                             >
                                                 <ImageIcon className="w-4 h-4 text-slate-600" />
-                                                <span>মিডিয়া লাইব্রেরি থেকে বাছুন</span>
+                                                <span>Choose from Media Library</span>
                                             </button>
 
                                             {headerSettings.logo_url && (
@@ -456,7 +455,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                                     className="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold border border-rose-200 transition cursor-pointer"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
-                                                    <span>লোগো মুছুন</span>
+                                                    <span>Remove Logo</span>
                                                 </button>
                                             )}
                                         </div>
@@ -465,7 +464,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                             type="text"
                                             value={headerSettings.logo_url || ''}
                                             onChange={(e) => handleUpdate('logo_url', e.target.value.trim() || null)}
-                                            placeholder="অথবা সরাসরি ছবির URL পেস্ট করুন"
+                                            placeholder="Or paste image URL directly"
                                             className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-sky-500"
                                         />
                                     </div>
@@ -476,7 +475,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        লোগোর উচ্চতা / সাইজ ({headerSettings.logo_height || 44}px)
+                                        Logo Height ({headerSettings.logo_height || 44}px)
                                     </label>
                                     <input
                                         type="range"
@@ -492,52 +491,52 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                ফলব্যাক ব্র্যান্ড নাম (বাংলা/মূল)
+                                                Brand Title
                                             </label>
                                             <input
                                                 type="text"
                                                 value={headerSettings.brand_title || ''}
                                                 onChange={(e) => handleUpdate('brand_title', e.target.value)}
                                                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium"
-                                                placeholder="যেমন: Novonex"
+                                                placeholder="e.g. Monologue"
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                ব্র্যান্ড নাম (English Mode)
+                                                Brand Title (English)
                                             </label>
                                             <input
                                                 type="text"
                                                 value={headerSettings.brand_title_en || ''}
                                                 onChange={(e) => handleUpdate('brand_title_en', e.target.value)}
                                                 className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium"
-                                                placeholder="e.g. Novonex"
+                                                placeholder="e.g. Monologue"
                                             />
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                সাবটাইটেল (বাংলা/মূল)
+                                                Brand Subtitle
                                             </label>
                                             <input
                                                 type="text"
                                                 value={headerSettings.brand_subtitle || ''}
                                                 onChange={(e) => handleUpdate('brand_subtitle', e.target.value)}
                                                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium"
-                                                placeholder="যেমন: Academy"
+                                                placeholder="e.g. Edu"
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                সাবটাইটেল (English Mode)
+                                                Brand Subtitle (English)
                                             </label>
                                             <input
                                                 type="text"
                                                 value={headerSettings.brand_subtitle_en || ''}
                                                 onChange={(e) => handleUpdate('brand_subtitle_en', e.target.value)}
                                                 className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium"
-                                                placeholder="e.g. Academy"
+                                                placeholder="e.g. Edu"
                                             />
                                         </div>
                                     </div>
@@ -551,9 +550,9 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                         <div className="space-y-5">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h4 className="text-sm font-bold text-slate-900">নেভিগেশন মেনু আইটেমসমূহ</h4>
+                                    <h4 className="text-sm font-bold text-slate-900">Navigation Menu Items</h4>
                                     <p className="text-xs text-slate-500">
-                                        বাংলা ও ইংরেজি উভয় ভাষার জন্য আলাদা ক্যাপশন দিন (ইংরেজি ফাঁকা রাখলে মূল লেখাটিই উভয় ভাষায় প্রদর্শিত হবে)
+                                        Configure primary links displayed in the website header.
                                     </p>
                                 </div>
                                 <button
@@ -562,7 +561,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                     className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-bold hover:bg-sky-700 transition cursor-pointer"
                                 >
                                     <Plus className="w-4 h-4" />
-                                    <span>নতুন মেনু যুক্ত করুন</span>
+                                    <span>Add New Menu Item</span>
                                 </button>
                             </div>
 
@@ -578,7 +577,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                                 disabled={idx === 0}
                                                 onClick={() => handleMoveMenuItem(idx, 'up')}
                                                 className="p-1.5 text-slate-400 hover:text-slate-800 disabled:opacity-30 cursor-pointer"
-                                                title="উপরে নিন"
+                                                title="Move Up"
                                             >
                                                 <MoveUp className="w-4 h-4" />
                                             </button>
@@ -587,40 +586,30 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                                 disabled={idx === (headerSettings.menu_items?.length || 0) - 1}
                                                 onClick={() => handleMoveMenuItem(idx, 'down')}
                                                 className="p-1.5 text-slate-400 hover:text-slate-800 disabled:opacity-30 cursor-pointer"
-                                                title="নিচে নিন"
+                                                title="Move Down"
                                             >
                                                 <MoveDown className="w-4 h-4" />
                                             </button>
                                         </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1 w-full">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 w-full">
                                             <div>
-                                                <label className="block text-[10px] font-bold text-slate-500 mb-1">মেনুর নাম (বাংলা/মূল)</label>
+                                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Menu Label</label>
                                                 <input
                                                     type="text"
                                                     value={item.label}
-                                                    onChange={(e) => handleUpdateMenuItem(idx, { label: e.target.value })}
-                                                    placeholder="যেমন: সকল কোর্স"
+                                                    onChange={(e) => handleUpdateMenuItem(idx, { label: e.target.value, label_en: e.target.value })}
+                                                    placeholder="e.g. All Courses"
                                                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-sky-500"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-[10px] font-bold text-slate-500 mb-1">English Mode Label (ঐচ্ছিক)</label>
-                                                <input
-                                                    type="text"
-                                                    value={item.label_en || ''}
-                                                    onChange={(e) => handleUpdateMenuItem(idx, { label_en: e.target.value })}
-                                                    placeholder="e.g. All Courses"
-                                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] font-bold text-slate-500 mb-1">লিঙ্ক URL</label>
+                                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Link URL</label>
                                                 <input
                                                     type="text"
                                                     value={item.url}
                                                     onChange={(e) => handleUpdateMenuItem(idx, { url: e.target.value })}
-                                                    placeholder="যেমন: /courses"
+                                                    placeholder="e.g. /courses"
                                                     className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-sky-500"
                                                 />
                                             </div>
@@ -634,7 +623,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                                     onChange={(e) => handleUpdateMenuItem(idx, { highlight: e.target.checked })}
                                                     className="w-4 h-4 text-sky-600 rounded"
                                                 />
-                                                <span>✨ হাইলাইট</span>
+                                                <span>✨ Highlight</span>
                                             </label>
 
                                             <label className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold cursor-pointer">
@@ -644,14 +633,14 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                                     onChange={(e) => handleUpdateMenuItem(idx, { is_external: e.target.checked })}
                                                     className="w-4 h-4 text-sky-600 rounded"
                                                 />
-                                                <span>নতুন ট্যাব</span>
+                                                <span>External</span>
                                             </label>
 
                                             <button
                                                 type="button"
                                                 onClick={() => handleDeleteMenuItem(idx)}
                                                 className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition cursor-pointer"
-                                                title="মুছে ফেলুন"
+                                                title="Delete"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -661,7 +650,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
 
                                 {(headerSettings.menu_items?.length || 0) === 0 && (
                                     <div className="p-8 text-center border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 text-xs">
-                                        কোনো মেনু আইটেম যুক্ত করা নেই। উপরে "নতুন মেনু যুক্ত করুন" বাটনে ক্লিক করুন।
+                                        No menu items configured. Click "Add New Menu Item" above.
                                     </div>
                                 )}
                             </div>
@@ -673,8 +662,8 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                         <div className="space-y-5">
                             <div className="flex items-center justify-between p-4 rounded-2xl bg-sky-50/50 border border-sky-100">
                                 <div>
-                                    <h4 className="text-sm font-bold text-slate-900">টপ অ্যানাউন্সমেন্ট / নোটিশ বার চালু করুন</h4>
-                                    <p className="text-xs text-slate-500">হেডারের একদম উপরে গুরুত্বপূর্ণ অফার বা নোটিশ প্রদর্শনের জন্য</p>
+                                    <h4 className="text-sm font-bold text-slate-900">Enable Top Announcement Bar</h4>
+                                    <p className="text-xs text-slate-500">Displays a prominent banner notice at the very top of the header</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -692,62 +681,47 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                নোটিশের বার্তা (বাংলা/মূল)
+                                                Notice Message
                                             </label>
                                             <input
                                                 type="text"
                                                 value={headerSettings.announcement_text || ''}
                                                 onChange={(e) => handleUpdate('announcement_text', e.target.value)}
-                                                placeholder="যেমন: 🎉 নতুন ব্যাচে ভর্তি চলছে! ২০% ছাড়ে এখনই এনরোল করুন।"
+                                                placeholder="e.g. 🎉 New batch admission open! Enroll now with 20% discount."
                                                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500"
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                Notice Message (English Mode - ঐচ্ছিক)
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={headerSettings.announcement_text_en || ''}
-                                                onChange={(e) => handleUpdate('announcement_text_en', e.target.value)}
-                                                placeholder="e.g. 🎉 Admission open for new batch! 20% discount."
-                                                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                নোটিশের লিঙ্ক URL (ঐচ্ছিক)
+                                                Notice Link URL (Optional)
                                             </label>
                                             <input
                                                 type="text"
                                                 value={headerSettings.announcement_link || ''}
                                                 onChange={(e) => handleUpdate('announcement_link', e.target.value)}
-                                                placeholder="যেমন: /courses বা https://..."
+                                                placeholder="e.g. /courses or https://..."
                                                 className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-sky-500"
                                             />
                                         </div>
+                                    </div>
 
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                ব্যাকগ্রাউন্ড কালার
-                                            </label>
-                                            <div className="flex items-center gap-3">
-                                                <input
-                                                    type="color"
-                                                    value={headerSettings.announcement_bg || '#0284c7'}
-                                                    onChange={(e) => handleUpdate('announcement_bg', e.target.value)}
-                                                    className="w-10 h-10 rounded-xl cursor-pointer border-0 p-0"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={headerSettings.announcement_bg || '#0284c7'}
-                                                    onChange={(e) => handleUpdate('announcement_bg', e.target.value)}
-                                                    className="w-32 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono uppercase"
-                                                />
-                                            </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                            Background Color
+                                        </label>
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="color"
+                                                value={headerSettings.announcement_bg || '#0284c7'}
+                                                onChange={(e) => handleUpdate('announcement_bg', e.target.value)}
+                                                className="w-10 h-10 rounded-xl cursor-pointer border-0 p-0"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={headerSettings.announcement_bg || '#0284c7'}
+                                                onChange={(e) => handleUpdate('announcement_bg', e.target.value)}
+                                                className="w-32 px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono uppercase"
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -762,8 +736,8 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                 {/* Sticky Header */}
                                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                                     <div>
-                                        <div className="text-xs font-bold text-slate-900">স্টিকি হেডার (Sticky Header)</div>
-                                        <div className="text-[11px] text-slate-500">স্ক্রল করার সময় হেডার উপরে আটকে থাকবে</div>
+                                        <div className="text-xs font-bold text-slate-900">Sticky Header</div>
+                                        <div className="text-[11px] text-slate-500">Keep header pinned at the top while scrolling</div>
                                     </div>
                                     <input
                                         type="checkbox"
@@ -776,8 +750,8 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                 {/* Theme Switcher */}
                                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                                     <div>
-                                        <div className="text-xs font-bold text-slate-900">ডার্ক/লাইট থিম সুইচ বাটন</div>
-                                        <div className="text-[11px] text-slate-500">হেডারে থিম পরিবর্তন করার বাটন দেখাবে</div>
+                                        <div className="text-xs font-bold text-slate-900">Dark/Light Theme Toggle</div>
+                                        <div className="text-[11px] text-slate-500">Display theme toggle button in header</div>
                                     </div>
                                     <input
                                         type="checkbox"
@@ -790,8 +764,8 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                 {/* Auth Buttons */}
                                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                                     <div>
-                                        <div className="text-xs font-bold text-slate-900">লগইন / রেজিস্টার বাটন</div>
-                                        <div className="text-[11px] text-slate-500">শিক্ষার্থী লগইন বাটন হেডারে প্রদর্শিত হবে</div>
+                                        <div className="text-xs font-bold text-slate-900">Login / Register Buttons</div>
+                                        <div className="text-[11px] text-slate-500">Display user account buttons in header</div>
                                     </div>
                                     <input
                                         type="checkbox"
@@ -804,8 +778,8 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                 {/* Custom CTA Button */}
                                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
                                     <div>
-                                        <div className="text-xs font-bold text-slate-900">কাস্টম অ্যাকশন বাটন (CTA)</div>
-                                        <div className="text-[11px] text-slate-500">যেমন: "ফ্রি ক্লাস" বা "ভর্তি আবেদন" বাটন</div>
+                                        <div className="text-xs font-bold text-slate-900">Custom Action Button (CTA)</div>
+                                        <div className="text-[11px] text-slate-500">e.g. "Free Class" or "Enroll Now" button</div>
                                     </div>
                                     <input
                                         type="checkbox"
@@ -818,41 +792,29 @@ export const AdminHeaderBuilderPage: React.FC = () => {
 
                             {headerSettings.cta_button_enabled && (
                                 <div className="p-5 rounded-2xl bg-sky-50/50 border border-sky-100 space-y-4">
-                                    <h4 className="text-xs font-bold text-sky-900 uppercase tracking-wider">CTA বাটন কনফিগারেশন</h4>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <h4 className="text-xs font-bold text-sky-900 uppercase tracking-wider">CTA Button Configuration</h4>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                বাটনের টেক্সট (বাংলা/মূল)
+                                                Button Text
                                             </label>
                                             <input
                                                 type="text"
                                                 value={headerSettings.cta_button_text || ''}
                                                 onChange={(e) => handleUpdate('cta_button_text', e.target.value)}
-                                                placeholder="যেমন: ফ্রি ক্লাস দেখুন"
+                                                placeholder="e.g. Free Classes"
                                                 className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold"
                                             />
                                         </div>
                                         <div>
                                             <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                Button Text (English Mode)
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={headerSettings.cta_button_text_en || ''}
-                                                onChange={(e) => handleUpdate('cta_button_text_en', e.target.value)}
-                                                placeholder="e.g. Free Classes"
-                                                className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                বাটনের লিঙ্ক URL
+                                                Button Link URL
                                             </label>
                                             <input
                                                 type="text"
                                                 value={headerSettings.cta_button_link || ''}
                                                 onChange={(e) => handleUpdate('cta_button_link', e.target.value)}
-                                                placeholder="যেমন: /courses"
+                                                placeholder="e.g. /courses"
                                                 className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono"
                                             />
                                         </div>
@@ -869,7 +831,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                 isOpen={isMediaModalOpen}
                 onClose={() => setIsMediaModalOpen(false)}
                 filterType="image"
-                title="লোগোর জন্য ছবি বাছাই করুন"
+                title="Select Logo Image"
                 onSelect={(url) => {
                     handleUpdate('logo_url', url);
                     setIsMediaModalOpen(false);

@@ -12,9 +12,9 @@ export const Footer: React.FC = () => {
 
     const bgColor = footer?.bg_color || '#0f172a';
     const brandTitle = getLocalizedText(footer?.brand_title, footer?.brand_title_en, language)
-        || (settings?.site_name ? settings.site_name.split(' ')[0] : 'Novonex');
+        || (settings?.site_name ? settings.site_name.split(' ')[0] : 'Monologue');
     const brandSubtitle = getLocalizedText(footer?.brand_subtitle, footer?.brand_subtitle_en, language)
-        || (settings?.site_name && settings.site_name.split(' ').length > 1 ? settings.site_name.split(' ').slice(1).join(' ') : 'Academy');
+        || (settings?.site_name && settings.site_name.split(' ').length > 1 ? settings.site_name.split(' ').slice(1).join(' ') : 'Edu');
 
     const description = getLocalizedText(footer?.description, footer?.description_en, language) || t.footer.desc;
     const showBadge = footer?.show_badge !== false;
@@ -26,8 +26,8 @@ export const Footer: React.FC = () => {
         : [
             { id: '1', label: t.footer.home, url: '/' },
             { id: '2', label: t.footer.allCourses, url: '/courses' },
-            { id: '3', label: language === 'en' ? 'Physics Courses' : 'পদার্থবিজ্ঞান কোর্সসমূহ', url: '/courses?category=hsc-physics' },
-            { id: '4', label: language === 'en' ? 'Admission Preparation' : 'ভর্তি প্রস্তুতি কোর্সসমূহ', url: '/courses?category=admission' },
+            { id: '3', label: 'Physics Courses', url: '/courses?category=hsc-physics' },
+            { id: '4', label: 'Admission Preparation', url: '/courses?category=admission' },
         ];
     const col2Links = rawCol2Links.map(link => ({
         ...link,
@@ -51,8 +51,8 @@ export const Footer: React.FC = () => {
     const col4Title = getLocalizedText(footer?.column_4_title, footer?.column_4_title_en, language) || t.footer.contactUs;
     const phone = footer?.phone || settings?.contact_phone || '+880 1700 000000';
     const phoneHours = getLocalizedText(footer?.phone_hours, footer?.phone_hours_en, language) || t.footer.hotlineTime;
-    const email = footer?.email || settings?.contact_email || 'support@novonex.edu.bd';
-    const address = getLocalizedText(footer?.address, footer?.address_en, language) || (language === 'en' ? 'Dhaka, Bangladesh' : 'ঢাকা, বাংলাদেশ');
+    const email = footer?.email || settings?.contact_email || 'support@monologueedu.com';
+    const address = getLocalizedText(footer?.address, footer?.address_en, language) || 'Dhaka, Bangladesh';
     const socialLinks = footer?.social_links || [];
 
     const defaultCopyright = `© 2026 ${brandTitle} ${brandSubtitle}. ${t.footer.rightsReserved}`;
@@ -60,7 +60,7 @@ export const Footer: React.FC = () => {
         || settings?.copyright_text
         || defaultCopyright;
 
-    const defaultCredit = language === 'en' ? 'Crafted with ❤️ for passionate learners' : 'শিক্ষার্থীদের স্বপ্নপূরণের লক্ষ্যে ❤️ দিয়ে তৈরি';
+    const defaultCredit = 'Crafted with ❤️ for passionate learners';
     const bottomCredit = getLocalizedText(footer?.bottom_credit, footer?.bottom_credit_en, language) || defaultCredit;
 
     return (

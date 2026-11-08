@@ -60,16 +60,16 @@ export const CustomPageView: React.FC<CustomPageViewProps> = ({ slugOverride }) 
                 <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-300 flex items-center justify-center">
                     <AlertCircle className="w-8 h-8" />
                 </div>
-                <h1 className="text-2xl font-black text-slate-900 dark:text-white">পেজটি পাওয়া যায়নি (404)</h1>
+                <h1 className="text-2xl font-black text-slate-900 dark:text-white">Page Not Found (404)</h1>
                 <p className="text-slate-500 dark:text-slate-400 text-sm max-w-md">
-                    আপনি যে পেজটিতে প্রবেশ করতে চেয়েছেন তা বিদ্যমান নেই অথবা অপ্রকাশিত অবস্থায় রয়েছে।
+                    The page you are looking for does not exist or is currently unpublished.
                 </p>
                 <Link
                     to="/"
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 text-white font-bold text-sm shadow-md hover:bg-sky-700 transition-colors"
                 >
                     <ArrowLeft className="w-4 h-4" />
-                    <span>হোম পেজে ফিরে যান</span>
+                    <span>Back to Home</span>
                 </Link>
             </div>
         );

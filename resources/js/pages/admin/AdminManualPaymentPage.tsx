@@ -79,7 +79,7 @@ const DEFAULT_SETTINGS: ManualPaymentSettings = {
         name: 'bKash',
         account_number: '01700000000',
         type: 'send_money',
-        instructions: 'আপনার বিকাশ অ্যাপ বা *247# ডায়াল করে Send Money করুন। সফল লেনদেনের পর প্রাপ্ত TrxID টি নিচে দিন।',
+        instructions: 'Open your bKash app or dial *247# to Send Money to the recipient number. Enter the TrxID below after payment.',
         instructions_en: 'Open your bKash app or dial *247# to Send Money to the recipient number. Enter the TrxID below after payment.',
     },
     nagad: {
@@ -87,7 +87,7 @@ const DEFAULT_SETTINGS: ManualPaymentSettings = {
         name: 'Nagad',
         account_number: '01700000000',
         type: 'send_money',
-        instructions: 'আপনার নগদ অ্যাপ বা *167# ডায়াল করে Send Money করুন। সফল লেনদেনের পর প্রাপ্ত TrxID টি নিচে দিন।',
+        instructions: 'Open your Nagad app or dial *167# to Send Money to the recipient number. Enter the TrxID below after payment.',
         instructions_en: 'Open your Nagad app or dial *167# to Send Money to the recipient number. Enter the TrxID below after payment.',
     },
     rocket: {
@@ -95,7 +95,7 @@ const DEFAULT_SETTINGS: ManualPaymentSettings = {
         name: 'Rocket',
         account_number: '01700000000',
         type: 'send_money',
-        instructions: 'আপনার রকেট অ্যাপ বা *322# ডায়াল করে Send Money করুন। সফল লেনদেনের পর প্রাপ্ত TrxID টি নিচে দিন।',
+        instructions: 'Open your Rocket app or dial *322# to Send Money to the recipient number. Enter the TrxID below after payment.',
         instructions_en: 'Open your Rocket app or dial *322# to Send Money to the recipient number. Enter the TrxID below after payment.',
     },
 };
@@ -144,9 +144,7 @@ export const AdminManualPaymentPage: React.FC = () => {
     };
 
     const handleResetGatewayToDefault = (gateway: GatewayKey) => {
-        if (!window.confirm(language === 'en' 
-            ? `Reset ${gateway} settings to default template?` 
-            : `${gateway} এর তথ্য কি ডিফল্ট অবস্থায় ফিরিয়ে নিতে চান?`)) {
+        if (!window.confirm(`Reset ${gateway} settings to default template?`)) {
             return;
         }
         setConfigs(prev => ({
@@ -170,10 +168,10 @@ export const AdminManualPaymentPage: React.FC = () => {
             updateSettingsLocally(payload);
             await refreshSettings();
 
-            setSuccessMessage(data.message || (language === 'en' ? 'Manual payment settings saved successfully!' : 'ম্যানুয়াল পেমেন্ট সেটিংস সফলভাবে সংরক্ষণ করা হয়েছে!'));
+            setSuccessMessage(data.message || 'Manual payment settings saved successfully!');
             setTimeout(() => setSuccessMessage(null), 4000);
         } catch (err: any) {
-            setErrorMessage(err.response?.data?.message || (language === 'en' ? 'Failed to save settings.' : 'সেটিংস সংরক্ষণ করতে সমস্যা হয়েছে।'));
+            setErrorMessage(err.response?.data?.message || 'Failed to save settings.');
         } finally {
             setSaving(false);
         }
@@ -182,14 +180,14 @@ export const AdminManualPaymentPage: React.FC = () => {
     const activeConfig = configs[activeTab];
     const currentMeta = GATEWAYS.find(g => g.key === activeTab)!;
 
-    const getTypeLabel = (type: ManualPaymentType, lang: 'bn' | 'en') => {
+    const getTypeLabel = (type: ManualPaymentType) => {
         switch (type) {
             case 'send_money':
-                return lang === 'en' ? 'Send Money (Personal)' : 'সেন্ড মানি (Personal)';
+                return 'Send Money (Personal)';
             case 'payment':
-                return lang === 'en' ? 'Payment (Merchant)' : 'পেমেন্ট (Merchant)';
+                return 'Payment (Merchant)';
             case 'cash_out':
-                return lang === 'en' ? 'Cash Out (Agent)' : 'ক্যাশ আউট (Agent)';
+                return 'Cash Out (Agent)';
             default:
                 return type;
         }
@@ -198,7 +196,7 @@ export const AdminManualPaymentPage: React.FC = () => {
     if (loading) {
         return (
             <div className="p-12 text-center text-slate-400 font-semibold">
-                {language === 'en' ? 'Loading manual payment settings...' : 'ম্যানুয়াল পেমেন্ট সেটিংস লোড হচ্ছে...'}
+                Loading manual payment settings...
             </div>
         );
     }
@@ -213,13 +211,11 @@ export const AdminManualPaymentPage: React.FC = () => {
                             <CreditCard className="w-5 h-5" />
                         </div>
                         <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                            {language === 'en' ? 'Manual Payment Settings' : 'ম্যানুয়াল পেমেন্ট সেটিংস'}
+                            Manual Payment Settings
                         </h2>
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
-                        {language === 'en'
-                            ? 'Configure bKash, Nagad, and Rocket account numbers, transaction types (Send Money, Payment, Cash Out), and student instructions shown during course checkout.'
-                            : 'কোর্সের চেকআউট পেজে প্রদর্শিত bKash, Nagad ও Rocket এর অ্যাকাউন্ট নম্বর, লেনদেন টাইপ (Send Money, Payment, Cash Out) এবং শিক্ষার্থীদের জন্য নির্দেশনাবলী পরিচালনা করুন।'}
+                        Configure bKash, Nagad, and Rocket account numbers, transaction types (Send Money, Payment, Cash Out), and student instructions shown during course checkout.
                     </p>
                 </div>
 
@@ -229,7 +225,7 @@ export const AdminManualPaymentPage: React.FC = () => {
                     className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-2xl shadow-lg shadow-sky-600/25 transition-all disabled:opacity-50 cursor-pointer shrink-0"
                 >
                     <Save className="w-4 h-4" />
-                    <span>{saving ? (language === 'en' ? 'Saving...' : 'সংরক্ষণ হচ্ছে...') : (language === 'en' ? 'Save All Changes' : 'পরিবর্তন সংরক্ষণ করুন')}</span>
+                    <span>{saving ? 'Saving...' : 'Save All Changes'}</span>
                 </button>
             </div>
 
@@ -280,12 +276,12 @@ export const AdminManualPaymentPage: React.FC = () => {
                                     {cfg.enabled ? (
                                         <>
                                             <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                                            <span>{language === 'en' ? 'Active' : 'সক্রিয়'}</span>
+                                            <span>Active</span>
                                         </>
                                     ) : (
                                         <>
                                             <XCircle className="w-3.5 h-3.5" />
-                                            <span>{language === 'en' ? 'Disabled' : 'বন্ধ'}</span>
+                                            <span>Disabled</span>
                                         </>
                                     )}
                                 </span>
@@ -293,15 +289,15 @@ export const AdminManualPaymentPage: React.FC = () => {
 
                             <div className="space-y-1 text-xs">
                                 <div className="text-slate-500 dark:text-slate-400 flex items-center justify-between">
-                                    <span>{language === 'en' ? 'Number:' : 'নম্বর:'}</span>
+                                    <span>Number:</span>
                                     <span className="font-mono font-bold text-slate-900 dark:text-slate-200">
                                         {cfg.account_number || '---'}
                                     </span>
                                 </div>
                                 <div className="text-slate-500 dark:text-slate-400 flex items-center justify-between">
-                                    <span>{language === 'en' ? 'Type:' : 'টাইপ:'}</span>
+                                    <span>Type:</span>
                                     <span className="font-semibold text-sky-600 dark:text-sky-400">
-                                        {getTypeLabel(cfg.type, language as 'bn' | 'en')}
+                                        {getTypeLabel(cfg.type)}
                                     </span>
                                 </div>
                             </div>
@@ -321,10 +317,10 @@ export const AdminManualPaymentPage: React.FC = () => {
                             </div>
                             <div>
                                 <h3 className="text-lg font-black text-slate-900 dark:text-white">
-                                    {currentMeta.titleEn} ({currentMeta.title}) {language === 'en' ? 'Configuration' : 'কনফিগারেশন'}
+                                    {currentMeta.titleEn} Configuration
                                 </h3>
                                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                                    {language === 'en' ? 'Set up gateway details and transaction rules' : 'গেটওয়ের বিবরণ ও লেনদেনের নিয়মাবলী নির্ধারণ করুন'}
+                                    Set up gateway details and transaction rules
                                 </p>
                             </div>
                         </div>
@@ -334,10 +330,10 @@ export const AdminManualPaymentPage: React.FC = () => {
                             type="button"
                             onClick={() => handleResetGatewayToDefault(activeTab)}
                             className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer text-xs font-semibold flex items-center gap-1"
-                            title={language === 'en' ? 'Reset to Default Template' : 'ডিফল্ট টেক্সটে রিসেট করুন'}
+                            title="Reset to Default Template"
                         >
                             <RotateCcw className="w-3.5 h-3.5" />
-                            <span className="hidden sm:inline">{language === 'en' ? 'Reset' : 'রিসেট'}</span>
+                            <span className="hidden sm:inline">Reset</span>
                         </button>
                     </div>
 
@@ -346,12 +342,10 @@ export const AdminManualPaymentPage: React.FC = () => {
                         <div className="flex items-center justify-between p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800">
                             <div>
                                 <label className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <span>{language === 'en' ? 'Enable this Gateway in Checkout' : 'চেকআউটে এই গেটওয়ে চালু রাখুন'}</span>
+                                    <span>Enable this Gateway in Checkout</span>
                                 </label>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    {language === 'en' 
-                                        ? 'When disabled, students will not see this payment option during checkout.' 
-                                        : 'বন্ধ রাখলে শিক্ষার্থীরা চেকআউটে এই পেমেন্ট অপশনটি দেখতে পাবে না।'}
+                                    When disabled, students will not see this payment option during checkout.
                                 </p>
                             </div>
 
@@ -373,9 +367,7 @@ export const AdminManualPaymentPage: React.FC = () => {
                         {/* Account Number Input */}
                         <div>
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                                {language === 'en' 
-                                    ? `${currentMeta.titleEn} Account / Recipient Number` 
-                                    : `${currentMeta.titleEn} অ্যাকাউন্ট / প্রাপক নম্বর`}
+                                {currentMeta.titleEn} Account / Recipient Number
                                 <span className="text-rose-500 ml-1">*</span>
                             </label>
                             <div className="relative">
@@ -392,16 +384,14 @@ export const AdminManualPaymentPage: React.FC = () => {
                                 />
                             </div>
                             <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1.5">
-                                {language === 'en'
-                                    ? 'Students will send money/make payment to this specific phone number.'
-                                    : 'শিক্ষার্থীরা এই নম্বরে টাকা পাঠাবে বা পেমেন্ট করবে।'}
+                                Students will send money/make payment to this specific phone number.
                             </p>
                         </div>
 
                         {/* Transaction Type Radio Selector */}
                         <div>
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2.5">
-                                {language === 'en' ? 'Transaction / Account Type' : 'লেনদেনের ধরন (Transaction Type)'}
+                                Transaction / Account Type
                                 <span className="text-rose-500 ml-1">*</span>
                             </label>
 
@@ -409,26 +399,20 @@ export const AdminManualPaymentPage: React.FC = () => {
                                 {[
                                     {
                                         type: 'send_money' as ManualPaymentType,
-                                        labelEn: 'Send Money',
-                                        labelBn: 'সেন্ড মানি',
-                                        subEn: 'Personal Number',
-                                        subBn: 'ব্যক্তিগত নম্বর',
+                                        label: 'Send Money',
+                                        sub: 'Personal Number',
                                         icon: '💸'
                                     },
                                     {
                                         type: 'payment' as ManualPaymentType,
-                                        labelEn: 'Payment',
-                                        labelBn: 'পেমেন্ট',
-                                        subEn: 'Merchant Account',
-                                        subBn: 'মার্চেন্ট নম্বর',
+                                        label: 'Payment',
+                                        sub: 'Merchant Account',
                                         icon: '💳'
                                     },
                                     {
                                         type: 'cash_out' as ManualPaymentType,
-                                        labelEn: 'Cash Out',
-                                        labelBn: 'ক্যাশ আউট',
-                                        subEn: 'Agent Number',
-                                        subBn: 'এজেন্ট নম্বর',
+                                        label: 'Cash Out',
+                                        sub: 'Agent Number',
                                         icon: '🏧'
                                     },
                                 ].map((option) => {
@@ -453,10 +437,10 @@ export const AdminManualPaymentPage: React.FC = () => {
                                                 </div>
                                             </div>
                                             <div className="font-bold text-sm text-slate-900 dark:text-white">
-                                                {language === 'en' ? option.labelEn : option.labelBn}
+                                                {option.label}
                                             </div>
                                             <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                                                {language === 'en' ? option.subEn : option.subBn}
+                                                {option.sub}
                                             </div>
                                         </button>
                                     );
@@ -464,30 +448,16 @@ export const AdminManualPaymentPage: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Custom Instruction in Bangla */}
+                        {/* Step-by-step Instructions */}
                         <div>
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                                {language === 'en' ? 'Step-by-step Instructions (Bangla)' : 'ধাপে ধাপে নির্দেশনা (বাংলা)'}
+                                Step-by-step Instructions
                             </label>
                             <textarea
                                 rows={3}
                                 value={activeConfig.instructions || ''}
-                                onChange={(e) => handleUpdateConfig(activeTab, { instructions: e.target.value })}
-                                placeholder="যেমন: আপনার বিকাশ অ্যাপে যান এবং Send Money সিলেক্ট করুন..."
-                                className="w-full p-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-900 leading-relaxed"
-                            />
-                        </div>
-
-                        {/* Custom Instruction in English */}
-                        <div>
-                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                                {language === 'en' ? 'Step-by-step Instructions (English)' : 'ধাপে ধাপে নির্দেশনা (English)'}
-                            </label>
-                            <textarea
-                                rows={3}
-                                value={activeConfig.instructions_en || ''}
-                                onChange={(e) => handleUpdateConfig(activeTab, { instructions_en: e.target.value })}
-                                placeholder="e.g. Open your bKash app and select Send Money..."
+                                onChange={(e) => handleUpdateConfig(activeTab, { instructions: e.target.value, instructions_en: e.target.value })}
+                                placeholder="e.g. Open your bKash app and select Send Money to the account number..."
                                 className="w-full p-3.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-900 leading-relaxed"
                             />
                         </div>
@@ -499,7 +469,7 @@ export const AdminManualPaymentPage: React.FC = () => {
                                 className="w-full py-4 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-2xl shadow-lg shadow-sky-600/25 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
                             >
                                 <Save className="w-4 h-4" />
-                                <span>{saving ? (language === 'en' ? 'Saving changes...' : 'সংরক্ষণ হচ্ছে...') : (language === 'en' ? 'Save Settings' : 'সেটিংস সংরক্ষণ করুন')}</span>
+                                <span>{saving ? 'Saving changes...' : 'Save Settings'}</span>
                             </button>
                         </div>
                     </form>
@@ -510,17 +480,17 @@ export const AdminManualPaymentPage: React.FC = () => {
                     <div className="flex items-center justify-between px-2">
                         <span className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
                             <Eye className="w-4 h-4 text-sky-500" />
-                            {language === 'en' ? 'Student Checkout Live Simulator' : 'শিক্ষার্থীর চেকআউট লাইভ সিমুলেটর'}
+                            Student Checkout Live Simulator
                         </span>
                         <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-                            {language === 'en' ? 'Real-time Preview' : 'রিয়েল-টাইম প্রিভিউ'}
+                            Real-time Preview
                         </span>
                     </div>
 
                     <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-6">
                         <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
                             <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                                {language === 'en' ? 'Payment Method Preview' : 'পেমেন্ট মেথড প্রিভিউ'}
+                                Payment Method Preview
                             </h4>
                             <span className="text-[11px] text-slate-400">Checkout.tsx</span>
                         </div>
@@ -543,10 +513,10 @@ export const AdminManualPaymentPage: React.FC = () => {
                                         <span className={`block font-black text-sm ${gw.textColor}`}>{gw.titleEn}</span>
                                         <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold block truncate">
                                             {cfg.type === 'payment' 
-                                                ? (language === 'en' ? 'Payment' : 'পেমেন্ট')
+                                                ? 'Payment'
                                                 : cfg.type === 'cash_out' 
-                                                    ? (language === 'en' ? 'Cash Out' : 'ক্যাশ আউট')
-                                                    : (language === 'en' ? 'Send Money' : 'সেন্ড মানি')
+                                                    ? 'Cash Out'
+                                                    : 'Send Money'
                                             }
                                         </span>
                                     </div>
@@ -558,9 +528,7 @@ export const AdminManualPaymentPage: React.FC = () => {
                         <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 text-xs text-slate-700 dark:text-slate-300 space-y-2.5">
                             <div className="font-bold text-slate-900 dark:text-white flex items-center justify-between">
                                 <span>
-                                    {language === 'en' 
-                                        ? `Payment Instructions (${currentMeta.titleEn}):` 
-                                        : `পেমেন্ট নির্দেশনা (${currentMeta.titleEn}):`}
+                                    Payment Instructions ({currentMeta.titleEn}):
                                 </span>
                                 <button
                                     type="button"
@@ -572,19 +540,17 @@ export const AdminManualPaymentPage: React.FC = () => {
                                     className="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400 font-bold hover:underline cursor-pointer"
                                 >
                                     {copiedPreview ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                                    <span>{copiedPreview ? (language === 'en' ? 'Copied' : 'কপি হয়েছে') : (language === 'en' ? 'Copy Number' : 'নম্বর কপি')}</span>
+                                    <span>{copiedPreview ? 'Copied' : 'Copy Number'}</span>
                                 </button>
                             </div>
 
                             <p className="leading-relaxed">
-                                {language === 'en'
-                                    ? (activeConfig.instructions_en || `1. Open your ${currentMeta.titleEn} app and select ${activeConfig.type === 'payment' ? 'Payment' : activeConfig.type === 'cash_out' ? 'Cash Out' : 'Send Money'}.`)
-                                    : (activeConfig.instructions || `১. আপনার ${currentMeta.title} অ্যাপে যান এবং ${activeConfig.type === 'payment' ? 'Payment' : activeConfig.type === 'cash_out' ? 'Cash Out' : 'Send Money'} সিলেক্ট করুন।`)}
+                                {activeConfig.instructions || activeConfig.instructions_en || `1. Open your ${currentMeta.titleEn} app and select ${activeConfig.type === 'payment' ? 'Payment' : activeConfig.type === 'cash_out' ? 'Cash Out' : 'Send Money'}.`}
                             </p>
 
                             <div className="pt-1 flex items-center gap-2">
                                 <span className="text-slate-500 dark:text-slate-400">
-                                    {language === 'en' ? 'Recipient Number:' : 'প্রাপক নম্বর:'}
+                                    Recipient Number:
                                 </span>
                                 <strong className="font-mono text-sm text-slate-900 dark:text-white bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700 shadow-2xs">
                                     {activeConfig.account_number || '017xxxxxxxx'}
@@ -595,9 +561,7 @@ export const AdminManualPaymentPage: React.FC = () => {
                             </div>
 
                             <p className="pt-1 text-slate-500 dark:text-slate-400 text-[11px]">
-                                {language === 'en'
-                                    ? 'Enter the TrxID below after successful transfer.'
-                                    : 'সফলভাবে পাঠানোর পর প্রাপ্ত Transaction ID (TrxID) নিচে লিখুন।'}
+                                Enter the TrxID below after successful transfer.
                             </p>
                         </div>
 
@@ -620,9 +584,7 @@ export const AdminManualPaymentPage: React.FC = () => {
                         <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/50 text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed flex items-start gap-2">
                             <ShieldCheck className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                             <span>
-                                {language === 'en'
-                                    ? 'Note: This preview dynamically mirrors what students see on the checkout page when this payment method is chosen.'
-                                    : 'নোট: শিক্ষার্থী যখন এই মেথডটি নির্বাচন করবে তখন ঠিক একইভাবে এই তথ্যগুলো চেকআউটে প্রদর্শিত হবে।'}
+                                Note: This preview dynamically mirrors what students see on the checkout page when this payment method is chosen.
                             </span>
                         </div>
                     </div>

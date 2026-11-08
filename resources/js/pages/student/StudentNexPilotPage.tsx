@@ -79,7 +79,7 @@ export const StudentNexPilotPage: React.FC = () => {
                 setLimitReached(true);
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'NexPilot অ্যাক্সেস করতে সমস্যা হয়েছে।');
+            setError(err.response?.data?.message || 'Failed to access NexPilot.');
         } finally {
             setLoading(false);
         }
@@ -129,7 +129,7 @@ export const StudentNexPilotPage: React.FC = () => {
                 }
             }
         } catch (err: any) {
-            const errMsg = err.response?.data?.message || 'AI উত্তর তৈরি করতে সমস্যা হয়েছে। দয়া করে আবার চেষ্টা করুন।';
+            const errMsg = err.response?.data?.message || 'Failed to generate AI response. Please try again.';
             if (err.response?.data?.is_limit_reached) {
                 setLimitReached(true);
             }
@@ -151,7 +151,7 @@ export const StudentNexPilotPage: React.FC = () => {
         return (
             <div className="p-20 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
                 <Loader2 className="w-8 h-8 animate-spin text-sky-600" />
-                <span className="text-xs font-bold">NexPilot AI লোড হচ্ছে...</span>
+                <span className="text-xs font-bold">Loading NexPilot AI...</span>
             </div>
         );
     }
@@ -163,10 +163,10 @@ export const StudentNexPilotPage: React.FC = () => {
                     <AlertCircle className="w-8 h-8" />
                 </div>
                 <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">
-                    {error || 'NexPilot সক্রিয় নেই'}
+                    {error || 'NexPilot Not Active'}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                    আপনার এই কোর্সের সাথে NexPilot অ্যাড-অন সক্রিয় নেই অথবা এটি অ্যাডমিন কর্তৃক প্রস্তুত করা হচ্ছে।
+                    NexPilot add-on is not active for this course or is being configured by the instructor.
                 </p>
                 <div className="pt-2">
                     <Link
@@ -174,7 +174,7 @@ export const StudentNexPilotPage: React.FC = () => {
                         className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-xs"
                     >
                         <ArrowLeft className="w-4 h-4" />
-                        <span>আমার কোর্সসমূহে ফিরে যান</span>
+                        <span>Back to My Courses</span>
                     </Link>
                 </div>
             </div>
@@ -191,7 +191,7 @@ export const StudentNexPilotPage: React.FC = () => {
                     <Link
                         to="/student/my-courses"
                         className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-600 dark:text-slate-300 transition-colors"
-                        title="ফিরে যান"
+                        title="Go Back"
                     >
                         <ArrowLeft className="w-4 h-4" />
                     </Link>
@@ -206,7 +206,7 @@ export const StudentNexPilotPage: React.FC = () => {
                             </span>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            কোর্স: <strong>{pilotInfo.course_title}</strong>
+                            Course: <strong>{pilotInfo.course_title}</strong>
                         </p>
                     </div>
                 </div>
@@ -215,9 +215,9 @@ export const StudentNexPilotPage: React.FC = () => {
                 {usage && (
                     <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/80 px-4 py-2 rounded-2xl border border-slate-100 dark:border-slate-800 text-xs">
                         <div>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">AI ব্যবহার ব্যালেন্স</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">AI Usage Balance</p>
                             <p className="text-xs font-black text-slate-800 dark:text-slate-200 mt-0.5">
-                                ${parseFloat(usage.remaining_usd || 0).toFixed(2)} বাকি{' '}
+                                ${parseFloat(usage.remaining_usd || 0).toFixed(2)} remaining{' '}
                                 <span className="text-[11px] font-normal text-slate-400">/ ${parseFloat(usage.max_usd_limit || 2).toFixed(2)}</span>
                             </p>
                         </div>
@@ -246,7 +246,7 @@ export const StudentNexPilotPage: React.FC = () => {
                         }`}
                     >
                         <BookOpen className="w-4 h-4" />
-                        <span className="text-sm">Theory (থিওরি)</span>
+                        <span className="text-sm">Theory</span>
                         <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
                             activeMode === 'theory' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700'
                         }`}>
@@ -264,7 +264,7 @@ export const StudentNexPilotPage: React.FC = () => {
                         }`}
                     >
                         <Sparkles className="w-4 h-4 text-amber-300" />
-                        <span className="text-sm">Practice (প্র্যাকটিস)</span>
+                        <span className="text-sm">Practice</span>
                         <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
                             activeMode === 'practice' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700'
                         }`}>
@@ -279,19 +279,19 @@ export const StudentNexPilotPage: React.FC = () => {
                 <div className="space-y-4">
                     <div className="text-center max-w-lg mx-auto space-y-1">
                         <h3 className="text-base font-bold text-slate-800 dark:text-slate-200">
-                            {activeMode === 'theory' ? '📖 থিওরি পড়া শুরু করুন' : '🎯 সমস্যা সমাধান ও প্র্যাকটিস করুন'}
+                            {activeMode === 'theory' ? '📖 Start Reading Theory' : '🎯 Solve Problems & Practice'}
                         </h3>
                         <p className="text-xs text-slate-400">
                             {activeMode === 'theory' 
-                                ? 'যেকোনো টপিক নির্বাচন করুন, NexPilot আপনাকে প্রতিটি বিষয় সহজ উদাহরণসহ পড়াবে।' 
-                                : 'টপিক নির্বাচন করলে NexPilot আপনাকে এক এক করে সমস্যা সমাধান করতে দেবে ও সহায়তা করবে।'}
+                                ? 'Select any topic, and NexPilot will explain each concept clearly with examples.' 
+                                : 'Select a topic, and NexPilot will guide you through solving problems step by step.'}
                         </p>
                     </div>
 
                     {currentTopics.length === 0 ? (
                         <div className="py-16 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2">
                             <Bot className="w-10 h-10 text-slate-300 mx-auto" />
-                            <p className="text-xs font-bold text-slate-500">বর্তমানে কোনো টপিক পাওয়া যায়নি।</p>
+                            <p className="text-xs font-bold text-slate-500">No topics found at the moment.</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -308,12 +308,12 @@ export const StudentNexPilotPage: React.FC = () => {
                                                     ? 'bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300' 
                                                     : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
                                             }`}>
-                                                টপিক {index + 1}
+                                                Topic {index + 1}
                                             </span>
                                             {topic.attachments && topic.attachments.length > 0 && (
                                                 <span className="text-[10px] text-slate-400 flex items-center gap-1">
                                                     <Paperclip className="w-3 h-3" />
-                                                    <span>{topic.attachments.length} ফাইল</span>
+                                                    <span>{topic.attachments.length} files</span>
                                                 </span>
                                             )}
                                         </div>
@@ -329,7 +329,7 @@ export const StudentNexPilotPage: React.FC = () => {
                                     </div>
 
                                     <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-sky-600 group-hover:translate-x-0.5 transition-transform">
-                                        <span>{topic.type === 'theory' ? 'পড়া শুরু করুন' : 'প্র্যাকটিস শুরু করুন'}</span>
+                                        <span>{topic.type === 'theory' ? 'Start Reading' : 'Start Practice'}</span>
                                         <span>→</span>
                                     </div>
                                 </div>
@@ -349,7 +349,7 @@ export const StudentNexPilotPage: React.FC = () => {
                                 className="p-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1 cursor-pointer transition-colors"
                             >
                                 <ChevronLeft className="w-4 h-4" />
-                                <span>টপিক তালিকা</span>
+                                <span>Topics List</span>
                             </button>
 
                             <div>
@@ -360,7 +360,7 @@ export const StudentNexPilotPage: React.FC = () => {
                                             ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300' 
                                             : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
                                     }`}>
-                                        {selectedTopic.type === 'theory' ? 'থিওরি ক্লাস' : 'প্র্যাকটিস কোচ'}
+                                        {selectedTopic.type === 'theory' ? 'Theory Class' : 'Practice Coach'}
                                     </span>
                                 </h3>
                             </div>
@@ -369,7 +369,7 @@ export const StudentNexPilotPage: React.FC = () => {
                         {/* Attachments Pills if available */}
                         {selectedTopic.attachments && selectedTopic.attachments.length > 0 && (
                             <div className="hidden md:flex items-center gap-2">
-                                <span className="text-[11px] text-slate-400 font-medium">নোট/স্লাইড:</span>
+                                <span className="text-[11px] text-slate-400 font-medium">Notes/Slides:</span>
                                 {selectedTopic.attachments.map((att, i) => (
                                     <a
                                         key={i}
@@ -396,12 +396,12 @@ export const StudentNexPilotPage: React.FC = () => {
                                     <Bot className="w-6 h-6" />
                                 </div>
                                 <h4 className="text-base font-bold text-slate-900 dark:text-white">
-                                    {selectedTopic.type === 'theory' ? 'থিওরি ক্লাসে স্বাগতম!' : 'প্র্যাকটিস সেশনে স্বাগতম!'}
+                                    {selectedTopic.type === 'theory' ? 'Welcome to Theory Class!' : 'Welcome to Practice Session!'}
                                 </h4>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                                     {selectedTopic.type === 'theory' 
-                                        ? `আমি NexPilot, "${selectedTopic.title}" বিষয়ে আপনার ব্যক্তিগত শিক্ষক। আপনি যেকোনো প্রশ্ন করতে পারেন অথবা নিচে 'পড়া শুরু করো' বাটনে ক্লিক করতে পারেন।` 
-                                        : `আমি NexPilot প্র্যাকটিস কোচ। "${selectedTopic.title}" টপিকে আমি আপনাকে একটি একটি করে সমস্যা দেব এবং আপনি সমাধান করবেন। প্রস্তুত হলে নিচে শুরু করুন।`}
+                                        ? `I am NexPilot, your personal tutor for "${selectedTopic.title}". Feel free to ask any question or click 'Explain Concepts' below.` 
+                                        : `I am your NexPilot practice coach for "${selectedTopic.title}". I will provide problems one by one for you to solve and guide you through. When you are ready, let's begin!`}
                                 </p>
 
                                 <div className="pt-2 flex flex-wrap justify-center gap-2">
@@ -409,34 +409,34 @@ export const StudentNexPilotPage: React.FC = () => {
                                         <>
                                             <button
                                                 type="button"
-                                                onClick={() => handleSendMessage('এই টপিকের মূল ধারণা সহজে বুঝিয়ে দাও।')}
+                                                onClick={() => handleSendMessage('Please explain the core concepts of this topic with simple examples.')}
                                                 className="px-3 py-1.5 bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 rounded-xl text-xs font-bold hover:bg-sky-100 transition-colors cursor-pointer border border-sky-200 dark:border-sky-800"
                                             >
-                                                👉 মূল ধারণা বুঝিয়ে দাও
+                                                👉 Explain Core Concepts
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => handleSendMessage('টপিকের গুরুত্বপূর্ণ সূত্রগুলো উদাহরণসহ দেখাও।')}
+                                                onClick={() => handleSendMessage('Show the important formulas and principles with examples.')}
                                                 className="px-3 py-1.5 bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 rounded-xl text-xs font-bold hover:bg-sky-100 transition-colors cursor-pointer border border-sky-200 dark:border-sky-800"
                                             >
-                                                📐 সূত্রগুলো উদাহরণসহ দেখাও
+                                                📐 Key Formulas & Examples
                                             </button>
                                         </>
                                     ) : (
                                         <>
                                             <button
                                                 type="button"
-                                                onClick={() => handleSendMessage('আমাকে প্রথম প্র্যাকটিস প্রবলেমটি দাও।')}
+                                                onClick={() => handleSendMessage('Please give me the first practice problem.')}
                                                 className="px-3.5 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors cursor-pointer border border-emerald-200 dark:border-emerald-800"
                                             >
-                                                🎯 প্রথম প্রবলেমটি দাও
+                                                🎯 First Practice Problem
                                             </button>
                                             <button
                                                 type="button"
-                                                onClick={() => handleSendMessage('সহজ লেভেলের একটি অঙ্ক দিয়ে শুরু করো।')}
+                                                onClick={() => handleSendMessage('Start with an easy problem.')}
                                                 className="px-3.5 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 rounded-xl text-xs font-bold hover:bg-emerald-100 transition-colors cursor-pointer border border-emerald-200 dark:border-emerald-800"
                                             >
-                                                ⚡ সহজ সমস্যা দিয়ে শুরু করো
+                                                ⚡ Start with an Easy Problem
                                             </button>
                                         </>
                                     )}
@@ -478,7 +478,7 @@ export const StudentNexPilotPage: React.FC = () => {
                         {sending && (
                             <div className="flex gap-3 items-center text-slate-400 text-xs italic pl-11">
                                 <Loader2 className="w-4 h-4 animate-spin text-sky-600" />
-                                <span>NexPilot উত্তর তৈরি করছে...</span>
+                                <span>NexPilot is generating response...</span>
                             </div>
                         )}
 
@@ -488,30 +488,30 @@ export const StudentNexPilotPage: React.FC = () => {
                     {/* Quick Helpful Prompts Pills */}
                     {selectedTopic.type === 'practice' && messages.length > 0 && !limitReached && (
                         <div className="px-5 py-2 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800/80 flex items-center gap-2 overflow-x-auto text-[11px]">
-                            <span className="text-slate-400 font-bold shrink-0">দ্রুত বাটন:</span>
+                            <span className="text-slate-400 font-bold shrink-0">Quick Actions:</span>
                             <button
                                 type="button"
-                                onClick={() => handleSendMessage('আমাকে একটু হিন্ট দাও, পুরো উত্তর বোলো না।')}
+                                onClick={() => handleSendMessage('Give me a small hint, do not reveal the whole solution.')}
                                 disabled={sending}
                                 className="px-2.5 py-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-sky-400 shrink-0 font-medium cursor-pointer"
                             >
-                                💡 একটু হিন্ট দাও
+                                💡 Give me a hint
                             </button>
                             <button
                                 type="button"
-                                onClick={() => handleSendMessage('আমি বুঝতে পারছি না, অনুগ্রহ করে সম্পূর্ণ সমাধান ধাপে ধাপে বুঝিয়ে দাও।')}
+                                onClick={() => handleSendMessage('I do not understand. Please explain the full step-by-step solution.')}
                                 disabled={sending}
                                 className="px-2.5 py-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-sky-400 shrink-0 font-medium cursor-pointer"
                             >
-                                🔍 পূর্ণাঙ্গ সমাধান দাও
+                                🔍 Full step-by-step solution
                             </button>
                             <button
                                 type="button"
-                                onClick={() => handleSendMessage('পরবর্তী সমস্যাটি দাও।')}
+                                onClick={() => handleSendMessage('Give me the next problem.')}
                                 disabled={sending}
                                 className="px-2.5 py-1 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-sky-400 shrink-0 font-medium cursor-pointer"
                             >
-                                ➡️ পরবর্তী সমস্যা
+                                ➡️ Next problem
                             </button>
                         </div>
                     )}
@@ -521,9 +521,9 @@ export const StudentNexPilotPage: React.FC = () => {
                         <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border-t border-amber-200 text-amber-800 dark:text-amber-200 text-xs flex items-center justify-between px-5">
                             <span className="flex items-center gap-1.5 font-bold">
                                 <AlertCircle className="w-4 h-4 text-amber-600" />
-                                <span>আপনার নির্ধারিত AI ব্যবহারের বাজেট (${usage?.max_usd_limit}) শেষ হয়েছে।</span>
+                                <span>Your allocated AI usage budget (${usage?.max_usd_limit}) has been reached.</span>
                             </span>
-                            <span className="text-[11px] underline">সাপোর্টে যোগাযোগ করুন</span>
+                            <span className="text-[11px] underline">Contact Support</span>
                         </div>
                     )}
 
@@ -540,7 +540,7 @@ export const StudentNexPilotPage: React.FC = () => {
                             disabled={sending || limitReached}
                             value={inputMessage}
                             onChange={(e) => setInputMessage(e.target.value)}
-                            placeholder={limitReached ? 'ব্যবহারের লিমিট শেষ হয়ে গেছে...' : 'আপনার প্রশ্ন বা সমাধান লিখুন...'}
+                            placeholder={limitReached ? 'Usage limit reached...' : 'Type your question or response...'}
                             className="flex-1 px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 disabled:opacity-50"
                         />
                         <button
@@ -549,7 +549,7 @@ export const StudentNexPilotPage: React.FC = () => {
                             className="px-5 py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-md shadow-sky-600/20 flex items-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
                         >
                             <Send className="w-4 h-4" />
-                            <span className="hidden sm:inline">পাঠান</span>
+                            <span className="hidden sm:inline">Send</span>
                         </button>
                     </form>
                 </div>

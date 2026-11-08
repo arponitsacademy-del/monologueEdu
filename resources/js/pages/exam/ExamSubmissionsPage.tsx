@@ -94,7 +94,7 @@ export const ExamSubmissionsPage: React.FC = () => {
             });
             setGradingState(initialGrading);
         } catch (err: any) {
-            alert('খাতার তথ্য লোড করতে ব্যর্থ হয়েছে।');
+            alert('Failed to load submission data.');
             setEvalModalOpen(false);
         } finally {
             setSubmissionDetailsLoading(false);
@@ -123,7 +123,7 @@ export const ExamSubmissionsPage: React.FC = () => {
             setEvalModalOpen(false);
             fetchSubmissions(); // refresh rankings
         } catch (err: any) {
-            alert(err.response?.data?.message || 'মূল্যায়ন সংরক্ষণ ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to save evaluation.');
         } finally {
             setEvaluating(false);
         }
@@ -143,12 +143,12 @@ export const ExamSubmissionsPage: React.FC = () => {
                     <div>
                         <div className="flex items-center gap-2">
                             <h1 className="text-xl font-bold text-slate-900 dark:text-white">
-                                {exam?.title} - খাতা মূল্যায়ন ও মেধাতালিকা
+                                {exam?.title} - Submissions & Merit List
                             </h1>
                         </div>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            {exam?.course ? `কোর্স: ${exam.course.title} • ` : ''}
-                            মোট নম্বর: {exam?.total_marks} • অংশগ্রহণকারী: {stats?.total_submissions || 0} জন
+                            {exam?.course ? `Course: ${exam.course.title} • ` : ''}
+                            Total Marks: {exam?.total_marks} • Candidates: {stats?.total_submissions || 0}
                         </p>
                     </div>
                 </div>
@@ -166,25 +166,25 @@ export const ExamSubmissionsPage: React.FC = () => {
             {/* Quick Stats Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
-                    <p className="text-xs text-slate-500">মোট অংশগ্রহণকারী</p>
+                    <p className="text-xs text-slate-500">Total Candidates</p>
                     <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">
                         {stats?.total_submissions || 0}
                     </p>
                 </div>
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
-                    <p className="text-xs text-slate-500">খাতা মূল্যায়ন সম্পন্ন</p>
+                    <p className="text-xs text-slate-500">Evaluated Submissions</p>
                     <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
                         {stats?.evaluated_count || 0}
                     </p>
                 </div>
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
-                    <p className="text-xs text-slate-500">মূল্যায়ন অপেক্ষমাণ</p>
+                    <p className="text-xs text-slate-500">Pending Review</p>
                     <p className="text-2xl font-bold text-amber-500 mt-1">
                         {stats?.pending_count || 0}
                     </p>
                 </div>
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
-                    <p className="text-xs text-slate-500">সর্বোচ্চ নম্বর</p>
+                    <p className="text-xs text-slate-500">Highest Marks</p>
                     <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
                         {stats?.highest_marks || 0}
                     </p>
@@ -199,7 +199,7 @@ export const ExamSubmissionsPage: React.FC = () => {
                         type="text"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        placeholder="শিক্ষার্থীর নাম, ইমেইল বা ফোন নম্বর..."
+                        placeholder="Search student by name, email, or phone..."
                         className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-900 dark:text-white"
                     />
                 </div>
@@ -210,9 +210,9 @@ export const ExamSubmissionsPage: React.FC = () => {
                         onChange={e => setStatusFilter(e.target.value)}
                         className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
                     >
-                        <option value="">সকল অবস্থা</option>
-                        <option value="evaluated">মূল্যায়িত (Evaluated)</option>
-                        <option value="submitted">অপেক্ষমাণ (Pending)</option>
+                        <option value="">All Statuses</option>
+                        <option value="evaluated">Evaluated</option>
+                        <option value="submitted">Pending</option>
                     </select>
                 </div>
             </div>
@@ -221,14 +221,14 @@ export const ExamSubmissionsPage: React.FC = () => {
             {loading ? (
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-16 flex flex-col items-center justify-center text-slate-400">
                     <Loader2 className="w-8 h-8 animate-spin text-sky-500 mb-3" />
-                    <p className="text-sm">উত্তরপত্র লোড হচ্ছে...</p>
+                    <p className="text-sm">Loading submissions...</p>
                 </div>
             ) : submissions.length === 0 ? (
                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-16 text-center">
                     <FileText className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                    <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">এখনো কোনো উত্তরপত্র জমা পড়েনি</h3>
+                    <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">No submissions received yet</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-sm mx-auto">
-                        শিক্ষার্থীরা এই পরীক্ষায় অংশগ্রহণ করলে তাদের উত্তরপত্র এবং স্বয়ংক্রিয় রেজাল্ট এখানে দেখা যাবে।
+                        When students participate in this exam, their answer papers and scores will appear here.
                     </p>
                 </div>
             ) : (
@@ -237,12 +237,12 @@ export const ExamSubmissionsPage: React.FC = () => {
                         <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
                             <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                                 <tr>
-                                    <th className="px-6 py-4">মেধা স্থান (Rank)</th>
-                                    <th className="px-6 py-4">শিক্ষার্থীর নাম ও তথ্য</th>
-                                    <th className="px-6 py-4">প্রাপ্ত নম্বর</th>
-                                    <th className="px-6 py-4">উত্তর বিশ্লেষণ (সঠিক / ভুল / স্কিপ)</th>
-                                    <th className="px-6 py-4">স্ট্যাটাস</th>
-                                    <th className="px-6 py-4 text-right">খাতা চেক ও ফলাফল</th>
+                                    <th className="px-6 py-4">Rank</th>
+                                    <th className="px-6 py-4">Student Details</th>
+                                    <th className="px-6 py-4">Marks Obtained</th>
+                                    <th className="px-6 py-4">Analysis (Correct / Wrong / Skipped)</th>
+                                    <th className="px-6 py-4">Status</th>
+                                    <th className="px-6 py-4 text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
@@ -274,7 +274,7 @@ export const ExamSubmissionsPage: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="font-semibold text-slate-900 dark:text-white">
-                                                {sub.user?.name || 'শিক্ষার্থী'}
+                                                {sub.user?.name || 'Student'}
                                             </div>
                                             <div className="text-xs text-slate-400 mt-0.5">
                                                 {sub.user?.phone || sub.user?.email || 'N/A'}
@@ -287,21 +287,21 @@ export const ExamSubmissionsPage: React.FC = () => {
                                             </div>
                                             {sub.negative_marks_deducted > 0 && (
                                                 <div className="text-[11px] text-rose-500 mt-0.5">
-                                                    নেগেটিভ কর্তন: -{sub.negative_marks_deducted}
+                                                    Negative deduction: -{sub.negative_marks_deducted}
                                                 </div>
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-2 text-xs">
-                                                <span className="inline-flex items-center gap-0.5 text-emerald-600 font-semibold" title="সঠিক">
+                                                <span className="inline-flex items-center gap-0.5 text-emerald-600 font-semibold" title="Correct">
                                                     ✓ {sub.total_correct}
                                                 </span>
                                                 <span className="text-slate-300">•</span>
-                                                <span className="inline-flex items-center gap-0.5 text-rose-600 font-semibold" title="ভুল">
+                                                <span className="inline-flex items-center gap-0.5 text-rose-600 font-semibold" title="Wrong">
                                                     ✗ {sub.total_wrong}
                                                 </span>
                                                 <span className="text-slate-300">•</span>
-                                                <span className="inline-flex items-center gap-0.5 text-slate-400" title="স্কিপ">
+                                                <span className="inline-flex items-center gap-0.5 text-slate-400" title="Skipped">
                                                     — {sub.total_skipped}
                                                 </span>
                                             </div>
@@ -310,12 +310,12 @@ export const ExamSubmissionsPage: React.FC = () => {
                                             {sub.status === 'evaluated' ? (
                                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                                                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                                                    <span>মূল্যায়িত</span>
+                                                    <span>Evaluated</span>
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
                                                     <Clock className="w-3.5 h-3.5 text-amber-500" />
-                                                    <span>খাতা দেখা বাকি</span>
+                                                    <span>Pending Review</span>
                                                 </span>
                                             )}
                                         </td>
@@ -325,7 +325,7 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950 hover:bg-sky-100 dark:hover:bg-sky-900 text-sky-600 dark:text-sky-300 font-semibold text-xs border border-sky-200 dark:border-sky-800 transition-colors"
                                             >
                                                 <Eye className="w-3.5 h-3.5" />
-                                                <span>খাতা দেখুন ও মার্ক দিন</span>
+                                                <span>Review & Grade</span>
                                             </button>
                                         </td>
                                     </tr>
@@ -345,11 +345,11 @@ export const ExamSubmissionsPage: React.FC = () => {
                             <div>
                                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <FileText className="w-5 h-5 text-sky-500" />
-                                    <span>উত্তরপত্র মূল্যায়ন: {selectedSubmission?.user?.name}</span>
+                                    <span>Submission Review: {selectedSubmission?.user?.name}</span>
                                 </h3>
                                 <p className="text-xs text-slate-500 mt-0.5">
-                                    প্রাপ্ত নম্বর: <strong className="text-emerald-600">{selectedSubmission?.obtained_marks}</strong> / {selectedSubmission?.total_marks} • 
-                                    মেধা স্থান: <strong className="text-purple-600">#{selectedSubmission?.merit_position}</strong>
+                                    Marks Obtained: <strong className="text-emerald-600">{selectedSubmission?.obtained_marks}</strong> / {selectedSubmission?.total_marks} • 
+                                    Rank: <strong className="text-purple-600">#{selectedSubmission?.merit_position}</strong>
                                 </p>
                             </div>
                             <button
@@ -363,7 +363,7 @@ export const ExamSubmissionsPage: React.FC = () => {
                         {submissionDetailsLoading ? (
                             <div className="p-12 flex flex-col items-center justify-center text-slate-400">
                                 <Loader2 className="w-8 h-8 animate-spin text-sky-500 mb-2" />
-                                <p className="text-sm">খাতা খোলা হচ্ছে...</p>
+                                <p className="text-sm">Loading submission papers...</p>
                             </div>
                         ) : (
                             <form onSubmit={handleGradeSubmit} className="space-y-6">
@@ -395,10 +395,10 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                         <div>
                                                             <div className="flex items-center gap-2 flex-wrap mb-1">
                                                                 <span className="text-xs font-semibold text-slate-500 uppercase">
-                                                                    {isWritten ? 'লিখিত প্রশ্ন' : 'MCQ'}
+                                                                    {isWritten ? 'Written Paper' : 'MCQ'}
                                                                 </span>
                                                                 <span className="text-xs font-bold text-sky-600">
-                                                                    [সর্বোচ্চ নম্বর: {q.marks}]
+                                                                    [Max Marks: {q.marks}]
                                                                 </span>
                                                             </div>
                                                             <MathView
@@ -453,10 +453,10 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                                     </div>
                                                                     <div className="flex items-center gap-2 text-[11px]">
                                                                         {isStudentPick && (
-                                                                            <span className="text-sky-600 font-semibold">[শিক্ষার্থীর উত্তর]</span>
+                                                                            <span className="text-sky-600 font-semibold">[Student Answer]</span>
                                                                         )}
                                                                         {isCorrectOpt && (
-                                                                            <span className="text-emerald-600 font-semibold">✓ সঠিক উত্তর</span>
+                                                                            <span className="text-emerald-600 font-semibold">✓ Correct Answer</span>
                                                                         )}
                                                                     </div>
                                                                 </div>
@@ -470,11 +470,11 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                     <div className="pl-8 space-y-3 pt-1">
                                                         <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                                                             <FileText className="w-4 h-4 text-amber-500" />
-                                                            <span>শিক্ষার্থীর জমা দেওয়া খাতার পাতা / ছবি:</span>
+                                                            <span>Student Submitted Answer Pages / Images:</span>
                                                         </div>
 
                                                         {(!ans.attachments || ans.attachments.length === 0) ? (
-                                                            <p className="text-xs text-slate-400 italic">শিক্ষার্থী কোনো খাতার ছবি বা ফাইল আপলোড করেনি।</p>
+                                                            <p className="text-xs text-slate-400 italic">No answer sheets or files uploaded by student.</p>
                                                         ) : (
                                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                                                 {ans.attachments.map((file: any, fIdx: number) => {
@@ -490,7 +490,7 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                                                 >
                                                                                     <FileText className="w-8 h-8 text-rose-500" />
                                                                                     <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300 truncate max-w-full">
-                                                                                        PDF খাতা দেখুন
+                                                                                        View PDF Submission
                                                                                     </span>
                                                                                 </a>
                                                                             ) : (
@@ -502,10 +502,10 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                                                     />
                                                                                     <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-semibold gap-1 transition-opacity">
                                                                                         <Eye className="w-4 h-4" />
-                                                                                        <span>বড় করে দেখুন</span>
+                                                                                        <span>Enlarge Image</span>
                                                                                     </div>
                                                                                     <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[10px] px-1.5 py-0.5 rounded">
-                                                                                        পাতা {fIdx + 1}
+                                                                                        Page {fIdx + 1}
                                                                                     </span>
                                                                                 </div>
                                                                             )}
@@ -519,7 +519,7 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                         <div className="pt-2 flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-white dark:bg-slate-900 p-3 rounded-xl border border-amber-200 dark:border-amber-900/40">
                                                             <div className="flex items-center gap-2">
                                                                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
-                                                                    প্রাপ্ত নম্বর দিন:
+                                                                    Award Marks:
                                                                 </label>
                                                                 <input
                                                                     type="number"
@@ -544,7 +544,7 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                                         ...gradingState,
                                                                         [ans.id]: { ...gradeData, feedback: e.target.value },
                                                                     })}
-                                                                    placeholder="শিক্ষকের মন্তব্য বা ফিডব্যাক (যেমন: ভালো হয়েছে, ৩ নম্বর লাইনে ভুল ছিল)..."
+                                                                    placeholder="Teacher feedback or comment (e.g. Good explanation, minor step missed)..."
                                                                     className="w-full px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-amber-500"
                                                                 />
                                                             </div>
@@ -559,13 +559,13 @@ export const ExamSubmissionsPage: React.FC = () => {
                                 {/* Overall Teacher Remarks */}
                                 <div className="space-y-1.5 pt-3 border-t border-slate-200 dark:border-slate-800">
                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                                        সামগ্রিক মন্তব্য ও উপদেশ (Overall Teacher Feedback)
+                                        Overall Feedback & Remarks
                                     </label>
                                     <textarea
                                         rows={2}
                                         value={overallNotes}
                                         onChange={e => setOverallNotes(e.target.value)}
-                                        placeholder="শিক্ষার্থীর সামগ্রিক ফলাফলের ওপর পরামর্শ বা মন্তব্য লিখুন..."
+                                        placeholder="Write constructive guidance or evaluation notes for the student..."
                                         className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
                                     />
                                 </div>
@@ -577,7 +577,7 @@ export const ExamSubmissionsPage: React.FC = () => {
                                         onClick={() => setEvalModalOpen(false)}
                                         className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                                     >
-                                        বাতিল
+                                        Cancel
                                     </button>
                                     <button
                                         type="submit"
@@ -587,12 +587,12 @@ export const ExamSubmissionsPage: React.FC = () => {
                                         {evaluating ? (
                                             <>
                                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                                <span>সংরক্ষণ হচ্ছে...</span>
+                                                <span>Saving...</span>
                                             </>
                                         ) : (
                                             <>
                                                 <Save className="w-4 h-4" />
-                                                <span>মূল্যায়ন সম্পন্ন করুন ও নম্বর সেভ করুন</span>
+                                                <span>Complete Evaluation & Save Grades</span>
                                             </>
                                         )}
                                     </button>

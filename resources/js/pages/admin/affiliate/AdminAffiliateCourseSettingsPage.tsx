@@ -103,27 +103,27 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
         try {
             setSaving(true);
             const res = await apiClient.put(`/admin/affiliate/course-settings/${selectedCourse.id}`, editForm);
-            setAlertMessage({ type: 'success', text: res.data.message || 'কোর্সের কমিশন আপডেট হয়েছে।' });
+            setAlertMessage({ type: 'success', text: res.data.message || 'Course commission updated successfully.' });
             setModalOpen(false);
             fetchCourseSettings();
         } catch (err: any) {
-            setAlertMessage({ type: 'error', text: err.response?.data?.message || 'সংরক্ষণ ব্যর্থ হয়েছে।' });
+            setAlertMessage({ type: 'error', text: err.response?.data?.message || 'Failed to save settings.' });
         } finally {
             setSaving(false);
         }
     };
 
     const handleResetToDefault = async (course: CourseItem) => {
-        if (!window.confirm(`আপনি কি "${course.title}" কোর্সের কাস্টম কমিশন রিসেট করে সাধারণ ডিফল্ট সেটিংসে ফিরিয়ে আনতে চান?`)) {
+        if (!window.confirm(`Are you sure you want to reset the custom commission for "${course.title}" back to general default settings?`)) {
             return;
         }
 
         try {
             const res = await apiClient.delete(`/admin/affiliate/course-settings/${course.id}`);
-            setAlertMessage({ type: 'success', text: res.data.message || 'রিসেট সম্পন্ন হয়েছে।' });
+            setAlertMessage({ type: 'success', text: res.data.message || 'Reset completed successfully.' });
             fetchCourseSettings();
         } catch (err: any) {
-            setAlertMessage({ type: 'error', text: 'রিসেট করা সম্ভব হয়নি।' });
+            setAlertMessage({ type: 'error', text: 'Failed to reset settings.' });
         }
     };
 
@@ -155,10 +155,10 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                         <Sliders className="h-7 w-7 text-indigo-600" />
-                        কোর্স ভিত্তিক কমিশন ও ডিসকাউন্ট
+                        Course Commission & Discounts
                     </h1>
                     <p className="text-sm text-gray-600 mt-1">
-                        যেকোনো নির্দিষ্ট কোর্সের জন্য বিশেষ অ্যাফিলিয়েট কমিশন এবং রেফারেল ক্রেতার ডিসকাউন্ট সেট করুন।
+                        Set custom affiliate commission rates and referral buyer discounts for individual courses.
                     </p>
                 </div>
             </div>
@@ -193,25 +193,25 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
                     <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-500">মোট কোর্স</span>
+                        <span className="text-sm font-medium text-gray-500">Total Courses</span>
                         <BookOpen className="h-5 w-5 text-gray-400" />
                     </div>
                     <p className="text-2xl font-bold text-gray-900 mt-2">{courses.length}</p>
-                    <p className="text-xs text-gray-400 mt-1">সিস্টেমে বিদ্যমান কোর্স</p>
+                    <p className="text-xs text-gray-400 mt-1">Courses available in system</p>
                 </div>
 
                 <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
                     <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-500">কাস্টম কমিশন সেট করা</span>
+                        <span className="text-sm font-medium text-gray-500">Custom Commission Set</span>
                         <Sparkles className="h-5 w-5 text-indigo-500" />
                     </div>
                     <p className="text-2xl font-bold text-indigo-600 mt-2">{customCount}</p>
-                    <p className="text-xs text-indigo-500 mt-1">স্বতন্ত্র রেটে কমিশন পাচ্ছে</p>
+                    <p className="text-xs text-indigo-500 mt-1">Earning customized rates</p>
                 </div>
 
                 <div className="bg-white rounded-xl border border-gray-100 p-5 shadow-xs">
                     <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-500">সাধারণ ডিফল্ট রেট</span>
+                        <span className="text-sm font-medium text-gray-500">General Default Rate</span>
                         <Info className="h-5 w-5 text-emerald-500" />
                     </div>
                     <p className="text-2xl font-bold text-emerald-600 mt-2">
@@ -219,7 +219,7 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                             ? `${generalSettings?.default_commission_amount}%`
                             : `৳${generalSettings?.default_commission_amount}`}
                     </p>
-                    <p className="text-xs text-emerald-600 mt-1">বাকি সব কোর্সের ডিফল্ট হার</p>
+                    <p className="text-xs text-emerald-600 mt-1">Default rate for remaining courses</p>
                 </div>
             </div>
 
@@ -231,7 +231,7 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                         type="text"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="কোর্সের নাম দিয়ে খুঁজুন..."
+                        placeholder="Search courses by name..."
                         className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
                     />
                 </div>
@@ -245,7 +245,7 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                     >
-                        সকল ({courses.length})
+                        All ({courses.length})
                     </button>
                     <button
                         onClick={() => setFilterType('custom')}
@@ -255,7 +255,7 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                     >
-                        কাস্টম রেট ({customCount})
+                        Custom Rates ({customCount})
                     </button>
                     <button
                         onClick={() => setFilterType('default')}
@@ -265,7 +265,7 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         }`}
                     >
-                        ডিফল্ট রেট ({courses.length - customCount})
+                        Default Rates ({courses.length - customCount})
                     </button>
                 </div>
             </div>
@@ -275,24 +275,24 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                 {loading ? (
                     <div className="flex flex-col items-center justify-center p-12 text-gray-400">
                         <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mb-2" />
-                        <span className="text-sm font-medium">কোর্স তালিকা লোড হচ্ছে...</span>
+                        <span className="text-sm font-medium">Loading course list...</span>
                     </div>
                 ) : filteredCourses.length === 0 ? (
                     <div className="text-center py-12 px-4">
                         <BookOpen className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                        <p className="text-sm font-medium text-gray-500">কোনো কোর্স পাওয়া যায়নি</p>
+                        <p className="text-sm font-medium text-gray-500">No courses found</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-gray-600">
                             <thead className="bg-gray-50/75 border-b border-gray-200 text-xs uppercase font-semibold text-gray-600">
                                 <tr>
-                                    <th className="px-6 py-3.5">কোর্সের বিবরণ</th>
-                                    <th className="px-6 py-3.5">কোর্স ফি</th>
-                                    <th className="px-6 py-3.5">কমিশন মোড</th>
-                                    <th className="px-6 py-3.5">অ্যাফিলিয়েট কমিশন</th>
-                                    <th className="px-6 py-3.5">ক্রেতার ছাড় (ডিসকাউন্ট)</th>
-                                    <th className="px-6 py-3.5 text-right">অ্যাকশন</th>
+                                    <th className="px-6 py-3.5">Course Details</th>
+                                    <th className="px-6 py-3.5">Course Fee</th>
+                                    <th className="px-6 py-3.5">Commission Mode</th>
+                                    <th className="px-6 py-3.5">Affiliate Commission</th>
+                                    <th className="px-6 py-3.5">Buyer Discount</th>
+                                    <th className="px-6 py-3.5 text-right">Action</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200">
@@ -323,11 +323,11 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                                                 {custom ? (
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
                                                         <Sparkles className="h-3 w-3" />
-                                                        কাস্টম রেট
+                                                        Custom Rate
                                                     </span>
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                                                        সাধারণ ডিফল্ট
+                                                        General Default
                                                     </span>
                                                 )}
                                             </td>
@@ -339,10 +339,10 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                                             <td className="px-6 py-4">
                                                 {discAmount > 0 ? (
                                                     <span className="inline-flex items-center gap-1 text-emerald-600 font-semibold">
-                                                        {discType === 'percentage' ? `${discAmount}% ছাড়` : `৳${discAmount} ছাড়`}
+                                                        {discType === 'percentage' ? `${discAmount}% Off` : `৳${discAmount} Off`}
                                                     </span>
                                                 ) : (
-                                                    <span className="text-gray-400 text-xs">কোনো ছাড় নেই</span>
+                                                    <span className="text-gray-400 text-xs">No discount</span>
                                                 )}
                                             </td>
                                             <td className="px-6 py-4 text-right space-x-2">
@@ -351,16 +351,16 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                                                     className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-colors"
                                                 >
                                                     <Edit3 className="h-3.5 w-3.5" />
-                                                    সেট করুন
+                                                    Configure
                                                 </button>
                                                 {custom && (
                                                     <button
                                                         onClick={() => handleResetToDefault(course)}
-                                                        title="সাধারণ ডিফল্টে ফিরিয়ে নিন"
+                                                        title="Reset to general default"
                                                         className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-colors"
                                                     >
                                                         <RotateCcw className="h-3.5 w-3.5" />
-                                                        রিসেট
+                                                        Reset
                                                     </button>
                                                 )}
                                             </td>
@@ -387,13 +387,13 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                         <div className="mb-5">
                             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                                 <Edit3 className="h-5 w-5 text-indigo-600" />
-                                কোর্স কমিশন কনফিগার করুন
+                                Configure Course Commission
                             </h2>
                             <p className="text-sm font-medium text-indigo-700 mt-1 line-clamp-1">
                                 {selectedCourse.title}
                             </p>
                             <p className="text-xs text-gray-500 mt-0.5">
-                                কোর্স মূল্য: ৳{effectivePrice}
+                                Course Price: ৳{effectivePrice}
                             </p>
                         </div>
 
@@ -401,8 +401,8 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                             {/* Active Switch */}
                             <div className="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-200">
                                 <div>
-                                    <span className="text-sm font-semibold text-gray-900 block">কাস্টম সেটিং সক্রিয় রাখুন</span>
-                                    <span className="text-xs text-gray-500">বন্ধ রাখলে সাধারণ ডিফল্ট রেট কার্যকর হবে</span>
+                                    <span className="text-sm font-semibold text-gray-900 block">Enable Custom Settings</span>
+                                    <span className="text-xs text-gray-500">If disabled, general default settings will apply</span>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
                                     <input
@@ -419,22 +419,22 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                             <div className="p-4 rounded-xl border border-indigo-100 bg-indigo-50/40 space-y-3">
                                 <label className="text-xs font-bold uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
                                     <Percent className="h-4 w-4 text-indigo-600" />
-                                    অ্যাফিলিয়েট কমিশন (যা রেফারিং পার্টনার পাবে)
+                                    Affiliate Commission (Earned by Referring Partner)
                                 </label>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <span className="text-xs text-gray-600 block mb-1">কমিশন ধরণ</span>
+                                        <span className="text-xs text-gray-600 block mb-1">Commission Type</span>
                                         <select
                                             value={editForm.commission_type}
                                             onChange={(e) => setEditForm({ ...editForm, commission_type: e.target.value as any })}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500"
                                         >
-                                            <option value="percentage">শতকরা (%)</option>
-                                            <option value="fixed">নির্দিষ্ট টাকা (৳)</option>
+                                            <option value="percentage">Percentage (%)</option>
+                                            <option value="fixed">Fixed Amount (৳)</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <span className="text-xs text-gray-600 block mb-1">পরিমাণ</span>
+                                        <span className="text-xs text-gray-600 block mb-1">Amount</span>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -452,22 +452,22 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                             <div className="p-4 rounded-xl border border-emerald-100 bg-emerald-50/40 space-y-3">
                                 <label className="text-xs font-bold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
                                     <DollarSign className="h-4 w-4 text-emerald-600" />
-                                    ক্রেতার ডিসকাউন্ট (রেফারেল লিংকে শিক্ষার্থী যে ছাড় পাবে)
+                                    Buyer Discount (Discount Received by Referred Student)
                                 </label>
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <span className="text-xs text-gray-600 block mb-1">ডিসকাউন্ট ধরণ</span>
+                                        <span className="text-xs text-gray-600 block mb-1">Discount Type</span>
                                         <select
                                             value={editForm.discount_type}
                                             onChange={(e) => setEditForm({ ...editForm, discount_type: e.target.value as any })}
                                             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500"
                                         >
-                                            <option value="percentage">শতকরা (%)</option>
-                                            <option value="fixed">নির্দিষ্ট টাকা (৳)</option>
+                                            <option value="percentage">Percentage (%)</option>
+                                            <option value="fixed">Fixed Amount (৳)</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <span className="text-xs text-gray-600 block mb-1">পরিমাণ</span>
+                                        <span className="text-xs text-gray-600 block mb-1">Amount</span>
                                         <input
                                             type="number"
                                             step="0.01"
@@ -485,22 +485,22 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                             <div className="bg-gray-50 rounded-xl p-3 border border-gray-200 text-xs space-y-1.5">
                                 <div className="font-semibold text-gray-700 flex items-center gap-1">
                                     <Info className="h-3.5 w-3.5 text-indigo-500" />
-                                    উদাহরণ হিসাব (প্রতিটি সফল বিক্রয়ে):
+                                    Example Calculation (Per Successful Sale):
                                 </div>
                                 <div className="flex justify-between text-gray-600">
-                                    <span>কোর্সের দাম:</span>
+                                    <span>Course Price:</span>
                                     <span>৳{effectivePrice}</span>
                                 </div>
                                 <div className="flex justify-between text-emerald-600 font-medium">
-                                    <span>শিক্ষার্থী ছাড় পাবে:</span>
+                                    <span>Student Discount:</span>
                                     <span>- ৳{previewDiscount}</span>
                                 </div>
                                 <div className="flex justify-between font-bold text-gray-900 border-t border-gray-200 pt-1">
-                                    <span>শিক্ষার্থী পরিশোধ করবে:</span>
+                                    <span>Student Pays:</span>
                                     <span>৳{previewPayable}</span>
                                 </div>
                                 <div className="flex justify-between text-indigo-700 font-bold border-t border-dashed border-gray-200 pt-1">
-                                    <span>অ্যাফিলিয়েট পাবে:</span>
+                                    <span>Affiliate Receives:</span>
                                     <span>৳{previewCommission}</span>
                                 </div>
                             </div>
@@ -512,7 +512,7 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                                     onClick={() => setModalOpen(false)}
                                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
                                 >
-                                    বাতিল
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
@@ -520,7 +520,7 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
                                     className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg flex items-center gap-1.5 transition-colors disabled:opacity-50"
                                 >
                                     {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                                    সংরক্ষণ করুন
+                                    Save Changes
                                 </button>
                             </div>
                         </form>
@@ -530,4 +530,3 @@ export const AdminAffiliateCourseSettingsPage: React.FC = () => {
         </div>
     );
 };
-

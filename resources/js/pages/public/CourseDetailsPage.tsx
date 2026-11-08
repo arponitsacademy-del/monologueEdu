@@ -75,7 +75,7 @@ export const CourseDetailsPage: React.FC = () => {
                 navigate('/student/my-courses');
             }
         } catch (err: any) {
-            alert(err.response?.data?.message || (language === 'en' ? 'Enrollment failed.' : 'এনরোলমেন্টে সমস্যা হয়েছে।'));
+            alert(err.response?.data?.message || 'Enrollment failed.');
         } finally {
             setEnrollingFree(false);
         }
@@ -106,7 +106,7 @@ export const CourseDetailsPage: React.FC = () => {
                     <div className="max-w-3xl space-y-4">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 text-sky-400 text-xs font-bold border border-sky-500/30">
                             <Sparkles className="w-3.5 h-3.5" />
-                            <span>{language === 'en' ? 'Online Batch' : 'অনলাইন ব্যাচ'}</span>
+                            <span>Online Batch</span>
                         </div>
 
                         <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
@@ -114,17 +114,17 @@ export const CourseDetailsPage: React.FC = () => {
                         </h1>
 
                         <p className="text-base text-slate-300 leading-relaxed">
-                            {course.short_description || (language === 'en' ? 'Special course prepared according to full syllabus.' : 'সম্পূর্ণ সিলেবাস অনুযায়ী প্রস্তুতকৃত বিশেষ কোর্স।')}
+                            {course.short_description || 'Special course prepared according to the complete syllabus.'}
                         </p>
 
                         <div className="flex flex-wrap items-center gap-6 pt-2 text-xs sm:text-sm text-slate-400">
                             <span className="flex items-center gap-1.5">
                                 <BookOpen className="w-4 h-4 text-sky-400" />
-                                {course.lessons_count || 0} {t.courses.lessonsCount}
+                                {course.lessons_count || 0} Lessons
                             </span>
                             <span className="flex items-center gap-1.5">
                                 <Users className="w-4 h-4 text-sky-400" />
-                                {course.enrollments_count || 0} {t.courses.studentsCount}
+                                {course.enrollments_count || 0} Students
                             </span>
                         </div>
                     </div>
@@ -138,10 +138,10 @@ export const CourseDetailsPage: React.FC = () => {
                     <div className="lg:col-span-8 space-y-10">
                         {/* Course Overview */}
                         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
-                            <h2 className="text-xl font-bold text-slate-900">{language === 'en' ? 'Course Details & Overview' : 'কোর্স সম্পর্কিত বিস্তারিত'}</h2>
+                            <h2 className="text-xl font-bold text-slate-900">Course Details & Overview</h2>
                             <div 
                                 className="text-sm text-slate-600 leading-relaxed prose prose-slate max-w-none"
-                                dangerouslySetInnerHTML={{ __html: course.description || (language === 'en' ? '<p>Course details will be published soon.</p>' : '<p>কোর্সের বিস্তারিত তথ্য শিগগিরই যোগ করা হবে।</p>') }}
+                                dangerouslySetInnerHTML={{ __html: course.description || '<p>Course details will be published soon.</p>' }}
                             />
                         </div>
 
@@ -149,11 +149,9 @@ export const CourseDetailsPage: React.FC = () => {
                         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-2xs space-y-6">
                             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                                 <div>
-                                    <h2 className="text-xl font-bold text-slate-900">{language === 'en' ? 'Course Curriculum & Syllabus' : 'কোর্স কারিকুলাম ও সিলেবাস'}</h2>
+                                    <h2 className="text-xl font-bold text-slate-900">Course Curriculum & Syllabus</h2>
                                     <p className="text-xs text-slate-400 mt-0.5">
-                                        {language === 'en'
-                                            ? `Total ${course.sections?.length || 0} Sections • ${course.lessons_count || 0} Lessons`
-                                            : `মোট ${course.sections?.length || 0} টি সেকশন • ${course.lessons_count || 0} টি লেসন`}
+                                        Total {course.sections?.length || 0} Sections • {course.lessons_count || 0} Lessons
                                     </p>
                                 </div>
                             </div>
@@ -173,14 +171,14 @@ export const CourseDetailsPage: React.FC = () => {
                                                 >
                                                     <div>
                                                         <span className="text-xs font-bold text-sky-600 uppercase tracking-wider block">
-                                                            {language === 'en' ? `Topic 0${sIndex + 1}` : `টপিক ০${sIndex + 1}`}
+                                                            Topic 0{sIndex + 1}
                                                         </span>
                                                         <h4 className="text-base font-bold text-slate-800">
                                                             {section.title}
                                                         </h4>
                                                     </div>
                                                     <div className="flex items-center gap-3 text-xs text-slate-500">
-                                                        <span>{section.lessons?.length || 0} {language === 'en' ? 'Classes' : 'টি ক্লাস'}</span>
+                                                        <span>{section.lessons?.length || 0} Classes</span>
                                                         {isOpen ? <ChevronUp className="w-5 h-5 text-slate-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />}
                                                     </div>
                                                 </button>
@@ -199,18 +197,18 @@ export const CourseDetailsPage: React.FC = () => {
                                                                         <Lock className="w-4 h-4 text-slate-400 shrink-0" />
                                                                     )}
                                                                     <span className="text-slate-700 font-medium">
-                                                                        {language === 'en' ? `Class ${lIndex + 1}:` : `ক্লাস ${lIndex + 1}:`} {lesson.title}
+                                                                        Class {lIndex + 1}: {lesson.title}
                                                                     </span>
                                                                 </div>
 
                                                                 <div className="flex items-center gap-3">
                                                                     {lesson.is_preview && (
                                                                         <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded">
-                                                                            {language === 'en' ? 'Free Preview' : 'ফ্রি প্রিভিউ'}
+                                                                            Free Preview
                                                                         </span>
                                                                     )}
                                                                     <span className="text-xs text-slate-400">
-                                                                        {lesson.duration_minutes} {language === 'en' ? 'mins' : 'মিনিট'}
+                                                                        {lesson.duration_minutes} mins
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -222,7 +220,7 @@ export const CourseDetailsPage: React.FC = () => {
                                     })
                                 ) : (
                                     <p className="text-sm text-slate-400 text-center py-6">
-                                        {language === 'en' ? 'Curriculum for this course will be published soon.' : 'এই কোর্সের কারিকুলাম দ্রুতই প্রকাশ করা হবে।'}
+                                        Curriculum for this course will be published soon.
                                     </p>
                                 )}
                             </div>
@@ -230,7 +228,7 @@ export const CourseDetailsPage: React.FC = () => {
 
                         {/* Instructors */}
                         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
-                            <h2 className="text-xl font-bold text-slate-900">{language === 'en' ? 'Course Instructors' : 'কোর্স ইন্সট্রাক্টরবৃন্দ'}</h2>
+                            <h2 className="text-xl font-bold text-slate-900">Course Instructors</h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {course.instructors && course.instructors.length > 0 ? (
                                     course.instructors.map((teacher) => (
@@ -240,18 +238,18 @@ export const CourseDetailsPage: React.FC = () => {
                                             </div>
                                             <div>
                                                 <h4 className="font-bold text-slate-900 text-sm">{teacher.name}</h4>
-                                                <p className="text-xs text-slate-500">{language === 'en' ? 'Online Teacher & Mentor' : 'অনলাইন শিক্ষক ও মেন্টর'}</p>
+                                                <p className="text-xs text-slate-500">Online Teacher & Mentor</p>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
                                     <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center gap-3">
                                         <div className="w-12 h-12 rounded-xl bg-sky-600 text-white font-bold flex items-center justify-center text-lg">
-                                            N
+                                            M
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-slate-900 text-sm">{language === 'en' ? 'Novonex Expert Faculty' : 'Novonex বিশেষজ্ঞ শিক্ষক'}</h4>
-                                            <p className="text-xs text-slate-500">{language === 'en' ? 'Experienced Academic Mentor' : 'অভিজ্ঞ অ্যাকাডেমিক মেন্টর'}</p>
+                                            <h4 className="font-bold text-slate-900 text-sm">Monologue Edu Expert Faculty</h4>
+                                            <p className="text-xs text-slate-500">Experienced Academic Mentor</p>
                                         </div>
                                     </div>
                                 )}
@@ -276,9 +274,9 @@ export const CourseDetailsPage: React.FC = () => {
                             {/* Price */}
                             <div className="flex items-baseline justify-between pt-2">
                                 <div>
-                                    <span className="text-xs font-semibold text-slate-400 block">{language === 'en' ? 'Course Fee' : 'কোর্স ফি'}</span>
+                                    <span className="text-xs font-semibold text-slate-400 block">Course Fee</span>
                                     {course.price === 0 ? (
-                                        <span className="text-3xl font-black text-emerald-600">{t.courses.free}</span>
+                                        <span className="text-3xl font-black text-emerald-600">Free</span>
                                     ) : (
                                         <div className="flex items-baseline gap-2">
                                             <span className="text-3xl font-black text-slate-900">
@@ -295,7 +293,7 @@ export const CourseDetailsPage: React.FC = () => {
 
                                 {course.discount_percent && course.discount_percent > 0 ? (
                                     <span className="px-3 py-1 bg-rose-50 text-rose-600 text-xs font-extrabold rounded-lg border border-rose-200">
-                                        {course.discount_percent}{t.courses.off}
+                                        {course.discount_percent}% OFF
                                     </span>
                                 ) : null}
                             </div>
@@ -307,7 +305,7 @@ export const CourseDetailsPage: React.FC = () => {
                                         to={firstLessonId ? `/learning/${course.id}/lessons/${firstLessonId}` : '/student/my-courses'}
                                         className="w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all"
                                     >
-                                        <span>{language === 'en' ? 'Go to Classroom' : 'লার্নিং রুমে যান'}</span>
+                                        <span>Go to Classroom</span>
                                         <ArrowRight className="w-5 h-5" />
                                     </Link>
                                 ) : course.price === 0 ? (
@@ -316,7 +314,7 @@ export const CourseDetailsPage: React.FC = () => {
                                         disabled={enrollingFree}
                                         className="w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50"
                                     >
-                                        <span>{enrollingFree ? (language === 'en' ? 'Enrolling...' : 'এনরোল হচ্ছে...') : (language === 'en' ? 'Enroll for Free' : 'ফ্রি এনরোল করুন')}</span>
+                                        <span>{enrollingFree ? 'Enrolling...' : 'Enroll for Free'}</span>
                                         <Sparkles className="w-5 h-5" />
                                     </button>
                                 ) : (
@@ -324,7 +322,7 @@ export const CourseDetailsPage: React.FC = () => {
                                         to={`/checkout/${course.slug}`}
                                         className="w-full py-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-sky-600/30 transition-all"
                                     >
-                                        <span>{language === 'en' ? 'Buy Now' : 'এখনই কিনুন'}</span>
+                                        <span>Buy Now</span>
                                         <ArrowRight className="w-5 h-5" />
                                     </Link>
                                 )}
@@ -334,19 +332,19 @@ export const CourseDetailsPage: React.FC = () => {
                             <div className="space-y-3 pt-4 border-t border-slate-100 text-xs text-slate-600 font-medium">
                                 <div className="flex items-center gap-2">
                                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>{language === 'en' ? 'Full HD video lectures & live discussions' : 'ফুল এইচডি ভিডিও লেকচার ও লাইভ ডিসকাশন'}</span>
+                                    <span>Full HD video lectures & live discussions</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>{language === 'en' ? 'Downloadable practice sheets & lecture notes' : 'ডাউনলোডযোগ্য প্র্যাকটিস শিট ও লেকচার নোটস'}</span>
+                                    <span>Downloadable practice sheets & lecture notes</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>{language === 'en' ? 'Direct Q&A doubt-solving support with instructors' : 'শিক্ষকের সাথে সরাসরি কমেন্টে প্রশ্নোত্তরের সুবিধা'}</span>
+                                    <span>Direct Q&A doubt-solving support with instructors</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>{language === 'en' ? 'Lifetime course access from any device' : 'লাইফটাইম কোর্স অ্যাক্সেস যেকোনো ডিভাইস থেকে'}</span>
+                                    <span>Lifetime course access from any device</span>
                                 </div>
                             </div>
                         </div>

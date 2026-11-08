@@ -25,45 +25,45 @@ import {
 
 const DEFAULT_FOOTER_SETTINGS: FooterSettings = {
     bg_color: '#0f172a',
-    brand_title: 'Novonex',
-    brand_title_en: 'Novonex',
-    brand_subtitle: 'Academy',
-    brand_subtitle_en: 'Academy',
-    description: 'বাংলাদেশের অন্যতম শীর্ষস্থানীয় অনলাইন লার্নিং প্ল্যাটফর্ম। ঘরে বসেই দেশের সেরা শিক্ষকদের সাথে নাও সম্পূর্ণ প্রস্তুতি।',
-    description_en: "Bangladesh's leading online education platform. Prepare for exams with top mentors from BUET and Dhaka University.",
-    badge_text: '১০০% বিশ্বস্ত লার্নিং প্ল্যাটফর্ম',
-    badge_text_en: '100% Trusted Learning Platform',
+    brand_title: 'Monologue',
+    brand_title_en: 'Monologue',
+    brand_subtitle: 'Edu',
+    brand_subtitle_en: 'Edu',
+    description: 'Monologue Edu is a premier online education platform dedicated to conceptual clarity, interactive learning, and exam excellence.',
+    description_en: 'Monologue Edu is a premier online education platform dedicated to conceptual clarity, interactive learning, and exam excellence.',
+    badge_text: '100% Verified Learning Platform',
+    badge_text_en: '100% Verified Learning Platform',
     show_badge: true,
-    column_2_title: 'দ্রুত লিঙ্কসমূহ',
+    column_2_title: 'Quick Links',
     column_2_title_en: 'Quick Links',
     column_2_links: [
-        { id: '1', label: 'হোম', label_en: 'Home', url: '/' },
-        { id: '2', label: 'সকল কোর্স', label_en: 'All Courses', url: '/courses' },
-        { id: '3', label: 'পদার্থবিজ্ঞান কোর্সসমূহ', label_en: 'Physics Courses', url: '/courses?category=hsc-physics' },
-        { id: '4', label: 'ভর্তি প্রস্তুতি কোর্সসমূহ', label_en: 'Admission Preparation', url: '/courses?category=admission' },
+        { id: '1', label: 'Home', label_en: 'Home', url: '/' },
+        { id: '2', label: 'All Courses', label_en: 'All Courses', url: '/courses' },
+        { id: '3', label: 'Physics Courses', label_en: 'Physics Courses', url: '/courses?category=hsc-physics' },
+        { id: '4', label: 'Admission Preparation', label_en: 'Admission Preparation', url: '/courses?category=admission' },
     ],
-    column_3_title: 'জনপ্রিয় বিষয়সমূহ',
+    column_3_title: 'Popular Subjects',
     column_3_title_en: 'Popular Subjects',
     column_3_links: [
-        { id: '1', label: 'পদার্থবিজ্ঞান', label_en: 'HSC Physics', url: '/courses?category=hsc-physics' },
-        { id: '2', label: 'রসায়ন', label_en: 'HSC Chemistry', url: '/courses?category=chemistry' },
-        { id: '3', label: 'উচ্চতর গণিত', label_en: 'Higher Math', url: '/courses?category=math' },
-        { id: '4', label: 'ভর্তি প্রস্তুতি', label_en: 'Admission Prep', url: '/courses?category=admission' },
+        { id: '1', label: 'HSC Physics', label_en: 'HSC Physics', url: '/courses?category=hsc-physics' },
+        { id: '2', label: 'HSC Chemistry', label_en: 'HSC Chemistry', url: '/courses?category=chemistry' },
+        { id: '3', label: 'Higher Math', label_en: 'Higher Math', url: '/courses?category=math' },
+        { id: '4', label: 'Admission Prep', label_en: 'Admission Prep', url: '/courses?category=admission' },
     ],
-    column_4_title: 'যোগাযোগ',
+    column_4_title: 'Contact Us',
     column_4_title_en: 'Contact Us',
     phone: '+880 1700 000000',
-    phone_hours: 'সকাল ১০টা - রাত ১০টা (শনি - বৃহস্পতি)',
-    phone_hours_en: '10 AM - 10 PM (Sat - Thu)',
-    email: 'support@novonex.edu.bd',
+    phone_hours: '10:00 AM - 10:00 PM (Sat - Thu)',
+    phone_hours_en: '10:00 AM - 10:00 PM (Sat - Thu)',
+    email: 'support@monologueedu.com',
     address: 'Dhaka, Bangladesh',
     address_en: 'Dhaka, Bangladesh',
     social_links: [
         { id: '1', platform: 'facebook', url: 'https://facebook.com' },
         { id: '2', platform: 'youtube', url: 'https://youtube.com' },
     ],
-    copyright_text: '© 2026 Novonex Academy. সর্বস্বত্ব সংরক্ষিত।',
-    copyright_text_en: '© 2026 Novonex Academy. All rights reserved.',
+    copyright_text: '© 2026 Monologue Edu. All rights reserved.',
+    copyright_text_en: '© 2026 Monologue Edu. All rights reserved.',
     bottom_credit: 'Crafted with ❤️ for passionate learners',
     bottom_credit_en: 'Crafted with ❤️ for passionate learners',
 };
@@ -83,7 +83,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
             setFooterSettings({
                 ...DEFAULT_FOOTER_SETTINGS,
                 ...settings.footer_settings,
-                brand_title: settings.footer_settings.brand_title || settings.site_name || 'Novonex',
+                brand_title: settings.footer_settings.brand_title || settings.site_name || 'Monologue',
                 copyright_text: settings.footer_settings.copyright_text || settings.copyright_text || DEFAULT_FOOTER_SETTINGS.copyright_text,
             });
         }
@@ -98,7 +98,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
 
     // Column 2 link handlers
     const handleAddCol2Link = () => {
-        const newLink: FooterLink = { id: Date.now().toString(), label: 'নতুন লিঙ্ক', label_en: '', url: '/' };
+        const newLink: FooterLink = { id: Date.now().toString(), label: 'New Link', label_en: 'New Link', url: '/' };
         handleUpdate('column_2_links', [...(footerSettings.column_2_links || []), newLink]);
     };
 
@@ -118,7 +118,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
 
     // Column 3 link handlers
     const handleAddCol3Link = () => {
-        const newLink: FooterLink = { id: Date.now().toString(), label: 'নতুন লিঙ্ক', label_en: '', url: '/' };
+        const newLink: FooterLink = { id: Date.now().toString(), label: 'New Link', label_en: 'New Link', url: '/' };
         handleUpdate('column_3_links', [...(footerSettings.column_3_links || []), newLink]);
     };
 
@@ -168,29 +168,29 @@ export const AdminFooterBuilderPage: React.FC = () => {
                 copyright_text: footerSettings.copyright_text,
             });
             await refreshSettings();
-            setSuccessMessage(data.message || 'ফুটার বিল্ডার সেটিংস সফলভাবে সংরক্ষিত হয়েছে!');
+            setSuccessMessage(data.message || 'Footer builder settings saved successfully!');
             setTimeout(() => setSuccessMessage(null), 4000);
         } catch (err: any) {
-            alert(err.response?.data?.message || 'সংরক্ষণ করতে সমস্যা হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to save footer settings.');
         } finally {
             setSaving(false);
         }
     };
 
     const handleResetDefaults = () => {
-        if (window.confirm('আপনি কি নিশ্চিত যে ফুটার সেটিংস ডিফল্ট মানে রিসেট করতে চান?')) {
+        if (window.confirm('Are you sure you want to reset footer settings to default?')) {
             setFooterSettings(DEFAULT_FOOTER_SETTINGS);
         }
     };
 
-    // Live preview localized helpers based on previewLang
-    const previewBrandTitle = getLocalizedText(footerSettings.brand_title, footerSettings.brand_title_en, previewLang) || 'Novonex';
-    const previewBrandSubtitle = getLocalizedText(footerSettings.brand_subtitle, footerSettings.brand_subtitle_en, previewLang) || 'Academy';
+    // Live preview localized helpers
+    const previewBrandTitle = getLocalizedText(footerSettings.brand_title, footerSettings.brand_title_en, previewLang) || 'Monologue';
+    const previewBrandSubtitle = getLocalizedText(footerSettings.brand_subtitle, footerSettings.brand_subtitle_en, previewLang) || 'Edu';
     const previewDescription = getLocalizedText(footerSettings.description, footerSettings.description_en, previewLang);
     const previewBadgeText = getLocalizedText(footerSettings.badge_text, footerSettings.badge_text_en, previewLang);
-    const previewCol2Title = getLocalizedText(footerSettings.column_2_title, footerSettings.column_2_title_en, previewLang) || (previewLang === 'en' ? 'Quick Links' : 'দ্রুত লিঙ্কসমূহ');
-    const previewCol3Title = getLocalizedText(footerSettings.column_3_title, footerSettings.column_3_title_en, previewLang) || (previewLang === 'en' ? 'Popular Subjects' : 'জনপ্রিয় বিষয়সমূহ');
-    const previewCol4Title = getLocalizedText(footerSettings.column_4_title, footerSettings.column_4_title_en, previewLang) || (previewLang === 'en' ? 'Contact Us' : 'যোগাযোগ');
+    const previewCol2Title = getLocalizedText(footerSettings.column_2_title, footerSettings.column_2_title_en, previewLang) || 'Quick Links';
+    const previewCol3Title = getLocalizedText(footerSettings.column_3_title, footerSettings.column_3_title_en, previewLang) || 'Popular Subjects';
+    const previewCol4Title = getLocalizedText(footerSettings.column_4_title, footerSettings.column_4_title_en, previewLang) || 'Contact Us';
     const previewPhoneHours = getLocalizedText(footerSettings.phone_hours, footerSettings.phone_hours_en, previewLang);
     const previewAddress = getLocalizedText(footerSettings.address, footerSettings.address_en, previewLang);
     const previewCopyright = getLocalizedText(footerSettings.copyright_text, footerSettings.copyright_text_en, previewLang);
@@ -203,10 +203,10 @@ export const AdminFooterBuilderPage: React.FC = () => {
                 <div>
                     <h2 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2.5">
                         <Palette className="w-7 h-7 text-sky-600" />
-                        <span>ফুটার বিল্ডার (Footer Builder)</span>
+                        <span>Footer Builder</span>
                     </h2>
                     <p className="text-xs text-slate-500 mt-0.5">
-                        ওয়েবসাইটের মূল ফুটার সেকশনের কন্টেন্ট, লিঙ্ক, সামাজিক যোগাযোগ ও দ্বিভাষিক (বাংলা ও English) ক্যাপশন কাস্টমাইজ করুন
+                        Customize the website footer layout, branding, quick links, contact info, and legal notice
                     </p>
                 </div>
                 <div className="flex items-center gap-2.5">
@@ -214,10 +214,10 @@ export const AdminFooterBuilderPage: React.FC = () => {
                         type="button"
                         onClick={handleResetDefaults}
                         className="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-bold text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-xl transition cursor-pointer"
-                        title="ডিফল্ট রিসেট"
+                        title="Reset to Defaults"
                     >
                         <RotateCcw className="w-4 h-4 text-slate-500" />
-                        <span>ডিফল্ট রিসেট</span>
+                        <span>Reset to Defaults</span>
                     </button>
                     <button
                         type="button"
@@ -226,7 +226,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                         className="inline-flex items-center gap-2 px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition disabled:opacity-50 cursor-pointer"
                     >
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        <span>{saving ? 'সংরক্ষণ হচ্ছে...' : 'ফুটার সংরক্ষণ করুন'}</span>
+                        <span>{saving ? 'Saving...' : 'Save Footer'}</span>
                     </button>
                 </div>
             </div>
@@ -243,9 +243,8 @@ export const AdminFooterBuilderPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                         <Eye className="w-4 h-4 text-sky-400" />
-                        <span>লাইভ ফুটার প্রিভিউ (Live Footer Preview)</span>
+                        <span>Live Footer Preview</span>
                     </div>
-
                 </div>
 
                 {/* Actual Footer Preview Box */}
@@ -284,7 +283,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                             <ul className="space-y-2 text-xs text-slate-400">
                                 {(footerSettings.column_2_links || []).map((link, idx) => (
                                     <li key={idx} className="hover:text-sky-400">
-                                        {getLocalizedText(link.label, link.label_en, previewLang) || link.label}
+                                        {link.label}
                                     </li>
                                 ))}
                             </ul>
@@ -298,7 +297,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                             <ul className="space-y-2 text-xs text-slate-400">
                                 {(footerSettings.column_3_links || []).map((link, idx) => (
                                     <li key={idx} className="hover:text-sky-400">
-                                        {getLocalizedText(link.label, link.label_en, previewLang) || link.label}
+                                        {link.label}
                                     </li>
                                 ))}
                             </ul>
@@ -361,7 +360,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                         }`}
                     >
                         <Layers className="w-4 h-4" />
-                        <span>১. ব্র্যান্ড ও বিবরণ</span>
+                        <span>1. Brand & About</span>
                     </button>
 
                     <button
@@ -373,7 +372,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                                 : 'text-slate-600 hover:bg-white/60'
                         }`}
                     >
-                        <span>২. দ্রুত লিঙ্কসমূহ</span>
+                        <span>2. Quick Links</span>
                     </button>
 
                     <button
@@ -385,7 +384,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                                 : 'text-slate-600 hover:bg-white/60'
                         }`}
                     >
-                        <span>৩. বিষয় ও কোর্স লিঙ্ক</span>
+                        <span>3. Subjects & Courses</span>
                     </button>
 
                     <button
@@ -398,7 +397,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                         }`}
                     >
                         <Phone className="w-4 h-4" />
-                        <span>৪. যোগাযোগ ও সোশ্যাল</span>
+                        <span>4. Contact & Social</span>
                     </button>
 
                     <button
@@ -411,7 +410,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                         }`}
                     >
                         <FileText className="w-4 h-4" />
-                        <span>৫. ফুটার ও লিগ্যাল নোটিশ</span>
+                        <span>5. Legal & Styling</span>
                     </button>
                 </div>
 
@@ -422,89 +421,48 @@ export const AdminFooterBuilderPage: React.FC = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        ব্র্যান্ড শিরোনাম (বাংলা/মূল)
+                                        Brand Title
                                     </label>
                                     <input
                                         type="text"
                                         value={footerSettings.brand_title || ''}
                                         onChange={(e) => handleUpdate('brand_title', e.target.value)}
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"
-                                        placeholder="যেমন: Novonex"
+                                        placeholder="e.g. Monologue"
                                     />
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        Brand Title (English Mode - ঐচ্ছিক)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={footerSettings.brand_title_en || ''}
-                                        onChange={(e) => handleUpdate('brand_title_en', e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold"
-                                        placeholder="e.g. Novonex"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        সাব-টাইটেল / এক্সটেনশন (বাংলা/মূল)
+                                        Brand Subtitle
                                     </label>
                                     <input
                                         type="text"
                                         value={footerSettings.brand_subtitle || ''}
                                         onChange={(e) => handleUpdate('brand_subtitle', e.target.value)}
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-sky-600"
-                                        placeholder="যেমন: Academy"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        Brand Subtitle (English Mode - ঐচ্ছিক)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={footerSettings.brand_subtitle_en || ''}
-                                        onChange={(e) => handleUpdate('brand_subtitle_en', e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-sky-600"
-                                        placeholder="e.g. Academy"
+                                        placeholder="e.g. Edu"
                                     />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        সংক্ষিপ্ত বিবরণ (বাংলা/মূল)
-                                    </label>
-                                    <textarea
-                                        rows={3}
-                                        value={footerSettings.description || ''}
-                                        onChange={(e) => handleUpdate('description', e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium leading-relaxed"
-                                        placeholder="ফুটারের পরিচিতি বিবরণ লিখুন..."
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        Description (English Mode - ঐচ্ছিক)
-                                    </label>
-                                    <textarea
-                                        rows={3}
-                                        value={footerSettings.description_en || ''}
-                                        onChange={(e) => handleUpdate('description_en', e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium leading-relaxed"
-                                        placeholder="Write English description (leaves blank to use main description in all modes)..."
-                                    />
-                                </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                    Short Description
+                                </label>
+                                <textarea
+                                    rows={3}
+                                    value={footerSettings.description || ''}
+                                    onChange={(e) => handleUpdate('description', e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium leading-relaxed"
+                                    placeholder="Write footer introduction description..."
+                                />
                             </div>
 
                             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <div className="text-xs font-bold text-slate-900">ট্রাস্ট ব্যাজ (Trust Badge)</div>
-                                        <div className="text-[11px] text-slate-500">ব্র্যান্ডের নিচে বিশ্বস্ততা প্রকাশক ব্যাজ</div>
+                                        <div className="text-xs font-bold text-slate-900">Trust Badge</div>
+                                        <div className="text-[11px] text-slate-500">Display credibility badge beneath brand name</div>
                                     </div>
                                     <input
                                         type="checkbox"
@@ -514,27 +472,15 @@ export const AdminFooterBuilderPage: React.FC = () => {
                                     />
                                 </div>
                                 {footerSettings.show_badge && (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 mb-1">ব্যাজ টেক্সট (বাংলা/মূল)</label>
-                                            <input
-                                                type="text"
-                                                value={footerSettings.badge_text || ''}
-                                                onChange={(e) => handleUpdate('badge_text', e.target.value)}
-                                                placeholder="যেমন: ১০০% বিশ্বস্ত লার্নিং প্ল্যাটফর্ম"
-                                                className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-bold text-slate-500 mb-1">Badge Text (English Mode - ঐচ্ছিক)</label>
-                                            <input
-                                                type="text"
-                                                value={footerSettings.badge_text_en || ''}
-                                                onChange={(e) => handleUpdate('badge_text_en', e.target.value)}
-                                                placeholder="e.g. 100% Trusted Learning Platform"
-                                                className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium"
-                                            />
-                                        </div>
+                                    <div className="pt-1">
+                                        <label className="block text-[10px] font-bold text-slate-500 mb-1">Badge Text</label>
+                                        <input
+                                            type="text"
+                                            value={footerSettings.badge_text || ''}
+                                            onChange={(e) => handleUpdate('badge_text', e.target.value)}
+                                            placeholder="e.g. 100% Verified Learning Platform"
+                                            className="w-full px-3.5 py-2 bg-white border border-slate-200 rounded-xl text-xs font-semibold"
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -544,72 +490,49 @@ export const AdminFooterBuilderPage: React.FC = () => {
                     {/* TAB 2: COLUMN 2 QUICK LINKS */}
                     {activeTab === 'col2' && (
                         <div className="space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        কলামের শিরোনাম (বাংলা/মূল)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={footerSettings.column_2_title || ''}
-                                        onChange={(e) => handleUpdate('column_2_title', e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"
-                                        placeholder="যেমন: দ্রুত লিঙ্কসমূহ"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        Column 2 Title (English Mode - ঐচ্ছিক)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={footerSettings.column_2_title_en || ''}
-                                        onChange={(e) => handleUpdate('column_2_title_en', e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold"
-                                        placeholder="e.g. Quick Links"
-                                    />
-                                </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                    Column Title
+                                </label>
+                                <input
+                                    type="text"
+                                    value={footerSettings.column_2_title || ''}
+                                    onChange={(e) => handleUpdate('column_2_title', e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"
+                                    placeholder="e.g. Quick Links"
+                                />
                             </div>
 
                             <div className="flex items-center justify-between pt-2">
-                                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">লিঙ্কসমূহ</h4>
+                                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Links</h4>
                                 <button
                                     type="button"
                                     onClick={handleAddCol2Link}
                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 text-white rounded-xl text-xs font-bold hover:bg-sky-700 transition cursor-pointer"
                                 >
                                     <Plus className="w-3.5 h-3.5" />
-                                    <span>লিঙ্ক যোগ করুন</span>
+                                    <span>Add Link</span>
                                 </button>
                             </div>
 
                             <div className="space-y-2.5">
                                 {(footerSettings.column_2_links || []).map((link, idx) => (
                                     <div key={link.id || idx} className="grid grid-cols-1 sm:grid-cols-12 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl items-center">
-                                        <div className="sm:col-span-4">
+                                        <div className="sm:col-span-6">
                                             <input
                                                 type="text"
                                                 value={link.label}
-                                                onChange={(e) => handleUpdateCol2Link(idx, { label: e.target.value })}
-                                                placeholder="লিঙ্কের নাম (বাংলা)"
+                                                onChange={(e) => handleUpdateCol2Link(idx, { label: e.target.value, label_en: e.target.value })}
+                                                placeholder="Link Label"
                                                 className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold"
                                             />
                                         </div>
-                                        <div className="sm:col-span-4">
-                                            <input
-                                                type="text"
-                                                value={link.label_en || ''}
-                                                onChange={(e) => handleUpdateCol2Link(idx, { label_en: e.target.value })}
-                                                placeholder="English Label (ঐচ্ছিক)"
-                                                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium"
-                                            />
-                                        </div>
-                                        <div className="sm:col-span-3">
+                                        <div className="sm:col-span-5">
                                             <input
                                                 type="text"
                                                 value={link.url}
                                                 onChange={(e) => handleUpdateCol2Link(idx, { url: e.target.value })}
-                                                placeholder="URL (যেমন: /courses)"
+                                                placeholder="URL (e.g. /courses)"
                                                 className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-mono"
                                             />
                                         </div>
@@ -618,7 +541,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                                                 type="button"
                                                 onClick={() => handleDeleteCol2Link(idx)}
                                                 className="p-1.5 text-rose-500 hover:text-rose-700"
-                                                title="মুছুন"
+                                                title="Delete"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -632,67 +555,44 @@ export const AdminFooterBuilderPage: React.FC = () => {
                     {/* TAB 3: COLUMN 3 CATEGORY LINKS */}
                     {activeTab === 'col3' && (
                         <div className="space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        কলামের শিরোনাম (বাংলা/মূল)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={footerSettings.column_3_title || ''}
-                                        onChange={(e) => handleUpdate('column_3_title', e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"
-                                        placeholder="যেমন: জনপ্রিয় বিষয়সমূহ"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        Column 3 Title (English Mode - ঐচ্ছিক)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={footerSettings.column_3_title_en || ''}
-                                        onChange={(e) => handleUpdate('column_3_title_en', e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold"
-                                        placeholder="e.g. Popular Subjects"
-                                    />
-                                </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                    Column Title
+                                </label>
+                                <input
+                                    type="text"
+                                    value={footerSettings.column_3_title || ''}
+                                    onChange={(e) => handleUpdate('column_3_title', e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"
+                                    placeholder="e.g. Popular Subjects"
+                                />
                             </div>
 
                             <div className="flex items-center justify-between pt-2">
-                                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">লিঙ্কসমূহ</h4>
+                                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">Links</h4>
                                 <button
                                     type="button"
                                     onClick={handleAddCol3Link}
                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 text-white rounded-xl text-xs font-bold hover:bg-sky-700 transition cursor-pointer"
                                 >
                                     <Plus className="w-3.5 h-3.5" />
-                                    <span>লিঙ্ক যোগ করুন</span>
+                                    <span>Add Link</span>
                                 </button>
                             </div>
 
                             <div className="space-y-2.5">
                                 {(footerSettings.column_3_links || []).map((link, idx) => (
                                     <div key={link.id || idx} className="grid grid-cols-1 sm:grid-cols-12 gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl items-center">
-                                        <div className="sm:col-span-4">
+                                        <div className="sm:col-span-6">
                                             <input
                                                 type="text"
                                                 value={link.label}
-                                                onChange={(e) => handleUpdateCol3Link(idx, { label: e.target.value })}
-                                                placeholder="লিঙ্কের নাম (বাংলা)"
+                                                onChange={(e) => handleUpdateCol3Link(idx, { label: e.target.value, label_en: e.target.value })}
+                                                placeholder="Link Label"
                                                 className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold"
                                             />
                                         </div>
-                                        <div className="sm:col-span-4">
-                                            <input
-                                                type="text"
-                                                value={link.label_en || ''}
-                                                onChange={(e) => handleUpdateCol3Link(idx, { label_en: e.target.value })}
-                                                placeholder="English Label (ঐচ্ছিক)"
-                                                className="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium"
-                                            />
-                                        </div>
-                                        <div className="sm:col-span-3">
+                                        <div className="sm:col-span-5">
                                             <input
                                                 type="text"
                                                 value={link.url}
@@ -706,7 +606,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                                                 type="button"
                                                 onClick={() => handleDeleteCol3Link(idx)}
                                                 className="p-1.5 text-rose-500 hover:text-rose-700"
-                                                title="মুছুন"
+                                                title="Delete"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -720,37 +620,23 @@ export const AdminFooterBuilderPage: React.FC = () => {
                     {/* TAB 4: CONTACT & SOCIAL */}
                     {activeTab === 'col4' && (
                         <div className="space-y-5">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        যোগাযোগ কলাম শিরোনাম (বাংলা/মূল)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={footerSettings.column_4_title || ''}
-                                        onChange={(e) => handleUpdate('column_4_title', e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"
-                                        placeholder="যেমন: যোগাযোগ"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        Column 4 Title (English Mode - ঐচ্ছিক)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={footerSettings.column_4_title_en || ''}
-                                        onChange={(e) => handleUpdate('column_4_title_en', e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold"
-                                        placeholder="e.g. Contact Us"
-                                    />
-                                </div>
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                    Contact Column Title
+                                </label>
+                                <input
+                                    type="text"
+                                    value={footerSettings.column_4_title || ''}
+                                    onChange={(e) => handleUpdate('column_4_title', e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold"
+                                    placeholder="e.g. Contact Us"
+                                />
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        হটলাইন / ফোন নম্বর
+                                        Hotline / Phone Number
                                     </label>
                                     <input
                                         type="text"
@@ -762,13 +648,13 @@ export const AdminFooterBuilderPage: React.FC = () => {
                                 </div>
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        কল করার সময়সীমা (বাংলা/মূল)
+                                        Calling Hours
                                     </label>
                                     <input
                                         type="text"
                                         value={footerSettings.phone_hours || ''}
                                         onChange={(e) => handleUpdate('phone_hours', e.target.value)}
-                                        placeholder="যেমন: সকাল ১০টা - রাত ১০টা"
+                                        placeholder="e.g. 10:00 AM - 10:00 PM (Sat - Thu)"
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium"
                                     />
                                 </div>
@@ -777,52 +663,25 @@ export const AdminFooterBuilderPage: React.FC = () => {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        Phone Hours (English Mode - ঐচ্ছিক)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={footerSettings.phone_hours_en || ''}
-                                        onChange={(e) => handleUpdate('phone_hours_en', e.target.value)}
-                                        placeholder="e.g. 10 AM - 10 PM (Sat - Thu)"
-                                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        সাপোর্ট ইমেইল
+                                        Support Email
                                     </label>
                                     <input
                                         type="email"
                                         value={footerSettings.email || ''}
                                         onChange={(e) => handleUpdate('email', e.target.value)}
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium"
-                                        placeholder="support@novonex.edu.bd"
+                                        placeholder="support@monologueedu.com"
                                     />
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        অফিস ঠিকানা (বাংলা/মূল)
+                                        Office Address
                                     </label>
                                     <input
                                         type="text"
                                         value={footerSettings.address || ''}
                                         onChange={(e) => handleUpdate('address', e.target.value)}
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium"
-                                        placeholder="যেমন: ঢাকা, বাংলাদেশ"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        Office Address (English Mode - ঐচ্ছিক)
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={footerSettings.address_en || ''}
-                                        onChange={(e) => handleUpdate('address_en', e.target.value)}
-                                        className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium"
                                         placeholder="e.g. Dhaka, Bangladesh"
                                     />
                                 </div>
@@ -833,7 +692,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                                 <div className="flex items-center justify-between">
                                     <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
                                         <Share2 className="w-3.5 h-3.5 text-sky-600" />
-                                        <span>সোশ্যাল মিডিয়া লিঙ্কসমূহ</span>
+                                        <span>Social Media Links</span>
                                     </h4>
                                     <button
                                         type="button"
@@ -841,7 +700,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
                                     >
                                         <Plus className="w-3.5 h-3.5" />
-                                        <span>সোশ্যাল নেটওয়ার্ক যোগ করুন</span>
+                                        <span>Add Social Link</span>
                                     </button>
                                 </div>
 
@@ -865,7 +724,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                                                 type="text"
                                                 value={soc.url}
                                                 onChange={(e) => handleUpdateSocialLink(idx, { url: e.target.value })}
-                                                placeholder="প্রোফাইল বা পেইজ লিঙ্ক (https://...)"
+                                                placeholder="Profile or page URL (https://...)"
                                                 className="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-mono"
                                             />
                                             <button
@@ -893,73 +752,39 @@ export const AdminFooterBuilderPage: React.FC = () => {
                                     </div>
                                     <div>
                                         <h4 className="text-base font-bold text-slate-900">
-                                            ফুটার ও লিগ্যাল নোটিশ (Footer & Legal Notice)
+                                            Footer & Legal Notice
                                         </h4>
                                         <p className="text-xs text-slate-500">
-                                            ওয়েবসাইটের একদম নিচের কপিরাইট বার্তা ও ক্রেডিট বাংলা এবং ইংরেজি মোডের জন্য কনফিগার করুন
+                                            Configure copyright text and bottom secondary credits.
                                         </p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-4 pt-1">
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                ফুটার কপিরাইট টেক্সট (বাংলা/মূল)
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={footerSettings.copyright_text || ''}
-                                                onChange={(e) => handleUpdate('copyright_text', e.target.value)}
-                                                placeholder="© 2026 Novonex Academy. সর্বস্বত্ব সংরক্ষিত।"
-                                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500"
-                                            />
-                                            <p className="text-[11px] text-slate-400 mt-1">
-                                                যেমন: © ২০২৬ নভনেক্স একাডেমি। সর্বস্বত্ব সংরক্ষিত।
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                Copyright Text (English Mode - ঐচ্ছিক)
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={footerSettings.copyright_text_en || ''}
-                                                onChange={(e) => handleUpdate('copyright_text_en', e.target.value)}
-                                                placeholder="e.g. © 2026 Novonex Academy. All rights reserved."
-                                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500"
-                                            />
-                                            <p className="text-[11px] text-slate-400 mt-1">
-                                                ফাঁকা রাখলে ইংরেজি মোডেও মূল কপিরাইটটি দেখাবে
-                                            </p>
-                                        </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                            Footer Copyright Text
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={footerSettings.copyright_text || ''}
+                                            onChange={(e) => handleUpdate('copyright_text', e.target.value)}
+                                            placeholder="© 2026 Monologue Edu. All rights reserved."
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500"
+                                        />
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                বটম ক্রেডিট / সেকেন্ডারি টেক্সট (বাংলা/মূল)
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={footerSettings.bottom_credit || ''}
-                                                onChange={(e) => handleUpdate('bottom_credit', e.target.value)}
-                                                placeholder="যেমন: শিক্ষার্থীদের জন্য ❤️ দিয়ে তৈরি"
-                                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                                Bottom Credit (English Mode - ঐচ্ছিক)
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={footerSettings.bottom_credit_en || ''}
-                                                onChange={(e) => handleUpdate('bottom_credit_en', e.target.value)}
-                                                placeholder="e.g. Crafted with ❤️ for passionate learners"
-                                                className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500"
-                                            />
-                                        </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                            Bottom Credit / Secondary Text
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={footerSettings.bottom_credit || ''}
+                                            onChange={(e) => handleUpdate('bottom_credit', e.target.value)}
+                                            placeholder="e.g. Crafted with ❤️ for passionate learners"
+                                            className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-sky-500"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -972,17 +797,17 @@ export const AdminFooterBuilderPage: React.FC = () => {
                                     </div>
                                     <div>
                                         <h4 className="text-base font-bold text-slate-900">
-                                            ফুটার ব্যাকগ্রাউন্ড ও স্টাইল (Footer Styling)
+                                            Footer Styling & Background
                                         </h4>
                                         <p className="text-xs text-slate-500">
-                                            ফুটার সেকশনের মূল ব্যাকগ্রাউন্ড কালার নির্বাচন করুন
+                                            Select main background color for footer section
                                         </p>
                                     </div>
                                 </div>
 
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        ফুটার ব্যাকগ্রাউন্ড কালার
+                                        Footer Background Color
                                     </label>
                                     <div className="flex items-center gap-3">
                                         <input
@@ -1001,7 +826,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
                                             style={{ backgroundColor: footerSettings.bg_color || '#0f172a' }}
                                             className="h-8 px-3 rounded-lg text-white text-[11px] font-bold flex items-center border border-slate-700 shadow-xs"
                                         >
-                                            কালার প্রিভিউ
+                                            Color Preview
                                         </div>
                                     </div>
                                 </div>

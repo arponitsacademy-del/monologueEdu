@@ -43,7 +43,7 @@ export function formatDate(dateString?: string): string {
     if (!dateString) return '';
     try {
         const d = new Date(dateString);
-        return d.toLocaleDateString('bn-BD', {
+        return d.toLocaleDateString('en-US', {
             year: 'numeric',
             month: 'short',
             day: 'numeric',

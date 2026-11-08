@@ -23,20 +23,20 @@ export const TeacherCoursesPage: React.FC = () => {
     };
 
     if (loading) {
-        return <div className="p-12 text-center text-slate-400">কোর্স লোড হচ্ছে...</div>;
+        return <div className="p-12 text-center text-slate-400">Loading courses...</div>;
     }
 
     return (
         <div className="space-y-6 max-w-7xl">
             <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">আমার কোর্সসমূহ</h2>
-                <p className="text-xs text-slate-500 mt-0.5">যেসব কোর্সে আপনি ইন্সট্রাক্টর হিসেবে যুক্ত আছেন</p>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">My Assigned Courses</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Courses where you are assigned as an instructor</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {courses.length === 0 ? (
                     <div className="col-span-3 py-16 text-center text-slate-400 bg-white rounded-3xl border border-slate-200">
-                        আপনার নামে এখনও কোনো কোর্স অ্যাসাইন করা হয়নি। অ্যাডমিনকে অবহিত করুন।
+                        No courses have been assigned to you yet. Please contact the administrator.
                     </div>
                 ) : (
                     courses.map((course) => (
@@ -60,7 +60,7 @@ export const TeacherCoursesPage: React.FC = () => {
                                 <div>
                                     <h3 className="font-bold text-slate-900 text-base line-clamp-2">{course.title}</h3>
                                     <p className="text-xs text-slate-500 mt-1">
-                                        মোট {course.lessons_count || 0} টি লেসন • {course.enrollments_count || 0} জন শিক্ষার্থী
+                                        Total {course.lessons_count || 0} Lessons • {course.enrollments_count || 0} Students
                                     </p>
                                 </div>
 
@@ -70,14 +70,14 @@ export const TeacherCoursesPage: React.FC = () => {
                                         className="py-2.5 px-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
                                     >
                                         <Layers className="w-3.5 h-3.5" />
-                                        <span>কোর্স বিল্ডার</span>
+                                        <span>Course Builder</span>
                                     </Link>
                                     <Link
                                         to="/teacher/questions"
                                         className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors"
                                     >
                                         <MessageSquare className="w-3.5 h-3.5" />
-                                        <span>প্রশ্নসমূহ</span>
+                                        <span>Questions</span>
                                     </Link>
                                 </div>
                             </div>

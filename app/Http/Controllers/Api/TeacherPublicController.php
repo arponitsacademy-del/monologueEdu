@@ -28,8 +28,8 @@ class TeacherPublicController extends Controller
                 return [
                     'id' => $teacher->id,
                     'name' => $teacher->name,
-                    'designation' => $profile?->designation ?? 'শিক্ষক (Instructor)',
-                    'institution' => $profile?->institution ?? 'মনোলগ এডু ফ্যাকাল্টি',
+                    'designation' => $profile?->designation ?? 'Instructor',
+                    'institution' => $profile?->institution ?? 'Monologue Edu Faculty',
                     'photo_url' => $profile?->photo_url,
                     'bio' => $profile?->bio,
                     'is_featured' => $profile?->is_featured ?? true,
@@ -70,8 +70,8 @@ class TeacherPublicController extends Controller
             'teacher' => [
                 'id' => $teacher->id,
                 'name' => $teacher->name,
-                'designation' => $profile?->designation ?? 'শিক্ষক (Instructor)',
-                'institution' => $profile?->institution ?? 'মনোলগ এডু ফ্যাকাল্টি',
+                'designation' => $profile?->designation ?? 'Instructor',
+                'institution' => $profile?->institution ?? 'Monologue Edu Faculty',
                 'photo_url' => $profile?->photo_url,
                 'bio' => $profile?->bio,
                 'expertise' => $profile?->expertise,

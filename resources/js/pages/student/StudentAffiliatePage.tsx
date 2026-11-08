@@ -105,10 +105,10 @@ export const StudentAffiliatePage: React.FC = () => {
         try {
             setApplying(true);
             const res = await apiClient.post('/affiliate/apply');
-            setAlertMessage({ type: 'success', text: res.data.message || 'অভিনন্দন! আপনি সফলভাবে অ্যাফিলিয়েট পার্টনার হিসেবে যুক্ত হয়েছেন।' });
+            setAlertMessage({ type: 'success', text: res.data.message || 'Congratulations! You have successfully joined as an affiliate partner.' });
             fetchStatus();
         } catch (err: any) {
-            setAlertMessage({ type: 'error', text: err.response?.data?.message || 'যুক্ত হতে সমস্যা হয়েছে।' });
+            setAlertMessage({ type: 'error', text: err.response?.data?.message || 'Failed to join affiliate program.' });
         } finally {
             setApplying(false);
         }
@@ -133,11 +133,11 @@ export const StudentAffiliatePage: React.FC = () => {
         try {
             setSavingAccount(true);
             const res = await apiClient.post('/affiliate/payout-account', accountForm);
-            setAlertMessage({ type: 'success', text: res.data.message || 'উত্তোলন অ্যাকাউন্ট সংরক্ষিত হয়েছে।' });
+            setAlertMessage({ type: 'success', text: res.data.message || 'Payout account saved successfully.' });
             setAccountModalOpen(false);
             fetchStatus();
         } catch (err: any) {
-            setAlertMessage({ type: 'error', text: err.response?.data?.message || 'সংরক্ষণ ব্যর্থ হয়েছে।' });
+            setAlertMessage({ type: 'error', text: err.response?.data?.message || 'Failed to save payout account.' });
         } finally {
             setSavingAccount(false);
         }
@@ -152,12 +152,12 @@ export const StudentAffiliatePage: React.FC = () => {
                 payment_method: payoutForm.payment_method,
                 account_number: payoutForm.account_number,
             });
-            setAlertMessage({ type: 'success', text: res.data.message || 'উত্তোলন রিকোয়েস্ট সফলভাবে পাঠানো হয়েছে।' });
+            setAlertMessage({ type: 'success', text: res.data.message || 'Withdrawal request submitted successfully.' });
             setPayoutModalOpen(false);
             setPayoutForm((prev) => ({ ...prev, amount: '' }));
             fetchStatus();
         } catch (err: any) {
-            setAlertMessage({ type: 'error', text: err.response?.data?.message || 'রিকোয়েস্ট ব্যর্থ হয়েছে।' });
+            setAlertMessage({ type: 'error', text: err.response?.data?.message || 'Withdrawal request failed.' });
         } finally {
             setRequestingPayout(false);
         }
@@ -167,7 +167,7 @@ export const StudentAffiliatePage: React.FC = () => {
         return (
             <div className="flex flex-col items-center justify-center p-16 text-gray-500">
                 <Loader2 className="h-10 w-10 animate-spin text-indigo-600 mb-3" />
-                <p className="text-sm font-medium">অ্যাফিলিয়েট ড্যাশবোর্ড লোড হচ্ছে...</p>
+                <p className="text-sm font-medium">Loading affiliate dashboard...</p>
             </div>
         );
     }
@@ -194,10 +194,10 @@ export const StudentAffiliatePage: React.FC = () => {
             <div>
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <Sparkles className="h-7 w-7 text-indigo-600" />
-                    অ্যাফিলিয়েট পার্টনার প্রোগ্রাম
+                    Affiliate Partner Program
                 </h1>
                 <p className="text-sm text-gray-600 mt-1">
-                    মনোলগ এডু-র কোর্সগুলো আপনার বন্ধুদের সাথে শেয়ার করুন এবং প্রতিটি সফল ভর্তিতে আকর্ষণীয় কমিশন উপার্জন করুন!
+                    Share Monologue Edu courses with your friends and earn attractive commissions on every successful enrollment!
                 </p>
             </div>
 
@@ -231,23 +231,23 @@ export const StudentAffiliatePage: React.FC = () => {
                         <Lock className="h-10 w-10" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-900">অ্যাফিলিয়েট প্রোগ্রাম আনলক করুন</h2>
+                        <h2 className="text-2xl font-bold text-gray-900">Unlock Affiliate Program</h2>
                         <p className="text-sm text-gray-600 mt-2 leading-relaxed">
-                            মনোলগ এডুর গুণগত মান বজায় রাখতে শুধুমাত্র আমাদের নিয়মিত শিক্ষার্থীরাই অ্যাফিলিয়েট পার্টনার হতে পারেন।
-                            আপনি যেকোনো একটি কোর্সে ভর্তি বা কেনার সাথে সাথেই এই প্রোগ্রামটি স্বয়ংক্রিয়ভাবে সক্রিয় হয়ে যাবে।
+                            To maintain the high quality of Monologue Edu, only our enrolled students are eligible to become affiliate partners.
+                            As soon as you purchase or enroll in any course, this program will be automatically activated.
                         </p>
                     </div>
 
                     <div className="bg-gray-50 rounded-xl p-4 text-left border border-gray-100 space-y-3">
                         <div className="font-semibold text-gray-800 text-sm flex items-center gap-2">
                             <Gift className="h-4 w-4 text-indigo-600" />
-                            অ্যাফিলিয়েট হিসেবে আপনি যা পাচ্ছেন:
+                            What you get as an affiliate:
                         </div>
                         <ul className="text-xs text-gray-600 space-y-2 list-disc list-inside">
-                            <li>প্রতিটি কোর্স বিক্রয়ে আকর্ষণীয় কমিশন (১০% - ২০% বা সমমূল্যের টাকা)।</li>
-                            <li>আপনার শেয়ার করা লিংকে ক্লিককারী {settings?.cookie_days || 30} দিনের মধ্যে কোর্স কিনলেই আপনি কমিশন পাবেন।</li>
-                            <li>আপনার রেফারেল কোড ব্যবহার করলে আপনার বন্ধুরাও কোর্স ফিতে বিশেষ ছাড় পাবে।</li>
-                            <li>বিকাশ, নগদ বা রকেটের মাধ্যমে সরাসরি টাকা উত্তোলনের সুবিধা।</li>
+                            <li>Earn attractive commissions on every course sale (10% - 20% or flat rate).</li>
+                            <li>Earn commissions if a user purchases within {settings?.cookie_days || 30} days of clicking your link.</li>
+                            <li>Friends who use your referral link/code get a special discount on their course fees.</li>
+                            <li>Fast withdrawals directly to bKash, Nagad, Rocket, or Bank Account.</li>
                         </ul>
                     </div>
 
@@ -257,7 +257,7 @@ export const StudentAffiliatePage: React.FC = () => {
                             className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-xl transition-colors shadow-md hover:shadow-lg"
                         >
                             <BookOpen className="h-5 w-5" />
-                            কোর্সগুলো ব্রাউজ করুন ও ভর্তি হোন
+                            Browse Courses & Enroll
                         </Link>
                     </div>
                 </div>
@@ -269,35 +269,35 @@ export const StudentAffiliatePage: React.FC = () => {
                     <div className="relative z-10 max-w-2xl space-y-6">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-indigo-200 text-xs font-semibold backdrop-blur-xs">
                             <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-                            আপনি একজন যোগ্য পার্টনার!
+                            You are eligible!
                         </div>
                         <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-                            মনোলগ এডু অ্যাফিলিয়েট প্রোগ্রামে যোগ দিন
+                            Join Monologue Edu Affiliate Program
                         </h2>
                         <p className="text-indigo-100 text-sm sm:text-base leading-relaxed">
-                            আপনি ইতোমধ্যে আমাদের কোর্সের একজন শিক্ষার্থী। এখন আপনার বন্ধুদের রেফার করে ঘরে বসেই বাড়তি অর্থ উপার্জন করার সুযোগ।
-                            এক ক্লিকে আপনার নিজস্ব রেফারেল কোড ও ট্র্যাকিং লিংক সংগ্রহ করুন।
+                            You are already an enrolled student with us. Now you can refer courses to your friends and earn money right from home.
+                            Generate your unique referral code and tracking links with just one click.
                         </p>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
                             <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-xs">
                                 <DollarSign className="h-5 w-5 text-emerald-400 mb-1" />
-                                <div className="text-xs text-indigo-200">কমিশন রেট</div>
+                                <div className="text-xs text-indigo-200">Commission Rate</div>
                                 <div className="text-lg font-bold">
                                     {settings?.default_commission_type === 'percentage'
-                                        ? `${settings?.default_commission_amount}% পর্যন্ত`
-                                        : `৳${settings?.default_commission_amount} প্রতি বিক্রি`}
+                                        ? `Up to ${settings?.default_commission_amount}%`
+                                        : `৳${settings?.default_commission_amount} per sale`}
                                 </div>
                             </div>
                             <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-xs">
                                 <MousePointerClick className="h-5 w-5 text-amber-400 mb-1" />
-                                <div className="text-xs text-indigo-200">কুকি মেয়াদ</div>
-                                <div className="text-lg font-bold">{settings?.cookie_days || 30} দিন ট্র্যাকিং</div>
+                                <div className="text-xs text-indigo-200">Cookie Duration</div>
+                                <div className="text-lg font-bold">{settings?.cookie_days || 30} Days Tracking</div>
                             </div>
                             <div className="bg-white/10 rounded-xl p-3.5 backdrop-blur-xs">
                                 <CreditCard className="h-5 w-5 text-sky-400 mb-1" />
-                                <div className="text-xs text-indigo-200">উত্তোলন</div>
-                                <div className="text-lg font-bold">বিকাশ / নগদ</div>
+                                <div className="text-xs text-indigo-200">Withdrawals</div>
+                                <div className="text-lg font-bold">bKash / Nagad / Bank</div>
                             </div>
                         </div>
 
@@ -308,7 +308,7 @@ export const StudentAffiliatePage: React.FC = () => {
                                 className="px-8 py-3.5 bg-white text-indigo-900 hover:bg-indigo-50 font-bold rounded-xl shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 text-base"
                             >
                                 {applying ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5 text-amber-500" />}
-                                এক ক্লিকে অ্যাফিলিয়েট হিসেবে যুক্ত হোন
+                                Join as Affiliate with 1-Click
                             </button>
                         </div>
                     </div>
@@ -322,59 +322,59 @@ export const StudentAffiliatePage: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 text-white rounded-2xl p-5 shadow-sm">
                             <div className="flex items-center justify-between text-indigo-100">
-                                <span className="text-xs font-semibold uppercase tracking-wider">উপলব্ধ ব্যালেন্স</span>
+                                <span className="text-xs font-semibold uppercase tracking-wider">Available Balance</span>
                                 <DollarSign className="h-5 w-5 text-white/80" />
                             </div>
                             <p className="text-3xl font-black mt-2">৳{Number(profile.balance).toFixed(2)}</p>
                             <div className="mt-3 pt-3 border-t border-indigo-500/50 flex justify-between items-center">
-                                <span className="text-xs text-indigo-200">মিনিমাম উত্তোলন: ৳{settings?.min_payout_amount || 500}</span>
+                                <span className="text-xs text-indigo-200">Min Payout: ৳{settings?.min_payout_amount || 500}</span>
                                 <button
                                     onClick={() => setPayoutModalOpen(true)}
                                     disabled={Number(profile.balance) < Number(settings?.min_payout_amount || 500)}
                                     className="px-3 py-1 bg-white text-indigo-700 hover:bg-indigo-50 text-xs font-bold rounded-lg shadow-xs transition-colors disabled:opacity-50"
                                 >
-                                    উত্তোলন করুন
+                                    Withdraw
                                 </button>
                             </div>
                         </div>
 
                         <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs">
                             <div className="flex items-center justify-between text-gray-500">
-                                <span className="text-xs font-semibold uppercase tracking-wider">মোট উপার্জন</span>
+                                <span className="text-xs font-semibold uppercase tracking-wider">Total Earned</span>
                                 <TrendingUp className="h-5 w-5 text-emerald-500" />
                             </div>
                             <p className="text-2xl font-bold text-gray-900 mt-2">৳{Number(profile.total_earned).toFixed(2)}</p>
                             <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1 font-medium">
                                 <CheckCircle2 className="h-3.5 w-3.5" />
-                                সফল কমিশন যুক্ত হয়েছে
+                                Commissions credited
                             </p>
                         </div>
 
                         <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs">
                             <div className="flex items-center justify-between text-gray-500">
-                                <span className="text-xs font-semibold uppercase tracking-wider">মোট উত্তোলন সম্পন্ন</span>
+                                <span className="text-xs font-semibold uppercase tracking-wider">Total Withdrawn</span>
                                 <CreditCard className="h-5 w-5 text-indigo-500" />
                             </div>
                             <p className="text-2xl font-bold text-gray-900 mt-2">৳{Number(profile.total_withdrawn).toFixed(2)}</p>
                             <div className="mt-2 text-xs text-gray-500 flex items-center justify-between">
-                                <span>অ্যাকাউন্ট: {profile.payout_method ? `${profile.payout_method.toUpperCase()} (${profile.payout_account})` : 'সেট করা নেই'}</span>
+                                <span>Account: {profile.payout_method ? `${profile.payout_method.toUpperCase()} (${profile.payout_account})` : 'Not set'}</span>
                                 <button
                                     onClick={() => setAccountModalOpen(true)}
                                     className="text-indigo-600 hover:underline font-semibold"
                                 >
-                                    পরিবর্তন
+                                    Change
                                 </button>
                             </div>
                         </div>
 
                         <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs">
                             <div className="flex items-center justify-between text-gray-500">
-                                <span className="text-xs font-semibold uppercase tracking-wider">লিংক ক্লিক সংখ্যা</span>
+                                <span className="text-xs font-semibold uppercase tracking-wider">Link Clicks</span>
                                 <MousePointerClick className="h-5 w-5 text-amber-500" />
                             </div>
                             <p className="text-2xl font-bold text-gray-900 mt-2">{profile.clicks_count || 0}</p>
                             <p className="text-xs text-gray-500 mt-2">
-                                কুকি মেয়াদ: <strong className="text-gray-700">{settings?.cookie_days || 30} দিন</strong>
+                                Cookie Duration: <strong className="text-gray-700">{settings?.cookie_days || 30} days</strong>
                             </p>
                         </div>
                     </div>
@@ -385,20 +385,20 @@ export const StudentAffiliatePage: React.FC = () => {
                             <div>
                                 <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                                     <Share2 className="h-5 w-5 text-indigo-600" />
-                                    আপনার জেনারেল রেফারেল লিংক ও কোড
+                                    Your General Referral Link & Code
                                 </h2>
                                 <p className="text-xs text-gray-500 mt-0.5">
-                                    এই লিংক বা কোডটি যেকোনো জায়গায় শেয়ার করুন। ভিজিটর এই লিংকে ক্লিক করে ওয়েবসাইট ব্রাউজ করে কোনো কোর্স কিনলেই আপনার কমিশন জমা হবে।
+                                    Share this link or code anywhere. When someone clicks and enrolls in a course within the cookie window, you get credited.
                                 </p>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-xs text-gray-500">রেফারেল কোড:</span>
+                                <span className="text-xs text-gray-500">Referral Code:</span>
                                 <div className="px-3 py-1 bg-indigo-50 border border-indigo-200 rounded-lg text-indigo-700 font-mono font-bold text-sm flex items-center gap-1.5">
                                     <span>{profile.affiliate_code}</span>
                                     <button
                                         onClick={() => handleCopy(profile.affiliate_code, 'code')}
                                         className="text-indigo-500 hover:text-indigo-800"
-                                        title="কোড কপি করুন"
+                                        title="Copy code"
                                     >
                                         {copiedCode ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                                     </button>
@@ -419,13 +419,13 @@ export const StudentAffiliatePage: React.FC = () => {
                                 className="shrink-0 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors"
                             >
                                 {copiedBase ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                                {copiedBase ? 'কপি হয়েছে!' : 'লিংক কপি করুন'}
+                                {copiedBase ? 'Copied!' : 'Copy Link'}
                             </button>
                         </div>
 
                         {/* Social Share Buttons */}
                         <div className="flex items-center gap-2 pt-1">
-                            <span className="text-xs text-gray-500">সোশ্যাল মিডিয়ায় শেয়ার করুন:</span>
+                            <span className="text-xs text-gray-500">Share on Social Media:</span>
                             <a
                                 href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(baseReferralLink)}`}
                                 target="_blank"
@@ -435,7 +435,7 @@ export const StudentAffiliatePage: React.FC = () => {
                                 Facebook
                             </a>
                             <a
-                                href={`https://api.whatsapp.com/send?text=${encodeURIComponent('মনোলগ এডুর কোর্সে ভর্তি হতে আমার রেফারেল লিংক ব্যবহার করুন: ' + baseReferralLink)}`}
+                                href={`https://api.whatsapp.com/send?text=${encodeURIComponent('Enroll in Monologue Edu courses with my referral link: ' + baseReferralLink)}`}
                                 target="_blank"
                                 rel="noreferrer"
                                 className="px-3 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors"
@@ -450,16 +450,16 @@ export const StudentAffiliatePage: React.FC = () => {
                         <div>
                             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                                 <BookOpen className="h-5 w-5 text-indigo-600" />
-                                নির্দিষ্ট কোর্সের অ্যাফিলিয়েট লিংক তৈরি করুন
+                                Generate Course-Specific Link
                             </h2>
                             <p className="text-xs text-gray-500 mt-0.5">
-                                নির্দিষ্ট কোনো একটি কোর্সের সরাসরি লিংক তৈরি করুন যাতে শিক্ষার্থীরা সরাসরি ওই কোর্সের বিস্তারিত পাতায় যায়।
+                                Create a direct link to a specific course page so users land directly on the relevant course.
                             </p>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div className="sm:col-span-2">
-                                <label className="text-xs font-semibold text-gray-700 block mb-1">কোর্সটি সিলেক্ট করুন</label>
+                                <label className="text-xs font-semibold text-gray-700 block mb-1">Select Course</label>
                                 <select
                                     value={selectedCourseId}
                                     onChange={(e) => setSelectedCourseId(Number(e.target.value))}
@@ -467,7 +467,7 @@ export const StudentAffiliatePage: React.FC = () => {
                                 >
                                     {courses.map((course) => (
                                         <option key={course.id} value={course.id}>
-                                            {course.title} (ফি: ৳{course.sale_price || course.price})
+                                            {course.title} (Fee: ৳{course.sale_price || course.price})
                                         </option>
                                     ))}
                                 </select>
@@ -475,13 +475,13 @@ export const StudentAffiliatePage: React.FC = () => {
 
                             {selectedCourse && (
                                 <div className="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3 flex flex-col justify-center">
-                                    <span className="text-xs text-indigo-700 font-semibold">আপনার কমিশন:</span>
+                                    <span className="text-xs text-indigo-700 font-semibold">Your Commission:</span>
                                     <span className="text-base font-extrabold text-indigo-950">
                                         {currentCommType === 'percentage' ? `${currentCommAmount}%` : `৳${currentCommAmount}`}
                                     </span>
                                     {currentDiscAmount > 0 && (
                                         <span className="text-xs text-emerald-700 font-medium mt-0.5">
-                                            ক্রেতা পাবে: {currentDiscType === 'percentage' ? `${currentDiscAmount}% ছাড়` : `৳${currentDiscAmount} ছাড়`}
+                                            Buyer gets: {currentDiscType === 'percentage' ? `${currentDiscAmount}% discount` : `৳${currentDiscAmount} discount`}
                                         </span>
                                     )}
                                 </div>
@@ -501,7 +501,7 @@ export const StudentAffiliatePage: React.FC = () => {
                                     className="shrink-0 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors"
                                 >
                                     {copiedCourseLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                                    {copiedCourseLink ? 'কপি হয়েছে!' : 'কোর্স লিংক কপি'}
+                                    {copiedCourseLink ? 'Copied!' : 'Copy Course Link'}
                                 </button>
                             </div>
                         )}
@@ -514,26 +514,26 @@ export const StudentAffiliatePage: React.FC = () => {
                             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                                 <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
                                     <TrendingUp className="h-4 w-4 text-indigo-600" />
-                                    সাম্প্রতিক কমিশনসমূহ
+                                    Recent Commissions
                                 </h3>
-                                <span className="text-xs text-gray-400">সর্বশেষ ১০টি</span>
+                                <span className="text-xs text-gray-400">Latest 10</span>
                             </div>
 
                             {recentCommissions.length === 0 ? (
                                 <div className="text-center py-10 px-4 text-gray-400">
                                     <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                    <p className="text-xs">এখনও কোনো কমিশন অর্জিত হয়নি। আপনার লিংক শেয়ার করুন!</p>
+                                    <p className="text-xs">No commissions earned yet. Start sharing your link!</p>
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left text-xs text-gray-600">
                                         <thead className="bg-gray-50 border-b border-gray-100 text-gray-500 font-semibold">
                                             <tr>
-                                                <th className="px-4 py-3">কোর্স</th>
-                                                <th className="px-4 py-3">অর্ডার #</th>
-                                                <th className="px-4 py-3">কমিশন</th>
-                                                <th className="px-4 py-3">স্ট্যাটাস</th>
-                                                <th className="px-4 py-3 text-right">তারিখ</th>
+                                                <th className="px-4 py-3">Course</th>
+                                                <th className="px-4 py-3">Order #</th>
+                                                <th className="px-4 py-3">Commission</th>
+                                                <th className="px-4 py-3">Status</th>
+                                                <th className="px-4 py-3 text-right">Date</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100">
@@ -556,11 +556,11 @@ export const StudentAffiliatePage: React.FC = () => {
                                                                     : 'bg-amber-50 text-amber-700'
                                                             }`}
                                                         >
-                                                            {comm.status === 'approved' ? 'অনুমোদিত' : 'অপেক্ষমাণ'}
+                                                            {comm.status === 'approved' ? 'Approved' : 'Pending'}
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3 text-right text-gray-400">
-                                                        {new Date(comm.created_at).toLocaleDateString('bn-BD', {
+                                                        {new Date(comm.created_at).toLocaleDateString('en-US', {
                                                             month: 'short',
                                                             day: 'numeric',
                                                         })}
@@ -578,32 +578,32 @@ export const StudentAffiliatePage: React.FC = () => {
                             <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                                 <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
                                     <CreditCard className="h-4 w-4 text-indigo-600" />
-                                    উত্তোলন / পেআউট হিস্ট্রি
+                                    Payout History
                                 </h3>
                                 <button
                                     onClick={() => setPayoutModalOpen(true)}
                                     disabled={Number(profile.balance) < Number(settings?.min_payout_amount || 500)}
                                     className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 disabled:opacity-40"
                                 >
-                                    + নতুন উত্তোলন
+                                    + Request Payout
                                 </button>
                             </div>
 
                             {payouts.length === 0 ? (
                                 <div className="text-center py-10 px-4 text-gray-400">
                                     <CreditCard className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                    <p className="text-xs">এখনও কোনো উত্তোলনের হিস্ট্রি নেই।</p>
+                                    <p className="text-xs">No payout history found.</p>
                                 </div>
                             ) : (
                                 <div className="overflow-x-auto">
                                     <table className="w-full text-left text-xs text-gray-600">
                                         <thead className="bg-gray-50 border-b border-gray-100 text-gray-500 font-semibold">
                                             <tr>
-                                                <th className="px-4 py-3">পরিমাণ</th>
-                                                <th className="px-4 py-3">মেথড</th>
-                                                <th className="px-4 py-3">অ্যাকাউন্ট</th>
-                                                <th className="px-4 py-3">স্ট্যাটাস</th>
-                                                <th className="px-4 py-3 text-right">তারিখ</th>
+                                                <th className="px-4 py-3">Amount</th>
+                                                <th className="px-4 py-3">Method</th>
+                                                <th className="px-4 py-3">Account</th>
+                                                <th className="px-4 py-3">Status</th>
+                                                <th className="px-4 py-3 text-right">Date</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-gray-100">
@@ -628,11 +628,11 @@ export const StudentAffiliatePage: React.FC = () => {
                                                                     : 'bg-red-50 text-red-700'
                                                             }`}
                                                         >
-                                                            {p.status === 'approved' ? 'পরিশোধিত' : p.status === 'pending' ? 'অপেক্ষমাণ' : 'বাতিল'}
+                                                            {p.status === 'approved' ? 'Paid' : p.status === 'pending' ? 'Pending' : 'Cancelled'}
                                                         </span>
                                                     </td>
                                                     <td className="px-4 py-3 text-right text-gray-400">
-                                                        {new Date(p.created_at).toLocaleDateString('bn-BD', {
+                                                        {new Date(p.created_at).toLocaleDateString('en-US', {
                                                             month: 'short',
                                                             day: 'numeric',
                                                         })}
@@ -662,20 +662,20 @@ export const StudentAffiliatePage: React.FC = () => {
                         <div className="mb-5">
                             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                                 <DollarSign className="h-5 w-5 text-indigo-600" />
-                                টাকা উত্তোলন রিকোয়েস্ট
+                                Request Payout
                             </h2>
                             <p className="text-xs text-gray-500 mt-1">
-                                আপনার উপার্জিত কমিশন সরাসরি বিকাশ, নগদ বা রকেটে নিন।
+                                Withdraw your earned commissions directly to bKash, Nagad, Rocket, or Bank Account.
                             </p>
                         </div>
 
                         <div className="bg-indigo-50/70 border border-indigo-100 rounded-xl p-3.5 mb-4 text-xs space-y-1">
                             <div className="flex justify-between text-gray-700">
-                                <span>উপলব্ধ ব্যালেন্স:</span>
+                                <span>Available Balance:</span>
                                 <strong className="text-indigo-900 text-sm">৳{Number(profile.balance).toFixed(2)}</strong>
                             </div>
                             <div className="flex justify-between text-gray-500">
-                                <span>সর্বনিম্ন উত্তোলনের পরিমাণ:</span>
+                                <span>Minimum Payout Amount:</span>
                                 <span>৳{settings?.min_payout_amount || 500}</span>
                             </div>
                         </div>
@@ -683,7 +683,7 @@ export const StudentAffiliatePage: React.FC = () => {
                         <form onSubmit={handleRequestPayout} className="space-y-4">
                             <div>
                                 <label className="text-xs font-semibold text-gray-700 block mb-1">
-                                    উত্তোলনের পরিমাণ (টাকা)
+                                    Withdrawal Amount (BDT)
                                 </label>
                                 <input
                                     type="number"
@@ -699,28 +699,28 @@ export const StudentAffiliatePage: React.FC = () => {
                             </div>
 
                             <div>
-                                <label className="text-xs font-semibold text-gray-700 block mb-1">পেমেন্ট মেথড</label>
+                                <label className="text-xs font-semibold text-gray-700 block mb-1">Payment Method</label>
                                 <select
                                     value={payoutForm.payment_method}
                                     onChange={(e) => setPayoutForm({ ...payoutForm, payment_method: e.target.value })}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-indigo-500 font-semibold"
                                 >
-                                    <option value="bkash">বিকাশ (bKash Personal)</option>
-                                    <option value="nagad">নগদ (Nagad Personal)</option>
-                                    <option value="rocket">রকেট (Rocket Personal)</option>
-                                    <option value="bank">ব্যাংক একাউন্ট (Bank Account)</option>
+                                    <option value="bkash">bKash (Personal)</option>
+                                    <option value="nagad">Nagad (Personal)</option>
+                                    <option value="rocket">Rocket (Personal)</option>
+                                    <option value="bank">Bank Account</option>
                                 </select>
                             </div>
 
                             <div>
                                 <label className="text-xs font-semibold text-gray-700 block mb-1">
-                                    অ্যাকাউন্ট / মোবাইল নম্বর
+                                    Account / Mobile Number
                                 </label>
                                 <input
                                     type="text"
                                     value={payoutForm.account_number}
                                     onChange={(e) => setPayoutForm({ ...payoutForm, account_number: e.target.value })}
-                                    placeholder="যেমন: 017XXXXXXXX"
+                                    placeholder="e.g. 017XXXXXXXX"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-indigo-500"
                                     required
                                 />
@@ -732,7 +732,7 @@ export const StudentAffiliatePage: React.FC = () => {
                                     onClick={() => setPayoutModalOpen(false)}
                                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
                                 >
-                                    বাতিল
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
@@ -740,7 +740,7 @@ export const StudentAffiliatePage: React.FC = () => {
                                     className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl flex items-center gap-1.5 transition-colors disabled:opacity-50"
                                 >
                                     {requestingPayout && <Loader2 className="h-4 w-4 animate-spin" />}
-                                    রিকোয়েস্ট পাঠান
+                                    Submit Request
                                 </button>
                             </div>
                         </form>
@@ -762,37 +762,37 @@ export const StudentAffiliatePage: React.FC = () => {
                         <div className="mb-5">
                             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
                                 <CreditCard className="h-5 w-5 text-indigo-600" />
-                                ডিফল্ট পেআউট অ্যাকাউন্ট
+                                Default Payout Account
                             </h2>
                             <p className="text-xs text-gray-500 mt-1">
-                                আপনার নিয়মিত টাকা গ্রহণের নম্বর সংরক্ষণ করে রাখুন।
+                                Save your preferred account for receiving payouts.
                             </p>
                         </div>
 
                         <form onSubmit={handleUpdateAccount} className="space-y-4">
                             <div>
-                                <label className="text-xs font-semibold text-gray-700 block mb-1">পেমেন্ট মেথড</label>
+                                <label className="text-xs font-semibold text-gray-700 block mb-1">Payment Method</label>
                                 <select
                                     value={accountForm.payout_method}
                                     onChange={(e) => setAccountForm({ ...accountForm, payout_method: e.target.value })}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm bg-white focus:ring-2 focus:ring-indigo-500 font-semibold"
                                 >
-                                    <option value="bkash">বিকাশ (bKash Personal)</option>
-                                    <option value="nagad">নগদ (Nagad Personal)</option>
-                                    <option value="rocket">রকেট (Rocket Personal)</option>
-                                    <option value="bank">ব্যাংক একাউন্ট (Bank Account)</option>
+                                    <option value="bkash">bKash (Personal)</option>
+                                    <option value="nagad">Nagad (Personal)</option>
+                                    <option value="rocket">Rocket (Personal)</option>
+                                    <option value="bank">Bank Account</option>
                                 </select>
                             </div>
 
                             <div>
                                 <label className="text-xs font-semibold text-gray-700 block mb-1">
-                                    অ্যাকাউন্ট / মোবাইল নম্বর
+                                    Account / Mobile Number
                                 </label>
                                 <input
                                     type="text"
                                     value={accountForm.payout_account}
                                     onChange={(e) => setAccountForm({ ...accountForm, payout_account: e.target.value })}
-                                    placeholder="যেমন: 017XXXXXXXX"
+                                    placeholder="e.g. 017XXXXXXXX"
                                     className="w-full px-3 py-2 border border-gray-300 rounded-xl text-sm font-mono focus:ring-2 focus:ring-indigo-500"
                                     required
                                 />
@@ -804,7 +804,7 @@ export const StudentAffiliatePage: React.FC = () => {
                                     onClick={() => setAccountModalOpen(false)}
                                     className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
                                 >
-                                    বাতিল
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
@@ -812,7 +812,7 @@ export const StudentAffiliatePage: React.FC = () => {
                                     className="px-5 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl flex items-center gap-1.5 transition-colors disabled:opacity-50"
                                 >
                                     {savingAccount && <Loader2 className="h-4 w-4 animate-spin" />}
-                                    সংরক্ষণ করুন
+                                    Save Account
                                 </button>
                             </div>
                         </form>

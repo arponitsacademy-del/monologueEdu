@@ -149,7 +149,7 @@ export const AdminUsersPage: React.FC = () => {
             }
         } catch (err: any) {
             console.error('Failed to load users:', err);
-            setError(err.response?.data?.message || 'ব্যবহারকারীর তথ্য লোড করতে ব্যর্থ হয়েছে। অনুগ্রহ করে পুনরায় চেষ্টা করুন।');
+            setError(err.response?.data?.message || 'Failed to load user information. Please try again.');
             setUsers([]);
         } finally {
             setLoading(false);
@@ -218,23 +218,23 @@ export const AdminUsersPage: React.FC = () => {
             });
             setUsers(prev => prev.map(u => u.id === selectedUser.id ? data.user : u));
             setRoleModalOpen(false);
-            alert(data.message);
+            alert(data.message || 'User role updated successfully.');
         } catch (err: any) {
-            alert(err.response?.data?.message || 'রোল পরিবর্তন করতে ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to update user role.');
         } finally {
             setUpdatingRole(false);
         }
     };
 
     const handleToggleStatus = async (userToToggle: User) => {
-        const actionName = userToToggle.status === 'active' ? 'নিষ্ক্রিয়' : 'সক্রিয়';
-        if (!window.confirm(`আপনি কি নিশ্চিতভাবে এই অ্যাকাউন্টটি ${actionName} করতে চান?`)) return;
+        const actionName = userToToggle.status === 'active' ? 'deactivate' : 'activate';
+        if (!window.confirm(`Are you sure you want to ${actionName} this account?`)) return;
 
         try {
             const { data } = await apiClient.post(`/admin/users/${userToToggle.id}/status`);
             setUsers(prev => prev.map(u => u.id === userToToggle.id ? data.user : u));
         } catch (err: any) {
-            alert(err.response?.data?.message || 'স্ট্যাটাস পরিবর্তন ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to update account status.');
         }
     };
 
@@ -260,9 +260,9 @@ export const AdminUsersPage: React.FC = () => {
                 photo_url: '',
                 bio: '',
             });
-            alert(data.message || 'নতুন ব্যবহারকারী সফলভাবে তৈরি করা হয়েছে।');
+            alert(data.message || 'New user created successfully.');
         } catch (err: any) {
-            setCreateError(err.response?.data?.message || 'ব্যবহারকারী তৈরি করতে ব্যর্থ হয়েছে। তথ্যগুলো পুনরায় পরীক্ষা করুন।');
+            setCreateError(err.response?.data?.message || 'Failed to create user. Please verify all inputs.');
         } finally {
             setCreatingUser(false);
         }
@@ -270,12 +270,12 @@ export const AdminUsersPage: React.FC = () => {
 
     const handleDeleteUser = async (userToDelete: User) => {
         if (currentUser && currentUser.id === userToDelete.id) {
-            alert('আপনি নিজের অ্যাডমিন অ্যাকাউন্ট নিজে ডিলিট করতে পারবেন না।');
+            alert('You cannot delete your own admin account.');
             return;
         }
 
-        const roleBangla = userToDelete.role === 'admin' ? 'অ্যাডমিন' : (userToDelete.role === 'teacher' ? 'শিক্ষক' : 'শিক্ষার্থী');
-        const confirmMessage = `আপনি কি নিশ্চিতভাবে ${roleBangla} "${userToDelete.name}" (${userToDelete.phone || userToDelete.email}) এর অ্যাকাউন্ট স্থায়ীভাবে ডিলিট করতে চান?\n\nসতর্কতা: এই অ্যাকশনটি পূর্বাবস্থায় ফিরিয়ে আনা যাবে না!`;
+        const roleLabel = userToDelete.role === 'admin' ? 'Admin' : (userToDelete.role === 'teacher' ? 'Instructor' : 'Student');
+        const confirmMessage = `Are you sure you want to permanently delete ${roleLabel} "${userToDelete.name}" (${userToDelete.phone || userToDelete.email})?\n\nWarning: This action cannot be undone!`;
 
         if (!window.confirm(confirmMessage)) return;
 
@@ -284,9 +284,9 @@ export const AdminUsersPage: React.FC = () => {
             const { data } = await apiClient.delete(`/admin/users/${userToDelete.id}`);
             setUsers(prev => prev.filter(u => u.id !== userToDelete.id));
             setPagination(prev => ({ ...prev, total: Math.max(0, prev.total - 1) }));
-            alert(data.message || 'ইউজার অ্যাকাউন্ট সফলভাবে ডিলিট করা হয়েছে।');
+            alert(data.message || 'User account deleted successfully.');
         } catch (err: any) {
-            alert(err.response?.data?.message || 'ব্যবহারকারী ডিলিট করতে ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to delete user account.');
         } finally {
             setDeletingUserId(null);
         }
@@ -337,9 +337,9 @@ export const AdminUsersPage: React.FC = () => {
             setUsers((prev) =>
                 prev.map((u) => (u.id === userDetails.id ? { ...u, teacher_profile: data.teacher_profile } : u))
             );
-            alert(data.message || 'শিক্ষকের প্রোফাইল তথ্য সফলভাবে সংরক্ষণ করা হয়েছে।');
+            alert(data.message || 'Instructor profile saved successfully.');
         } catch (err: any) {
-            alert(err.response?.data?.message || 'প্রোফাইল আপডেট করতে ব্যর্থ হয়েছে।');
+            alert(err.response?.data?.message || 'Failed to update instructor profile.');
         } finally {
             setSavingTeacherProfile(false);
         }
@@ -354,10 +354,10 @@ export const AdminUsersPage: React.FC = () => {
                 <div>
                     <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight flex items-center gap-2.5">
                         <Users className="w-7 h-7 text-sky-600 dark:text-sky-400" />
-                        <span>ব্যবহারকারী ব্যবস্থাপনা (User Management)</span>
+                        <span>User Management</span>
                     </h2>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                        সকল শিক্ষার্থী, শিক্ষক ও অ্যাডমিন অ্যাকাউন্ট পরিচালনা, রোল পরিবর্তন ও স্ট্যাটাস নিয়ন্ত্রণ
+                        Manage all student, instructor and administrator accounts, roles and status controls
                     </p>
                 </div>
                 <div className="flex items-center gap-2 self-start sm:self-auto">
@@ -369,7 +369,7 @@ export const AdminUsersPage: React.FC = () => {
                         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-xs font-bold text-white shadow-md shadow-sky-600/20 transition-all cursor-pointer"
                     >
                         <UserPlus className="w-4 h-4" />
-                        <span>নতুন ইউজার তৈরি করুন</span>
+                        <span>Create New User</span>
                     </button>
                     <button
                         onClick={() => fetchUsers()}
@@ -377,7 +377,7 @@ export const AdminUsersPage: React.FC = () => {
                         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
                     >
                         <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-sky-500' : ''}`} />
-                        <span>রিফ্রেশ</span>
+                        <span>Refresh</span>
                     </button>
                 </div>
             </div>
@@ -392,7 +392,7 @@ export const AdminUsersPage: React.FC = () => {
                             : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                 >
-                    সকল ইউজার
+                    All Users
                 </button>
                 <button
                     onClick={() => handleTabChange('student')}
@@ -402,7 +402,7 @@ export const AdminUsersPage: React.FC = () => {
                             : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                 >
-                    শিক্ষার্থী (Students)
+                    Students
                 </button>
                 <button
                     onClick={() => handleTabChange('teacher')}
@@ -412,7 +412,7 @@ export const AdminUsersPage: React.FC = () => {
                             : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                 >
-                    শিক্ষক (Teachers)
+                    Instructors
                 </button>
                 <button
                     onClick={() => handleTabChange('admin')}
@@ -422,7 +422,7 @@ export const AdminUsersPage: React.FC = () => {
                             : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                     }`}
                 >
-                    অ্যাডমিন (Admins)
+                    Admins
                 </button>
             </div>
 
@@ -433,7 +433,7 @@ export const AdminUsersPage: React.FC = () => {
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="নাম, ফোন নম্বর অথবা ইমেইল দিয়ে খুঁজুন..."
+                        placeholder="Search by name, phone or email..."
                         className="w-full pl-10 pr-20 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-sky-500"
                     />
                     <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
@@ -441,7 +441,7 @@ export const AdminUsersPage: React.FC = () => {
                         type="submit"
                         className="absolute right-2 top-2 px-3 py-1 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-lg transition-colors cursor-pointer"
                     >
-                        খুঁজুন
+                        Search
                     </button>
                 </form>
 
@@ -454,10 +454,10 @@ export const AdminUsersPage: React.FC = () => {
                         }}
                         className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200"
                     >
-                        <option value="">সকল রোল (All Roles)</option>
-                        <option value="student">শিক্ষার্থী (Student)</option>
-                        <option value="teacher">শিক্ষক (Teacher)</option>
-                        <option value="admin">অ্যাডমিন (Admin)</option>
+                        <option value="">All Roles</option>
+                        <option value="student">Student</option>
+                        <option value="teacher">Instructor</option>
+                        <option value="admin">Admin</option>
                     </select>
 
                     <select
@@ -468,9 +468,9 @@ export const AdminUsersPage: React.FC = () => {
                         }}
                         className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-200"
                     >
-                        <option value="">সকল স্ট্যাটাস</option>
-                        <option value="active">সক্রিয় (Active)</option>
-                        <option value="inactive">নিষ্ক্রিয় (Inactive)</option>
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
                     </select>
 
                     {(search || roleFilter || statusFilter) && (
@@ -483,7 +483,7 @@ export const AdminUsersPage: React.FC = () => {
                             }}
                             className="text-xs text-rose-600 dark:text-rose-400 font-bold hover:underline cursor-pointer whitespace-nowrap"
                         >
-                            রিসেট
+                            Reset
                         </button>
                     )}
                 </div>
@@ -500,7 +500,7 @@ export const AdminUsersPage: React.FC = () => {
                         onClick={() => fetchUsers()}
                         className="px-3 py-1 bg-rose-600 text-white rounded-lg font-bold hover:bg-rose-700 transition-colors"
                     >
-                        পুনরায় চেষ্টা করুন
+                        Retry
                     </button>
                 </div>
             )}
@@ -511,14 +511,14 @@ export const AdminUsersPage: React.FC = () => {
                     <table className="w-full text-left text-xs">
                         <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                             <tr>
-                                <th className="py-4 px-6">ইউজার</th>
-                                <th className="py-4 px-4">মোবাইল নম্বর</th>
-                                <th className="py-4 px-4">ইমেইল</th>
-                                <th className="py-4 px-4">রোল</th>
-                                <th className="py-4 px-4">এনরোলমেন্ট / কোর্স</th>
-                                <th className="py-4 px-4">স্ট্যাটাস</th>
-                                <th className="py-4 px-4">নিবন্ধনের তারিখ</th>
-                                <th className="py-4 px-6 text-right">অ্যাকশন</th>
+                                <th className="py-4 px-6">User</th>
+                                <th className="py-4 px-4">Phone Number</th>
+                                <th className="py-4 px-4">Email</th>
+                                <th className="py-4 px-4">Role</th>
+                                <th className="py-4 px-4">Enrollments / Courses</th>
+                                <th className="py-4 px-4">Status</th>
+                                <th className="py-4 px-4">Joined Date</th>
+                                <th className="py-4 px-6 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300 font-medium">
@@ -527,7 +527,7 @@ export const AdminUsersPage: React.FC = () => {
                                     <td colSpan={8} className="py-16 text-center text-slate-400">
                                         <div className="inline-flex items-center gap-2">
                                             <RefreshCw className="w-5 h-5 animate-spin text-sky-500" />
-                                            <span>ব্যবহারকারীর তথ্য লোড হচ্ছে...</span>
+                                            <span>Loading users...</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -535,7 +535,7 @@ export const AdminUsersPage: React.FC = () => {
                                 <tr>
                                     <td colSpan={8} className="py-16 text-center text-slate-400">
                                         <Users className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-600 mb-2" />
-                                        <p className="font-semibold">কোনো ইউজার খুঁজে পাওয়া যায়নি।</p>
+                                        <p className="font-semibold">No users found.</p>
                                         {(search || roleFilter || statusFilter) && (
                                             <button
                                                 onClick={() => {
@@ -546,7 +546,7 @@ export const AdminUsersPage: React.FC = () => {
                                                 }}
                                                 className="mt-2 text-sky-600 font-bold hover:underline inline-block cursor-pointer"
                                             >
-                                                ফিল্টার মুছে সব ইউজার দেখুন
+                                                Clear filters to view all users
                                             </button>
                                         )}
                                     </td>
@@ -561,20 +561,20 @@ export const AdminUsersPage: React.FC = () => {
                                                     type="button"
                                                     onClick={() => handleOpenUserDetails(u)}
                                                     className="flex items-center gap-3 text-left group cursor-pointer focus:outline-hidden"
-                                                    title="বিস্তারিত ও এনরোল্ড কোর্স দেখতে ক্লিক করুন"
+                                                    title="Click to view details and enrollments"
                                                 >
                                                     <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 font-bold flex items-center justify-center text-sm shrink-0 border border-sky-200/50 dark:border-sky-800/50 group-hover:scale-105 group-hover:border-sky-400 transition-all">
                                                         {initial}
                                                     </div>
                                                     <div>
                                                         <h4 className="font-bold text-slate-900 dark:text-slate-100 text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors flex items-center gap-1.5">
-                                                            <span>{u.name || 'অজ্ঞাত ইউজার'}</span>
+                                                            <span>{u.name || 'Unknown User'}</span>
                                                             <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 text-sky-500 transition-opacity" />
                                                         </h4>
                                                         <span className="text-[11px] text-slate-400 flex items-center gap-1">
                                                             <span>ID: #{u.id}</span>
                                                             <span>•</span>
-                                                            <span className="text-sky-500 font-medium">বিস্তারিত দেখুন</span>
+                                                            <span className="text-sky-500 font-medium">View Profile</span>
                                                         </span>
                                                     </div>
                                                 </button>
@@ -587,16 +587,16 @@ export const AdminUsersPage: React.FC = () => {
                                                 {u.role === 'admin' ? (
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
                                                         <Shield className="w-3 h-3" />
-                                                        অ্যাডমিন
+                                                        Admin
                                                     </span>
                                                 ) : u.role === 'teacher' ? (
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60">
                                                         <GraduationCap className="w-3 h-3" />
-                                                        শিক্ষক
+                                                        Instructor
                                                     </span>
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800/60">
-                                                        শিক্ষার্থী
+                                                        Student
                                                     </span>
                                                 )}
                                             </td>
@@ -605,12 +605,12 @@ export const AdminUsersPage: React.FC = () => {
                                                 {u.role === 'teacher' ? (
                                                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-purple-600 dark:text-purple-400">
                                                         <BookOpen className="w-3 h-3" />
-                                                        {u.instructed_courses_count || 0} কোর্স
+                                                        {u.instructed_courses_count || 0} Courses
                                                     </span>
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-600 dark:text-sky-400">
                                                         <BookOpen className="w-3 h-3" />
-                                                        {u.enrollments_count || 0} এনরোলমেন্ট
+                                                        {u.enrollments_count || 0} Enrollments
                                                     </span>
                                                 )}
                                             </td>
@@ -618,17 +618,17 @@ export const AdminUsersPage: React.FC = () => {
                                             <td className="py-4 px-4">
                                                 {u.status === 'active' ? (
                                                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60">
-                                                        সক্রিয়
+                                                        Active
                                                     </span>
                                                 ) : (
                                                     <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/60">
-                                                        নিষ্ক্রিয়
+                                                        Inactive
                                                     </span>
                                                 )}
                                             </td>
 
                                             <td className="py-4 px-4 text-slate-500 dark:text-slate-400">
-                                                {u.created_at ? new Date(u.created_at).toLocaleDateString('bn-BD') : '-'}
+                                                {u.created_at ? new Date(u.created_at).toLocaleDateString('en-US') : '-'}
                                             </td>
 
                                             <td className="py-4 px-6 text-right">
@@ -637,7 +637,7 @@ export const AdminUsersPage: React.FC = () => {
                                                         onClick={() => openRoleModal(u)}
                                                         className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-lg text-xs transition-colors cursor-pointer"
                                                     >
-                                                        রোল পরিবর্তন
+                                                        Change Role
                                                     </button>
                                                     <button
                                                         onClick={() => handleToggleStatus(u)}
@@ -646,7 +646,7 @@ export const AdminUsersPage: React.FC = () => {
                                                                 ? 'hover:bg-rose-50 dark:hover:bg-rose-950/50 text-rose-600 dark:text-rose-400'
                                                                 : 'hover:bg-emerald-50 dark:hover:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400'
                                                         }`}
-                                                        title={u.status === 'active' ? 'অ্যাকাউন্ট নিষ্ক্রিয় করুন' : 'অ্যাকাউন্ট সক্রিয় করুন'}
+                                                        title={u.status === 'active' ? 'Deactivate Account' : 'Activate Account'}
                                                     >
                                                         {u.status === 'active' ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                                                     </button>
@@ -654,7 +654,7 @@ export const AdminUsersPage: React.FC = () => {
                                                         onClick={() => handleDeleteUser(u)}
                                                         disabled={deletingUserId === u.id || (currentUser?.id === u.id)}
                                                         className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-                                                        title={currentUser?.id === u.id ? 'নিজের অ্যাকাউন্ট ডিলিট করা যাবে না' : 'ইউজার অ্যাকাউন্ট ডিলিট করুন'}
+                                                        title={currentUser?.id === u.id ? 'Cannot delete your own account' : 'Delete user account'}
                                                     >
                                                         {deletingUserId === u.id ? (
                                                             <Loader2 className="w-4 h-4 animate-spin text-rose-600" />
@@ -676,7 +676,7 @@ export const AdminUsersPage: React.FC = () => {
                 {pagination.total > 0 && (
                     <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
                         <div>
-                            মোট <strong className="text-slate-800 dark:text-slate-200 font-mono">{pagination.total}</strong> জন ব্যবহারকারী • পৃষ্ঠা <strong className="text-slate-800 dark:text-slate-200 font-mono">{pagination.currentPage}</strong> / <strong className="text-slate-800 dark:text-slate-200 font-mono">{pagination.lastPage}</strong>
+                            Total <strong className="text-slate-800 dark:text-slate-200 font-mono">{pagination.total}</strong> users • Page <strong className="text-slate-800 dark:text-slate-200 font-mono">{pagination.currentPage}</strong> of <strong className="text-slate-800 dark:text-slate-200 font-mono">{pagination.lastPage}</strong>
                         </div>
 
                         {pagination.lastPage > 1 && (
@@ -685,7 +685,7 @@ export const AdminUsersPage: React.FC = () => {
                                     onClick={() => handlePageChange(pagination.currentPage - 1)}
                                     disabled={pagination.currentPage <= 1}
                                     className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer disabled:cursor-not-allowed transition-colors"
-                                    title="পূর্ববর্তী পৃষ্ঠা"
+                                    title="Previous Page"
                                 >
                                     <ChevronLeft className="w-4 h-4" />
                                 </button>
@@ -696,7 +696,7 @@ export const AdminUsersPage: React.FC = () => {
                                     onClick={() => handlePageChange(pagination.currentPage + 1)}
                                     disabled={pagination.currentPage >= pagination.lastPage}
                                     className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 disabled:opacity-40 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer disabled:cursor-not-allowed transition-colors"
-                                    title="পরবর্তী পৃষ্ঠা"
+                                    title="Next Page"
                                 >
                                     <ChevronRight className="w-4 h-4" />
                                 </button>
@@ -710,29 +710,29 @@ export const AdminUsersPage: React.FC = () => {
             <Modal
                 isOpen={roleModalOpen}
                 onClose={() => setRoleModalOpen(false)}
-                title="ইউজারের ভূমিকা / রোল পরিবর্তন"
+                title="Change User Role"
                 maxWidth="sm"
             >
                 {selectedUser && (
                     <form onSubmit={handleUpdateRole} className="space-y-4">
                         <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-200 space-y-1">
-                            <p>ইউজার: <strong>{selectedUser.name}</strong></p>
-                            <p>মোবাইল: <strong className="font-mono">{selectedUser.phone}</strong></p>
-                            <p>বর্তমান রোল: <strong className="capitalize">{selectedUser.role}</strong></p>
+                            <p>User: <strong>{selectedUser.name}</strong></p>
+                            <p>Phone: <strong className="font-mono">{selectedUser.phone}</strong></p>
+                            <p>Current Role: <strong className="capitalize">{selectedUser.role}</strong></p>
                         </div>
 
                         <div>
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
-                                নতুন রোল নির্বাচন করুন:
+                                Select New Role:
                             </label>
                             <select
                                 value={newRole}
                                 onChange={(e) => setNewRole(e.target.value as UserRole)}
                                 className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-100"
                             >
-                                <option value="student">শিক্ষার্থী (Student - শুধুমাত্র কোর্স এনরোল করতে পারবে)</option>
-                                <option value="teacher">শিক্ষক (Teacher - নির্ধারিত কোর্সের বিল্ডার ও প্রশ্ন উত্তর পরিচালনা করতে পারবে)</option>
-                                <option value="admin">অ্যাডমিন (Admin - সম্পূর্ণ সিস্টেম নিয়ন্ত্রণ)</option>
+                                <option value="student">Student (Can enroll and learn in courses)</option>
+                                <option value="teacher">Instructor (Can manage assigned courses, exams & question banks)</option>
+                                <option value="admin">Admin (Full administrative access)</option>
                             </select>
                         </div>
 
@@ -742,7 +742,7 @@ export const AdminUsersPage: React.FC = () => {
                                 disabled={updatingRole}
                                 className="w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-xl shadow-md disabled:opacity-50 cursor-pointer transition-colors"
                             >
-                                {updatingRole ? 'আপডেট হচ্ছে...' : 'রোল পরিবর্তন নিশ্চিত করুন'}
+                                {updatingRole ? 'Updating...' : 'Confirm Role Change'}
                             </button>
                         </div>
                     </form>
@@ -752,7 +752,7 @@ export const AdminUsersPage: React.FC = () => {
             <Modal
                 isOpen={createModalOpen}
                 onClose={() => setCreateModalOpen(false)}
-                title="নতুন ব্যবহারকারী তৈরি করুন"
+                title="Create New User"
                 maxWidth="md"
             >
                 <form onSubmit={handleCreateUser} className="space-y-4">
@@ -766,7 +766,7 @@ export const AdminUsersPage: React.FC = () => {
                     {/* Role Selection */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-2">
-                            ব্যবহারকারীর ভূমিকা (রোল) নির্বাচন করুন:
+                            Select User Role:
                         </label>
                         <div className="grid grid-cols-3 gap-2.5">
                             <button
@@ -778,8 +778,8 @@ export const AdminUsersPage: React.FC = () => {
                                         : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-600 dark:text-slate-400'
                                 }`}
                             >
-                                <span className="block font-bold text-xs">শিক্ষার্থী</span>
-                                <span className="text-[10px] text-slate-400 block mt-0.5">Student</span>
+                                <span className="block font-bold text-xs">Student</span>
+                                <span className="text-[10px] text-slate-400 block mt-0.5">Learner</span>
                             </button>
                             <button
                                 type="button"
@@ -790,7 +790,7 @@ export const AdminUsersPage: React.FC = () => {
                                         : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-600 dark:text-slate-400'
                                 }`}
                             >
-                                <span className="block font-bold text-xs">শিক্ষক</span>
+                                <span className="block font-bold text-xs">Instructor</span>
                                 <span className="text-[10px] text-slate-400 block mt-0.5">Teacher</span>
                             </button>
                             <button
@@ -802,21 +802,21 @@ export const AdminUsersPage: React.FC = () => {
                                         : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 text-slate-600 dark:text-slate-400'
                                 }`}
                             >
-                                <span className="block font-bold text-xs">অ্যাডমিন</span>
-                                <span className="text-[10px] text-slate-400 block mt-0.5">Admin</span>
+                                <span className="block font-bold text-xs">Admin</span>
+                                <span className="text-[10px] text-slate-400 block mt-0.5">Manager</span>
                             </button>
                         </div>
                         <p className="text-[11px] text-slate-400 mt-1.5">
-                            {createForm.role === 'student' && 'শিক্ষার্থী: ওয়েবসাইটে কোর্স কিনতে পারবে, লাইভ/রেকর্ডেড ক্লাসে যোগ দিতে পারবে ও পরীক্ষা দিতে পারবে।'}
-                            {createForm.role === 'teacher' && 'শিক্ষক: নির্ধারিত কোর্সের কারিকুলাম, প্রশ্ন ব্যাংক তৈরি, পরীক্ষা গ্রহণ ও লিখিত খাতা মূল্যায়ন করতে পারবে।'}
-                            {createForm.role === 'admin' && 'অ্যাডমিন: সমগ্র প্ল্যাটফর্ম, আর্থিক লেনদেন, ইউজার ও সেটিংস পরিচালনার পূর্ণ ক্ষমতা থাকবে।'}
+                            {createForm.role === 'student' && 'Student: Can purchase and view enrolled courses, participate in exams and community.'}
+                            {createForm.role === 'teacher' && 'Instructor: Can build curriculum, manage question banks, conduct and evaluate exams.'}
+                            {createForm.role === 'admin' && 'Admin: Has full administrative privilege over finances, content and users.'}
                         </p>
                     </div>
 
                     {/* Name */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
-                            পুরো নাম (Full Name) *
+                            Full Name *
                         </label>
                         <div className="relative">
                             <UserIcon className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -825,7 +825,7 @@ export const AdminUsersPage: React.FC = () => {
                                 required
                                 value={createForm.name}
                                 onChange={(e) => setCreateForm({ ...createForm, name: e.target.value })}
-                                placeholder="যেমন: আহমেদ হাসান"
+                                placeholder="e.g. John Doe"
                                 className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500"
                             />
                         </div>
@@ -835,7 +835,7 @@ export const AdminUsersPage: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
-                                মোবাইল নম্বর (Phone) *
+                                Phone Number *
                             </label>
                             <div className="relative">
                                 <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -852,7 +852,7 @@ export const AdminUsersPage: React.FC = () => {
 
                         <div>
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
-                                ইমেইল ঠিকানা (Email) *
+                                Email Address *
                             </label>
                             <div className="relative">
                                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -873,32 +873,32 @@ export const AdminUsersPage: React.FC = () => {
                         <div className="p-4 bg-purple-50/60 dark:bg-purple-950/30 border border-purple-200/70 dark:border-purple-900/60 rounded-2xl space-y-3">
                             <div className="flex items-center gap-2 text-xs font-bold text-purple-700 dark:text-purple-300">
                                 <GraduationCap className="w-4 h-4" />
-                                <span>শিক্ষকের প্রোফাইল বিবরণ (Teacher Profile)</span>
+                                <span>Instructor Profile Details</span>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        পদবী (Designation)
+                                        Designation
                                     </label>
                                     <input
                                         type="text"
                                         value={createForm.designation}
                                         onChange={(e) => setCreateForm({ ...createForm, designation: e.target.value })}
-                                        placeholder="যেমন: সিনিয়র পদার্থবিজ্ঞান শিক্ষক"
+                                        placeholder="e.g. Senior Physics Instructor"
                                         className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 font-medium"
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        শিক্ষা প্রতিষ্ঠান / পড়াশোনা (Institution)
+                                        Institution / Education
                                     </label>
                                     <input
                                         type="text"
                                         value={createForm.institution}
                                         onChange={(e) => setCreateForm({ ...createForm, institution: e.target.value })}
-                                        placeholder="যেমন: BUET / ঢাকা বিশ্ববিদ্যালয়"
+                                        placeholder="e.g. BUET / University of Dhaka"
                                         className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 font-medium"
                                     />
                                 </div>
@@ -906,7 +906,7 @@ export const AdminUsersPage: React.FC = () => {
 
                             <div>
                                 <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                    প্রোফাইল ছবির লিংক (Photo URL)
+                                    Profile Photo URL
                                 </label>
                                 <input
                                     type="url"
@@ -919,13 +919,13 @@ export const AdminUsersPage: React.FC = () => {
 
                             <div>
                                 <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                    সংক্ষিপ্ত বায়ো (Bio)
+                                    Short Biography (Bio)
                                 </label>
                                 <textarea
                                     rows={2}
                                     value={createForm.bio}
                                     onChange={(e) => setCreateForm({ ...createForm, bio: e.target.value })}
-                                    placeholder="শিক্ষকের অভিজ্ঞতা ও পাঠদান পদ্ধতি সম্পর্কে সংক্ষেপে লিখুন..."
+                                    placeholder="Brief background and teaching methodology..."
                                     className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs focus:ring-2 focus:ring-purple-500 font-medium"
                                 />
                             </div>
@@ -936,7 +936,7 @@ export const AdminUsersPage: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
-                                পাসওয়ার্ড (Password) *
+                                Password *
                             </label>
                             <div className="relative">
                                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -946,7 +946,7 @@ export const AdminUsersPage: React.FC = () => {
                                     minLength={6}
                                     value={createForm.password}
                                     onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
-                                    placeholder="কমপক্ষে ৬ অক্ষরের"
+                                    placeholder="At least 6 characters"
                                     className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500"
                                 />
                             </div>
@@ -954,15 +954,15 @@ export const AdminUsersPage: React.FC = () => {
 
                         <div>
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
-                                অ্যাকাউন্ট স্ট্যাটাস
+                                Account Status
                             </label>
                             <select
                                 value={createForm.status}
                                 onChange={(e) => setCreateForm({ ...createForm, status: e.target.value as any })}
                                 className="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:outline-hidden focus:ring-2 focus:ring-sky-500"
                             >
-                                <option value="active">সক্রিয় (Active)</option>
-                                <option value="inactive">নিষ্ক্রিয় (Inactive)</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
                             </select>
                         </div>
                     </div>
@@ -973,7 +973,7 @@ export const AdminUsersPage: React.FC = () => {
                             onClick={() => setCreateModalOpen(false)}
                             className="px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
                         >
-                            বাতিল
+                            Cancel
                         </button>
                         <button
                             type="submit"
@@ -981,7 +981,7 @@ export const AdminUsersPage: React.FC = () => {
                             className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-md disabled:opacity-50 flex items-center gap-2 cursor-pointer transition-colors"
                         >
                             {creatingUser ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
-                            <span>ব্যবহারকারী তৈরি করুন</span>
+                            <span>Create User</span>
                         </button>
                     </div>
                 </form>
@@ -991,7 +991,7 @@ export const AdminUsersPage: React.FC = () => {
             <Modal
                 isOpen={detailsModalOpen}
                 onClose={() => setDetailsModalOpen(false)}
-                title="ব্যবহারকারীর বিস্তারিত বিবরণ (User Profile & Enrolled Courses)"
+                title="User Profile & Enrolled Courses"
                 maxWidth="xl"
             >
                 {userDetails && (
@@ -1006,7 +1006,7 @@ export const AdminUsersPage: React.FC = () => {
                                     <div>
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <h3 className="text-lg font-black text-slate-900 dark:text-slate-100">
-                                                {userDetails.name || 'অজ্ঞাত ইউজার'}
+                                                {userDetails.name || 'Unknown User'}
                                             </h3>
                                             <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
                                                 ID: #{userDetails.id}
@@ -1016,28 +1016,28 @@ export const AdminUsersPage: React.FC = () => {
                                             {userDetails.role === 'admin' ? (
                                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/60">
                                                     <Shield className="w-3 h-3" />
-                                                    অ্যাডমিন
+                                                    Admin
                                                 </span>
                                             ) : userDetails.role === 'teacher' ? (
                                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300 border border-purple-200/60">
                                                     <GraduationCap className="w-3 h-3" />
-                                                    শিক্ষক
+                                                    Instructor
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black uppercase bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200/60">
-                                                    শিক্ষার্থী
+                                                    Student
                                                 </span>
                                             )}
 
                                             {userDetails.status === 'active' ? (
                                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/60">
                                                     <UserCheck className="w-3 h-3" />
-                                                    সক্রিয় একাউন্ট
+                                                    Active
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200/60">
                                                     <UserX className="w-3 h-3" />
-                                                    নিষ্ক্রিয় একাউন্ট
+                                                    Inactive
                                                 </span>
                                             )}
                                         </div>
@@ -1051,7 +1051,7 @@ export const AdminUsersPage: React.FC = () => {
                                         }}
                                         className="px-3 py-1.5 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 shadow-2xs transition-colors cursor-pointer"
                                     >
-                                        রোল পরিবর্তন
+                                        Change Role
                                     </button>
                                     <button
                                         onClick={() => {
@@ -1059,7 +1059,7 @@ export const AdminUsersPage: React.FC = () => {
                                         }}
                                         className="px-3 py-1.5 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 shadow-2xs transition-colors cursor-pointer"
                                     >
-                                        {userDetails.status === 'active' ? 'নিষ্ক্রিয় করুন' : 'সক্রিয় করুন'}
+                                        {userDetails.status === 'active' ? 'Deactivate' : 'Activate'}
                                     </button>
                                     {userDetails.role === 'teacher' && (
                                         <a
@@ -1069,7 +1069,7 @@ export const AdminUsersPage: React.FC = () => {
                                             className="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
                                         >
                                             <ExternalLink className="w-3.5 h-3.5" />
-                                            <span>পাবলিক প্রোফাইল</span>
+                                            <span>Public Profile</span>
                                         </a>
                                     )}
                                 </div>
@@ -1080,9 +1080,9 @@ export const AdminUsersPage: React.FC = () => {
                                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                                     <Phone className="w-4 h-4 text-sky-500 shrink-0" />
                                     <div>
-                                        <span className="block text-[10px] text-slate-400">মোবাইল নম্বর</span>
+                                        <span className="block text-[10px] text-slate-400">Mobile Number</span>
                                         <a href={`tel:${userDetails.phone}`} className="font-mono font-bold hover:underline">
-                                            {userDetails.phone || 'দেওয়া হয়নি'}
+                                            {userDetails.phone || 'Not provided'}
                                         </a>
                                     </div>
                                 </div>
@@ -1090,9 +1090,9 @@ export const AdminUsersPage: React.FC = () => {
                                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                                     <Mail className="w-4 h-4 text-indigo-500 shrink-0" />
                                     <div>
-                                        <span className="block text-[10px] text-slate-400">ইমেইল এড্রেস</span>
+                                        <span className="block text-[10px] text-slate-400">Email Address</span>
                                         <a href={`mailto:${userDetails.email}`} className="font-semibold truncate max-w-[170px] block hover:underline">
-                                            {userDetails.email || 'দেওয়া হয়নি'}
+                                            {userDetails.email || 'Not provided'}
                                         </a>
                                     </div>
                                 </div>
@@ -1100,9 +1100,9 @@ export const AdminUsersPage: React.FC = () => {
                                 <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
                                     <Calendar className="w-4 h-4 text-amber-500 shrink-0" />
                                     <div>
-                                        <span className="block text-[10px] text-slate-400">যোগদানের তারিখ</span>
+                                        <span className="block text-[10px] text-slate-400">Joined Date</span>
                                         <span className="font-semibold">
-                                            {userDetails.created_at ? new Date(userDetails.created_at).toLocaleDateString('bn-BD', {
+                                            {userDetails.created_at ? new Date(userDetails.created_at).toLocaleDateString('en-US', {
                                                 year: 'numeric',
                                                 month: 'short',
                                                 day: 'numeric',
@@ -1124,7 +1124,7 @@ export const AdminUsersPage: React.FC = () => {
                                 }`}
                             >
                                 <BookOpen className="w-3.5 h-3.5" />
-                                <span>এনরোল্ড কোর্সসমূহ</span>
+                                <span>Enrolled Courses</span>
                                 <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                                     activeDetailTab === 'courses' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700'
                                 }`}>
@@ -1141,7 +1141,7 @@ export const AdminUsersPage: React.FC = () => {
                                 }`}
                             >
                                 <ShoppingCart className="w-3.5 h-3.5" />
-                                <span>অর্ডার ও পেমেন্ট</span>
+                                <span>Orders & Payments</span>
                                 <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                                     activeDetailTab === 'orders' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700'
                                 }`}>
@@ -1158,7 +1158,7 @@ export const AdminUsersPage: React.FC = () => {
                                 }`}
                             >
                                 <ClipboardList className="w-3.5 h-3.5" />
-                                <span>পরীক্ষার ফলাফল</span>
+                                <span>Exam Results</span>
                                 <span className={`px-1.5 py-0.2 rounded-full text-[10px] ${
                                     activeDetailTab === 'exams' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700'
                                 }`}>
@@ -1177,7 +1177,7 @@ export const AdminUsersPage: React.FC = () => {
                                         }`}
                                     >
                                         <GraduationCap className="w-3.5 h-3.5" />
-                                        <span>টিচিং কোর্স</span>
+                                        <span>Teaching Courses</span>
                                         <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-200 dark:bg-slate-700">
                                             {userDetails.instructed_courses?.length ?? 0}
                                         </span>
@@ -1192,7 +1192,7 @@ export const AdminUsersPage: React.FC = () => {
                                         }`}
                                     >
                                         <Shield className="w-3.5 h-3.5" />
-                                        <span>শিক্ষক প্রোফাইল তথ্য</span>
+                                        <span>Teacher Profile Info</span>
                                     </button>
                                 </>
                             )}
@@ -1204,13 +1204,13 @@ export const AdminUsersPage: React.FC = () => {
                                 {loadingDetails ? (
                                     <div className="py-12 flex flex-col items-center justify-center text-slate-400">
                                         <Loader2 className="w-7 h-7 animate-spin text-sky-500 mb-2" />
-                                        <span className="text-xs font-medium">এনরোল্ড কোর্স লোড হচ্ছে...</span>
+                                        <span className="text-xs font-medium">Loading enrolled courses...</span>
                                     </div>
                                 ) : !userDetails.enrolled_courses || userDetails.enrolled_courses.length === 0 ? (
                                     <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-800">
                                         <BookOpen className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">কোনো কোর্সে এনরোল করা নেই</p>
-                                        <p className="text-xs text-slate-400 mt-1">এই শিক্ষার্থী এখনও কোনো পেইড বা ফ্রি কোর্সে যুক্ত হননি।</p>
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No courses enrolled</p>
+                                        <p className="text-xs text-slate-400 mt-1">This student has not enrolled in any paid or free courses yet.</p>
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
@@ -1242,7 +1242,7 @@ export const AdminUsersPage: React.FC = () => {
                                                                 ৳{course.sale_price || course.price}
                                                             </span>
                                                             <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
-                                                                {course.pivot?.status === 'active' ? 'এনরোল্ড (Active)' : (course.pivot?.status || 'Active')}
+                                                                {course.pivot?.status === 'active' ? 'Enrolled (Active)' : (course.pivot?.status || 'Active')}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -1251,7 +1251,7 @@ export const AdminUsersPage: React.FC = () => {
                                                 <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-750 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                                                     <span className="flex items-center gap-1">
                                                         <Clock className="w-3 h-3 text-sky-500" />
-                                                        ভর্তির তারিখ: {course.pivot?.enrolled_at ? new Date(course.pivot.enrolled_at).toLocaleDateString('bn-BD') : (course.pivot?.created_at ? new Date(course.pivot.created_at).toLocaleDateString('bn-BD') : '-')}
+                                                        Enrolled: {course.pivot?.enrolled_at ? new Date(course.pivot.enrolled_at).toLocaleDateString('en-US') : (course.pivot?.created_at ? new Date(course.pivot.created_at).toLocaleDateString('en-US') : '-')}
                                                     </span>
                                                     <a
                                                         href={`/courses/${course.slug || course.id}`}
@@ -1259,7 +1259,7 @@ export const AdminUsersPage: React.FC = () => {
                                                         rel="noreferrer"
                                                         className="font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1"
                                                     >
-                                                        <span>কোর্স পেজ</span>
+                                                        <span>Course Page</span>
                                                         <ExternalLink className="w-3 h-3" />
                                                     </a>
                                                 </div>
@@ -1276,24 +1276,24 @@ export const AdminUsersPage: React.FC = () => {
                                 {loadingDetails ? (
                                     <div className="py-12 flex flex-col items-center justify-center text-slate-400">
                                         <Loader2 className="w-7 h-7 animate-spin text-sky-500 mb-2" />
-                                        <span className="text-xs font-medium">অর্ডার হিস্ট্রি লোড হচ্ছে...</span>
+                                        <span className="text-xs font-medium">Loading orders...</span>
                                     </div>
                                 ) : !userDetails.orders || userDetails.orders.length === 0 ? (
                                     <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-800">
                                         <ShoppingCart className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">কোনো অর্ডার পাওয়া যায়নি</p>
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No orders found</p>
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
                                         <table className="w-full text-left text-xs">
                                             <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-700">
                                                 <tr>
-                                                    <th className="py-2.5 px-3">অর্ডার #</th>
-                                                    <th className="py-2.5 px-3">কোর্স</th>
-                                                    <th className="py-2.5 px-3">পরিমাণ</th>
-                                                    <th className="py-2.5 px-3">পেমেন্ট মেথড</th>
-                                                    <th className="py-2.5 px-3">পেমেন্ট স্ট্যাটাস</th>
-                                                    <th className="py-2.5 px-3 text-right">তারিখ</th>
+                                                    <th className="py-2.5 px-3">Order #</th>
+                                                    <th className="py-2.5 px-3">Course</th>
+                                                    <th className="py-2.5 px-3">Amount</th>
+                                                    <th className="py-2.5 px-3">Payment Method</th>
+                                                    <th className="py-2.5 px-3">Status</th>
+                                                    <th className="py-2.5 px-3 text-right">Date</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1303,7 +1303,7 @@ export const AdminUsersPage: React.FC = () => {
                                                             {order.order_number}
                                                         </td>
                                                         <td className="py-2.5 px-3 font-medium text-slate-800 dark:text-slate-200 line-clamp-1">
-                                                            {order.course?.title || 'কোর্স'}
+                                                            {order.course?.title || 'Course'}
                                                         </td>
                                                         <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-slate-100">
                                                             ৳{order.final_amount}
@@ -1317,11 +1317,11 @@ export const AdminUsersPage: React.FC = () => {
                                                                     ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
                                                                     : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
                                                             }`}>
-                                                                {order.payment_status === 'paid' ? 'পরিশোধিত (Paid)' : (order.payment_status || 'Pending')}
+                                                                {order.payment_status === 'paid' ? 'Paid' : (order.payment_status || 'Pending')}
                                                             </span>
                                                         </td>
                                                         <td className="py-2.5 px-3 text-right text-slate-400">
-                                                            {new Date(order.created_at).toLocaleDateString('bn-BD')}
+                                                            {new Date(order.created_at).toLocaleDateString('en-US')}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -1338,44 +1338,44 @@ export const AdminUsersPage: React.FC = () => {
                                 {loadingDetails ? (
                                     <div className="py-12 flex flex-col items-center justify-center text-slate-400">
                                         <Loader2 className="w-7 h-7 animate-spin text-sky-500 mb-2" />
-                                        <span className="text-xs font-medium">পরীক্ষার রেকর্ড লোড হচ্ছে...</span>
+                                        <span className="text-xs font-medium">Loading exam records...</span>
                                     </div>
                                 ) : !userDetails.exam_submissions || userDetails.exam_submissions.length === 0 ? (
                                     <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-800">
                                         <ClipboardList className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">কোনো পরীক্ষায় অংশ নেননি</p>
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No exam submissions found</p>
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
                                         <table className="w-full text-left text-xs">
                                             <thead className="bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200 dark:border-slate-700">
                                                 <tr>
-                                                    <th className="py-2.5 px-3">পরীক্ষার নাম</th>
-                                                    <th className="py-2.5 px-3">প্রাপ্ত নম্বর</th>
-                                                    <th className="py-2.5 px-3">সঠিক / ভুল</th>
-                                                    <th className="py-2.5 px-3">স্ট্যাটাস</th>
-                                                    <th className="py-2.5 px-3 text-right">জমা দেওয়ার তারিখ</th>
+                                                    <th className="py-2.5 px-3">Exam Title</th>
+                                                    <th className="py-2.5 px-3">Marks Obtained</th>
+                                                    <th className="py-2.5 px-3">Correct / Wrong</th>
+                                                    <th className="py-2.5 px-3">Status</th>
+                                                    <th className="py-2.5 px-3 text-right">Submitted At</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                                 {userDetails.exam_submissions.map((sub: any) => (
                                                     <tr key={sub.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50">
                                                         <td className="py-2.5 px-3 font-semibold text-slate-800 dark:text-slate-200">
-                                                            {sub.exam?.title || 'পরীক্ষা'}
+                                                            {sub.exam?.title || 'Exam'}
                                                         </td>
                                                         <td className="py-2.5 px-3 font-bold text-emerald-600">
                                                             {sub.obtained_marks} / {sub.total_marks}
                                                         </td>
                                                         <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400">
-                                                            <span className="text-emerald-600 font-bold">{sub.total_correct || 0}</span> সঠিক, <span className="text-rose-600 font-bold">{sub.total_wrong || 0}</span> ভুল
+                                                            <span className="text-emerald-600 font-bold">{sub.total_correct || 0}</span> Correct, <span className="text-rose-600 font-bold">{sub.total_wrong || 0}</span> Wrong
                                                         </td>
                                                         <td className="py-2.5 px-3">
                                                             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
-                                                                {sub.status === 'evaluated' ? 'মূল্যায়ন সম্পন্ন' : (sub.status || 'জমা হয়েছে')}
+                                                                {sub.status === 'evaluated' ? 'Evaluated' : (sub.status || 'Submitted')}
                                                             </span>
                                                         </td>
                                                         <td className="py-2.5 px-3 text-right text-slate-400">
-                                                            {sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString('bn-BD') : '-'}
+                                                            {sub.submitted_at ? new Date(sub.submitted_at).toLocaleDateString('en-US') : '-'}
                                                         </td>
                                                     </tr>
                                                 ))}
@@ -1392,7 +1392,7 @@ export const AdminUsersPage: React.FC = () => {
                                 {!userDetails.instructed_courses || userDetails.instructed_courses.length === 0 ? (
                                     <div className="p-8 text-center bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/80 dark:border-slate-800">
                                         <GraduationCap className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">কোনো কোর্স পরিচালনা করছেন না</p>
+                                        <p className="text-sm font-bold text-slate-700 dark:text-slate-300">Not instructing any courses</p>
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
@@ -1409,7 +1409,7 @@ export const AdminUsersPage: React.FC = () => {
                                                         <h4 className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm line-clamp-1">
                                                             {course.title}
                                                         </h4>
-                                                        <span className="text-[11px] text-slate-400">ফি: ৳{course.price} • স্ট্যাটাস: {course.status}</span>
+                                                        <span className="text-[11px] text-slate-400">Fee: ৳{course.price} • Status: {course.status}</span>
                                                     </div>
                                                 </div>
                                                 <a
@@ -1417,7 +1417,7 @@ export const AdminUsersPage: React.FC = () => {
                                                     target="_blank"
                                                     rel="noreferrer"
                                                     className="p-2 text-slate-400 hover:text-purple-600"
-                                                    title="কোর্স পেজ"
+                                                    title="Course Page"
                                                 >
                                                     <ExternalLink className="w-4 h-4" />
                                                 </a>
@@ -1436,10 +1436,10 @@ export const AdminUsersPage: React.FC = () => {
                                         <GraduationCap className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                                         <div>
                                             <h4 className="font-bold text-sm text-slate-900 dark:text-slate-100">
-                                                শিক্ষক পরিচিতি ও হোমপেজ ক্যারাউজল তথ্য
+                                                Instructor Profile & Homepage Carousel Information
                                             </h4>
                                             <p className="text-[11px] text-slate-400">
-                                                এখানে প্রদত্ত তথ্য ও ছবি হোমপেজের শিক্ষক ক্যারাউজল এবং শিক্ষকের পাবলিক প্রোফাইলে প্রদর্শিত হবে।
+                                                The information and photo provided here will be featured in the homepage instructor carousel and the instructor's public profile.
                                             </p>
                                         </div>
                                     </div>
@@ -1449,7 +1449,7 @@ export const AdminUsersPage: React.FC = () => {
                                         rel="noreferrer"
                                         className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1 shrink-0"
                                     >
-                                        <span>প্রোফাইল পেজ</span>
+                                        <span>Profile Page</span>
                                         <ExternalLink className="w-3 h-3" />
                                     </a>
                                 </div>
@@ -1457,26 +1457,26 @@ export const AdminUsersPage: React.FC = () => {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
-                                            পদবী (Designation)
+                                            Designation
                                         </label>
                                         <input
                                             type="text"
                                             value={teacherProfileForm.designation}
                                             onChange={(e) => setTeacherProfileForm({ ...teacherProfileForm, designation: e.target.value })}
-                                            placeholder="যেমন: সিনিয়র পদার্থবিজ্ঞান শিক্ষক"
+                                            placeholder="e.g. Senior Physics Instructor"
                                             className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-purple-500 font-medium"
                                         />
                                     </div>
 
                                     <div>
                                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
-                                            শিক্ষা প্রতিষ্ঠান / পড়াশোনা (Institution / Education)
+                                            Institution / Educational Background
                                         </label>
                                         <input
                                             type="text"
                                             value={teacherProfileForm.institution}
                                             onChange={(e) => setTeacherProfileForm({ ...teacherProfileForm, institution: e.target.value })}
-                                            placeholder="যেমন: বুয়েট / BUET (CSE), ঢাকা বিশ্ববিদ্যালয়"
+                                            placeholder="e.g. BUET (CSE), University of Dhaka"
                                             className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-purple-500 font-medium"
                                         />
                                     </div>
@@ -1484,7 +1484,7 @@ export const AdminUsersPage: React.FC = () => {
 
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
-                                        প্রোফাইল ছবির লিংক (Photo URL)
+                                        Profile Photo URL
                                     </label>
                                     <div className="flex gap-3 items-center">
                                         {teacherProfileForm.photo_url ? (
@@ -1511,13 +1511,13 @@ export const AdminUsersPage: React.FC = () => {
 
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
-                                        সংক্ষিপ্ত পরিচিতি ও বায়ো (Bio)
+                                        Bio & Summary
                                     </label>
                                     <textarea
                                         rows={3}
                                         value={teacherProfileForm.bio}
                                         onChange={(e) => setTeacherProfileForm({ ...teacherProfileForm, bio: e.target.value })}
-                                        placeholder="শিক্ষকের অভিজ্ঞতা, পাঠদান পদ্ধতি এবং শিক্ষার্থীদের উদ্দেশ্যে বার্তা..."
+                                        placeholder="Instructor's experience, teaching methodology, and message to students..."
                                         className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:outline-hidden focus:ring-2 focus:ring-purple-500 font-medium"
                                     />
                                 </div>
@@ -1531,7 +1531,7 @@ export const AdminUsersPage: React.FC = () => {
                                         className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300 dark:border-slate-700 cursor-pointer"
                                     />
                                     <label htmlFor="is_featured" className="text-xs font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
-                                        হোমপেজের শিক্ষক ক্যারাউজলে প্রদর্শন করুন (Featured on Homepage)
+                                        Feature in Homepage Instructor Carousel
                                     </label>
                                 </div>
 
@@ -1546,7 +1546,7 @@ export const AdminUsersPage: React.FC = () => {
                                         ) : (
                                             <CheckCircle2 className="w-4 h-4" />
                                         )}
-                                        <span>তথ্য সংরক্ষণ করুন</span>
+                                        <span>Save Information</span>
                                     </button>
                                 </div>
                             </form>

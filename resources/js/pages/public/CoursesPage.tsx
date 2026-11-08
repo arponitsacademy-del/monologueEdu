@@ -123,13 +123,13 @@ export const CoursesPage: React.FC = () => {
                 <div>
                     <div className="inline-flex items-center gap-2 text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-widest mb-2">
                         <Sparkles className="w-4 h-4" />
-                        <span>{language === 'en' ? 'Course Catalog' : 'কোর্স ক্যাটালগ'}</span>
+                        <span>Course Catalog</span>
                     </div>
                     <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                         {currentCategoryObj ? currentCategoryObj.name : t.courses.allTab}
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                        {currentCategoryObj?.description || (language === 'en' ? 'Choose the right course to achieve your goals. Comprehensive preparation with top instructors.' : 'আপনার লক্ষ্য অর্জনের জন্য উপযুক্ত কোর্সটি বেছে নিন। অভিজ্ঞ শিক্ষকদের সাথে পূর্ণাঙ্গ প্রস্তুতি।')}
+                        {currentCategoryObj?.description || 'Choose the right course to achieve your goals. Comprehensive preparation with top instructors.'}
                     </p>
                 </div>
 
@@ -160,7 +160,7 @@ export const CoursesPage: React.FC = () => {
                             className="inline-flex items-center gap-1 text-xs font-semibold text-rose-500 hover:text-rose-600 cursor-pointer"
                         >
                             <X className="w-3.5 h-3.5" />
-                            <span>{language === 'en' ? 'Reset Filter' : 'ফিল্টার রিসেট করুন'}</span>
+                            <span>Reset Filter</span>
                         </button>
                     )}
                 </div>
@@ -227,10 +227,10 @@ export const CoursesPage: React.FC = () => {
                 <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs space-y-3">
                     <BookOpen className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto" />
                     <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200">
-                        {language === 'en' ? 'No Courses Found' : 'কোনো কোর্স পাওয়া যায়নি'}
+                        No Courses Found
                     </h3>
                     <p className="text-xs text-slate-400">
-                        {language === 'en' ? 'There are currently no courses in this category or matching your search.' : 'এই ক্যাটাগরিতে বর্তমানে কোনো কোর্স নেই অথবা অনুসন্ধানের সাথে মেলেনি।'}
+                        There are currently no courses in this category or matching your search.
                     </p>
                     {activeCategory && (
                         <button
@@ -286,17 +286,17 @@ export const CoursesPage: React.FC = () => {
                                     </h3>
 
                                     <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                                        {course.short_description || (language === 'en' ? 'Specialized course prepared according to the complete syllabus.' : 'সম্পূর্ণ সিলেবাস অনুযায়ী প্রস্তুতকৃত বিশেষ কোর্স।')}
+                                        {course.short_description || 'Specialized course prepared according to the complete syllabus.'}
                                     </p>
                                 </div>
 
                                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                                     <div className="text-xs font-medium text-slate-600 dark:text-slate-400 truncate mr-2">
-                                        {language === 'en' ? 'Instructor:' : 'শিক্ষক:'}{' '}
+                                        Instructor:{' '}
                                         <span className="font-bold text-slate-800 dark:text-slate-200">
                                             {course.instructors && course.instructors.length > 0 
                                                 ? course.instructors.map(i => i.name).join(', ') 
-                                                : (course.instructor?.name || (language === 'en' ? 'Expert Mentor' : 'অভিজ্ঞ শিক্ষক'))}
+                                                : (course.instructor?.name || 'Expert Mentor')}
                                         </span>
                                     </div>
 

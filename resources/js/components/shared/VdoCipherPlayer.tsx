@@ -34,11 +34,11 @@ export const VdoCipherPlayer: React.FC<VdoCipherPlayerProps> = ({
                 setOtp(data.otp);
                 setPlaybackInfo(data.playbackInfo);
             } else {
-                throw new Error('অসম্পূর্ণ প্লেব্যাক ডাটা পাওয়া গেছে।');
+                throw new Error('Incomplete playback data received.');
             }
         } catch (err: any) {
             console.error('VdoCipher OTP Error:', err);
-            setError(err.response?.data?.message || err.message || 'ভিডিও প্লেব্যাক লোড করতে ব্যর্থ হয়েছে।');
+            setError(err.response?.data?.message || err.message || 'Failed to load video playback.');
         } finally {
             setLoading(false);
         }
@@ -58,10 +58,10 @@ export const VdoCipherPlayer: React.FC<VdoCipherPlayerProps> = ({
                     <ShieldCheck className="w-4 h-4 text-emerald-400 absolute bottom-0 right-0" />
                 </div>
                 <div className="text-center space-y-1">
-                    <p className="text-sm font-bold text-slate-200">ভিডিও লোড হচ্ছে...</p>
+                    <p className="text-sm font-bold text-slate-200">Loading video...</p>
                     <p className="text-xs text-slate-400 flex items-center justify-center gap-1">
                         <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>VdoCipher DRM পাইরেসি প্রটেক্টেড প্লেয়ার</span>
+                        <span>VdoCipher DRM Anti-Piracy Protected Player</span>
                     </p>
                 </div>
             </div>
@@ -75,8 +75,8 @@ export const VdoCipherPlayer: React.FC<VdoCipherPlayerProps> = ({
                     <AlertCircle className="w-6 h-6" />
                 </div>
                 <div className="text-center max-w-md space-y-1">
-                    <p className="text-sm font-bold text-rose-300">ভিডিও প্লেব্যাক সমস্যা</p>
-                    <p className="text-xs text-slate-400">{error || 'প্লেব্যাক চালু করা সম্ভব হয়নি।'}</p>
+                    <p className="text-sm font-bold text-rose-300">Video Playback Issue</p>
+                    <p className="text-xs text-slate-400">{error || 'Unable to start playback.'}</p>
                 </div>
                 <button
                     type="button"
@@ -84,7 +84,7 @@ export const VdoCipherPlayer: React.FC<VdoCipherPlayerProps> = ({
                     className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all cursor-pointer"
                 >
                     <RefreshCw className="w-3.5 h-3.5" />
-                    <span>পুনরায় চেষ্টা করুন</span>
+                    <span>Try Again</span>
                 </button>
             </div>
         );

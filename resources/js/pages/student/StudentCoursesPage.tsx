@@ -65,7 +65,7 @@ export const StudentCoursesPage: React.FC = () => {
                 setCoursesData(prev => prev.map(c => c.course.id === item.course.id ? { ...c, has_nexpilot: true } : c));
                 navigate(`/student/courses/${item.course.id}/nexpilot`);
             } catch (err: any) {
-                alert(err.response?.data?.message || 'পাইলট সক্রিয় করতে সমস্যা হয়েছে।');
+                alert(err.response?.data?.message || 'Failed to activate pilot.');
             }
             return;
         }
@@ -88,13 +88,13 @@ export const StudentCoursesPage: React.FC = () => {
                 sender_phone: unlockSenderPhone.trim(),
             });
 
-            setUnlockSuccess(data.message || 'পেমেন্ট সাবমিট হয়েছে। ভেরিফাই হলে স্বয়ংক্রিয়ভাবে সক্রিয় হবে।');
+            setUnlockSuccess(data.message || 'Payment submitted successfully. It will be activated once verified.');
             setTimeout(() => {
                 setUnlockModalOpen(false);
                 fetchMyCourses();
             }, 3000);
         } catch (err: any) {
-            setUnlockError(err.response?.data?.message || 'পেমেন্ট সাবমিট করতে সমস্যা হয়েছে।');
+            setUnlockError(err.response?.data?.message || 'Failed to submit payment.');
         } finally {
             setSubmittingUnlock(false);
         }
@@ -117,26 +117,26 @@ export const StudentCoursesPage: React.FC = () => {
     };
 
     if (loading) {
-        return <div className="p-12 text-center text-slate-400">কোর্স লোড হচ্ছে...</div>;
+        return <div className="p-12 text-center text-slate-400">Loading courses...</div>;
     }
 
     return (
         <div className="space-y-6 max-w-7xl">
             <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">আমার কোর্সসমূহ</h2>
-                <p className="text-xs text-slate-500 mt-0.5">আপনার সকল অ্যাক্টিভ কোর্স এবং পড়ার অগ্রগতি</p>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">My Courses</h2>
+                <p className="text-xs text-slate-500 mt-0.5">All your active courses and learning progress</p>
             </div>
 
             {coursesData.length === 0 ? (
                 <div className="py-16 text-center text-slate-400 bg-white rounded-3xl border border-slate-200">
                     <BookOpen className="w-12 h-12 text-slate-300 mx-auto mb-2" />
-                    <h4 className="font-bold text-slate-700">কোনো কোর্স পাওয়া যায়নি</h4>
-                    <p className="text-xs">নতুন কোর্সে এনরোল করুন।</p>
+                    <h4 className="font-bold text-slate-700">No courses found</h4>
+                    <p className="text-xs">Enroll in a new course to get started.</p>
                     <Link
                         to="/courses"
                         className="inline-block mt-3 px-6 py-2.5 bg-sky-600 text-white font-bold text-xs rounded-xl shadow-md"
                     >
-                        কোর্স ব্রাউজ করুন
+                        Browse Courses
                     </Link>
                 </div>
             ) : (
@@ -154,7 +154,7 @@ export const StudentCoursesPage: React.FC = () => {
                                         </div>
                                     )}
                                     <span className="absolute bottom-3 right-3 px-2 py-0.5 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold rounded">
-                                        {total_lessons} টি ক্লাস
+                                        {total_lessons} Classes
                                     </span>
                                 </div>
 
@@ -167,7 +167,7 @@ export const StudentCoursesPage: React.FC = () => {
                                                 <Link
                                                     to={`/student/courses/${course.id}/nexpilot`}
                                                     className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-sky-600 to-indigo-600 text-white text-[11px] font-bold rounded-lg shadow-xs hover:from-sky-700 hover:to-indigo-700 shrink-0 transition-all hover:scale-105"
-                                                    title="NexPilot AI টিউটর"
+                                                    title="NexPilot AI Tutor"
                                                 >
                                                     <Sparkles className="w-3 h-3 text-amber-300" />
                                                     <span>Pilot</span>
@@ -177,22 +177,22 @@ export const StudentCoursesPage: React.FC = () => {
                                                     type="button"
                                                     onClick={() => handleOpenUnlock(item)}
                                                     className="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold rounded-lg transition-all cursor-pointer"
-                                                    title="এই কোর্সের জন্য NexPilot AI আনলক করুন"
+                                                    title="Unlock NexPilot AI for this course"
                                                 >
                                                     <Sparkles className="w-3 h-3 text-amber-600" />
-                                                    <span>{item.pilot_price > 0 ? `+Pilot` : 'ফ্রি Pilot'}</span>
+                                                    <span>{item.pilot_price > 0 ? `+Pilot` : 'Free Pilot'}</span>
                                                 </button>
                                             ) : null}
                                         </div>
                                         <p className="text-xs text-slate-500 mt-1">
-                                            শিক্ষক: {course.instructors?.map((i: any) => i.name).join(', ') || 'অভিজ্ঞ মেন্টর'}
+                                            Instructor: {course.instructors?.map((i: any) => i.name).join(', ') || 'Expert Mentor'}
                                         </p>
                                     </div>
 
                                     {/* Progress */}
                                     <div className="space-y-1.5 pt-2 border-t border-slate-100">
                                         <div className="flex justify-between text-xs font-bold">
-                                            <span className="text-slate-500">অগ্রগতি ({completed_lessons}/{total_lessons})</span>
+                                            <span className="text-slate-500">Progress ({completed_lessons}/{total_lessons})</span>
                                             <span className="text-sky-600">{progress_percentage}%</span>
                                         </div>
                                         <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -212,12 +212,12 @@ export const StudentCoursesPage: React.FC = () => {
                                                 className="flex-1 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
                                             >
                                                 <PlayCircle className="w-4 h-4" />
-                                                <span>ক্লাস চালিয়ে যান</span>
+                                                <span>Continue Learning</span>
                                             </Link>
                                             <Link
                                                 to={`/student/courses/${course.id}/nexpilot`}
                                                 className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors shrink-0 border border-slate-700"
-                                                title="NexPilot AI টিউটর রুমে প্রবেশ করুন"
+                                                title="Open NexPilot AI Tutor Room"
                                             >
                                                 <Bot className="w-4 h-4 text-sky-400" />
                                                 <span>Pilot</span>
@@ -232,16 +232,16 @@ export const StudentCoursesPage: React.FC = () => {
                                                 className="flex-1 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
                                             >
                                                 <PlayCircle className="w-4 h-4" />
-                                                <span>ক্লাস চালিয়ে যান</span>
+                                                <span>Continue Learning</span>
                                             </Link>
                                             <button
                                                 type="button"
                                                 onClick={() => handleOpenUnlock(item)}
                                                 className="px-3 py-2.5 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
-                                                title="এই কোর্সের জন্য NexPilot AI টিউটর আনলক করুন"
+                                                title="Unlock NexPilot AI Tutor for this course"
                                             >
                                                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                                                <span>{item.pilot_price > 0 ? 'Pilot নিন' : 'ফ্রি চালু করুন'}</span>
+                                                <span>{item.pilot_price > 0 ? 'Get Pilot' : 'Enable Free'}</span>
                                             </button>
                                         </div>
                                     ) : (
@@ -252,7 +252,7 @@ export const StudentCoursesPage: React.FC = () => {
                                             className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
                                         >
                                             <PlayCircle className="w-4 h-4" />
-                                            <span>ক্লাস চালিয়ে যান</span>
+                                            <span>Continue Learning</span>
                                         </Link>
                                     )}
                                 </div>
@@ -266,7 +266,7 @@ export const StudentCoursesPage: React.FC = () => {
             <Modal
                 isOpen={unlockModalOpen}
                 onClose={() => setUnlockModalOpen(false)}
-                title="NexPilot AI পার্সোনাল টিউটর আনলক করুন"
+                title="Unlock NexPilot AI Personal Tutor"
             >
                 {selectedCourseForUnlock && (
                     <div className="space-y-4">
@@ -285,7 +285,7 @@ export const StudentCoursesPage: React.FC = () => {
                                     </span>
                                 </div>
                                 <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                                    {selectedCourseForUnlock.pilot_title || 'NexPilot AI লার্নিং অ্যাসিস্ট্যান্ট'} — থিওরি ও প্র্যাকটিস সলভিংয়ে সার্বক্ষণিক পার্সোনাল এআই শিক্ষক।
+                                    {selectedCourseForUnlock.pilot_title || 'NexPilot AI Learning Assistant'} — 24/7 personal AI tutor for theory explanations and problem solving.
                                 </p>
                             </div>
                         </div>
@@ -293,24 +293,24 @@ export const StudentCoursesPage: React.FC = () => {
                         {/* Instructions */}
                         <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2">
                             <div className="flex items-center justify-between font-bold text-slate-900">
-                                <span>পেমেন্ট নির্দেশনা ({unlockPaymentMethod === 'manual_bkash' ? 'bKash' : unlockPaymentMethod === 'manual_nagad' ? 'Nagad' : 'Rocket'} Send Money):</span>
+                                <span>Payment Instructions ({unlockPaymentMethod === 'manual_bkash' ? 'bKash' : unlockPaymentMethod === 'manual_nagad' ? 'Nagad' : 'Rocket'} Send Money):</span>
                                 <button
                                     type="button"
                                     onClick={handleCopyNumber}
                                     className="inline-flex items-center gap-1 text-sky-600 font-bold hover:underline cursor-pointer"
                                 >
                                     {copiedNumber ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                                    <span>{copiedNumber ? 'কপি হয়েছে' : 'নম্বর কপি'}</span>
+                                    <span>{copiedNumber ? 'Copied' : 'Copy Number'}</span>
                                 </button>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span>প্রাপক নম্বর:</span>
+                                <span>Receiver Number:</span>
                                 <strong className="font-mono text-sm text-slate-900 bg-white px-2 py-0.5 rounded border border-slate-200">
                                     {currentPayNumber}
                                 </strong>
                             </div>
                             <div>
-                                টাকার পরিমাণ: <strong className="text-slate-900">{formatBDT(selectedCourseForUnlock.pilot_price)}</strong>
+                                Payable Amount: <strong className="text-slate-900">{formatBDT(selectedCourseForUnlock.pilot_price)}</strong>
                             </div>
                         </div>
 
@@ -356,7 +356,7 @@ export const StudentCoursesPage: React.FC = () => {
 
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                                    যে নম্বর থেকে টাকা পাঠিয়েছেন (Sender Mobile)
+                                    Sender Mobile Number
                                 </label>
                                 <input
                                     type="text"
@@ -370,14 +370,14 @@ export const StudentCoursesPage: React.FC = () => {
 
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-1">
-                                    ট্রানজেকশন আইডি (TrxID)
+                                    Transaction ID (TrxID)
                                 </label>
                                 <input
                                     type="text"
                                     required
                                     value={unlockTrxId}
                                     onChange={(e) => setUnlockTrxId(e.target.value)}
-                                    placeholder="যেমন: 9J3K8LQZ"
+                                    placeholder="e.g. 9J3K8LQZ"
                                     className="w-full px-3.5 py-2.5 font-mono uppercase bg-slate-50 border border-slate-200 rounded-xl text-xs"
                                 />
                             </div>
@@ -388,14 +388,14 @@ export const StudentCoursesPage: React.FC = () => {
                                     onClick={() => setUnlockModalOpen(false)}
                                     className="px-4 py-2 text-xs font-bold text-slate-500"
                                 >
-                                    বাতিল
+                                    Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={submittingUnlock}
                                     className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
                                 >
-                                    <span>{submittingUnlock ? 'সাবমিট হচ্ছে...' : 'পেমেন্ট সাবমিট করুন'}</span>
+                                    <span>{submittingUnlock ? 'Submitting...' : 'Submit Payment'}</span>
                                     <ArrowRight className="w-4 h-4" />
                                 </button>
                             </div>

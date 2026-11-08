@@ -115,7 +115,7 @@ export class VideoCompressionSession {
         });
 
         if (!conversion.isValid) {
-            throw new Error('এই ভিডিও ফরম্যাটটি ব্রাউজারে রূপান্তর করার উপযোগী নয়।');
+            throw new Error('This video format is not supported for browser conversion.');
         }
 
         this.currentConversion = conversion;
@@ -131,12 +131,12 @@ export class VideoCompressionSession {
         await conversion.execute();
 
         if (this.isCanceled) {
-            throw new Error('কম্প্রেশন বাতিল করা হয়েছে।');
+            throw new Error('Compression was cancelled.');
         }
 
         const buffer = output.target.buffer;
         if (!buffer || buffer.byteLength === 0) {
-            throw new Error('কম্প্রেশন আউটপুট পাওয়া যায়নি।');
+            throw new Error('Compression output not found.');
         }
 
         const compressedBlob = new Blob([buffer], { type: 'video/mp4' });

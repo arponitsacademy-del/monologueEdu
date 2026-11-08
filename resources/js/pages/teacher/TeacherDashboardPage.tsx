@@ -35,7 +35,7 @@ export const TeacherDashboardPage: React.FC = () => {
     }, []);
 
     if (loading) {
-        return <div className="p-12 text-center text-slate-400">শিক্ষক ড্যাশবোর্ড লোড হচ্ছে...</div>;
+        return <div className="p-12 text-center text-slate-400">Loading teacher dashboard...</div>;
     }
 
     const totalStudents = courses.reduce((acc, c) => acc + (c.enrollments_count || 0), 0);
@@ -44,16 +44,16 @@ export const TeacherDashboardPage: React.FC = () => {
     return (
         <div className="space-y-8 max-w-7xl pb-16">
             <div>
-                <h2 className="text-2xl font-black text-slate-900 tracking-tight">শিক্ষক পোর্টাল ড্যাশবোর্ড</h2>
-                <p className="text-xs text-slate-500 mt-0.5">আপনার তত্ত্বাবধানে থাকা কোর্স ও শিক্ষার্থীদের প্রশ্নের বিবরণ</p>
+                <h2 className="text-2xl font-black text-slate-900 tracking-tight">Teacher Portal Dashboard</h2>
+                <p className="text-xs text-slate-500 mt-0.5">Overview of assigned courses, student stats, and pending doubts</p>
             </div>
 
             {/* Metric Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                     <div>
-                        <span className="text-xs font-bold text-slate-400 block mb-1">অ্যাসাইনকৃত কোর্স</span>
-                        <div className="text-2xl font-black text-slate-900">{courses.length} টি</div>
+                        <span className="text-xs font-bold text-slate-400 block mb-1">Assigned Courses</span>
+                        <div className="text-2xl font-black text-slate-900">{courses.length}</div>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center">
                         <BookOpen className="w-6 h-6" />
@@ -62,8 +62,8 @@ export const TeacherDashboardPage: React.FC = () => {
 
                 <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                     <div>
-                        <span className="text-xs font-bold text-slate-400 block mb-1">মোট শিক্ষার্থী</span>
-                        <div className="text-2xl font-black text-slate-900">{totalStudents} জন</div>
+                        <span className="text-xs font-bold text-slate-400 block mb-1">Total Students</span>
+                        <div className="text-2xl font-black text-slate-900">{totalStudents}</div>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
                         <Users className="w-6 h-6" />
@@ -72,8 +72,8 @@ export const TeacherDashboardPage: React.FC = () => {
 
                 <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                     <div>
-                        <span className="text-xs font-bold text-slate-400 block mb-1">মোট লেসন সংখ্যা</span>
-                        <div className="text-2xl font-black text-slate-900">{totalLessons} টি</div>
+                        <span className="text-xs font-bold text-slate-400 block mb-1">Total Lessons</span>
+                        <div className="text-2xl font-black text-slate-900">{totalLessons}</div>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center">
                         <PlayCircle className="w-6 h-6" />
@@ -82,8 +82,8 @@ export const TeacherDashboardPage: React.FC = () => {
 
                 <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
                     <div>
-                        <span className="text-xs font-bold text-slate-400 block mb-1">নতুন প্রশ্নসমূহ</span>
-                        <div className="text-2xl font-black text-slate-900">{questions.length} টি</div>
+                        <span className="text-xs font-bold text-slate-400 block mb-1">New Questions</span>
+                        <div className="text-2xl font-black text-slate-900">{questions.length}</div>
                     </div>
                     <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
                         <MessageSquare className="w-6 h-6" />
@@ -94,9 +94,9 @@ export const TeacherDashboardPage: React.FC = () => {
             {/* My Courses Grid */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                    <h3 className="text-lg font-bold text-slate-900">আমার নির্ধারিত কোর্সসমূহ</h3>
+                    <h3 className="text-lg font-bold text-slate-900">My Assigned Courses</h3>
                     <Link to="/teacher/courses" className="text-xs font-bold text-sky-600 hover:text-sky-700">
-                        সবগুলো দেখুন
+                        View All
                     </Link>
                 </div>
 
@@ -111,7 +111,7 @@ export const TeacherDashboardPage: React.FC = () => {
                                 </span>
                                 <h4 className="text-sm font-bold text-slate-900 mt-2 line-clamp-2">{course.title}</h4>
                                 <p className="text-xs text-slate-500 mt-1">
-                                    {course.lessons_count || 0} টি লেসন • {course.enrollments_count || 0} শিক্ষার্থী
+                                    {course.lessons_count || 0} Lessons • {course.enrollments_count || 0} Students
                                 </p>
                             </div>
 
@@ -120,7 +120,7 @@ export const TeacherDashboardPage: React.FC = () => {
                                 className="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-xs"
                             >
                                 <Layers className="w-3.5 h-3.5" />
-                                <span>কারিকুলাম বিল্ডার</span>
+                                <span>Curriculum Builder</span>
                             </Link>
                         </div>
                     ))}
@@ -130,15 +130,15 @@ export const TeacherDashboardPage: React.FC = () => {
             {/* Recent Questions */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <h3 className="text-lg font-bold text-slate-900">শিক্ষার্থীদের সাম্প্রতিক প্রশ্ন ও মন্তব্য</h3>
+                    <h3 className="text-lg font-bold text-slate-900">Recent Student Questions & Doubts</h3>
                     <Link to="/teacher/questions" className="text-xs font-bold text-sky-600 hover:text-sky-700">
-                        উত্তর দিন
+                        Answer Questions
                     </Link>
                 </div>
 
                 <div className="divide-y divide-slate-100">
                     {questions.length === 0 ? (
-                        <p className="text-xs text-slate-400 py-6 text-center">কোনো অমীমাংসিত প্রশ্ন নেই।</p>
+                        <p className="text-xs text-slate-400 py-6 text-center">No pending questions.</p>
                     ) : (
                         questions.slice(0, 5).map((q) => (
                             <div key={q.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -153,7 +153,7 @@ export const TeacherDashboardPage: React.FC = () => {
                                     to="/teacher/questions"
                                     className="px-3 py-1.5 bg-sky-50 text-sky-700 hover:bg-sky-100 font-bold text-xs rounded-lg shrink-0 self-start sm:self-center"
                                 >
-                                    উত্তর লিখুন
+                                    Reply
                                 </Link>
                             </div>
                         ))

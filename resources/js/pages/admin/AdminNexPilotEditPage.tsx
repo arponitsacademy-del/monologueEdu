@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { apiClient, formatBDT } from '../../api/client';
-import { 
-    Bot, 
-    ArrowLeft, 
-    Check, 
-    Save, 
-    Sparkles, 
-    Wrench, 
-    AlertCircle, 
-    Loader2, 
-    DollarSign, 
-    Info, 
+import {
+    Bot,
+    ArrowLeft,
+    Check,
+    Save,
+    Sparkles,
+    Wrench,
+    AlertCircle,
+    Loader2,
+    DollarSign,
+    Info,
     BookOpen,
     Cpu
 } from 'lucide-react';
@@ -62,7 +62,7 @@ export const AdminNexPilotEditPage: React.FC = () => {
                 setIsActive(Boolean(pilot.is_active));
             }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'তথ্য লোড করতে সমস্যা হয়েছে।');
+            setError(err.response?.data?.message || 'Failed to load details.');
         } finally {
             setLoading(false);
         }
@@ -75,14 +75,14 @@ export const AdminNexPilotEditPage: React.FC = () => {
             setTitle(`${course.title} NexPilot`);
         }
         if (!shortDescription) {
-            setShortDescription('24/7 পার্সোনাল AI শিক্ষক ও প্র্যাকটিস সলভিং অ্যাসিস্ট্যান্ট');
+            setShortDescription('24/7 personal AI tutor and practice solving coach');
         }
     };
 
     const handleSubmit = async (e: React.FormEvent, proceedToBuilder = false) => {
         e.preventDefault();
         if (!selectedCourseId) {
-            setError('অনুগ্রহ করে একটি কোর্স নির্বাচন করুন।');
+            setError('Please select a course.');
             return;
         }
 
@@ -118,10 +118,10 @@ export const AdminNexPilotEditPage: React.FC = () => {
                 }
             }
         } catch (err: any) {
-            const validationErrors = err.response?.data?.errors 
+            const validationErrors = err.response?.data?.errors
                 ? Object.values(err.response.data.errors).flat().join(' ')
                 : null;
-            setError(validationErrors || err.response?.data?.message || 'পাইলট সংরক্ষণ করতে সমস্যা হয়েছে।');
+            setError(validationErrors || err.response?.data?.message || 'Failed to save pilot.');
         } finally {
             setSaving(false);
         }
@@ -131,7 +131,7 @@ export const AdminNexPilotEditPage: React.FC = () => {
         return (
             <div className="p-20 text-center text-slate-400 flex flex-col items-center justify-center gap-2">
                 <Loader2 className="w-8 h-8 animate-spin text-sky-600" />
-                <span className="text-xs font-bold">লোড হচ্ছে...</span>
+                <span className="text-xs font-bold">Loading...</span>
             </div>
         );
     }
@@ -149,10 +149,10 @@ export const AdminNexPilotEditPage: React.FC = () => {
                     </Link>
                     <div>
                         <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                            {isEditMode ? 'NexPilot এডিট করুন' : 'নতুন NexPilot তৈরি করুন'}
+                            {isEditMode ? 'Edit NexPilot' : 'Create New NexPilot'}
                         </h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                            কোর্স লিঙ্ক করুন, প্রাইস সেট করুন এবং ব্যবহারের লিমিট নির্ধারণ করুন
+                            Link course, set pricing, and configure token usage limits
                         </p>
                     </div>
                 </div>
@@ -170,13 +170,13 @@ export const AdminNexPilotEditPage: React.FC = () => {
                 <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-4 shadow-xs">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <BookOpen className="w-4 h-4 text-sky-600" />
-                        <span>কোর্স ও পাইলট পরিচিতি</span>
+                        <span>Course & Pilot Details</span>
                     </h3>
 
                     {/* Select Course */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            যে কোর্সের জন্য পাইলট তৈরি করছেন <span className="text-rose-500">*</span>
+                            Target Course <span className="text-rose-500">*</span>
                         </label>
                         <select
                             required
@@ -184,20 +184,20 @@ export const AdminNexPilotEditPage: React.FC = () => {
                             onChange={(e) => handleCourseSelect(Number(e.target.value))}
                             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
                         >
-                            <option value="">-- কোর্স নির্বাচন করুন --</option>
+                            <option value="">-- Select Course --</option>
                             {courses.map((course) => {
                                 const isCurrentCourse = isEditMode && course.id === selectedCourseId;
                                 const isOwnedByAnotherPilot = course.has_pilot && (!isEditMode || course.id !== selectedCourseId);
 
                                 return (
-                                    <option 
-                                        key={course.id} 
-                                        value={course.id} 
+                                    <option
+                                        key={course.id}
+                                        value={course.id}
                                         disabled={isOwnedByAnotherPilot}
                                     >
                                         {course.title}
-                                        {isCurrentCourse ? ' (বর্তমান কোর্স)' : ''}
-                                        {isOwnedByAnotherPilot ? ' (অন্য পাইলটে যুক্ত রয়েছে)' : ''} 
+                                        {isCurrentCourse ? ' (Current Course)' : ''}
+                                        {isOwnedByAnotherPilot ? ' (Already linked to another pilot)' : ''}
                                         {` (${formatBDT(course.price)})`}
                                     </option>
                                 );
@@ -208,7 +208,7 @@ export const AdminNexPilotEditPage: React.FC = () => {
                     {/* Pilot Title */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            NexPilot নাম / টাইটেল <span className="text-rose-500">*</span>
+                            NexPilot Name / Title <span className="text-rose-500">*</span>
                         </label>
                         <input
                             type="text"
@@ -223,13 +223,13 @@ export const AdminNexPilotEditPage: React.FC = () => {
                     {/* Short Description */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            সংক্ষিপ্ত বিবরণ (Short Description)
+                            Short Description
                         </label>
                         <input
                             type="text"
                             value={shortDescription}
                             onChange={(e) => setShortDescription(e.target.value)}
-                            placeholder="চেকআউট পেজে শিক্ষার্থীদের জন্য দেখানো হবে..."
+                            placeholder="Displayed on checkout page for students..."
                             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
                         />
                     </div>
@@ -237,13 +237,13 @@ export const AdminNexPilotEditPage: React.FC = () => {
                     {/* Long Description */}
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            বিস্তারিত বিবরণ (Long Description)
+                            Detailed Description
                         </label>
                         <textarea
                             rows={3}
                             value={longDescription}
                             onChange={(e) => setLongDescription(e.target.value)}
-                            placeholder="এই পাইলট কীভাবে শিক্ষার্থীদের সাহায্য করবে..."
+                            placeholder="Describe how this pilot helps students..."
                             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
                         />
                     </div>
@@ -253,14 +253,14 @@ export const AdminNexPilotEditPage: React.FC = () => {
                 <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-4 shadow-xs">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <DollarSign className="w-4 h-4 text-emerald-600" />
-                        <span>প্রাইসিং ও ব্যবহার লিমিট (Token Budget)</span>
+                        <span>Pricing & Token Budget Limits</span>
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* Price in BDT */}
                         <div>
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                                NexPilot অ্যাড-অন ফি (টাকা) <span className="text-rose-500">*</span>
+                                NexPilot Add-on Fee (৳) <span className="text-rose-500">*</span>
                             </label>
                             <div className="relative">
                                 <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-xs">
@@ -278,14 +278,14 @@ export const AdminNexPilotEditPage: React.FC = () => {
                                 />
                             </div>
                             <p className="text-[11px] text-slate-400 mt-1">
-                                শিক্ষার্থী কোর্স কেনার সময় এই ফি পরিশোধ করে পাইলট আনলক করবে।
+                                Students pay this fee during checkout to unlock this AI pilot.
                             </p>
                         </div>
 
                         {/* Max USD Limit per student */}
                         <div>
                             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-                                <span>সর্বোচ্চ ব্যবহার লিমিট (ডলার/USD)</span>
+                                <span>Maximum Budget Limit (USD / $)</span>
                                 <span className="text-rose-500">*</span>
                             </label>
                             <div className="relative">
@@ -305,7 +305,7 @@ export const AdminNexPilotEditPage: React.FC = () => {
                                 />
                             </div>
                             <p className="text-[11px] text-slate-400 mt-1">
-                                প্রতি শিক্ষার্থী সর্বোচ্চ কত ডলার সমমূল্যের টোকেন চ্যাট করতে পারবে।
+                                Maximum dollar value of tokens each student can consume in chat.
                             </p>
                         </div>
                     </div>
@@ -314,10 +314,10 @@ export const AdminNexPilotEditPage: React.FC = () => {
                     <div className="p-3.5 rounded-xl bg-sky-50 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-900 text-xs text-sky-900 dark:text-sky-200 space-y-1">
                         <div className="flex items-center gap-1.5 font-bold">
                             <Info className="w-4 h-4 text-sky-600" />
-                            <span>টোকেন ও ডলার খরচের হিসাব</span>
+                            <span>Token & Dollar Cost Estimation</span>
                         </div>
                         <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                            OpenAI-এর <strong>gpt-4o-mini</strong> মডেলে প্রতি $1.00 ডলারে প্রায় <strong>২০ লাখ টোকেন</strong> (প্রায় ২০০০ টিরও বেশি প্রশ্ন-উত্তর) প্রসেস করা যায়! সুতরাং <strong>${maxUsdLimit} ডলার</strong> একজন শিক্ষার্থীর পুরো কোর্সের সব থিওরি ও প্র্যাকটিস শেষ করার জন্য যথেষ্ট।
+                            On OpenAI's <strong>gpt-4o-mini</strong> model, $1.00 can process approximately <strong>2 million tokens</strong> (over 2,000 question-answer pairs)! Therefore, <strong>${maxUsdLimit}</strong> is more than enough for a student to complete all theories and practices in the course.
                         </p>
                     </div>
                 </div>
@@ -326,7 +326,7 @@ export const AdminNexPilotEditPage: React.FC = () => {
                 <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 space-y-4 shadow-xs">
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                         <Cpu className="w-4 h-4 text-indigo-600" />
-                        <span>AI মডেল ও কোর্স নির্দেশনা</span>
+                        <span>AI Model & Course Guidelines</span>
                     </h3>
 
                     {/* Centrally Connected Notice */}
@@ -334,7 +334,7 @@ export const AdminNexPilotEditPage: React.FC = () => {
                         <div className="flex items-center gap-2.5 text-slate-700 dark:text-slate-300">
                             <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
                             <span>
-                                OpenAI মডেল ও API কানেকশন কেন্দ্রীয়ভাবে <strong className="text-sky-600 dark:text-sky-400 font-bold">AI Model Configuration</strong> থেকে পরিচালিত হচ্ছে।
+                                OpenAI model and API connection are centrally managed in <strong className="text-sky-600 dark:text-sky-400 font-bold">AI Model Configuration</strong>.
                             </span>
                         </div>
                         <Link
@@ -342,28 +342,28 @@ export const AdminNexPilotEditPage: React.FC = () => {
                             className="inline-flex items-center gap-1 text-sky-600 dark:text-sky-400 font-bold hover:underline shrink-0 text-xs"
                             target="_blank"
                         >
-                            <span>মডেল পরিবর্তন করুন</span>
+                            <span>Configure Model</span>
                             <span>→</span>
                         </Link>
                     </div>
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            এই কোর্সের জন্য বিশেষ নির্দেশনা (Optional Course System Prompt)
+                            Optional Course System Prompt
                         </label>
                         <textarea
                             rows={3}
                             value={systemPrompt}
                             onChange={(e) => setSystemPrompt(e.target.value)}
-                            placeholder="যেমন: এই কোর্সে শিক্ষার্থীদের পদার্থবিজ্ঞানের মৌলিক সূত্রগুলো বাংলায় উদাহরণসহ বোঝাবে..."
+                            placeholder="e.g. In this course, explain physics concepts with practical examples and equations..."
                             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium focus:ring-2 focus:ring-sky-500"
                         />
                     </div>
 
                     <div className="pt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
                         <div>
-                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">সক্রিয় স্ট্যাটাস</span>
-                            <span className="text-[11px] text-slate-400">সক্রিয় থাকলে শিক্ষার্থীরা চেকআউটে এই পাইলট দেখতে পাবে</span>
+                            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">Active Status</span>
+                            <span className="text-[11px] text-slate-400">When active, students can see and purchase this pilot at checkout</span>
                         </div>
                         <label className="relative inline-flex items-center cursor-pointer">
                             <input
@@ -384,7 +384,7 @@ export const AdminNexPilotEditPage: React.FC = () => {
                         onClick={() => navigate('/admin/nexpilot')}
                         className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                     >
-                        বাতিল
+                        Cancel
                     </button>
 
                     <button
@@ -393,7 +393,7 @@ export const AdminNexPilotEditPage: React.FC = () => {
                         className="px-6 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                     >
                         <Save className="w-4 h-4" />
-                        <span>{saving ? 'সংরক্ষণ হচ্ছে...' : 'সংরক্ষণ করুন'}</span>
+                        <span>{saving ? 'Saving...' : 'Save Pilot'}</span>
                     </button>
 
                     <button
@@ -403,11 +403,10 @@ export const AdminNexPilotEditPage: React.FC = () => {
                         className="px-6 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-md shadow-sky-600/20 transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                     >
                         <Wrench className="w-4 h-4" />
-                        <span>সংরক্ষণ করুন ও বিল্ডারে যান</span>
+                        <span>Save & Open Builder</span>
                     </button>
                 </div>
             </form>
         </div>
     );
 };
-

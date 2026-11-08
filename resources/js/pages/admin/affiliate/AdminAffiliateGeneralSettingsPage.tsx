@@ -11,10 +11,7 @@ import {
     Save,
     Loader2,
     CreditCard,
-    Award,
-    ShieldCheck,
-    ToggleLeft,
-    ToggleRight
+    Award
 } from 'lucide-react';
 
 export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
@@ -71,9 +68,9 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
         try {
             setSaving(true);
             const res = await apiClient.put('/admin/affiliate/settings', formData);
-            setAlertMessage({ type: 'success', text: res.data.message || 'সেটিংস সফলভাবে সংরক্ষিত হয়েছে।' });
+            setAlertMessage({ type: 'success', text: res.data.message || 'Settings saved successfully.' });
         } catch (err: any) {
-            setAlertMessage({ type: 'error', text: err.response?.data?.message || 'সেটিংস সংরক্ষণ ব্যর্থ হয়েছে।' });
+            setAlertMessage({ type: 'error', text: err.response?.data?.message || 'Failed to save settings.' });
         } finally {
             setSaving(false);
         }
@@ -83,7 +80,7 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
         return (
             <div className="p-16 flex flex-col items-center justify-center text-slate-400">
                 <Loader2 className="w-8 h-8 animate-spin text-sky-500 mb-3" />
-                <p className="text-sm">অ্যাফিলিয়েট সেটিংস লোড হচ্ছে...</p>
+                <p className="text-sm">Loading affiliate settings...</p>
             </div>
         );
     }
@@ -94,10 +91,10 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
             <div>
                 <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
                     <Settings className="w-6 h-6 text-sky-600" />
-                    <span>অ্যাফিলিয়েট সাধারণ সেটিংস (General Affiliate Settings)</span>
+                    <span>General Affiliate Settings</span>
                 </h1>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    কুকি মেয়াদ, সাধারণ কমিশন রেট এবং শিক্ষার্থীদের অ্যাফিলিয়েট যোগদানের নিয়মাবলী কনফিগার করুন।
+                    Configure cookie validity duration, general default commission rates, and eligibility rules for student affiliates.
                 </p>
             </div>
 
@@ -109,8 +106,8 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                             <Users className="w-5 h-5" />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-400 font-medium">মোট অ্যাফিলিয়েট</p>
-                            <h3 className="text-lg font-black text-slate-900 dark:text-white">{stats.total_affiliates} জন</h3>
+                            <p className="text-xs text-slate-400 font-medium">Total Affiliates</p>
+                            <h3 className="text-lg font-black text-slate-900 dark:text-white">{stats.total_affiliates}</h3>
                         </div>
                     </div>
 
@@ -119,8 +116,8 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                             <Award className="w-5 h-5" />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-400 font-medium">সক্রিয় সদস্য</p>
-                            <h3 className="text-lg font-black text-slate-900 dark:text-white">{stats.active_affiliates} জন</h3>
+                            <p className="text-xs text-slate-400 font-medium">Active Members</p>
+                            <h3 className="text-lg font-black text-slate-900 dark:text-white">{stats.active_affiliates}</h3>
                         </div>
                     </div>
 
@@ -129,7 +126,7 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                             <DollarSign className="w-5 h-5" />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-400 font-medium">প্রদত্ত মোট কমিশন</p>
+                            <p className="text-xs text-slate-400 font-medium">Total Commission Paid</p>
                             <h3 className="text-lg font-black text-slate-900 dark:text-white">৳{stats.total_commissions_paid}</h3>
                         </div>
                     </div>
@@ -139,7 +136,7 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                             <CreditCard className="w-5 h-5" />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-400 font-medium">পেন্ডিং উত্তোলন</p>
+                            <p className="text-xs text-slate-400 font-medium">Pending Payouts</p>
                             <h3 className="text-lg font-black text-slate-900 dark:text-white">৳{stats.pending_payouts}</h3>
                         </div>
                     </div>
@@ -163,10 +160,10 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
                     <div>
                         <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                            <span>অ্যাফিলিয়েট প্রোগ্রাম স্ট্যাটাস</span>
+                            <span>Affiliate Program Status</span>
                         </h4>
                         <p className="text-xs text-slate-500 mt-0.5">
-                            অন থাকলে শিক্ষার্থীরা অ্যাফিলিয়েট প্রোগ্রামে অংশ নিতে এবং রেফারেল কমিশন পেতে পারবে।
+                            When enabled, students can join the affiliate program and earn referral commissions.
                         </p>
                     </div>
                     <button
@@ -178,14 +175,14 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                                 : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                         }`}
                     >
-                        <span>{formData.is_enabled ? 'চালু আছে (Enabled)' : 'বন্ধ রয়েছে (Disabled)'}</span>
+                        <span>{formData.is_enabled ? 'Enabled' : 'Disabled'}</span>
                     </button>
                 </div>
 
                 {/* 2. Referral Cookie Duration */}
                 <div className="space-y-1.5">
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        রেফারেল কুকি মেয়াদ (Cookie Validity Period - Days) <span className="text-rose-500">*</span>
+                        Referral Cookie Validity Period (Days) <span className="text-rose-500">*</span>
                     </label>
                     <div className="relative max-w-sm">
                         <Clock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -200,7 +197,7 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                         />
                     </div>
                     <p className="text-xs text-slate-500">
-                        লিংকে ক্লিক করার কতদিনের মধ্যে শিক্ষার্থী কোর্সটি কিনলে রেফারেল কমিশন যুক্ত হবে (যেমন: ৩০ দিন)।
+                        Number of days within which a student purchase will attribute referral commission to the referrer after clicking the link (e.g. 30 days).
                     </p>
                 </div>
 
@@ -209,31 +206,31 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                     <div>
                         <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <Award className="w-4 h-4 text-sky-600" />
-                            <span>সাধারণ অ্যাফিলিয়েট কমিশন (Default Commission Rate)</span>
+                            <span>Default Commission Rate</span>
                         </h4>
                         <p className="text-xs text-slate-500 mt-0.5">
-                            কোনো কোর্সে নির্দিষ্ট কমিশন সেট না থাকলে এই সাধারণ হার অনুযায়ী কমিশন হিসেব হবে।
+                            Applied when a specific course does not have a customized affiliate commission set.
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                কমিশন ধরণ (Type)
+                                Commission Type
                             </label>
                             <select
                                 value={formData.default_commission_type}
                                 onChange={e => setFormData({ ...formData, default_commission_type: e.target.value as any })}
                                 className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                             >
-                                <option value="percentage">শতকরা হার (%)</option>
-                                <option value="fixed">নির্দিষ্ট টাকা (Fixed Flat BDT)</option>
+                                <option value="percentage">Percentage (%)</option>
+                                <option value="fixed">Fixed Flat Amount (৳)</option>
                             </select>
                         </div>
 
                         <div>
                             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                কমিশন পরিমাণ (Amount / Rate) <span className="text-rose-500">*</span>
+                                Commission Rate / Amount <span className="text-rose-500">*</span>
                             </label>
                             <input
                                 type="number"
@@ -253,31 +250,31 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                     <div>
                         <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                             <Percent className="w-4 h-4 text-emerald-600" />
-                            <span>ক্রেতার ছাড় (Buyer Discount via Referral Link)</span>
+                            <span>Buyer Discount via Referral Link</span>
                         </h4>
                         <p className="text-xs text-slate-500 mt-0.5">
-                            অ্যাফিলিয়েট লিংকের মাধ্যমে কোনো শিক্ষার্থী কোর্স কেনার সময় কতটুকু ছাড় পাবে।
+                            Discount received by the purchasing student when buying through an affiliate link.
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                ছাড়ের ধরণ (Discount Type)
+                                Discount Type
                             </label>
                             <select
                                 value={formData.default_discount_type}
                                 onChange={e => setFormData({ ...formData, default_discount_type: e.target.value as any })}
                                 className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                             >
-                                <option value="percentage">শতকরা ছাড় (%)</option>
-                                <option value="fixed">নির্দিষ্ট টাকা ছাড় (Fixed Flat BDT)</option>
+                                <option value="percentage">Percentage (%)</option>
+                                <option value="fixed">Fixed Flat Amount (৳)</option>
                             </select>
                         </div>
 
                         <div>
                             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                ছাড়ের পরিমাণ (Discount Amount)
+                                Discount Amount
                             </label>
                             <input
                                 type="number"
@@ -296,7 +293,7 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
-                            সর্বনিম্ন উত্তোলন সীমা (Min Payout Amount BDT) <span className="text-rose-500">*</span>
+                            Minimum Payout Amount (৳) <span className="text-rose-500">*</span>
                         </label>
                         <input
                             type="number"
@@ -306,14 +303,14 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                             onChange={e => setFormData({ ...formData, min_payout_amount: Number(e.target.value) })}
                             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                         />
-                        <p className="text-xs text-slate-500 mt-1">কত টাকা জমলে অ্যাফিলিয়েট টাকা উত্তোলনের আবেদন করতে পারবে।</p>
+                        <p className="text-xs text-slate-500 mt-1">Minimum accumulated balance required before an affiliate can request a withdrawal.</p>
                     </div>
 
                     <div className="flex flex-col justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700">
                         <div>
-                            <label className="text-xs font-bold text-slate-900 dark:text-white">কোর্স কেনা বাধ্যতামূলক</label>
+                            <label className="text-xs font-bold text-slate-900 dark:text-white">Require Course Purchase</label>
                             <p className="text-xs text-slate-500 mt-0.5">
-                                শুধুমাত্র অন্তত ১টি কোর্স কেনা শিক্ষার্থীরাই আবেদন করতে পারবে।
+                                Only students who have purchased at least 1 course can apply to become affiliates.
                             </p>
                         </div>
                         <label className="flex items-center gap-2 mt-2 cursor-pointer">
@@ -323,7 +320,7 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                                 onChange={e => setFormData({ ...formData, require_course_purchase: e.target.checked })}
                                 className="rounded text-sky-600 focus:ring-sky-500 w-4 h-4"
                             />
-                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">হ্যাঁ, কোর্স কেনা বাধ্যতামূলক</span>
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Yes, course purchase is mandatory</span>
                         </label>
                     </div>
                 </div>
@@ -331,13 +328,13 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                 {/* 6. Terms Notice */}
                 <div className="space-y-1.5">
                     <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                        অ্যাফিলিয়েট শর্তাবলী ও নোটিশ (Affiliate Terms & Notice)
+                        Affiliate Terms & Instructions
                     </label>
                     <textarea
                         rows={3}
                         value={formData.terms_notice}
                         onChange={e => setFormData({ ...formData, terms_notice: e.target.value })}
-                        placeholder="শিক্ষার্থীদের উদ্দেশ্যে অ্যাফিলিয়েট নির্দেশনাবলী..."
+                        placeholder="Enter instructions, guidelines, and terms for affiliates..."
                         className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 leading-relaxed"
                     />
                 </div>
@@ -349,11 +346,10 @@ export const AdminAffiliateGeneralSettingsPage: React.FC = () => {
                         className="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-xl shadow-md flex items-center gap-2 disabled:opacity-50"
                     >
                         {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        <span>সেটিংস সংরক্ষণ করুন</span>
+                        <span>Save Settings</span>
                     </button>
                 </div>
             </form>
         </div>
     );
 };
-

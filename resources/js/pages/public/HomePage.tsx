@@ -440,13 +440,13 @@ export const HomePage: React.FC = () => {
                             <div>
                                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 text-xs font-bold tracking-wide uppercase mb-2">
                                     <GraduationCap className="w-4 h-4 text-sky-600" />
-                                    <span>সম্মানিত শিক্ষকমণ্ডলী • Faculty</span>
+                                    <span>Faculty & Instructors</span>
                                 </div>
                                 <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-                                    সেরা শিক্ষকদের সাথে এগিয়ে যাও
+                                    Learn with the Best Instructors
                                 </h2>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-                                    দেশসেরা বিশ্ববিদ্যালয় ও স্বনামধন্য প্রতিষ্ঠানের অভিজ্ঞ শিক্ষকদের সাথে তোমার প্রস্তুতি হোক পূর্ণাঙ্গ।
+                                    Achieve academic excellence with experienced educators and mentors from premier institutions.
                                 </p>
                             </div>
 
@@ -529,7 +529,7 @@ export const HomePage: React.FC = () => {
 
                                                 {/* Designation */}
                                                 <div className="inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-900/60 line-clamp-1">
-                                                    {teacher.designation || 'প্রশিক্ষক (Instructor)'}
+                                                    {teacher.designation || 'Instructor'}
                                                 </div>
 
                                                 {/* Institution / Education */}
@@ -543,9 +543,9 @@ export const HomePage: React.FC = () => {
                                         {/* Footer: Courses count & View Profile Link */}
                                         <div className="pt-5 mt-5 border-t border-slate-100 dark:border-slate-800 space-y-3">
                                             <div className="flex items-center justify-between text-xs">
-                                                <span className="text-slate-400 font-medium">কোর্সের সংখ্যা</span>
+                                                <span className="text-slate-400 font-medium">Courses</span>
                                                 <span className="font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
-                                                    {teacher.courses_count || 0} টি কোর্স
+                                                    {teacher.courses_count || 0} Courses
                                                 </span>
                                             </div>
 
@@ -553,7 +553,7 @@ export const HomePage: React.FC = () => {
                                                 to={`/teachers/${teacher.id}`}
                                                 className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-sky-600 group-hover:text-white font-bold text-xs text-slate-700 dark:text-slate-200 text-center transition-all flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
                                             >
-                                                <span>প্রোফাইল ও কোর্সসমূহ</span>
+                                                <span>View Profile & Courses</span>
                                                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                                             </Link>
                                         </div>
