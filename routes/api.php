@@ -96,6 +96,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Student Exam Taking & Review Routes
     Route::prefix('student/exams')->group(function () {
+        Route::get('available', [ExamSubmissionController::class, 'studentAvailableExams']);
         Route::get('my-exams', [ExamSubmissionController::class, 'studentMyExams']);
         Route::get('submissions/{submission}', [ExamSubmissionController::class, 'studentSubmissionReview']);
         Route::get('{exam}/start', [ExamSubmissionController::class, 'studentStartExam']);

@@ -203,6 +203,98 @@ class ExamSubmissionController extends Controller
     }
 
     /**
+     * Get all published exams available for the student
+     */
+    public function studentAvailableExams(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // Enrolled courses of the student
+        $enrolledCourseIds = Enrollment::where('user_id', $user->id)->pluck('course_id')->toArray();
+
+        // Query all published exams
+        $query = Exam::where('status', Exam::STATUS_PUBLISHED)
+            ->with([
+                'courses:id,title,slug',
+                'course:id,title,slug',
+            ])
+            ->withCount('questions');
+
+        if ($request->filled('search')) {
+            $search = trim($request->search);
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        $exams = $query->latest()->get();
+
+        // Get user's existing submissions keyBy exam_id
+        $submissions = ExamSubmission::where('user_id', $user->id)
+            ->whereIn('status', [ExamSubmission::STATUS_SUBMITTED, ExamSubmission::STATUS_EVALUATED])
+            ->get()
+            ->keyBy('exam_id');
+
+        $inProgress = ExamSubmission::where('user_id', $user->id)
+            ->where('status', ExamSubmission::STATUS_IN_PROGRESS)
+            ->get()
+            ->keyBy('exam_id');
+
+        $formatted = $exams->map(function ($exam) use ($enrolledCourseIds, $submissions, $inProgress, $user) {
+            $linkedCourseIds = $exam->courses->pluck('id')->toArray();
+            if ($exam->course_id && !in_array($exam->course_id, $linkedCourseIds)) {
+                $linkedCourseIds[] = $exam->course_id;
+            }
+
+            // An exam is accessible if it is open (not linked to any course) OR student is enrolled in at least one linked course OR user is admin/teacher
+            $isOpenToAll = empty($linkedCourseIds);
+            $isEnrolled = $isOpenToAll || !empty(array_intersect($linkedCourseIds, $enrolledCourseIds)) || ($user->role !== User::ROLE_STUDENT);
+
+            $submission = $submissions->get($exam->id);
+            $activeSubmission = $inProgress->get($exam->id);
+
+            $isUpcoming = $exam->start_time && $exam->start_time->isFuture();
+            $isExpired = $exam->end_time && $exam->end_time->isPast();
+
+            return [
+                'id' => $exam->id,
+                'title' => $exam->title,
+                'description' => $exam->description,
+                'total_marks' => (float) $exam->total_marks,
+                'pass_marks' => (float) $exam->pass_marks,
+                'duration_minutes' => (int) $exam->duration_minutes,
+                'has_negative_marking' => (bool) $exam->has_negative_marking,
+                'negative_marks' => (float) $exam->negative_marks,
+                'questions_count' => (int) $exam->questions_count,
+                'start_time' => $exam->start_time ? $exam->start_time->toISOString() : null,
+                'end_time' => $exam->end_time ? $exam->end_time->toISOString() : null,
+                'status' => $exam->status,
+                'courses' => $exam->courses,
+                'course' => $exam->course,
+                'is_open_to_all' => $isOpenToAll,
+                'is_enrolled' => $isEnrolled,
+                'is_upcoming' => $isUpcoming,
+                'is_expired' => $isExpired,
+                'has_submitted' => $submission !== null,
+                'in_progress' => $activeSubmission !== null,
+                'submission' => $submission ? [
+                    'id' => $submission->id,
+                    'obtained_marks' => (float) $submission->obtained_marks,
+                    'total_marks' => (float) $submission->total_marks,
+                    'status' => $submission->status,
+                    'submitted_at' => $submission->submitted_at ? $submission->submitted_at->toISOString() : null,
+                ] : null,
+            ];
+        });
+
+        return response()->json([
+            'exams' => $formatted,
+            'total_available' => $formatted->filter(fn($e) => !$e['has_submitted'] && $e['is_enrolled'] && !$e['is_expired'])->count(),
+        ]);
+    }
+
+    /**
      * Get all exam submissions and performance progress for the authenticated student
      */
     public function studentMyExams(Request $request): JsonResponse

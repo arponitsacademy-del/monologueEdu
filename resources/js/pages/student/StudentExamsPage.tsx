@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { apiClient } from '../../api/client';
 import { MathView } from '../../components/shared/MathView';
 import { Modal } from '../../components/ui/Modal';
@@ -26,8 +26,40 @@ import {
     X,
     Sparkles,
     Calendar,
-    User
+    User,
+    PlayCircle,
+    ArrowRight
 } from 'lucide-react';
+
+interface AvailableExam {
+    id: number;
+    title: string;
+    description?: string | null;
+    total_marks: number;
+    pass_marks: number;
+    duration_minutes: number;
+    has_negative_marking: boolean;
+    negative_marks: number;
+    questions_count: number;
+    start_time?: string | null;
+    end_time?: string | null;
+    status: string;
+    courses?: { id: number; title: string; slug: string }[];
+    course?: { id: number; title: string; slug: string } | null;
+    is_open_to_all: boolean;
+    is_enrolled: boolean;
+    is_upcoming: boolean;
+    is_expired: boolean;
+    has_submitted: boolean;
+    in_progress: boolean;
+    submission?: {
+        id: number;
+        obtained_marks: number;
+        total_marks: number;
+        status: string;
+        submitted_at: string;
+    } | null;
+}
 
 interface ExamItem {
     id: number;
@@ -77,6 +109,17 @@ interface QuestionReview {
 }
 
 export const StudentExamsPage: React.FC = () => {
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initialTab = searchParams.get('tab') === 'results' ? 'results' : 'available';
+    const [activeTab, setActiveTab] = useState<'available' | 'results'>(initialTab);
+
+    // Available Exams State
+    const [availableExams, setAvailableExams] = useState<AvailableExam[]>([]);
+    const [loadingAvailable, setLoadingAvailable] = useState(true);
+    const [availableSearch, setAvailableSearch] = useState('');
+    const [availableFilter, setAvailableFilter] = useState<'all' | 'ready' | 'completed' | 'upcoming'>('all');
+
+    // Submissions State
     const [submissions, setSubmissions] = useState<SubmissionItem[]>([]);
     const [progress, setProgress] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -93,8 +136,33 @@ export const StudentExamsPage: React.FC = () => {
     const [questionFilter, setQuestionFilter] = useState<'all' | 'correct' | 'wrong' | 'skipped'>('all');
 
     useEffect(() => {
+        fetchAvailableExams();
         fetchSubmissions(1);
     }, []);
+
+    const changeTab = (tab: 'available' | 'results') => {
+        setActiveTab(tab);
+        if (tab === 'results') {
+            setSearchParams({ tab: 'results' });
+        } else {
+            setSearchParams({});
+        }
+    };
+
+    const fetchAvailableExams = async () => {
+        try {
+            setLoadingAvailable(true);
+            const params: any = {};
+            if (availableSearch.trim()) params.search = availableSearch.trim();
+
+            const res = await apiClient.get('/student/exams/available', { params });
+            setAvailableExams(res.data.exams || []);
+        } catch (err) {
+            console.error('Failed to load available exams', err);
+        } finally {
+            setLoadingAvailable(false);
+        }
+    };
 
     const fetchSubmissions = async (page = 1) => {
         try {
@@ -122,6 +190,33 @@ export const StudentExamsPage: React.FC = () => {
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         fetchSubmissions(1);
+    };
+
+    const handleAvailableSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        fetchAvailableExams();
+    };
+
+    const handleOpenReviewById = async (submissionId: number) => {
+        setReviewModalOpen(true);
+        setLoadingReview(true);
+        setQuestionFilter('all');
+
+        try {
+            const res = await apiClient.get(`/student/exams/submissions/${submissionId}`);
+            const data = res.data;
+            setReviewExam(data.exam);
+            setReviewQuestions(data.questions || []);
+            setSelectedSubmission({
+                ...data.submission,
+                merit_position: data.merit_position,
+                total_participants: data.total_participants,
+            });
+        } catch (err) {
+            console.error('Failed to load submission review', err);
+        } finally {
+            setLoadingReview(false);
+        }
     };
 
     const handleOpenReview = async (sub: SubmissionItem) => {
@@ -162,6 +257,33 @@ export const StudentExamsPage: React.FC = () => {
         return true;
     });
 
+    // Filter available exams
+    const filteredAvailableExams = availableExams.filter((exam) => {
+        if (availableSearch.trim()) {
+            const query = availableSearch.toLowerCase();
+            const matchesTitle = exam.title.toLowerCase().includes(query);
+            const matchesDesc = exam.description?.toLowerCase().includes(query);
+            const matchesCourse = exam.courses?.some((c) => c.title.toLowerCase().includes(query)) ||
+                (exam.course && exam.course.title.toLowerCase().includes(query));
+            if (!matchesTitle && !matchesDesc && !matchesCourse) return false;
+        }
+
+        if (availableFilter === 'ready') {
+            return exam.is_enrolled && !exam.has_submitted && !exam.is_upcoming && !exam.is_expired;
+        }
+        if (availableFilter === 'completed') {
+            return exam.has_submitted;
+        }
+        if (availableFilter === 'upcoming') {
+            return exam.is_upcoming;
+        }
+        return true;
+    });
+
+    const readyExamsCount = availableExams.filter((e) => e.is_enrolled && !e.has_submitted && !e.is_upcoming && !e.is_expired).length;
+    const completedExamsCount = availableExams.filter((e) => e.has_submitted).length;
+    const upcomingExamsCount = availableExams.filter((e) => e.is_upcoming).length;
+
     return (
         <div className="space-y-6 max-w-7xl mx-auto pb-12">
             {/* Print Header (Only visible on paper print / PDF export) */}
@@ -189,15 +311,313 @@ export const StudentExamsPage: React.FC = () => {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
                         <ClipboardList className="h-7 w-7 text-indigo-600" />
-                        My Exams & Performance Analytics
+                        Student Exams & Assessments
                     </h1>
                     <p className="text-sm text-gray-600 mt-1">
-                        Review your completed exam scores, correct and wrong answer analysis, and export results as PDF.
+                        Participate in published examinations, test your knowledge, and review your performance analytics.
                     </p>
                 </div>
             </div>
 
-            {/* Overall Student Progress Cards (Screen only) */}
+            {/* Navigation Tabs (Screen only) */}
+            <div className="print:hidden flex items-center gap-3 border-b border-gray-200">
+                <button
+                    type="button"
+                    onClick={() => changeTab('available')}
+                    className={`pb-3.5 px-2 text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                        activeTab === 'available'
+                            ? 'border-indigo-600 text-indigo-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-800'
+                    }`}
+                >
+                    <ClipboardList className="w-4 h-4" />
+                    <span>Available & Published Exams</span>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-indigo-100 text-indigo-700">
+                        {availableExams.length}
+                    </span>
+                </button>
+
+                <button
+                    type="button"
+                    onClick={() => changeTab('results')}
+                    className={`pb-3.5 px-2 text-sm font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                        activeTab === 'results'
+                            ? 'border-indigo-600 text-indigo-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-800'
+                    }`}
+                >
+                    <Award className="w-4 h-4" />
+                    <span>My Completed Results</span>
+                    {submissions.length > 0 && (
+                        <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-gray-100 text-gray-700">
+                            {submissions.length}
+                        </span>
+                    )}
+                </button>
+            </div>
+
+            {/* AVAILABLE & PUBLISHED EXAMS TAB */}
+            {activeTab === 'available' && (
+                <div className="space-y-6">
+                    {/* Search & Filter Bar */}
+                    <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-xs flex flex-col sm:flex-row gap-3 items-center justify-between">
+                        <form onSubmit={handleAvailableSearchSubmit} className="relative w-full sm:w-96">
+                            <Search className="h-4 w-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                            <input
+                                type="text"
+                                value={availableSearch}
+                                onChange={(e) => setAvailableSearch(e.target.value)}
+                                placeholder="Search published exams by title or course..."
+                                className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                            />
+                        </form>
+
+                        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+                            <button
+                                type="button"
+                                onClick={() => setAvailableFilter('all')}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                                    availableFilter === 'all'
+                                        ? 'bg-indigo-600 text-white shadow-xs'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                            >
+                                All ({availableExams.length})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setAvailableFilter('ready')}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                                    availableFilter === 'ready'
+                                        ? 'bg-emerald-600 text-white shadow-xs'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                            >
+                                Ready to Take ({readyExamsCount})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setAvailableFilter('completed')}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                                    availableFilter === 'completed'
+                                        ? 'bg-indigo-600 text-white shadow-xs'
+                                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                            >
+                                Completed ({completedExamsCount})
+                            </button>
+                            {upcomingExamsCount > 0 && (
+                                <button
+                                    type="button"
+                                    onClick={() => setAvailableFilter('upcoming')}
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                                        availableFilter === 'upcoming'
+                                            ? 'bg-blue-600 text-white shadow-xs'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                    }`}
+                                >
+                                    Upcoming ({upcomingExamsCount})
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Available Exams Grid */}
+                    {loadingAvailable ? (
+                        <div className="bg-white rounded-2xl border border-gray-200 p-16 flex flex-col items-center justify-center text-gray-400 shadow-xs">
+                            <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mb-2" />
+                            <span className="text-sm font-medium">Loading published exams...</span>
+                        </div>
+                    ) : filteredAvailableExams.length === 0 ? (
+                        <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center shadow-xs">
+                            <ClipboardList className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                            <h3 className="text-base font-bold text-gray-800">No exams found</h3>
+                            <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+                                {availableSearch
+                                    ? 'No published exams match your search criteria.'
+                                    : 'There are currently no published exams matching this filter. Check back later or browse courses.'}
+                            </p>
+                            <Link
+                                to="/courses"
+                                className="inline-flex items-center gap-1.5 mt-5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
+                            >
+                                <BookOpen className="h-3.5 w-3.5" />
+                                Browse All Courses
+                            </Link>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {filteredAvailableExams.map((exam) => {
+                                const primaryCourse = exam.courses?.[0] || exam.course;
+
+                                return (
+                                    <div
+                                        key={exam.id}
+                                        className="bg-white rounded-2xl border border-gray-200 shadow-xs hover:shadow-md transition-all flex flex-col overflow-hidden group"
+                                    >
+                                        <div className="p-5 flex-1 flex flex-col">
+                                            {/* Badges row */}
+                                            <div className="flex items-center justify-between gap-2 mb-3">
+                                                {primaryCourse ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100/80 truncate max-w-[200px]">
+                                                        <BookOpen className="w-3 h-3 shrink-0" />
+                                                        <span className="truncate">{primaryCourse.title}</span>
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-100/80">
+                                                        <Sparkles className="w-3 h-3 shrink-0" />
+                                                        Open Assessment
+                                                    </span>
+                                                )}
+
+                                                {exam.has_submitted ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 shrink-0">
+                                                        <CheckCircle2 className="w-3 h-3" /> Completed
+                                                    </span>
+                                                ) : exam.in_progress ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 shrink-0">
+                                                        <Clock className="w-3 h-3" /> In Progress
+                                                    </span>
+                                                ) : exam.is_upcoming ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 shrink-0">
+                                                        <Calendar className="w-3 h-3" /> Upcoming
+                                                    </span>
+                                                ) : exam.is_expired ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gray-100 text-gray-600 shrink-0">
+                                                        Expired
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
+                                                        Ready to Take
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Exam Title */}
+                                            <h3 className="text-base font-bold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-2 mb-1.5">
+                                                {exam.title}
+                                            </h3>
+
+                                            {exam.description && (
+                                                <p className="text-xs text-gray-500 line-clamp-2 mb-4 leading-relaxed">
+                                                    {exam.description}
+                                                </p>
+                                            )}
+
+                                            {/* Exam Meta Info Chips */}
+                                            <div className="grid grid-cols-2 gap-2 mt-auto pt-3 border-t border-gray-100 text-xs">
+                                                <div className="flex items-center gap-1.5 text-gray-600">
+                                                    <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                                                    <span>{exam.duration_minutes ? `${exam.duration_minutes} Mins` : 'Untimed'}</span>
+                                                </div>
+
+                                                <div className="flex items-center gap-1.5 text-gray-600">
+                                                    <FileText className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                                                    <span>{exam.questions_count} Questions</span>
+                                                </div>
+
+                                                <div className="flex items-center gap-1.5 text-gray-600">
+                                                    <Award className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                                                    <span>Total: <strong>{exam.total_marks}</strong> Marks</span>
+                                                </div>
+
+                                                <div className="flex items-center gap-1.5 text-gray-600">
+                                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                                    <span>Pass: {exam.pass_marks} Marks</span>
+                                                </div>
+                                            </div>
+
+                                            {exam.has_negative_marking && exam.negative_marks > 0 && (
+                                                <div className="mt-2 text-[11px] text-rose-600 font-medium flex items-center gap-1">
+                                                    <AlertCircle className="w-3 h-3 shrink-0" />
+                                                    <span>Negative mark: -{exam.negative_marks} per wrong answer</span>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Card Footer / Action Button */}
+                                        <div className="p-4 bg-gray-50/80 border-t border-gray-100 flex items-center justify-between gap-3">
+                                            {exam.has_submitted ? (
+                                                <>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[11px] text-gray-500 font-medium">Your Score</span>
+                                                        <span className="text-sm font-extrabold text-emerald-600">
+                                                            {exam.submission?.obtained_marks ?? 0} / {exam.total_marks}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
+                                                        {exam.submission?.id && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleOpenReviewById(exam.submission!.id)}
+                                                                className="inline-flex items-center gap-1 px-3 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                                                            >
+                                                                <Eye className="w-3.5 h-3.5" /> Review
+                                                            </button>
+                                                        )}
+                                                        <Link
+                                                            to={`/exams/${exam.id}/take`}
+                                                            className="inline-flex items-center gap-1 px-3 py-2 bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 text-xs font-bold rounded-xl transition-colors shadow-2xs"
+                                                        >
+                                                            Retake
+                                                        </Link>
+                                                    </div>
+                                                </>
+                                            ) : exam.in_progress ? (
+                                                <Link
+                                                    to={`/exams/${exam.id}/take`}
+                                                    className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
+                                                >
+                                                    <Clock className="w-3.5 h-3.5" />
+                                                    Resume Exam
+                                                    <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+                                                </Link>
+                                            ) : exam.is_upcoming ? (
+                                                <button
+                                                    disabled
+                                                    className="w-full py-2.5 px-3 bg-gray-100 text-gray-400 text-xs font-bold rounded-xl cursor-not-allowed text-center"
+                                                >
+                                                    Scheduled for {exam.start_time ? new Date(exam.start_time).toLocaleDateString() : 'Later'}
+                                                </button>
+                                            ) : exam.is_expired ? (
+                                                <button
+                                                    disabled
+                                                    className="w-full py-2.5 px-3 bg-gray-100 text-gray-400 text-xs font-bold rounded-xl cursor-not-allowed text-center"
+                                                >
+                                                    Assessment Ended
+                                                </button>
+                                            ) : !exam.is_enrolled ? (
+                                                <Link
+                                                    to={`/courses/${primaryCourse?.slug || ''}`}
+                                                    className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold rounded-xl transition-colors"
+                                                >
+                                                    Enroll Course to Unlock
+                                                    <ChevronRight className="w-3.5 h-3.5" />
+                                                </Link>
+                                            ) : (
+                                                <Link
+                                                    to={`/exams/${exam.id}/take`}
+                                                    className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors shadow-sm group-hover:bg-indigo-700"
+                                                >
+                                                    <PlayCircle className="w-4 h-4" />
+                                                    Take Exam Now
+                                                    <ArrowRight className="w-3.5 h-3.5 ml-0.5 group-hover:translate-x-0.5 transition-transform" />
+                                                </Link>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* MY COMPLETED RESULTS TAB */}
+            {activeTab === 'results' && (
+                <div className="space-y-6">
+                    {/* Overall Student Progress Cards (Screen only) */}
             {progress && (
                 <div className="print:hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-xs">
@@ -431,6 +851,8 @@ export const StudentExamsPage: React.FC = () => {
                     </div>
                 )}
             </div>
+            </div>
+            )}
 
             {/* REVIEW & ANALYSIS MODAL */}
             {reviewModalOpen && selectedSubmission && (
