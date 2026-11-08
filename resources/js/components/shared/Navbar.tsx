@@ -22,7 +22,8 @@ import {
     Sparkles,
     Boxes,
     PhoneCall,
-    BookMarked
+    BookMarked,
+    Shield
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -331,53 +332,75 @@ export const Navbar: React.FC = () => {
 
                     {/* Authentication and CTA Buttons */}
                     {user ? (
-                        <div className="relative">
-                            <button
-                                type="button"
-                                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                                className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/90 dark:bg-slate-800/90 text-slate-800 dark:text-white border border-slate-200/90 dark:border-slate-700 shadow-xs hover:border-sky-400 transition-all cursor-pointer"
-                            >
-                                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center">
-                                    {user.name.charAt(0).toUpperCase()}
-                                </div>
-                                <span className="font-extrabold text-xs sm:text-sm hidden sm:inline max-w-[100px] truncate">
-                                    {user.name.split(' ')[0]}
-                                </span>
-                                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                            </button>
-
-                            {/* User Profile Dropdown */}
-                            {userDropdownOpen && (
-                                <div 
-                                    className="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
-                                    onMouseLeave={() => setUserDropdownOpen(false)}
+                        <div className="flex items-center gap-2">
+                            {/* Direct Admin Panel button if role is admin */}
+                            {user.role === 'admin' && (
+                                <Link
+                                    to="/admin"
+                                    className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 text-xs font-bold hover:bg-indigo-600 hover:text-white transition-all shadow-2xs"
                                 >
-                                    <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
-                                        <p className="text-[11px] font-medium text-slate-400">Signed in:</p>
-                                        <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{user.name}</p>
-                                        <p className="text-[11px] font-mono text-slate-500 truncate">{user.phone}</p>
-                                    </div>
-                                    <Link
-                                        to={getDashboardPath()}
-                                        onClick={() => setUserDropdownOpen(false)}
-                                        className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
-                                    >
-                                        <LayoutDashboard className="w-4 h-4 text-indigo-500" />
-                                        <span>{t.nav.dashboard}</span>
-                                    </Link>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setUserDropdownOpen(false);
-                                            logout();
-                                        }}
-                                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors text-left cursor-pointer"
-                                    >
-                                        <LogOut className="w-4 h-4" />
-                                        <span>{t.nav.logout}</span>
-                                    </button>
-                                </div>
+                                    <Shield className="w-3.5 h-3.5" />
+                                    <span>অ্যাডমিন প্যানেল</span>
+                                </Link>
                             )}
+
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                                    className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/90 dark:bg-slate-800/90 text-slate-800 dark:text-white border border-slate-200/90 dark:border-slate-700 shadow-xs hover:border-sky-400 transition-all cursor-pointer"
+                                >
+                                    <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center">
+                                        {user.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <span className="font-extrabold text-xs sm:text-sm hidden sm:inline max-w-[100px] truncate">
+                                        {user.name.split(' ')[0]}
+                                    </span>
+                                    <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                                </button>
+
+                                {/* User Profile Dropdown */}
+                                {userDropdownOpen && (
+                                    <div 
+                                        className="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                                        onMouseLeave={() => setUserDropdownOpen(false)}
+                                    >
+                                        <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
+                                            <p className="text-[11px] font-medium text-slate-400">Signed in:</p>
+                                            <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{user.name}</p>
+                                            <p className="text-[11px] font-mono text-slate-500 truncate">{user.phone}</p>
+                                        </div>
+                                        <Link
+                                            to={getDashboardPath()}
+                                            onClick={() => setUserDropdownOpen(false)}
+                                            className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
+                                        >
+                                            {user.role === 'admin' ? (
+                                                <>
+                                                    <Shield className="w-4 h-4 text-indigo-500" />
+                                                    <span>অ্যাডমিন প্যানেল</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <LayoutDashboard className="w-4 h-4 text-indigo-500" />
+                                                    <span>{user.role === 'teacher' ? 'টিচার ড্যাশবোর্ড' : 'স্টুডেন্ট ড্যাশবোর্ড'}</span>
+                                                </>
+                                            )}
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setUserDropdownOpen(false);
+                                                logout();
+                                            }}
+                                            className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors text-left cursor-pointer"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            <span>{t.nav.logout}</span>
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ) : (
                         <div className="flex items-center gap-1.5 sm:gap-2">
@@ -472,9 +495,10 @@ export const Navbar: React.FC = () => {
                             <Link
                                 to={getDashboardPath()}
                                 onClick={() => setMobileMenuOpen(false)}
-                                className="w-full py-2.5 text-center font-bold text-white bg-indigo-600 rounded-full text-xs shadow-sm"
+                                className="w-full py-2.5 text-center font-bold text-white bg-indigo-600 rounded-full text-xs shadow-sm flex items-center justify-center gap-1.5"
                             >
-                                ড্যাশবোর্ড ({user.name.split(' ')[0]})
+                                <Shield className="w-4 h-4" />
+                                <span>{user.role === 'admin' ? 'অ্যাডমিন প্যানেল' : `ড্যাশবোর্ড (${user.name.split(' ')[0]})`}</span>
                             </Link>
                         ) : (
                             <div className="grid grid-cols-2 gap-2 w-full">

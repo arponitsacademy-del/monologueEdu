@@ -23,8 +23,31 @@ import {
     CartesianGrid 
 } from 'recharts';
 
+const DEFAULT_DATA = {
+    summary: {
+        total_revenue: 0,
+        today_revenue: 0,
+        yesterday_revenue: 0,
+        this_month_revenue: 0,
+        last_month_revenue: 0,
+        period_revenue: 0,
+        period_paid_orders: 0,
+        total_paid_orders: 0,
+        total_pending_orders: 0,
+        total_students: 0,
+        total_teachers: 0,
+        total_courses: 0,
+        published_courses: 0,
+        draft_courses: 0,
+    },
+    daily_trends: [],
+    monthly_trends: [],
+    recent_orders: [],
+    recent_students: [],
+};
+
 export const AdminDashboardPage: React.FC = () => {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<any>(DEFAULT_DATA);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -33,29 +56,35 @@ export const AdminDashboardPage: React.FC = () => {
 
     const fetchDashboardStats = async () => {
         try {
-            const { data } = await apiClient.get('/admin/analytics?period=30days');
-            setData(data);
-        } catch {
-            // handle error
+            setLoading(true);
+            const res = await apiClient.get('/admin/analytics?period=30days');
+            if (res.data && res.data.summary) {
+                setData(res.data);
+            }
+        } catch (err) {
+            console.warn('Analytics fetch notice:', err);
         } finally {
             setLoading(false);
         }
     };
 
-    if (loading || !data) {
+    if (loading) {
         return (
             <div className="space-y-6 animate-pulse">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     {[1, 2, 3, 4].map(n => (
-                        <div key={n} className="h-32 bg-white rounded-2xl border border-slate-200" />
+                        <div key={n} className="h-32 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800" />
                     ))}
                 </div>
-                <div className="h-80 bg-white rounded-2xl border border-slate-200" />
+                <div className="h-80 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800" />
             </div>
         );
     }
 
-    const { summary, daily_trends, recent_orders, recent_students } = data;
+    const summary = data?.summary || DEFAULT_DATA.summary;
+    const daily_trends = data?.daily_trends || [];
+    const recent_orders = data?.recent_orders || [];
+    const recent_students = data?.recent_students || [];
 
     return (
         <div className="space-y-8 max-w-7xl">

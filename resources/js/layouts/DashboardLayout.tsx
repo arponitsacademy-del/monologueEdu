@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Outlet, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useSettings } from '../context/SettingsContext';
@@ -34,11 +34,12 @@ import {
     ClipboardList,
     Share2,
     Boxes,
-    TicketPercent
+    TicketPercent,
+    Loader2
 } from 'lucide-react';
 
 export const DashboardLayout: React.FC = () => {
-    const { user, logout } = useAuth();
+    const { user, logout, isLoading } = useAuth();
     const { t } = useLanguage();
     const { settings } = useSettings();
     const location = useLocation();
@@ -71,7 +72,6 @@ export const DashboardLayout: React.FC = () => {
 
     useEffect(() => {
         if (!user) {
-            navigate('/login');
             return;
         }
 
@@ -112,7 +112,26 @@ export const DashboardLayout: React.FC = () => {
         }
     };
 
-    if (!user) return null;
+    // If auth state is still resolving, show clean loading state
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center text-white space-y-3">
+                <Loader2 className="w-10 h-10 animate-spin text-sky-500" />
+                <p className="text-sm font-bold text-slate-300">অ্যাডমিন প্যানেল লোড হচ্ছে...</p>
+            </div>
+        );
+    }
+
+    // If not authenticated, redirect to login page immediately
+    if (!user) {
+        return <Navigate to="/login" replace state={{ from: location }} />;
+    }
+
+    // Role-based protection: if student or teacher attempts to access /admin, redirect safely
+    if (location.pathname.startsWith('/admin') && user.role !== 'admin') {
+        if (user.role === 'teacher') return <Navigate to="/teacher" replace />;
+        return <Navigate to="/student" replace />;
+    }
 
     // Navigation links per role
     const getNavLinks = () => {
@@ -250,7 +269,7 @@ export const DashboardLayout: React.FC = () => {
             {/* Desktop Left Sidebar */}
             <aside className="hidden lg:flex flex-col w-72 bg-slate-900 border-r border-slate-800 text-slate-300 select-none shrink-0">
                 <div className="h-20 px-6 flex items-center justify-between border-b border-slate-800/80">
-                    <Link to="/" className="flex items-center gap-3">
+                    <Link to={user.role === 'admin' ? '/admin' : user.role === 'teacher' ? '/teacher' : '/student'} className="flex items-center gap-3">
                         {settings?.logo_url ? (
                             <img
                                 src={settings.logo_url}
