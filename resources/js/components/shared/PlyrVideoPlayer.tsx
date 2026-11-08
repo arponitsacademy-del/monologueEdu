@@ -3,7 +3,6 @@ import { createPortal } from 'react-dom';
 import Plyr from 'plyr';
 import 'plyr/dist/plyr.css';
 import { AlertCircle, Check, Sparkles } from 'lucide-react';
-import { VdoCipherPlayer } from './VdoCipherPlayer';
 
 interface PlyrVideoPlayerProps {
     url?: string | null;
@@ -34,26 +33,6 @@ export const extractVimeoId = (url?: string | null): string | null => {
     const regExp = /vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/([^\/]*)\/videos\/|album\/(\d+)\/video\/|)(\d+)(?:$|\/|\?)/;
     const match = cleanUrl.match(regExp);
     return match ? match[3] : null;
-};
-
-/**
- * Extracts VdoCipher video ID from vdocipher://, vdocipher: or hex format.
- */
-export const extractVdoCipherId = (url?: string | null): string | null => {
-    if (!url) return null;
-    const cleanUrl = url.trim();
-    if (cleanUrl.startsWith('vdocipher://')) {
-        return cleanUrl.replace('vdocipher://', '').split(/[?#]/)[0];
-    }
-    if (cleanUrl.startsWith('vdocipher:')) {
-        return cleanUrl.replace('vdocipher:', '').split(/[?#]/)[0];
-    }
-    if (/^[0-9a-f]{32}$/i.test(cleanUrl)) {
-        return cleanUrl;
-    }
-    const match = cleanUrl.match(/player\.vdocipher\.com\/v2\/\?(?:.*&)?(?:video|playbackInfo)=([^&]+)/i);
-    if (match) return match[1];
-    return null;
 };
 
 const QUALITY_STORAGE_KEY = 'novonex_video_quality';
@@ -88,10 +67,9 @@ export const PlyrVideoPlayer: React.FC<PlyrVideoPlayerProps> = ({
         return localStorage.getItem(QUALITY_STORAGE_KEY) || '720p';
     });
 
-    const vdoCipherId = extractVdoCipherId(url);
-    const youtubeId = !vdoCipherId ? extractYouTubeId(url) : null;
-    const vimeoId = !vdoCipherId && !youtubeId ? extractVimeoId(url) : null;
-    const isDirectVideo = !vdoCipherId && !youtubeId && !vimeoId && url && (
+    const youtubeId = extractYouTubeId(url);
+    const vimeoId = !youtubeId ? extractVimeoId(url) : null;
+    const isDirectVideo = !youtubeId && !vimeoId && url && (
         url.endsWith('.mp4') || url.endsWith('.webm') || url.endsWith('.ogg') || url.includes('/media/') || url.includes('/storage/')
     );
 
@@ -146,7 +124,6 @@ export const PlyrVideoPlayer: React.FC<PlyrVideoPlayerProps> = ({
     }, [qualityOpen]);
 
     useEffect(() => {
-        if (vdoCipherId) return;
         setHasError(null);
         setControlsEl(null);
         if (!containerRef.current) return;
@@ -300,17 +277,6 @@ export const PlyrVideoPlayer: React.FC<PlyrVideoPlayerProps> = ({
         );
     }
 
-    if (vdoCipherId) {
-        return (
-            <div className={`relative w-full aspect-video rounded-2xl overflow-hidden bg-black shadow-lg ${className}`}>
-                <VdoCipherPlayer
-                    videoId={vdoCipherId}
-                    title={title}
-                    onEnded={onEnded}
-                />
-            </div>
-        );
-    }
 
     return (
         <div 

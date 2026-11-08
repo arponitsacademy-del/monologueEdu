@@ -38,7 +38,6 @@ import {
     CheckCircle2
 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
-import { VdoCipherUploader } from '../../components/admin/VdoCipherUploader';
 
 export const AdminCourseBuilderPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -78,7 +77,6 @@ export const AdminCourseBuilderPage: React.FC = () => {
     const [lessonDuration, setLessonDuration] = useState('0');
     const [lessonIsPreview, setLessonIsPreview] = useState(false);
     const [lessonStatus, setLessonStatus] = useState<'draft' | 'published'>('published');
-    const [videoSourceType, setVideoSourceType] = useState<'vdocipher' | 'embed'>('vdocipher');
 
     // Attachments upload state
     const [uploadingAttachment, setUploadingAttachment] = useState(false);
@@ -218,7 +216,6 @@ export const AdminCourseBuilderPage: React.FC = () => {
         setLessonDuration('0');
         setLessonIsPreview(false);
         setLessonStatus('published');
-        setVideoSourceType('vdocipher');
         setLessonModalOpen(true);
     };
 
@@ -231,11 +228,6 @@ export const AdminCourseBuilderPage: React.FC = () => {
         setLessonDuration(String(lesson.duration_minutes || '0'));
         setLessonIsPreview(Boolean(lesson.is_preview));
         setLessonStatus(lesson.status);
-
-        // Detect if it is a VdoCipher OTP url/ID or external embed link
-        const isVdoCipher = lesson.video_url && !lesson.video_url.includes('youtube.com') && !lesson.video_url.includes('vimeo.com') && !lesson.video_url.includes('youtu.be');
-        setVideoSourceType(isVdoCipher ? 'vdocipher' : 'embed');
-
         setLessonModalOpen(true);
     };
 
@@ -933,67 +925,21 @@ export const AdminCourseBuilderPage: React.FC = () => {
                         />
                     </div>
 
-                    {/* Video Source Switcher */}
-                    <div className="space-y-3">
-                        <label className="block text-xs font-bold text-slate-700">
-                            Select Lesson Video *
-                        </label>
-
-                        {/* Switcher Tabs */}
-                        <div className="flex items-center gap-2 p-1 bg-slate-100 rounded-xl">
-                            <button
-                                type="button"
-                                onClick={() => setVideoSourceType('vdocipher')}
-                                className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                                    videoSourceType === 'vdocipher'
-                                        ? 'bg-white text-indigo-700 shadow-xs'
-                                        : 'text-slate-600 hover:text-slate-900'
-                                }`}
-                            >
-                                <ShieldCheck className="w-4 h-4 text-indigo-600" />
-                                <span>VdoCipher (DRM Protected Upload)</span>
-                            </button>
-
-                            <button
-                                type="button"
-                                onClick={() => setVideoSourceType('embed')}
-                                className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                                    videoSourceType === 'embed'
-                                        ? 'bg-white text-sky-700 shadow-xs'
-                                        : 'text-slate-600 hover:text-slate-900'
-                                }`}
-                            >
-                                <Globe className="w-4 h-4 text-sky-600" />
-                                <span>YouTube / Vimeo Link</span>
-                            </button>
-                        </div>
-
-                        {/* VdoCipher Uploader or External URL */}
-                        {videoSourceType === 'vdocipher' ? (
-                            <VdoCipherUploader
-                                initialVideoUrl={lessonVideoUrl}
-                                lessonTitle={lessonTitle || 'Lesson Video'}
-                                onVideoUploaded={(url) => setLessonVideoUrl(url)}
-                                onDurationDetected={(mins) => {
-                                    if (!lessonDuration || lessonDuration === '0') {
-                                        setLessonDuration(String(mins));
-                                    }
-                                }}
+                    {/* Video Link */}
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+                                <Video className="w-3.5 h-3.5 text-sky-600" />
+                                <span>Lesson Video URL (YouTube / Vimeo / Direct Video URL)</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={lessonVideoUrl}
+                                onChange={(e) => setLessonVideoUrl(e.target.value)}
+                                placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500"
                             />
-                        ) : (
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1">
-                                    Video Link (YouTube / Vimeo / Direct URL)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={lessonVideoUrl}
-                                    onChange={(e) => setLessonVideoUrl(e.target.value)}
-                                    placeholder="https://www.youtube.com/watch?v=..."
-                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500"
-                                />
-                            </div>
-                        )}
+                        </div>
 
                         <div>
                             <label className="block text-xs font-bold text-slate-700 mb-1">Lesson Duration (Minutes)</label>

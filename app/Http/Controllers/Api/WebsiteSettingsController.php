@@ -13,18 +13,7 @@ class WebsiteSettingsController extends Controller
     public function getSettings(): JsonResponse
     {
         $settings = WebsiteSetting::current();
-        $data = $settings->toArray();
-
-        // Mask sensitive API secrets from public API responses
-        if (isset($data['vdocipher_settings'])) {
-            $data['vdocipher_settings'] = [
-                'enabled' => (bool) ($settings->vdocipher_settings['enabled'] ?? false),
-                'watermark_enabled' => (bool) ($settings->vdocipher_settings['watermark_enabled'] ?? true),
-                'is_configured' => ! empty($settings->vdocipher_settings['api_secret']),
-            ];
-        }
-
-        return response()->json($data);
+        return response()->json($settings->toArray());
     }
 
     public function updateSettings(Request $request): JsonResponse

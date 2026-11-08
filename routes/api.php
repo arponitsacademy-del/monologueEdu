@@ -18,7 +18,6 @@ use App\Http\Controllers\Api\OtpController;
 use App\Http\Controllers\Api\PublicCourseController;
 use App\Http\Controllers\Api\SmsMarketingController;
 use App\Http\Controllers\Api\SmsSettingsController;
-use App\Http\Controllers\Api\VdoCipherController;
 use App\Http\Controllers\Api\WebsiteSettingsController;
 use App\Http\Controllers\Api\NexPilotAdminController;
 use App\Http\Controllers\Api\NexPilotStudentController;
@@ -84,9 +83,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('orders/checkout', [OrderController::class, 'checkout']);
     Route::get('orders/my-orders', [OrderController::class, 'myOrders']);
 
-    // VdoCipher DRM OTP Playback
-    Route::post('vdocipher/otp', [VdoCipherController::class, 'getOtp']);
-
     // NexPilot Student Learning Room & Chatbot
     Route::prefix('student/nexpilot')->group(function () {
         Route::get('courses/{courseId}', [NexPilotStudentController::class, 'getPilotForCourse']);
@@ -151,8 +147,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::post('lessons/{lesson}/attachments', [LessonAttachmentController::class, 'upload']);
         Route::delete('attachments/{attachment}', [LessonAttachmentController::class, 'delete']);
-
-        Route::post('vdocipher/upload-credentials', [VdoCipherController::class, 'getUploadCredentials']);
 
         // Course Attached Exams
         Route::get('{course}/exams', [CourseBuilderController::class, 'getCourseExams']);
@@ -244,12 +238,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('website-settings/header', [WebsiteSettingsController::class, 'updateHeaderSettings']);
         Route::put('website-settings/footer', [WebsiteSettingsController::class, 'updateFooterSettings']);
         Route::put('website-settings/manual-payment', [WebsiteSettingsController::class, 'updateManualPaymentSettings']);
-
-        // VdoCipher DRM Video Settings & Uploader
-        Route::get('vdocipher/settings', [VdoCipherController::class, 'getSettings']);
-        Route::put('vdocipher/settings', [VdoCipherController::class, 'updateSettings']);
-        Route::post('vdocipher/test-connection', [VdoCipherController::class, 'testConnection']);
-        Route::post('vdocipher/upload-credentials', [VdoCipherController::class, 'getUploadCredentials']);
 
         // Media Library
         Route::get('media', [MediaController::class, 'index']);

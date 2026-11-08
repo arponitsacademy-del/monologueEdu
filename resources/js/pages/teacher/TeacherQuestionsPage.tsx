@@ -16,7 +16,7 @@ export const TeacherQuestionsPage: React.FC = () => {
         try {
             const { data } = await apiClient.get('/teacher/student-questions');
             setQuestions(data.data || []);
-        } catch {}
+        } catch { }
         finally {
             setLoading(false);
         }

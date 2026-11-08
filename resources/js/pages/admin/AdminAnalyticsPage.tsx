@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient, formatBDT } from '../../api/client';
-import { 
-    BarChart3, 
-    Calendar, 
-    TrendingUp, 
-    ShoppingCart, 
-    BookOpen, 
+import {
+    BarChart3,
+    Calendar,
+    TrendingUp,
+    ShoppingCart,
+    BookOpen,
     Filter,
     DollarSign
 } from 'lucide-react';
-import { 
-    ResponsiveContainer, 
-    AreaChart, 
-    Area, 
-    BarChart, 
-    Bar, 
-    XAxis, 
-    YAxis, 
-    Tooltip, 
-    CartesianGrid 
+import {
+    ResponsiveContainer,
+    AreaChart,
+    Area,
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    Tooltip,
+    CartesianGrid
 } from 'recharts';
 
 export const AdminAnalyticsPage: React.FC = () => {
@@ -87,11 +87,10 @@ export const AdminAnalyticsPage: React.FC = () => {
                         <button
                             key={p.value}
                             onClick={() => setPeriod(p.value)}
-                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                                period === p.value
-                                    ? 'bg-sky-600 text-white shadow-xs'
-                                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                            }`}
+                            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${period === p.value
+                                ? 'bg-sky-600 text-white shadow-xs'
+                                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                                }`}
                         >
                             {p.label}
                         </button>
@@ -174,8 +173,8 @@ export const AdminAnalyticsPage: React.FC = () => {
                             <AreaChart data={daily_trends} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="areaColor" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3}/>
-                                        <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0}/>
+                                        <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
