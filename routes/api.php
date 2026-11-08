@@ -56,6 +56,7 @@ Route::get('pages/{slug}', [PublicPageController::class, 'show']);
 Route::get('affiliate/check-code/{code}', [AffiliateStudentController::class, 'checkCode']);
 Route::get('teachers/featured', [TeacherPublicController::class, 'getFeaturedTeachers']);
 Route::get('teachers/{id}', [TeacherPublicController::class, 'getTeacherProfile']);
+Route::get('instructors/{id}', [TeacherPublicController::class, 'getTeacherProfile']);
 
 /*
 |--------------------------------------------------------------------------

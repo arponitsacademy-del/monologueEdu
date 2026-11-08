@@ -65,6 +65,16 @@ class TeacherPublicController extends Controller
             ->latest()
             ->get();
 
+        // If this teacher doesn't have courses linked directly yet, show popular published courses
+        if ($courses->isEmpty()) {
+            $courses = Course::where('status', Course::STATUS_PUBLISHED)
+                ->select('id', 'title', 'slug', 'thumbnail', 'short_description', 'price', 'sale_price', 'status')
+                ->withCount(['enrollments', 'lessons'])
+                ->latest()
+                ->limit(6)
+                ->get();
+        }
+
         $profile = $teacher->teacherProfile;
 
         return response()->json([

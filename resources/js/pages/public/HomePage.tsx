@@ -1000,7 +1000,7 @@ export const HomePage: React.FC = () => {
                         >
                             {displayedFaculty.map((teacher) => (
                                 <Link
-                                    to="/courses"
+                                    to={`/instructors/${teacher.id}`}
                                     key={teacher.id}
                                     style={{ scrollSnapAlign: 'start' }}
                                     className="w-[220px] sm:w-[245px] shrink-0 bg-white dark:bg-slate-900 rounded-[26px] border border-slate-200/90 dark:border-slate-800 p-2.5 sm:p-3 shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group cursor-pointer relative"

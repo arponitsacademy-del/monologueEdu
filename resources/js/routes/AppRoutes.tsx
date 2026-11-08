@@ -84,6 +84,7 @@ export const AppRoutes: React.FC = () => {
                 <Route path="/checkout/:slug" element={<CheckoutPage />} />
                 <Route path="/order-status/:orderNumber" element={<OrderStatusPage />} />
                 <Route path="/teachers/:id" element={<TeacherProfilePage />} />
+                <Route path="/instructors/:id" element={<TeacherProfilePage />} />
                 <Route path="/p/:slug" element={<CustomPageView />} />
                 <Route path="/privacy-policy" element={<CustomPageView slugOverride="privacy-policy" />} />
                 <Route path="/terms" element={<CustomPageView slugOverride="terms" />} />
