@@ -495,6 +495,52 @@ class ExamSubmissionController extends Controller
                         'is_correct' => null, // to be evaluated by teacher
                         'marks_obtained' => 0,
                     ]);
+                } elseif ($question->question_type === ExamQuestion::TYPE_FILL_BLANKS) {
+                    $rawAnswer = is_array($studentAnswer) ? ($studentAnswer[0] ?? '') : (string)$studentAnswer;
+                    $studentClean = strtolower(trim((string)$rawAnswer));
+
+                    $correctCleanList = collect($question->correct_answers ?? [])
+                        ->map(fn($v) => strtolower(trim((string)$v)))
+                        ->filter(fn($v) => $v !== '')
+                        ->values()
+                        ->toArray();
+
+                    if ($studentClean === '') {
+                        $totalSkipped++;
+                        $submission->answers()->create([
+                            'question_id' => $question->id,
+                            'student_answer' => [],
+                            'is_correct' => false,
+                            'marks_obtained' => 0,
+                        ]);
+                    } else {
+                        $totalAnswered++;
+                        $isCorrect = in_array($studentClean, $correctCleanList, true);
+
+                        if ($isCorrect) {
+                            $totalCorrect++;
+                            $marksForThis = (float) $question->marks;
+                            $autoMarksObtained += $marksForThis;
+                            $submission->answers()->create([
+                                'question_id' => $question->id,
+                                'student_answer' => [$rawAnswer],
+                                'is_correct' => true,
+                                'marks_obtained' => $marksForThis,
+                            ]);
+                        } else {
+                            $totalWrong++;
+                            if ($exam->has_negative_marking && $exam->negative_marks > 0) {
+                                $negativeDeduction += (float) $exam->negative_marks;
+                            }
+
+                            $submission->answers()->create([
+                                'question_id' => $question->id,
+                                'student_answer' => [$rawAnswer],
+                                'is_correct' => false,
+                                'marks_obtained' => 0,
+                            ]);
+                        }
+                    }
                 } else {
                     // Single choice or Multiple choice
                     $correctAnswers = collect($question->correct_answers ?? [])->map(fn($v) => (string)$v)->sort()->values()->toArray();

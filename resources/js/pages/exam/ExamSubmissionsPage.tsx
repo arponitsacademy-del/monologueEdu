@@ -427,7 +427,7 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                 </div>
 
                                                 {/* MCQ Choices & Student Selection */}
-                                                {!isWritten && q.options && (
+                                                {!isWritten && q.question_type !== 'fill_in_the_blank' && q.options && (
                                                     <div className="pl-8 space-y-1.5 pt-1">
                                                         {q.options.map((opt, oIdx) => {
                                                             const isStudentPick = (ans.student_answer || []).includes(opt.id);
@@ -462,6 +462,28 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                                 </div>
                                                             );
                                                         })}
+                                                    </div>
+                                                )}
+
+                                                {/* Fill in the Blanks Answer Display */}
+                                                {q.question_type === 'fill_in_the_blank' && (
+                                                    <div className="pl-8 space-y-2 pt-1 text-xs">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-bold text-slate-700 dark:text-slate-300">Student Answer:</span>
+                                                            <span className={`px-2.5 py-0.5 rounded-md font-mono font-bold ${
+                                                                ans.is_correct
+                                                                    ? 'bg-emerald-100 text-emerald-800'
+                                                                    : 'bg-rose-100 text-rose-800'
+                                                            }`}>
+                                                                {Array.isArray(ans.student_answer) ? (ans.student_answer.join(', ') || 'No answer submitted') : (ans.student_answer || 'No answer submitted')}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-bold text-slate-700 dark:text-slate-300">Accepted Correct Answer(s):</span>
+                                                            <span className="px-2.5 py-0.5 rounded-md font-mono font-bold bg-slate-100 text-slate-800 border border-slate-200">
+                                                                {Array.isArray(q.correct_answers) ? q.correct_answers.join(' / ') : q.correct_answers}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 )}
 

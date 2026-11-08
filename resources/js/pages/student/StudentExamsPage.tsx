@@ -682,6 +682,37 @@ export const StudentExamsPage: React.FC = () => {
                                                 </div>
                                             )}
 
+                                            {/* Fill in the Blanks Answer Display */}
+                                            {q.question_type === 'fill_in_the_blank' && (
+                                                <div className="p-3 bg-white rounded-xl border border-gray-200 mb-3 space-y-2 text-xs">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-gray-700">Your Answer:</span>
+                                                        <span className={`px-2 py-0.5 rounded font-mono font-bold ${
+                                                            q.is_correct
+                                                                ? 'bg-emerald-100 text-emerald-800'
+                                                                : 'bg-rose-100 text-rose-800'
+                                                        }`}>
+                                                            {Array.isArray(q.student_answer) ? (q.student_answer.join(', ') || 'No answer provided') : (q.student_answer || 'No answer provided')}
+                                                        </span>
+                                                        {q.is_correct ? (
+                                                            <span className="text-emerald-600 font-bold text-[10px] flex items-center gap-1">
+                                                                <Check className="h-3 w-3" /> Correct
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-rose-600 font-bold text-[10px] flex items-center gap-1">
+                                                                <X className="h-3 w-3" /> Incorrect
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-gray-700">Accepted Correct Answer(s):</span>
+                                                        <span className="px-2 py-0.5 rounded font-mono font-bold bg-emerald-50 text-emerald-900 border border-emerald-200">
+                                                            {Array.isArray(q.correct_answers) ? q.correct_answers.join(' / ') : q.correct_answers}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             {/* Written Paper Answer Attachments */}
                                             {q.question_type === 'written_paper' && (
                                                 <div className="space-y-3 p-3 bg-white rounded-xl border border-gray-200 mb-3">

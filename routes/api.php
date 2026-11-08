@@ -29,6 +29,7 @@ use App\Http\Controllers\Api\AffiliateStudentController;
 use App\Http\Controllers\Api\TeacherPublicController;
 use App\Http\Controllers\Api\AutoSmsPushController;
 use App\Http\Controllers\Api\AdminBundleController;
+use App\Http\Controllers\Api\AiExamQuestionController;
 use App\Models\Course;
 use App\Models\LessonComment;
 use Illuminate\Http\Request;
@@ -126,6 +127,10 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{exam}/questions/{question}', [ExamBuilderController::class, 'deleteQuestion']);
         Route::post('/{exam}/questions/reorder', [ExamBuilderController::class, 'reorderQuestions']);
         Route::post('/questions/upload-attachment', [ExamBuilderController::class, 'uploadAttachment']);
+
+        // AI Question Generation & Import
+        Route::post('/{exam}/ai/generate-questions', [AiExamQuestionController::class, 'generateQuestions']);
+        Route::post('/{exam}/ai/import-questions', [AiExamQuestionController::class, 'importQuestions']);
 
         // Submissions & Evaluation
         Route::get('/{exam}/submissions', [ExamSubmissionController::class, 'getSubmissions']);
@@ -273,6 +278,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('pages/{id}', [AdminPageController::class, 'destroy']);
         Route::post('pages/{id}/toggle-status', [AdminPageController::class, 'toggleStatus']);
         Route::post('pages/{id}/duplicate', [AdminPageController::class, 'duplicate']);
+
+        // AI Configuration (OpenAI Model Settings)
+        Route::prefix('ai')->group(function () {
+            Route::get('settings', [NexPilotAdminController::class, 'getSettings']);
+            Route::match(['post', 'put'], 'settings', [NexPilotAdminController::class, 'updateSettings']);
+            Route::post('test-connection', [NexPilotAdminController::class, 'testConnection']);
+        });
 
         // NexPilot AI Management
         Route::prefix('nexpilot')->group(function () {

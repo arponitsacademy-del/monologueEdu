@@ -10,6 +10,7 @@ class ExamQuestion extends Model
     public const TYPE_SINGLE_CHOICE = 'single_choice';
     public const TYPE_MULTIPLE_CHOICE = 'multiple_choice';
     public const TYPE_WRITTEN_PAPER = 'written_paper';
+    public const TYPE_FILL_BLANKS = 'fill_in_the_blank';
 
     protected $fillable = [
         'exam_id',

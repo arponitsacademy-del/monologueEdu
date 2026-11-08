@@ -148,6 +148,17 @@ export const StudentExamRoomPage: React.FC = () => {
         }
     };
 
+    const handleFillBlankAnswer = (questionId: number, val: string) => {
+        const current = answersState[questionId] || { student_answer: [], attachments: [] };
+        setAnswersState(prev => ({
+            ...prev,
+            [questionId]: {
+                ...current,
+                student_answer: [val],
+            },
+        }));
+    };
+
     const handleUploadPaperPhoto = async (questionId: number, e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
@@ -386,6 +397,7 @@ export const StudentExamRoomPage: React.FC = () => {
                     const ans = answersState[q.id] || { student_answer: [], attachments: [] };
                     const isWritten = q.question_type === 'written_paper';
                     const isMultiple = q.question_type === 'multiple_choice';
+                    const isFillBlank = q.question_type === 'fill_in_the_blank';
 
                     return (
                         <div
@@ -401,7 +413,7 @@ export const StudentExamRoomPage: React.FC = () => {
                                     <div>
                                         <div className="flex items-center gap-2 flex-wrap mb-1">
                                             <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-                                                {isWritten ? 'Written Paper' : isMultiple ? 'Multi-select' : 'Single Choice'}
+                                                {isWritten ? 'Written Paper' : isFillBlank ? 'Fill in the Blank' : isMultiple ? 'Multi-select' : 'Single Choice'}
                                             </span>
                                             <span className="text-xs font-bold text-emerald-600">
                                                 [{q.marks} Marks]
@@ -426,8 +438,24 @@ export const StudentExamRoomPage: React.FC = () => {
                                 </div>
                             )}
 
+                            {/* Fill in the Blanks Answer Input */}
+                            {isFillBlank && (
+                                <div className="pl-0 sm:pl-11 space-y-2 pt-1">
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        Type missing word or answer:
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={ans.student_answer?.[0] || ''}
+                                        onChange={e => handleFillBlankAnswer(q.id, e.target.value)}
+                                        placeholder="Type answer here..."
+                                        className="w-full sm:max-w-md px-4 py-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-semibold focus:border-sky-500 focus:outline-none dark:text-white transition-colors"
+                                    />
+                                </div>
+                            )}
+
                             {/* MCQ Options List */}
-                            {!isWritten && q.options && (
+                            {!isWritten && !isFillBlank && q.options && (
                                 <div className="pl-0 sm:pl-11 space-y-2.5 pt-1">
                                     {q.options.map((opt, oIdx) => {
                                         const isChecked = ans.student_answer.includes(opt.id);

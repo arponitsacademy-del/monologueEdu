@@ -109,6 +109,9 @@ export const AppRoutes: React.FC = () => {
                 <Route path="nexpilot/ai-configuration" element={<AdminNexPilotAiConfigPage />} />
                 <Route path="nexpilot/:id/edit" element={<AdminNexPilotEditPage />} />
                 <Route path="nexpilot/:id/builder" element={<AdminNexPilotBuilderPage />} />
+                {/* AI Configuration */}
+                <Route path="ai" element={<Navigate to="/admin/ai/configuration" replace />} />
+                <Route path="ai/configuration" element={<AdminNexPilotAiConfigPage />} />
                 {/* Exam Management */}
                 <Route path="exams" element={<ExamListPage />} />
                 <Route path="exams/create" element={<ExamFormPage />} />

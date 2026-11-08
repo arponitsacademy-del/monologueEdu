@@ -5,6 +5,7 @@ import { apiClient } from '../../api/client';
 import { Exam, ExamQuestion } from '../../types';
 import { WordMathEditor } from '../../components/exam/WordMathEditor';
 import { MathView } from '../../components/shared/MathView';
+import { AiQuestionGeneratorModal } from '../../components/exam/AiQuestionGeneratorModal';
 import {
     Wrench,
     ArrowLeft,
@@ -27,7 +28,8 @@ import {
     Loader2,
     HelpCircle,
     MoveUp,
-    MoveDown
+    MoveDown,
+    Sparkles
 } from 'lucide-react';
 
 export const ExamBuilderPage: React.FC = () => {
@@ -42,6 +44,9 @@ export const ExamBuilderPage: React.FC = () => {
     const [questions, setQuestions] = useState<ExamQuestion[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // AI Question Generator Modal
+    const [aiModalOpen, setAiModalOpen] = useState(false);
+
     // Modal state for Add/Edit Question
     const [modalOpen, setModalOpen] = useState(false);
     const [editingQuestion, setEditingQuestion] = useState<ExamQuestion | null>(null);
@@ -51,7 +56,7 @@ export const ExamBuilderPage: React.FC = () => {
     // Question form state
     const [questionForm, setQuestionForm] = useState({
         question_text: '',
-        question_type: 'single_choice' as 'single_choice' | 'multiple_choice' | 'written_paper',
+        question_type: 'single_choice' as 'single_choice' | 'multiple_choice' | 'written_paper' | 'fill_in_the_blank',
         marks: 1,
         attachment_url: '',
         explanation: '',
@@ -214,7 +219,7 @@ export const ExamBuilderPage: React.FC = () => {
             return;
         }
 
-        if (questionForm.question_type !== 'written_paper') {
+        if (questionForm.question_type === 'single_choice' || questionForm.question_type === 'multiple_choice') {
             const emptyOpt = questionForm.options.find(o => !o.text.trim());
             if (emptyOpt) {
                 setFormError('Please fill in all option texts or delete extra options.');
@@ -224,15 +229,22 @@ export const ExamBuilderPage: React.FC = () => {
                 setFormError('Please select at least one correct answer.');
                 return;
             }
+        } else if (questionForm.question_type === 'fill_in_the_blank') {
+            const valid = questionForm.correct_answers.map(s => s.trim()).filter(Boolean);
+            if (valid.length === 0) {
+                setFormError('Please enter at least one accepted correct answer for the blank.');
+                return;
+            }
         }
 
         try {
             setSaving(true);
+            const isNoOptions = questionForm.question_type === 'written_paper' || questionForm.question_type === 'fill_in_the_blank';
             const payload = {
                 ...questionForm,
                 marks: Number(questionForm.marks),
-                options: questionForm.question_type === 'written_paper' ? null : questionForm.options,
-                correct_answers: questionForm.question_type === 'written_paper' ? null : questionForm.correct_answers,
+                options: isNoOptions ? null : questionForm.options,
+                correct_answers: questionForm.question_type === 'written_paper' ? null : questionForm.correct_answers.map(s => s.trim()).filter(Boolean),
             };
 
             if (editingQuestion) {
@@ -330,8 +342,17 @@ export const ExamBuilderPage: React.FC = () => {
                         <span>Submissions ({exam?.submissions_count ?? 0})</span>
                     </Link>
                     <button
+                        type="button"
+                        onClick={() => setAiModalOpen(true)}
+                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-purple-600/20 cursor-pointer"
+                    >
+                        <Sparkles className="w-4 h-4 text-amber-300" />
+                        <span>Make Question with AI</span>
+                    </button>
+                    <button
+                        type="button"
                         onClick={openAddModal}
-                        className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-sky-600/20"
+                        className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-sky-600/20 cursor-pointer"
                     >
                         <Plus className="w-4 h-4" />
                         <span>Add Question</span>
@@ -345,15 +366,26 @@ export const ExamBuilderPage: React.FC = () => {
                     <Wrench className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
                     <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">No questions added yet</h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-                        Click below to create MCQ (Single Choice / Multiple Choice) or Written Question Paper.
+                        Generate comprehensive questions instantly from books, PDF notes, or prompts with AI, or add manually.
                     </p>
-                    <button
-                        onClick={openAddModal}
-                        className="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-sm font-medium shadow-sm shadow-sky-600/20"
-                    >
-                        <Plus className="w-4 h-4" />
-                        <span>Add First Question</span>
-                    </button>
+                    <div className="flex items-center justify-center gap-3 mt-4">
+                        <button
+                            type="button"
+                            onClick={() => setAiModalOpen(true)}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-bold shadow-sm shadow-purple-600/20 cursor-pointer"
+                        >
+                            <Sparkles className="w-4 h-4 text-amber-300" />
+                            <span>Make Questions with AI</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={openAddModal}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-sm font-semibold shadow-sm cursor-pointer"
+                        >
+                            <Plus className="w-4 h-4" />
+                            <span>Add Manually</span>
+                        </button>
+                    </div>
                 </div>
             ) : (
                 <div className="space-y-4">
@@ -377,6 +409,12 @@ export const ExamBuilderPage: React.FC = () => {
                                             {q.question_type === 'multiple_choice' && (
                                                 <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-800/40">
                                                     Multiple Choice
+                                                </span>
+                                            )}
+                                            {q.question_type === 'fill_in_the_blank' && (
+                                                <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 border border-teal-200 dark:border-teal-800/40 flex items-center gap-1">
+                                                    <Edit3 className="w-3 h-3" />
+                                                    <span>Fill in the Blanks</span>
                                                 </span>
                                             )}
                                             {q.question_type === 'written_paper' && (
@@ -443,7 +481,7 @@ export const ExamBuilderPage: React.FC = () => {
                             )}
 
                             {/* MCQ Options Display */}
-                            {q.question_type !== 'written_paper' && q.options && q.options.length > 0 && (
+                            {(q.question_type === 'single_choice' || q.question_type === 'multiple_choice') && q.options && q.options.length > 0 && (
                                 <div className="pl-10 grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                                     {q.options.map((opt, oIdx) => {
                                         const isCorrect = (q.correct_answers || []).includes(opt.id);
@@ -468,6 +506,19 @@ export const ExamBuilderPage: React.FC = () => {
                                             </div>
                                         );
                                     })}
+                                </div>
+                            )}
+
+                            {/* Fill in the Blanks Answer Display */}
+                            {q.question_type === 'fill_in_the_blank' && (
+                                <div className="pl-10">
+                                    <div className="p-3 rounded-xl bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-900 text-xs text-teal-900 dark:text-teal-200 flex items-center gap-2">
+                                        <Edit3 className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+                                        <span className="font-bold">Accepted Answer(s):</span>
+                                        <span className="font-mono bg-white dark:bg-slate-900 px-2 py-0.5 rounded border border-teal-300 font-bold">
+                                            {Array.isArray(q.correct_answers) ? q.correct_answers.join(' / ') : q.correct_answers}
+                                        </span>
+                                    </div>
                                 </div>
                             )}
 
@@ -517,7 +568,7 @@ export const ExamBuilderPage: React.FC = () => {
                                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 uppercase tracking-wider">
                                     Question Type <span className="text-rose-500">*</span>
                                 </label>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                                     <button
                                         type="button"
                                         onClick={() => setQuestionForm({ ...questionForm, question_type: 'single_choice', correct_answers: [questionForm.options[0]?.id || '1'] })}
@@ -552,6 +603,22 @@ export const ExamBuilderPage: React.FC = () => {
 
                                     <button
                                         type="button"
+                                        onClick={() => setQuestionForm({ ...questionForm, question_type: 'fill_in_the_blank', correct_answers: questionForm.correct_answers.length > 0 ? questionForm.correct_answers : [''] })}
+                                        className={`p-3 rounded-xl text-left border text-xs font-medium transition-all ${
+                                            questionForm.question_type === 'fill_in_the_blank'
+                                                ? 'bg-teal-50 dark:bg-teal-950/60 border-teal-500 text-teal-800 dark:text-teal-200 ring-2 ring-teal-500/20'
+                                                : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
+                                        }`}
+                                    >
+                                        <div className="font-bold flex items-center gap-1.5">
+                                            <Edit3 className="w-3.5 h-3.5 text-teal-600" />
+                                            <span>Fill in Blanks</span>
+                                        </div>
+                                        <p className="text-[11px] text-slate-500 mt-0.5">Missing word / answer</p>
+                                    </button>
+
+                                    <button
+                                        type="button"
                                         onClick={() => setQuestionForm({ ...questionForm, question_type: 'written_paper' })}
                                         className={`p-3 rounded-xl text-left border text-xs font-medium transition-all ${
                                             questionForm.question_type === 'written_paper'
@@ -561,7 +628,7 @@ export const ExamBuilderPage: React.FC = () => {
                                     >
                                         <div className="font-bold flex items-center gap-1.5">
                                             <FileText className="w-3.5 h-3.5 text-amber-500" />
-                                            <span>Upload Paper (Written)</span>
+                                            <span>Upload Paper</span>
                                         </div>
                                         <p className="text-[11px] text-slate-500 mt-0.5">Upload photo or PDF</p>
                                     </button>
@@ -635,7 +702,7 @@ export const ExamBuilderPage: React.FC = () => {
                             </div>
 
                             {/* Options Editor (Only for MCQ Single or Multiple choice) */}
-                            {questionForm.question_type !== 'written_paper' && (
+                            {(questionForm.question_type === 'single_choice' || questionForm.question_type === 'multiple_choice') && (
                                 <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
                                     <div className="flex items-center justify-between">
                                         <div>
@@ -736,6 +803,66 @@ export const ExamBuilderPage: React.FC = () => {
                                                 </div>
                                             );
                                         })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Fill in the Blanks Editor */}
+                            {questionForm.question_type === 'fill_in_the_blank' && (
+                                <div className="space-y-3 pt-2 border-t border-slate-200 dark:border-slate-800">
+                                    <div>
+                                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                            Fill in the Blanks Accepted Answers
+                                        </p>
+                                        <p className="text-[11px] text-slate-400">
+                                            Use <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded font-mono font-bold">____</code> (underscores) or <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded font-mono font-bold">[blank]</code> in your question text. Enter acceptable correct answers below (case-insensitive evaluation):
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        {questionForm.correct_answers.map((ans, idx) => (
+                                            <div key={idx} className="flex items-center gap-2">
+                                                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 w-20">Answer #{idx + 1}:</span>
+                                                <input
+                                                    type="text"
+                                                    value={ans}
+                                                    onChange={e => {
+                                                        const newAnswers = [...questionForm.correct_answers];
+                                                        newAnswers[idx] = e.target.value;
+                                                        setQuestionForm({ ...questionForm, correct_answers: newAnswers });
+                                                    }}
+                                                    placeholder="e.g. Mitochondria"
+                                                    className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium focus:ring-2 focus:ring-sky-500 dark:text-white"
+                                                    required
+                                                />
+                                                {questionForm.correct_answers.length > 1 && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setQuestionForm({
+                                                                ...questionForm,
+                                                                correct_answers: questionForm.correct_answers.filter((_, i) => i !== idx),
+                                                            });
+                                                        }}
+                                                        className="p-1.5 text-slate-400 hover:text-rose-500 rounded-lg cursor-pointer"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        ))}
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setQuestionForm({
+                                                ...questionForm,
+                                                correct_answers: [...questionForm.correct_answers, ''],
+                                            })}
+                                            className="text-xs font-bold text-teal-600 hover:text-teal-500 inline-flex items-center gap-1 mt-1 cursor-pointer"
+                                        >
+                                            <Plus className="w-3.5 h-3.5" />
+                                            <span>Add Acceptable Alternative / Synonym</span>
+                                        </button>
                                     </div>
                                 </div>
                             )}
@@ -892,6 +1019,20 @@ export const ExamBuilderPage: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            {/* AI Question Generator Studio Modal */}
+            <AiQuestionGeneratorModal
+                isOpen={aiModalOpen}
+                onClose={() => setAiModalOpen(false)}
+                examId={id || ''}
+                examTitle={exam?.title || 'Exam'}
+                onQuestionsImported={(newQuestions, newTotal) => {
+                    setQuestions(prev => [...prev, ...newQuestions]);
+                    if (exam) {
+                        setExam({ ...exam, total_marks: newTotal });
+                    }
+                }}
+            />
         </div>
     );
 };

@@ -59,7 +59,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
     const fetchSettings = async () => {
         setLoading(true);
         try {
-            const { data } = await apiClient.get<OpenAiSettings>('/admin/nexpilot/settings');
+            const { data } = await apiClient.get<OpenAiSettings>('/admin/ai/settings');
             setHasExistingKey(Boolean(data.has_api_key));
             setMaskedKey(data.masked_key || '');
             setApiKey(data.api_key || '');
@@ -83,7 +83,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
         const startTime = Date.now();
 
         try {
-            const { data } = await apiClient.post('/admin/nexpilot/test-connection', {
+            const { data } = await apiClient.post('/admin/ai/test-connection', {
                 api_key: apiKey.trim() || undefined
             });
 
@@ -120,7 +120,7 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                 cost_per_1k_output: costOutput,
             };
 
-            await apiClient.post('/admin/nexpilot/settings', payload);
+            await apiClient.post('/admin/ai/settings', payload);
             setSaveSuccess(true);
             await fetchSettings();
             setTimeout(() => setSaveSuccess(false), 4000);
@@ -150,13 +150,13 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                     </div>
                     <div>
                         <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                            <span>AI Model Configuration</span>
+                            <span>AI Configuration</span>
                             <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300">
                                 Global OpenAI
                             </span>
                         </h2>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                            Once connected, this model will be utilized by all NexPilot theory and practice tutors.
+                            Configure global OpenAI API models powering both AI Exam Question Generation and NexPilot Tutors across Monologue Edu.
                         </p>
                     </div>
                 </div>
@@ -381,6 +381,70 @@ export const AdminNexPilotAiConfigPage: React.FC = () => {
                             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                                 Classic legacy model. Effective for general Q&A and basic chat.
                             </p>
+                        </div>
+
+                        {/* Option 5: o1-mini */}
+                        <div
+                            onClick={() => setDefaultModel('o1-mini')}
+                            className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                                defaultModel === 'o1-mini'
+                                    ? 'border-teal-500 bg-teal-50/50 dark:bg-teal-950/30 shadow-xs'
+                                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-slate-50/50 dark:bg-slate-800/40'
+                            }`}
+                        >
+                            <div className="flex items-center justify-between mb-1.5">
+                                <span className="font-black text-sm text-slate-900 dark:text-white font-mono">
+                                    o1-mini
+                                </span>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300">
+                                    STEM Reasoning
+                                </span>
+                            </div>
+                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                Specialized in math, physics, coding and multi-step scientific problems.
+                            </p>
+                        </div>
+
+                        {/* Option 6: o1-preview */}
+                        <div
+                            onClick={() => setDefaultModel('o1-preview')}
+                            className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                                defaultModel === 'o1-preview'
+                                    ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/30 shadow-xs'
+                                    : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 bg-slate-50/50 dark:bg-slate-800/40'
+                            }`}
+                        >
+                            <div className="flex items-center justify-between mb-1.5">
+                                <span className="font-black text-sm text-slate-900 dark:text-white font-mono">
+                                    o1-preview
+                                </span>
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                                    Deep Reasoning
+                                </span>
+                            </div>
+                            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                                Deep thinking for complex academic exams and research-grade problems.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Custom Model Input */}
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                            Selected / Custom Model Identifier:
+                        </label>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="text"
+                                value={defaultModel}
+                                onChange={(e) => setDefaultModel(e.target.value)}
+                                placeholder="e.g. gpt-4o, gpt-4o-mini, ft:gpt-4o-mini:..."
+                                className="w-full sm:max-w-md px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono font-bold focus:ring-2 focus:ring-sky-500 dark:text-white"
+                                required
+                            />
+                            <span className="text-[11px] text-slate-400">
+                                Type any model name or fine-tuned model ID
+                            </span>
                         </div>
                     </div>
                 </div>

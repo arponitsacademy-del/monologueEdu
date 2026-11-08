@@ -355,7 +355,7 @@ export interface ExamQuestion {
     id: number;
     exam_id: number;
     question_text: string;
-    question_type: 'single_choice' | 'multiple_choice' | 'written_paper';
+    question_type: 'single_choice' | 'multiple_choice' | 'written_paper' | 'fill_in_the_blank';
     marks: number;
     attachment_url?: string | null;
     explanation?: string | null;

@@ -69,7 +69,7 @@ class ExamBuilderController extends Controller
 
         $validated = $request->validate([
             'question_text' => ['required', 'string'],
-            'question_type' => ['required', 'in:single_choice,multiple_choice,written_paper'],
+            'question_type' => ['required', 'in:single_choice,multiple_choice,written_paper,fill_in_the_blank'],
             'marks' => ['required', 'numeric', 'min:0.1'],
             'attachment_url' => ['nullable', 'string'],
             'explanation' => ['nullable', 'string'],
@@ -110,7 +110,7 @@ class ExamBuilderController extends Controller
 
         $validated = $request->validate([
             'question_text' => ['required', 'string'],
-            'question_type' => ['required', 'in:single_choice,multiple_choice,written_paper'],
+            'question_type' => ['required', 'in:single_choice,multiple_choice,written_paper,fill_in_the_blank'],
             'marks' => ['required', 'numeric', 'min:0.1'],
             'attachment_url' => ['nullable', 'string'],
             'explanation' => ['nullable', 'string'],

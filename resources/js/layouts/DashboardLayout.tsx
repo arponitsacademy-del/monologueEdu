@@ -51,6 +51,7 @@ export const DashboardLayout: React.FC = () => {
         '/admin/appearance': true,
         '/admin/payments': true,
         '/admin/nexpilot': true,
+        '/admin/ai': true,
         '/admin/exams': true,
         '/teacher/exams': true,
     });
@@ -143,7 +144,14 @@ export const DashboardLayout: React.FC = () => {
                     children: [
                         { title: 'New Pilot', path: '/admin/nexpilot/new' },
                         { title: 'All Pilots', path: '/admin/nexpilot' },
-                        { title: 'AI Model Configuration', path: '/admin/nexpilot/ai-configuration' },
+                    ]
+                },
+                { 
+                    title: 'AI', 
+                    path: '/admin/ai', 
+                    icon: Sparkles,
+                    children: [
+                        { title: 'AI Configuration', path: '/admin/ai/configuration' },
                     ]
                 },
                 { 
