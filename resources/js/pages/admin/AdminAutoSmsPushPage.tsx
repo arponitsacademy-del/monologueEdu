@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { apiClient } from '../../api/client';
 import { CoursePurchaseSmsSetting, CourseSmsTemplate } from '../../types';
 import { 
@@ -15,7 +15,11 @@ import {
     Sparkles, 
     RefreshCw,
     Info,
-    BookOpen
+    BookOpen,
+    ChevronDown,
+    Search,
+    X,
+    Check
 } from 'lucide-react';
 
 interface CourseOption {
@@ -32,6 +36,164 @@ const AVAILABLE_TAGS = [
     { tag: '{site_name}', label: 'Site Name', desc: 'Monologue Edu' },
     { tag: '{login_url}', label: 'Login URL', desc: 'Direct portal login link' },
 ];
+
+/**
+ * Searchable course combobox selector with multi-word search filter.
+ */
+const SearchableCourseSelect: React.FC<{
+    courses: CourseOption[];
+    selectedId: number | '';
+    onSelect: (id: number | '') => void;
+    placeholder?: string;
+}> = ({ courses, selectedId, onSelect, placeholder = '-- Choose a Course --' }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const searchInputRef = useRef<HTMLInputElement>(null);
+
+    const selectedCourse = courses.find(c => c.id === selectedId);
+
+    // Multi-word filtering (e.g. typing "hsc phy" matches "HSC 2026 Physics")
+    const filtered = courses.filter(c => {
+        if (!searchQuery.trim()) return true;
+        const tokens = searchQuery.toLowerCase().trim().split(/\s+/);
+        const titleLower = c.title.toLowerCase();
+        return tokens.every(token => titleLower.includes(token));
+    });
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+            setTimeout(() => searchInputRef.current?.focus(), 60);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen]);
+
+    return (
+        <div ref={dropdownRef} className="relative w-full">
+            {/* Trigger Button */}
+            <div
+                onClick={() => setIsOpen(!isOpen)}
+                className={`w-full px-3.5 py-2.5 bg-white border rounded-xl text-xs flex items-center justify-between gap-2 cursor-pointer transition shadow-2xs ${
+                    isOpen ? 'border-sky-500 ring-2 ring-sky-100' : 'border-slate-200 hover:border-slate-300'
+                }`}
+            >
+                <div className="flex items-center gap-2 min-w-0">
+                    <BookOpen className="w-4 h-4 text-sky-600 shrink-0" />
+                    {selectedCourse ? (
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className="font-bold text-slate-900 truncate">
+                                {selectedCourse.title}
+                            </span>
+                            <span className="text-[10px] px-2 py-0.5 rounded-md font-mono font-bold bg-sky-50 text-sky-700 shrink-0">
+                                ৳{selectedCourse.price}
+                            </span>
+                        </div>
+                    ) : (
+                        <span className="text-slate-400 font-medium">
+                            {placeholder} ({courses.length} courses available)
+                        </span>
+                    )}
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                    {selectedCourse && (
+                        <button
+                            type="button"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onSelect('');
+                            }}
+                            className="p-1 hover:bg-slate-100 rounded-md text-slate-400 hover:text-slate-600 transition"
+                            title="Clear selection"
+                        >
+                            <X className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                </div>
+            </div>
+
+            {/* Dropdown Menu */}
+            {isOpen && (
+                <div className="absolute z-50 left-0 right-0 mt-1.5 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100">
+                    {/* Live Search Input Box */}
+                    <div className="p-2.5 border-b border-slate-100 bg-slate-50">
+                        <div className="relative">
+                            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input
+                                ref={searchInputRef}
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Type to search (e.g. Physics, Math, HSC)..."
+                                className="w-full pl-8 pr-7 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            />
+                            {searchQuery && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchQuery('')}
+                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                >
+                                    <X className="w-3.5 h-3.5" />
+                                </button>
+                            )}
+                        </div>
+                        {searchQuery && (
+                            <span className="text-[10px] text-slate-400 block px-1 pt-1.5 font-medium">
+                                Found {filtered.length} matching course{filtered.length === 1 ? '' : 's'}
+                            </span>
+                        )}
+                    </div>
+
+                    {/* Scrollable Course List */}
+                    <div className="max-h-60 overflow-y-auto divide-y divide-slate-100 p-1">
+                        {filtered.length === 0 ? (
+                            <div className="p-6 text-center text-slate-400 text-xs">
+                                No courses found matching "{searchQuery}"
+                            </div>
+                        ) : (
+                            filtered.map((course) => {
+                                const isSelected = course.id === selectedId;
+                                return (
+                                    <div
+                                        key={course.id}
+                                        onClick={() => {
+                                            onSelect(course.id);
+                                            setIsOpen(false);
+                                            setSearchQuery('');
+                                        }}
+                                        className={`px-3 py-2.5 rounded-xl flex items-center justify-between gap-2.5 cursor-pointer transition ${
+                                            isSelected ? 'bg-sky-50 text-sky-950 font-bold' : 'hover:bg-slate-50 text-slate-800'
+                                        }`}
+                                    >
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span className="text-xs truncate">{course.title}</span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <span className="text-[11px] font-mono font-bold text-slate-500">
+                                                ৳{course.price}
+                                            </span>
+                                            {isSelected && <Check className="w-4 h-4 text-sky-600" />}
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 export const AdminAutoSmsPushPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
@@ -399,19 +561,12 @@ export const AdminAutoSmsPushPage: React.FC = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-slate-700 mb-1">Select Course *</label>
-                            <select
-                                value={selectedCourseId}
-                                onChange={(e) => setSelectedCourseId(e.target.value ? Number(e.target.value) : '')}
-                                className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-sky-500"
-                                required
-                            >
-                                <option value="">-- Choose a Course ({courses.length > 0 ? `${courses.length} courses available` : 'Loading...'}) --</option>
-                                {courses.map(c => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.title} (৳{c.price})
-                                    </option>
-                                ))}
-                            </select>
+                            <SearchableCourseSelect
+                                courses={courses}
+                                selectedId={selectedCourseId}
+                                onSelect={(id) => setSelectedCourseId(id)}
+                                placeholder="-- Choose a Course --"
+                            />
                         </div>
 
                         <div>
