@@ -165,6 +165,30 @@ class WebsiteSetting extends Model
         }
 
         // Ensure defaults if existing record was created prior to columns
+        if ($setting->site_name === 'Novonex Academy') {
+            $header = $setting->header_settings ?? [];
+            if (isset($header['brand_title']) && $header['brand_title'] === 'Novonex') {
+                $header['brand_title'] = 'Monologue';
+                $header['brand_subtitle'] = 'Edu';
+            }
+            $footer = $setting->footer_settings ?? [];
+            if (isset($footer['brand_title']) && $footer['brand_title'] === 'Novonex') {
+                $footer['brand_title'] = 'Monologue';
+                $footer['brand_subtitle'] = 'Edu';
+                $footer['email'] = 'support@monologueedu.com';
+                $footer['copyright_text'] = '© 2026 Monologue Edu. All rights reserved.';
+            }
+
+            $setting->update([
+                'site_name' => 'Monologue Edu',
+                'site_tagline' => 'Premier Online Learning & EdTech Platform',
+                'contact_email' => 'support@monologueedu.com',
+                'copyright_text' => '© 2026 Monologue Edu. All rights reserved.',
+                'header_settings' => $header,
+                'footer_settings' => $footer,
+            ]);
+        }
+
         if (empty($setting->header_settings)) {
             $setting->header_settings = static::defaultHeaderSettings();
         }
