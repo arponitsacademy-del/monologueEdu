@@ -1,20 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useSettings } from '../../context/SettingsContext';
 import { ThemeSwitcher } from '../ui/ThemeSwitcher';
 import { getLocalizedText } from '../../utils/localization';
 import { 
+    Home,
+    GraduationCap, 
     BookOpen, 
+    FileText, 
+    Users, 
+    ClipboardList,
+    Search,
     Menu, 
     X, 
     User as UserIcon, 
     LayoutDashboard, 
     LogOut, 
-    Bell, 
     ChevronDown,
-    Sparkles
+    Sparkles,
+    Boxes,
+    PhoneCall,
+    BookMarked
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -22,19 +30,25 @@ export const Navbar: React.FC = () => {
     const { t, language } = useLanguage();
     const { settings, loading } = useSettings();
     const navigate = useNavigate();
+    const location = useLocation();
+
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+    const [coursesDropdownOpen, setCoursesDropdownOpen] = useState(false);
+    const [booksDropdownOpen, setBooksDropdownOpen] = useState(false);
+    const [searchModalOpen, setSearchModalOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
     const [logoError, setLogoError] = useState(false);
 
     const headerSettings = settings?.header_settings;
     const logoUrl = headerSettings?.logo_url ?? settings?.logo_url;
-    const logoHeight = headerSettings?.logo_height || 44;
+    const logoHeight = headerSettings?.logo_height || 42;
 
     const brandTitle = getLocalizedText(
         headerSettings?.brand_title,
         headerSettings?.brand_title_en,
         language
-    ) || (settings?.site_name ? settings.site_name.split(' ')[0] : 'Monologue');
+    ) || (settings?.site_name ? settings.site_name.split(' ')[0] : 'MONOLOGUE');
 
     const brandSubtitle = getLocalizedText(
         headerSettings?.brand_subtitle,
@@ -42,35 +56,20 @@ export const Navbar: React.FC = () => {
         language
     ) || (settings?.site_name && settings.site_name.split(' ').length > 1
         ? settings.site_name.split(' ').slice(1).join(' ')
-        : 'Edu');
-
-    const announcementText = getLocalizedText(
-        headerSettings?.announcement_text,
-        headerSettings?.announcement_text_en,
-        language
-    );
-
-    const ctaText = getLocalizedText(
-        headerSettings?.cta_button_text,
-        headerSettings?.cta_button_text_en,
-        language
-    ) || 'Enroll Now';
-
-    const rawMenuItems = headerSettings?.menu_items && headerSettings.menu_items.length > 0
-        ? headerSettings.menu_items
-        : [
-            { id: '1', label: t.nav.home, url: '/', is_external: false, highlight: false },
-            { id: '2', label: t.nav.allCourses, url: '/courses', is_external: false, highlight: true }
-        ];
-
-    const menuItems = rawMenuItems.map((item) => ({
-        ...item,
-        label: getLocalizedText(item.label, item.label_en, language) || item.label,
-    }));
+        : 'EDU');
 
     useEffect(() => {
         setLogoError(false);
     }, [logoUrl]);
+
+    // Close dropdowns on route change
+    useEffect(() => {
+        setMobileMenuOpen(false);
+        setCoursesDropdownOpen(false);
+        setBooksDropdownOpen(false);
+        setUserDropdownOpen(false);
+        setSearchModalOpen(false);
+    }, [location.pathname]);
 
     const getDashboardPath = () => {
         if (!user) return '/login';
@@ -79,264 +78,465 @@ export const Navbar: React.FC = () => {
         return '/student';
     };
 
-    return (
-        <header className={`${headerSettings?.sticky !== false ? 'sticky top-0' : 'relative'} z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 shadow-xs transition-colors duration-150`}>
-            {/* Optional Announcement Notice Bar */}
-            {headerSettings?.announcement_enabled && (
-                <div
-                    style={{ backgroundColor: headerSettings.announcement_bg || '#0284c7' }}
-                    className="px-4 py-2 text-white text-xs sm:text-sm font-semibold text-center flex items-center justify-center gap-2"
-                >
-                    <span>{announcementText}</span>
-                    {headerSettings.announcement_link && (
-                        <a
-                            href={headerSettings.announcement_link}
-                            className="underline font-bold hover:opacity-90 inline-flex items-center gap-1 text-xs"
-                        >
-                            <span>View Details</span>
-                            <span>→</span>
-                        </a>
-                    )}
-                </div>
-            )}
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/courses?search=${encodeURIComponent(searchQuery.trim())}`);
+            setSearchModalOpen(false);
+            setSearchQuery('');
+        }
+    };
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-20">
-                    {/* Brand Logo */}
-                    <Link to="/" className="flex items-center gap-3 group shrink-0 min-h-[44px]">
+    const isHome = location.pathname === '/';
+
+    return (
+        <header className={`${headerSettings?.sticky !== false ? 'sticky top-0' : 'relative'} z-50 py-2 sm:py-3.5 px-3 sm:px-6 lg:px-8 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md transition-all`}>
+            {/* Bondi Pathshala Style Floating Capsule Navbar */}
+            <div className="max-w-7xl mx-auto bg-white dark:bg-slate-900 rounded-full border border-slate-200/80 dark:border-slate-800 shadow-md shadow-sky-500/5 relative overflow-hidden flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2">
+                {/* Left Side Organic Wavy Blue Gradient Accent */}
+                <svg
+                    className="absolute left-0 top-0 bottom-0 h-full w-24 sm:w-36 pointer-events-none select-none -z-0 rounded-l-full overflow-hidden"
+                    viewBox="0 0 140 60"
+                    preserveAspectRatio="none"
+                    fill="none"
+                >
+                    <path
+                        d="M0 0 H55 C80 15, 65 45, 115 60 H0 Z"
+                        fill="url(#bpLeftBlueGradient)"
+                        opacity="0.95"
+                    />
+                    <path
+                        d="M0 0 H40 C60 18, 50 38, 90 60 H0 Z"
+                        fill="#0284c7"
+                        opacity="0.45"
+                    />
+                    <path
+                        d="M0 10 C30 5, 45 40, 75 60 H0 Z"
+                        fill="#0369a1"
+                        opacity="0.3"
+                    />
+                    <defs>
+                        <linearGradient id="bpLeftBlueGradient" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor="#0284c7" />
+                            <stop offset="50%" stopColor="#38bdf8" />
+                            <stop offset="100%" stopColor="#7dd3fc" stopOpacity="0.85" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+
+                {/* Right Side Organic Wavy Orange/Amber Gradient Accent */}
+                <svg
+                    className="absolute right-0 top-0 bottom-0 h-full w-24 sm:w-40 pointer-events-none select-none -z-0 rounded-r-full overflow-hidden"
+                    viewBox="0 0 150 60"
+                    preserveAspectRatio="none"
+                    fill="none"
+                >
+                    <path
+                        d="M150 0 H80 C50 15, 70 45, 25 60 H150 Z"
+                        fill="url(#bpRightOrangeGradient)"
+                        opacity="0.95"
+                    />
+                    <path
+                        d="M150 0 H95 C75 18, 85 38, 45 60 H150 Z"
+                        fill="#f59e0b"
+                        opacity="0.4"
+                    />
+                    <defs>
+                        <linearGradient id="bpRightOrangeGradient" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stopColor="#f59e0b" />
+                            <stop offset="55%" stopColor="#fb923c" />
+                            <stop offset="100%" stopColor="#ea580c" />
+                        </linearGradient>
+                    </defs>
+                </svg>
+
+                {/* Brand Logo (Left) */}
+                <div className="relative z-10 pl-2 sm:pl-3 flex items-center shrink-0">
+                    <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group">
                         {logoUrl && !logoError ? (
                             <img
                                 src={logoUrl}
-                                alt={settings?.site_name || 'Novonex Academy'}
+                                alt={settings?.site_name || 'Monologue Edu'}
                                 onError={() => setLogoError(true)}
                                 style={{ height: `${logoHeight}px` }}
-                                className="w-auto max-w-[170px] sm:max-w-[220px] object-contain group-hover:scale-105 transition-transform"
+                                className="w-auto max-w-[140px] sm:max-w-[190px] object-contain group-hover:scale-105 transition-transform drop-shadow-xs"
                             />
                         ) : loading ? (
-                            <div style={{ height: `${logoHeight}px`, width: '130px' }} className="shrink-0" />
+                            <div style={{ height: `${logoHeight}px`, width: '120px' }} className="shrink-0" />
                         ) : (
-                            <>
-                                <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform">
-                                    <BookOpen className="w-6 h-6" />
+                            <div className="flex items-center gap-2">
+                                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white text-indigo-700 shadow-md flex items-center justify-center font-black group-hover:rotate-6 transition-transform">
+                                    <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-sky-600" />
                                 </div>
-                                <div>
-                                    <span className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 dark:from-white dark:via-sky-200 dark:to-white bg-clip-text text-transparent">
+                                <div className="flex flex-col leading-none">
+                                    <span className="text-base sm:text-xl font-black tracking-tight text-white drop-shadow-xs">
                                         {brandTitle}
                                     </span>
-                                    <span className="block text-[11px] font-semibold text-sky-600 dark:text-sky-400 tracking-wider uppercase -mt-1">
+                                    <span className="text-[10px] sm:text-xs font-black tracking-widest text-amber-300 drop-shadow-xs">
                                         {brandSubtitle}
                                     </span>
                                 </div>
-                            </>
+                            </div>
                         )}
                     </Link>
-
-                    {/* Desktop Navigation Links */}
-                    <nav className="hidden md:flex items-center gap-8">
-                        {menuItems.map((item) => (
-                            item.is_external ? (
-                                <a
-                                    key={item.id}
-                                    href={item.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-base font-semibold text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 transition-colors flex items-center gap-1.5"
-                                >
-                                    {item.highlight && <Sparkles className="w-4 h-4 text-sky-500" />}
-                                    <span>{item.label}</span>
-                                </a>
-                            ) : (
-                                <Link
-                                    key={item.id}
-                                    to={item.url}
-                                    className="text-base font-semibold text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 transition-colors flex items-center gap-1.5"
-                                >
-                                    {item.highlight && <Sparkles className="w-4 h-4 text-sky-500" />}
-                                    <span>{item.label}</span>
-                                </Link>
-                            )
-                        ))}
-                    </nav>
-
-                    {/* Right Action Buttons */}
-                    <div className="hidden md:flex items-center gap-3">
-                        {/* Custom CTA Button */}
-                        {headerSettings?.cta_button_enabled && (
-                            <a
-                                href={headerSettings.cta_button_link || '/courses'}
-                                className="px-4 py-2 text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-xs transition"
-                            >
-                                {ctaText}
-                            </a>
-                        )}
-
-                        {/* Theme Switcher */}
-                        {headerSettings?.show_theme_toggle !== false && (
-                            <ThemeSwitcher variant="compact" />
-                        )}
-
-                        {headerSettings?.show_auth_buttons !== false && (
-                            user ? (
-                                <div className="relative">
-                                    <button
-                                        onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                                        className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-colors"
-                                    >
-                                        <div className="w-9 h-9 rounded-lg bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-bold flex items-center justify-center text-sm">
-                                            {user.name.charAt(0)}
-                                        </div>
-                                        <div className="text-left">
-                                            <div className="text-sm font-bold text-slate-800 dark:text-slate-100 leading-tight">
-                                                {user.name}
-                                            </div>
-                                            <div className="text-[11px] font-medium text-slate-500 dark:text-slate-400 capitalize">
-                                                {user.role === 'admin' ? t.nav.adminPanel : user.role === 'teacher' ? t.nav.instructorPortal : t.nav.studentHub}
-                                            </div>
-                                        </div>
-                                        <ChevronDown className="w-4 h-4 text-slate-400" />
-                                    </button>
-
-                                    {userDropdownOpen && (
-                                        <div 
-                                            className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
-                                            onMouseLeave={() => setUserDropdownOpen(false)}
-                                        >
-                                            <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
-                                                <p className="text-xs font-medium text-slate-400">Signed in as:</p>
-                                                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{user.phone}</p>
-                                            </div>
-                                            <Link
-                                                to={getDashboardPath()}
-                                                onClick={() => setUserDropdownOpen(false)}
-                                                className="flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
-                                            >
-                                                <LayoutDashboard className="w-4 h-4" />
-                                                {t.nav.dashboard}
-                                            </Link>
-                                            <button
-                                                onClick={() => {
-                                                    setUserDropdownOpen(false);
-                                                    logout();
-                                                }}
-                                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors text-left cursor-pointer"
-                                            >
-                                                <LogOut className="w-4 h-4" />
-                                                {t.nav.logout}
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-3">
-                                    <Link
-                                        to="/login"
-                                        className="px-5 py-2.5 text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
-                                    >
-                                        {t.nav.login}
-                                    </Link>
-                                    <Link
-                                        to="/register"
-                                        className="px-6 py-2.5 text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-md shadow-sky-600/20 hover:shadow-lg hover:shadow-sky-600/30 transition-all transform active:scale-95"
-                                    >
-                                        {t.nav.register}
-                                    </Link>
-                                </div>
-                            )
-                        )}
-                    </div>
-
-                    {/* Mobile Controls & Hamburger Button */}
-                    <div className="flex md:hidden items-center gap-2">
-                        {headerSettings?.show_theme_toggle !== false && (
-                            <ThemeSwitcher variant="compact" />
-                        )}
-                        <button
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                            className="p-2 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800"
-                        >
-                            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-                        </button>
-                    </div>
                 </div>
-            </div>
 
-            {/* Mobile Drawer */}
-            {mobileMenuOpen && (
-                <div className="md:hidden border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 pt-3 pb-6 space-y-3 animate-in slide-in-from-top duration-200">
+                {/* Center Navigation Menu Items (Bondi Pathshala Style) */}
+                <nav className="hidden lg:flex items-center gap-1 sm:gap-1.5 relative z-10 px-2">
+                    {/* হোম (Home) - Active Pill Style */}
+                    <Link
+                        to="/"
+                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-xs sm:text-sm transition-all ${
+                            isHome
+                                ? 'bg-sky-100/90 text-sky-700 dark:bg-sky-950/80 dark:text-sky-300 shadow-2xs font-extrabold'
+                                : 'text-slate-700 dark:text-slate-200 hover:text-sky-600 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        }`}
+                    >
+                        <Home className={`w-4 h-4 ${isHome ? 'text-sky-600 fill-sky-600' : 'text-slate-400'}`} />
+                        <span>হোম</span>
+                    </Link>
+
+                    {/* কোর্সসমূহ (Courses) with Dropdown */}
+                    <div
+                        className="relative"
+                        onMouseEnter={() => setCoursesDropdownOpen(true)}
+                        onMouseLeave={() => setCoursesDropdownOpen(false)}
+                    >
+                        <Link
+                            to="/courses"
+                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        >
+                            <GraduationCap className="w-4 h-4 text-indigo-500" />
+                            <span>কোর্সসমূহ</span>
+                            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${coursesDropdownOpen ? 'rotate-180' : ''}`} />
+                        </Link>
+
+                        {/* Courses Dropdown Menu */}
+                        {coursesDropdownOpen && (
+                            <div className="absolute left-0 mt-1 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                                <Link
+                                    to="/courses"
+                                    className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
+                                >
+                                    <Sparkles className="w-4 h-4 text-sky-500" />
+                                    <span>সকল কোর্সসমূহ</span>
+                                </Link>
+                                <Link
+                                    to="/courses"
+                                    className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
+                                >
+                                    <BookOpen className="w-4 h-4 text-indigo-500" />
+                                    <span>HSC একাডেমিক সাইকেল</span>
+                                </Link>
+                                <Link
+                                    to="/courses"
+                                    className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
+                                >
+                                    <GraduationCap className="w-4 h-4 text-purple-500" />
+                                    <span>ইঞ্জিনিয়ারিং ও ভার্সিটি ভর্তি</span>
+                                </Link>
+                                <Link
+                                    to="/courses?type=free"
+                                    className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
+                                >
+                                    <FileText className="w-4 h-4 text-emerald-500" />
+                                    <span>ফ্রি ট্রায়াল ক্লাস</span>
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* বইসমূহ / বান্ডেল (Books / Bundles) with Dropdown */}
+                    <div
+                        className="relative"
+                        onMouseEnter={() => setBooksDropdownOpen(true)}
+                        onMouseLeave={() => setBooksDropdownOpen(false)}
+                    >
+                        <Link
+                            to="/courses"
+                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        >
+                            <BookOpen className="w-4 h-4 text-sky-500" />
+                            <span>বইসমূহ</span>
+                            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${booksDropdownOpen ? 'rotate-180' : ''}`} />
+                        </Link>
+
+                        {/* Books / Bundles Dropdown */}
+                        {booksDropdownOpen && (
+                            <div className="absolute left-0 mt-1 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                                <Link
+                                    to="/courses"
+                                    className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
+                                >
+                                    <Boxes className="w-4 h-4 text-amber-500" />
+                                    <span>কম্বো কোর্স বান্ডেল</span>
+                                </Link>
+                                <Link
+                                    to="/courses"
+                                    className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
+                                >
+                                    <FileText className="w-4 h-4 text-indigo-500" />
+                                    <span>লেকচার শিট ও নোটবুক</span>
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* ফ্রি রিসোর্স (Free Resources) */}
+                    <Link
+                        to="/courses?type=free"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                        <FileText className="w-4 h-4 text-emerald-500" />
+                        <span>ফ্রি রিসোর্স</span>
+                    </Link>
+
+                    {/* যোগাযোগ (Contact) */}
+                    <Link
+                        to="/p/contact"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                        <Users className="w-4 h-4 text-purple-500" />
+                        <span>যোগাযোগ</span>
+                    </Link>
+
+                    {/* ই-বুক / মডেল টেস্ট (E-book / Exams) */}
+                    <Link
+                        to="/student/exams"
+                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    >
+                        <ClipboardList className="w-4 h-4 text-sky-500" />
+                        <span>ই-বুক</span>
+                    </Link>
+                </nav>
+
+                {/* Right Side Actions (Search, Login & Enroll CTA Buttons) */}
+                <div className="relative z-10 flex items-center gap-2 sm:gap-3 pr-1 sm:pr-2 shrink-0">
+                    {/* Search Icon Button */}
+                    <button
+                        type="button"
+                        onClick={() => setSearchModalOpen(true)}
+                        className="p-2 sm:p-2.5 text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer"
+                        title="কোর্স খুঁজুন"
+                    >
+                        <Search className="w-4 h-4 sm:w-5 sm:h-5" />
+                    </button>
+
+                    {/* Theme switcher */}
                     {headerSettings?.show_theme_toggle !== false && (
-                        <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-                            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">{t.theme.theme}:</span>
-                            <ThemeSwitcher variant="pill" />
+                        <div className="hidden sm:block">
+                            <ThemeSwitcher variant="compact" />
                         </div>
                     )}
 
-                    {menuItems.map((item) => (
-                        item.is_external ? (
-                            <a
-                                key={item.id}
-                                href={item.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => setMobileMenuOpen(false)}
-                                className="flex items-center justify-between px-3 py-2 text-base font-semibold text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
+                    {/* Authentication and CTA Buttons */}
+                    {user ? (
+                        <div className="relative">
+                            <button
+                                type="button"
+                                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                                className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/90 dark:bg-slate-800/90 text-slate-800 dark:text-white border border-slate-200/90 dark:border-slate-700 shadow-xs hover:border-sky-400 transition-all cursor-pointer"
                             >
-                                <span>{item.label}</span>
-                                {item.highlight && <Sparkles className="w-4 h-4 text-sky-500" />}
-                            </a>
-                        ) : (
-                            <Link
-                                key={item.id}
-                                to={item.url}
-                                onClick={() => setMobileMenuOpen(false)}
-                                className="flex items-center justify-between px-3 py-2 text-base font-semibold text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
-                            >
-                                <span>{item.label}</span>
-                                {item.highlight && <Sparkles className="w-4 h-4 text-sky-500" />}
-                            </Link>
-                        )
-                    ))}
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center">
+                                    {user.name.charAt(0).toUpperCase()}
+                                </div>
+                                <span className="font-extrabold text-xs sm:text-sm hidden sm:inline max-w-[100px] truncate">
+                                    {user.name.split(' ')[0]}
+                                </span>
+                                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                            </button>
 
-                    {headerSettings?.show_auth_buttons !== false && (
-                        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                            {user ? (
-                                <>
+                            {/* User Profile Dropdown */}
+                            {userDropdownOpen && (
+                                <div 
+                                    className="absolute right-0 mt-2 w-52 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                                    onMouseLeave={() => setUserDropdownOpen(false)}
+                                >
+                                    <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 mb-1">
+                                        <p className="text-[11px] font-medium text-slate-400">Signed in:</p>
+                                        <p className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{user.name}</p>
+                                        <p className="text-[11px] font-mono text-slate-500 truncate">{user.phone}</p>
+                                    </div>
                                     <Link
                                         to={getDashboardPath()}
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="block w-full py-2.5 text-center font-bold text-white bg-sky-600 rounded-xl shadow-sm"
+                                        onClick={() => setUserDropdownOpen(false)}
+                                        className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
                                     >
-                                        {t.nav.dashboard} ({user.name})
+                                        <LayoutDashboard className="w-4 h-4 text-indigo-500" />
+                                        <span>{t.nav.dashboard}</span>
                                     </Link>
                                     <button
+                                        type="button"
                                         onClick={() => {
-                                            setMobileMenuOpen(false);
+                                            setUserDropdownOpen(false);
                                             logout();
                                         }}
-                                        className="block w-full py-2.5 text-center font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 rounded-xl cursor-pointer"
+                                        className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors text-left cursor-pointer"
                                     >
-                                        {t.nav.logout}
+                                        <LogOut className="w-4 h-4" />
+                                        <span>{t.nav.logout}</span>
                                     </button>
-                                </>
-                            ) : (
-                                <div className="grid grid-cols-2 gap-3">
-                                    <Link
-                                        to="/login"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="py-2.5 text-center font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-xl"
-                                    >
-                                        {t.nav.login}
-                                    </Link>
-                                    <Link
-                                        to="/register"
-                                        onClick={() => setMobileMenuOpen(false)}
-                                        className="py-2.5 text-center font-bold text-white bg-sky-600 rounded-xl shadow-sm"
-                                    >
-                                        {t.nav.register}
-                                    </Link>
                                 </div>
                             )}
                         </div>
+                    ) : (
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                            {/* লগইন (Login) Pill Button */}
+                            <Link
+                                to="/login"
+                                className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-extrabold text-white bg-gradient-to-r from-sky-500 via-sky-600 to-blue-600 hover:from-sky-600 hover:to-blue-700 shadow-md shadow-sky-500/25 transition-all transform active:scale-95 cursor-pointer"
+                            >
+                                লগইন
+                            </Link>
+
+                            {/* এখনই শুরু করুন (Get Started) Orange/Amber Pill Button */}
+                            <Link
+                                to="/courses"
+                                className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-extrabold text-white bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500 hover:from-orange-600 hover:to-amber-600 shadow-md shadow-orange-500/25 transition-all transform active:scale-95 cursor-pointer whitespace-nowrap hidden sm:inline-flex"
+                            >
+                                এখনই শুরু করুন
+                            </Link>
+                        </div>
                     )}
+
+                    {/* Mobile Hamburger Button */}
+                    <button
+                        type="button"
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="p-2 text-slate-700 dark:text-slate-200 hover:text-sky-600 lg:hidden rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                    >
+                        {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                    </button>
+                </div>
+            </div>
+
+            {/* Mobile Drawer (Bondi Pathshala Style) */}
+            {mobileMenuOpen && (
+                <div className="lg:hidden mt-2 max-w-7xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-4 shadow-xl space-y-2 animate-in slide-in-from-top-2 duration-200">
+                    <Link
+                        to="/"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
+                    >
+                        <Home className="w-4 h-4 text-sky-600" />
+                        <span>হোম</span>
+                    </Link>
+
+                    <Link
+                        to="/courses"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
+                    >
+                        <GraduationCap className="w-4 h-4 text-indigo-500" />
+                        <span>কোর্সসমূহ</span>
+                    </Link>
+
+                    <Link
+                        to="/courses"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
+                    >
+                        <BookOpen className="w-4 h-4 text-sky-500" />
+                        <span>বইসমূহ ও বান্ডেল</span>
+                    </Link>
+
+                    <Link
+                        to="/courses?type=free"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
+                    >
+                        <FileText className="w-4 h-4 text-emerald-500" />
+                        <span>ফ্রি রিসোর্স</span>
+                    </Link>
+
+                    <Link
+                        to="/student/exams"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
+                    >
+                        <ClipboardList className="w-4 h-4 text-purple-500" />
+                        <span>ই-বুক ও অনলাইন এক্সাম</span>
+                    </Link>
+
+                    <Link
+                        to="/p/contact"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
+                    >
+                        <Users className="w-4 h-4 text-amber-500" />
+                        <span>যোগাযোগ</span>
+                    </Link>
+
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+                        {user ? (
+                            <Link
+                                to={getDashboardPath()}
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="w-full py-2.5 text-center font-bold text-white bg-indigo-600 rounded-full text-xs shadow-sm"
+                            >
+                                ড্যাশবোর্ড ({user.name.split(' ')[0]})
+                            </Link>
+                        ) : (
+                            <div className="grid grid-cols-2 gap-2 w-full">
+                                <Link
+                                    to="/login"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="py-2.5 text-center font-bold text-white bg-sky-600 rounded-full text-xs shadow-sm"
+                                >
+                                    লগইন
+                                </Link>
+                                <Link
+                                    to="/courses"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="py-2.5 text-center font-bold text-white bg-gradient-to-r from-orange-500 to-amber-500 rounded-full text-xs shadow-sm"
+                                >
+                                    এখনই শুরু করুন
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Quick Search Modal */}
+            {searchModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 px-4 bg-black/60 backdrop-blur-xs">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 relative animate-in fade-in zoom-in-95 duration-150">
+                        <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center gap-2 font-bold text-slate-800 dark:text-white text-sm">
+                                <Search className="w-4 h-4 text-sky-600" />
+                                <span>কোর্স বা বিষয় খুঁজুন</span>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setSearchModalOpen(false)}
+                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSearchSubmit} className="mt-4 space-y-3">
+                            <div className="relative">
+                                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <input
+                                    type="text"
+                                    autoFocus
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="কোর্সের নাম লিখুন (যেমন: HSC Physics, Math...)"
+                                    className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm focus:ring-2 focus:ring-sky-500 dark:text-white"
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                className="w-full py-3 bg-sky-600 hover:bg-sky-700 text-white font-bold rounded-2xl text-xs sm:text-sm shadow-md transition-all cursor-pointer"
+                            >
+                                সার্চ করুন
+                            </button>
+                        </form>
+                    </div>
                 </div>
             )}
         </header>
