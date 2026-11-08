@@ -32,6 +32,7 @@ class TeacherPublicController extends Controller
                     'institution' => $profile?->institution ?? 'Monologue Edu Faculty',
                     'photo_url' => $profile?->photo_url,
                     'bio' => $profile?->bio,
+                    'expertise' => $profile?->expertise,
                     'is_featured' => $profile?->is_featured ?? true,
                     'courses_count' => $teacher->instructed_courses_count,
                 ];

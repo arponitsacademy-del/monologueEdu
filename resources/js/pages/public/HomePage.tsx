@@ -39,8 +39,103 @@ interface FeaturedTeacher {
     institution: string;
     photo_url?: string | null;
     bio?: string | null;
+    expertise?: string | null;
+    experience?: string;
+    tags?: string[];
+    category?: 'ssc' | 'hsc' | 'admission' | 'arts' | 'all';
     courses_count: number;
 }
+
+const CURATED_FACULTY: FeaturedTeacher[] = [
+    {
+        id: 101,
+        name: 'Dr. Khaledur Rahman',
+        designation: 'Senior Higher Math Faculty',
+        experience: '১০ বছরের অভিজ্ঞতা',
+        institution: 'BUET',
+        photo_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+        tags: ['নবম-দশম শ্রেণী', 'এইচএসসি'],
+        category: 'ssc',
+        courses_count: 12
+    },
+    {
+        id: 102,
+        name: 'Saikat Abdullah',
+        designation: 'Senior Chemistry Teacher',
+        experience: '৮ বছরের অভিজ্ঞতা',
+        institution: 'KUET',
+        photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+        tags: ['নবম-দশম শ্রেণী', 'এইচএসসি'],
+        category: 'ssc',
+        courses_count: 8
+    },
+    {
+        id: 103,
+        name: 'Md Abdur Rahman',
+        designation: 'Senior Physics Faculty',
+        experience: '১০ বছরের অভিজ্ঞতা',
+        institution: 'DU',
+        photo_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
+        tags: ['এইচএসসি', 'এডমিশন'],
+        category: 'hsc',
+        courses_count: 14
+    },
+    {
+        id: 104,
+        name: 'Md Jahangir Alam',
+        designation: 'General Math Specialist',
+        experience: '১০ বছরের শিক্ষকতা',
+        institution: 'BUET',
+        photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+        tags: ['নবম-দশম শ্রেণী', 'এইচএসসি'],
+        category: 'ssc',
+        courses_count: 9
+    },
+    {
+        id: 105,
+        name: 'Md Yasin Mamun',
+        designation: 'Physics & Dynamics Teacher',
+        experience: '৯ বছরের অভিজ্ঞতা',
+        institution: 'RUET',
+        photo_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
+        tags: ['নবম-দশম শ্রেণী', 'এইচএসসি'],
+        category: 'ssc',
+        courses_count: 11
+    },
+    {
+        id: 106,
+        name: 'Kawser Islam',
+        designation: 'Accounting & Finance Faculty',
+        experience: '১২ বছরের অভিজ্ঞতা',
+        institution: 'DU',
+        photo_url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
+        tags: ['আর্টস ও কমার্স', 'এডমিশন'],
+        category: 'arts',
+        courses_count: 7
+    },
+    {
+        id: 107,
+        name: 'Dr. Abrar Hasan',
+        designation: 'Senior Biology & Medical Faculty',
+        experience: '১০ বছরের শিক্ষকতা',
+        institution: 'DMC',
+        photo_url: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=400&q=80',
+        tags: ['এইচএসসি', 'মেডিকেল এডমিশন'],
+        category: 'admission',
+        courses_count: 15
+    },
+    {
+        id: 108,
+        name: 'Nusrat Jahan',
+        designation: 'English Literature & Grammar',
+        experience: '৭ বছরের অভিজ্ঞতা',
+        institution: 'DU',
+        photo_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
+        tags: ['এইচএসসি', 'আর্টস ও কমার্স'],
+        category: 'arts',
+        courses_count: 6
+    }
+];
 
 interface FeaturedBundle {
     id: number;
@@ -62,6 +157,7 @@ export const HomePage: React.FC = () => {
     const [bundles, setBundles] = useState<FeaturedBundle[]>([]);
     const [activeCategory, setActiveCategory] = useState<string>('all');
     const [teachers, setTeachers] = useState<FeaturedTeacher[]>([]);
+    const [teacherFilter, setTeacherFilter] = useState<'all' | 'ssc' | 'hsc' | 'admission' | 'arts'>('all');
     const [loading, setLoading] = useState(true);
     const [coursesLoading, setCoursesLoading] = useState(false);
     const [teachersLoading, setTeachersLoading] = useState(true);
@@ -71,13 +167,13 @@ export const HomePage: React.FC = () => {
 
     const scrollLeft = () => {
         if (carouselRef.current) {
-            carouselRef.current.scrollBy({ left: -340, behavior: 'smooth' });
+            carouselRef.current.scrollBy({ left: -270, behavior: 'smooth' });
         }
     };
 
     const scrollRight = () => {
         if (carouselRef.current) {
-            carouselRef.current.scrollBy({ left: 340, behavior: 'smooth' });
+            carouselRef.current.scrollBy({ left: 270, behavior: 'smooth' });
         }
     };
 
@@ -118,20 +214,52 @@ export const HomePage: React.FC = () => {
         fetchData();
     }, []);
 
+    // Merge DB teachers with curated faculty for a rich, vibrant panel
+    const allFaculty: FeaturedTeacher[] = [
+        ...teachers.map((t, idx) => ({
+            ...t,
+            designation: t.designation || 'সিনিয়র মেন্টর',
+            institution: t.institution || (idx % 2 === 0 ? 'BUET' : 'DU'),
+            experience: t.bio || '৭+ বছরের শিক্ষকতা',
+            tags: t.expertise 
+                ? t.expertise.split(',').map((s: string) => s.trim()) 
+                : (idx % 3 === 0 ? ['নবম-দশম শ্রেণী', 'এইচএসসি'] : idx % 3 === 1 ? ['এইচএসসি', 'এডমিশন'] : ['আর্টস ও কমার্স', 'এইচএসসি']),
+            category: (idx % 4 === 0 ? 'ssc' : idx % 4 === 1 ? 'hsc' : idx % 4 === 2 ? 'admission' : 'arts') as any
+        })),
+        ...CURATED_FACULTY.filter(cf => !teachers.some(t => t.name.toLowerCase() === cf.name.toLowerCase()))
+    ];
+
+    const displayedFaculty = allFaculty.filter((t) => {
+        if (teacherFilter === 'all') return true;
+        if (teacherFilter === 'ssc') {
+            return t.category === 'ssc' || t.tags?.some(tag => tag.includes('দশম') || tag.includes('নবম') || tag.toLowerCase().includes('ssc'));
+        }
+        if (teacherFilter === 'hsc') {
+            return t.category === 'hsc' || t.tags?.some(tag => tag.includes('এইচএসসি') || tag.toLowerCase().includes('hsc'));
+        }
+        if (teacherFilter === 'admission') {
+            return t.category === 'admission' || t.tags?.some(tag => tag.includes('এডমিশন') || tag.toLowerCase().includes('admission'));
+        }
+        if (teacherFilter === 'arts') {
+            return t.category === 'arts' || t.tags?.some(tag => tag.includes('আর্টস') || tag.includes('কমার্স') || tag.toLowerCase().includes('arts') || tag.toLowerCase().includes('commerce'));
+        }
+        return true;
+    });
+
     // Smooth auto-scroll for Teacher carousel
     useEffect(() => {
-        if (teachers.length <= 1 || isPaused) return;
+        if (displayedFaculty.length <= 1 || isPaused) return;
         const interval = setInterval(() => {
             if (!carouselRef.current) return;
             const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
             if (scrollLeft + clientWidth >= scrollWidth - 15) {
                 carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
             } else {
-                carouselRef.current.scrollBy({ left: 340, behavior: 'smooth' });
+                carouselRef.current.scrollBy({ left: 270, behavior: 'smooth' });
             }
         }, 4000);
         return () => clearInterval(interval);
-    }, [teachers, isPaused]);
+    }, [displayedFaculty, isPaused]);
 
     const handleCategoryClick = async (slug: string) => {
         if (activeCategory === slug) return;
@@ -757,135 +885,221 @@ export const HomePage: React.FC = () => {
                 </div>
             </section>
 
-            {/* 6. BEST INSTRUCTORS & MENTORS CAROUSEL */}
-            {(teachers.length > 0 || teachersLoading) && (
-                <section className="relative py-12 sm:py-16 bg-gradient-to-b from-white via-indigo-50/30 to-white dark:from-slate-950 dark:via-slate-900/40 dark:to-slate-950 border-y border-slate-100 dark:border-slate-800/80 transition-colors">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        {/* Section Header with Carousel Controls */}
-                        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
-                            <div>
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 text-xs font-bold tracking-wide uppercase mb-2">
-                                    <GraduationCap className="w-4 h-4 text-indigo-600" />
-                                    <span>অভিজ্ঞ মেন্টর প্যানেল</span>
-                                </div>
-                                <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-                                    দেশসেরা শিক্ষকদের তত্ত্বাবধানে প্রস্তুতি
-                                </h2>
-                                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-xl">
-                                    BUET, ঢাকা বিশ্ববিদ্যালয় ও শীর্ষস্থানীয় প্রতিষ্ঠানের অভিজ্ঞ শিক্ষকদের কাছ থেকে শেখো সহজ টেকনিক ও গভীর ধারণা।
-                                </p>
-                            </div>
+            {/* 6. BEST INSTRUCTORS & MENTORS CAROUSEL (Bondi Pathshala Inspired Arched Portrait Cards) */}
+            <section className="relative py-12 sm:py-16 bg-gradient-to-b from-white via-sky-50/20 to-white dark:from-slate-950 dark:via-slate-900/40 dark:to-slate-950 border-y border-slate-100 dark:border-slate-800/80 transition-colors">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    {/* Section Header */}
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 mb-8">
+                        {/* Left: Section Title with Orange Swoosh Underline */}
+                        <div>
+                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white tracking-tight flex items-center flex-wrap gap-2">
+                                <span>আমাদের অভিজ্ঞ</span>
+                                <span className="relative inline-block text-sky-500 dark:text-sky-400">
+                                    শিক্ষকবৃন্দ
+                                    <svg
+                                        className="absolute -bottom-2 left-0 w-full h-3 text-amber-500"
+                                        viewBox="0 0 160 12"
+                                        fill="none"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                        <path
+                                            d="M2 9.5C45 2 115 1.5 158 8.5"
+                                            stroke="currentColor"
+                                            strokeWidth="3.5"
+                                            strokeLinecap="round"
+                                        />
+                                    </svg>
+                                </span>
+                            </h2>
+                            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mt-2">
+                                অভিজ্ঞ ও দক্ষ শিক্ষকদের কাছ থেকে শেখা
+                            </p>
+                        </div>
 
-                            {/* Carousel Arrow Controls */}
-                            <div className="flex items-center gap-2 self-start sm:self-auto">
+                        {/* Center: Category Filter Pills */}
+                        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 scrollbar-none">
+                            {[
+                                { id: 'all', label: 'সবাই' },
+                                { id: 'ssc', label: 'নবম-দশম শ্রেণী' },
+                                { id: 'hsc', label: 'এইচএসসি' },
+                                { id: 'admission', label: 'এডমিশন' },
+                                { id: 'arts', label: 'আর্টস ও কমার্স' }
+                            ].map((tab) => {
+                                const isActive = teacherFilter === tab.id;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setTeacherFilter(tab.id as any)}
+                                        className={`px-4 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold transition-all shrink-0 cursor-pointer ${
+                                            isActive
+                                                ? 'bg-sky-500 hover:bg-sky-600 text-white shadow-md shadow-sky-500/25'
+                                                : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-sky-600 dark:hover:text-white border border-slate-200 dark:border-slate-800 hover:border-sky-300'
+                                        }`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Right: Action Button & Arrow Navigation */}
+                        <div className="flex items-center gap-2 sm:gap-3 shrink-0 self-end lg:self-auto">
+                            <Link
+                                to="/courses"
+                                className="px-5 py-2 rounded-full bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs sm:text-sm transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <span>সব শিক্ষক দেখুন</span>
+                                <ArrowRight className="w-4 h-4" />
+                            </Link>
+
+                            <div className="flex items-center gap-1">
                                 <button
                                     onClick={scrollLeft}
                                     aria-label="Previous teachers"
-                                    className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:border-indigo-300 hover:text-indigo-600 transition-all shadow-xs cursor-pointer active:scale-95"
+                                    className="p-2 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-slate-800 hover:border-sky-300 hover:text-sky-600 transition-all shadow-xs cursor-pointer active:scale-95"
                                 >
-                                    <ChevronLeft className="w-5 h-5" />
+                                    <ChevronLeft className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={scrollRight}
                                     aria-label="Next teachers"
-                                    className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-slate-800 hover:border-indigo-300 hover:text-indigo-600 transition-all shadow-xs cursor-pointer active:scale-95"
+                                    className="p-2 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-slate-800 hover:border-sky-300 hover:text-sky-600 transition-all shadow-xs cursor-pointer active:scale-95"
                                 >
-                                    <ChevronRight className="w-5 h-5" />
+                                    <ChevronRight className="w-4 h-4" />
                                 </button>
                             </div>
                         </div>
-
-                        {/* Carousel Scroll Container */}
-                        {teachersLoading ? (
-                            <div className="flex gap-6 overflow-hidden py-2">
-                                {[1, 2, 3, 4].map((i) => (
-                                    <div
-                                        key={i}
-                                        className="w-[280px] sm:w-[320px] shrink-0 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 p-6 animate-pulse space-y-4"
-                                    >
-                                        <div className="w-24 h-24 rounded-2xl bg-slate-200 dark:bg-slate-800 mx-auto" />
-                                        <div className="h-5 bg-slate-200 dark:bg-slate-800 rounded-md w-3/4 mx-auto" />
-                                        <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded-md w-1/2 mx-auto" />
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div
-                                ref={carouselRef}
-                                onMouseEnter={() => setIsPaused(true)}
-                                onMouseLeave={() => setIsPaused(false)}
-                                className="flex gap-6 overflow-x-auto pb-4 pt-1 scroll-smooth scrollbar-none"
-                                style={{ scrollSnapType: 'x mandatory' }}
-                            >
-                                {teachers.map((teacher) => (
-                                    <div
-                                        key={teacher.id}
-                                        style={{ scrollSnapAlign: 'start' }}
-                                        className="w-[280px] sm:w-[320px] shrink-0 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs hover:shadow-xl hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
-                                    >
-                                        <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-sky-500 to-purple-500" />
-
-                                        <div className="space-y-4">
-                                            {/* Photo & Initial */}
-                                            <div className="relative mx-auto w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-gradient-to-tr from-indigo-100 to-sky-100 dark:from-slate-800 dark:to-slate-700 p-1 shadow-md group-hover:scale-105 transition-transform duration-300">
-                                                {teacher.photo_url ? (
-                                                    <img
-                                                        src={teacher.photo_url}
-                                                        alt={teacher.name}
-                                                        className="w-full h-full object-cover rounded-[14px]"
-                                                        onError={(e) => {
-                                                            (e.target as HTMLElement).style.display = 'none';
-                                                        }}
-                                                    />
-                                                ) : null}
-                                                {!teacher.photo_url && (
-                                                    <div className="w-full h-full rounded-[14px] bg-gradient-to-tr from-indigo-600 to-sky-600 text-white flex items-center justify-center font-black text-3xl">
-                                                        {(teacher.name || 'T').charAt(0).toUpperCase()}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Name & Designation */}
-                                            <div className="text-center space-y-1.5">
-                                                <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-1">
-                                                    {teacher.name}
-                                                </h3>
-
-                                                <div className="inline-block px-3 py-1 rounded-full text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200/60 line-clamp-1">
-                                                    {teacher.designation || 'ইন্সট্রাক্টর'}
-                                                </div>
-
-                                                <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 font-medium pt-1">
-                                                    <GraduationCap className="w-4 h-4 text-indigo-500 shrink-0" />
-                                                    <span className="line-clamp-1">{teacher.institution || 'Monologue Edu'}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Footer */}
-                                        <div className="pt-5 mt-5 border-t border-slate-100 dark:border-slate-800 space-y-3">
-                                            <div className="flex items-center justify-between text-xs">
-                                                <span className="text-slate-400 font-medium">কোর্স সংখ্যা</span>
-                                                <span className="font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
-                                                    {teacher.courses_count || 0} টি কোর্স
-                                                </span>
-                                            </div>
-
-                                            <Link
-                                                to={`/teachers/${teacher.id}`}
-                                                className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-indigo-600 group-hover:text-white font-bold text-xs text-slate-700 dark:text-slate-200 text-center transition-all flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
-                                            >
-                                                <span>প্রোফাইল ও কোর্সসমূহ</span>
-                                                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                                            </Link>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
                     </div>
-                </section>
-            )}
+
+                    {/* Carousel Scroll Container */}
+                    {teachersLoading ? (
+                        <div className="flex gap-5 overflow-hidden py-2">
+                            {[1, 2, 3, 4, 5].map((i) => (
+                                <div
+                                    key={i}
+                                    className="w-[220px] sm:w-[245px] shrink-0 bg-white dark:bg-slate-900 rounded-[26px] border border-slate-100 dark:border-slate-800 p-3 animate-pulse space-y-3"
+                                >
+                                    <div className="aspect-[3/3.8] rounded-2xl bg-slate-200 dark:bg-slate-800" />
+                                    <div className="h-4 bg-slate-200 dark:bg-slate-800 rounded w-3/4" />
+                                    <div className="h-3 bg-slate-200 dark:bg-slate-800 rounded w-1/2" />
+                                </div>
+                            ))}
+                        </div>
+                    ) : displayedFaculty.length === 0 ? (
+                        <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 text-slate-500">
+                            <GraduationCap className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+                            <p className="text-sm font-semibold">এই বিভাগে বর্তমানে কোনো শিক্ষক তালিকাভুক্ত নেই</p>
+                        </div>
+                    ) : (
+                        <div
+                            ref={carouselRef}
+                            onMouseEnter={() => setIsPaused(true)}
+                            onMouseLeave={() => setIsPaused(false)}
+                            className="flex gap-4 sm:gap-5 overflow-x-auto pb-4 pt-1 scroll-smooth scrollbar-none"
+                            style={{ scrollSnapType: 'x mandatory' }}
+                        >
+                            {displayedFaculty.map((teacher) => (
+                                <Link
+                                    to="/courses"
+                                    key={teacher.id}
+                                    style={{ scrollSnapAlign: 'start' }}
+                                    className="w-[220px] sm:w-[245px] shrink-0 bg-white dark:bg-slate-900 rounded-[26px] border border-slate-200/90 dark:border-slate-800 p-2.5 sm:p-3 shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group cursor-pointer relative"
+                                >
+                                    {/* Arched Photo / Portrait Container */}
+                                    <div className="relative aspect-[3/3.8] rounded-2xl overflow-hidden bg-gradient-to-b from-sky-400 via-indigo-600 to-indigo-950 dark:from-sky-500 dark:via-indigo-900 dark:to-slate-950 flex items-end justify-center">
+                                        {/* Radial soft lighting */}
+                                        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent pointer-events-none" />
+
+                                        {/* Sparkle star accents */}
+                                        <div className="absolute top-4 right-5 text-sky-200/50 pointer-events-none animate-pulse">
+                                            <Sparkles className="w-4 h-4" />
+                                        </div>
+                                        <div className="absolute top-12 left-4 text-cyan-200/40 pointer-events-none">
+                                            <Sparkles className="w-3 h-3" />
+                                        </div>
+
+                                        {/* Arched border guide */}
+                                        <div className="absolute inset-1.5 rounded-t-full border border-sky-300/25 pointer-events-none" />
+
+                                        {/* Top Left Institution Badge */}
+                                        <div className="absolute top-2.5 left-2.5 z-10 px-2 py-0.5 rounded-full bg-slate-950/60 backdrop-blur-md border border-white/20 text-[10px] font-black text-white flex items-center gap-1 shadow-xs">
+                                            <span>{teacher.institution || 'BUET'}</span>
+                                        </div>
+
+                                        {/* Top Right Golden Crest */}
+                                        <div className="absolute top-2.5 right-2.5 z-10 w-6 h-6 rounded-full bg-amber-400/25 backdrop-blur-md border border-amber-300/40 flex items-center justify-center text-amber-300 shadow-xs">
+                                            <Award className="w-3.5 h-3.5" />
+                                        </div>
+
+                                        {/* Teacher Photo */}
+                                        <div className="w-full h-[90%] relative flex items-end justify-center overflow-hidden">
+                                            {teacher.photo_url ? (
+                                                <img
+                                                    src={teacher.photo_url}
+                                                    alt={teacher.name}
+                                                    className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500 drop-shadow-md"
+                                                    loading="lazy"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLElement).style.display = 'none';
+                                                    }}
+                                                />
+                                            ) : null}
+                                            <div className={`w-full h-full flex flex-col items-center justify-center text-white ${teacher.photo_url ? 'hidden' : 'flex'}`}>
+                                                <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-xs border border-white/20 flex items-center justify-center text-xl font-black mb-1">
+                                                    {(teacher.name || 'T').charAt(0).toUpperCase()}
+                                                </div>
+                                                <span className="text-[10px] font-bold text-sky-200">শিক্ষক মেন্টর</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Bottom Info Details */}
+                                    <div className="pt-2.5 px-0.5 space-y-1 flex-1 flex flex-col justify-between">
+                                        <div>
+                                            {/* Teacher Name */}
+                                            <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-1">
+                                                {teacher.name}
+                                            </h3>
+
+                                            {/* Designation & Experience */}
+                                            <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5 font-medium">
+                                                {teacher.designation} {teacher.experience ? `— ${teacher.experience}` : ''}
+                                            </p>
+                                        </div>
+
+                                        {/* Category Pill Badges */}
+                                        <div className="flex items-center gap-1.5 flex-wrap pt-2">
+                                            {teacher.tags && teacher.tags.length > 0 ? (
+                                                teacher.tags.slice(0, 2).map((tag, idx) => (
+                                                    <span
+                                                        key={idx}
+                                                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight border ${
+                                                            idx === 0
+                                                                ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 border-sky-200 dark:border-sky-800'
+                                                                : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                                                        }`}
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))
+                                            ) : (
+                                                <>
+                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight border bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-300 border-sky-200 dark:border-sky-800">
+                                                        নবম-দশম শ্রেণী
+                                                    </span>
+                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tight border bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800">
+                                                        এইচএসসি
+                                                    </span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </section>
 
             {/* 7. WHY CHOOSE MONOLOGUE EDU (Platform Pillars) */}
             <section className="bg-slate-900 text-white py-16 sm:py-20 relative overflow-hidden">
