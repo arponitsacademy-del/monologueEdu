@@ -50,6 +50,7 @@ Route::post('auth/otp/resend', [OtpController::class, 'resend']);
 Route::get('courses', [PublicCourseController::class, 'index']);
 Route::get('courses/{slug}', [PublicCourseController::class, 'show']);
 Route::get('categories', [PublicCourseController::class, 'categories']);
+Route::get('bundles/featured', [AdminBundleController::class, 'publicBundles']);
 Route::get('settings', [WebsiteSettingsController::class, 'getSettings']);
 Route::get('pages/{slug}', [PublicPageController::class, 'show']);
 Route::get('affiliate/check-code/{code}', [AffiliateStudentController::class, 'checkCode']);

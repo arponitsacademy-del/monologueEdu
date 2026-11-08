@@ -43,3 +43,4 @@ class CouponValidationController extends Controller
         return response()->json($result);
     }
 }
+

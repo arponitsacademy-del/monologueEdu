@@ -221,5 +221,20 @@ class AdminBundleController extends Controller
 
         return response()->json($courses);
     }
+
+    /**
+     * Get published bundles for public homepage showcase
+     */
+    public function publicBundles(Request $request): JsonResponse
+    {
+        $bundles = CourseBundle::where('status', 'published')
+            ->with(['courses:id,title,price,sale_price,thumbnail'])
+            ->withCount('courses')
+            ->latest()
+            ->take(6)
+            ->get();
+
+        return response()->json(['bundles' => $bundles]);
+    }
 }
 
