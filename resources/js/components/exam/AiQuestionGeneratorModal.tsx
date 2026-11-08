@@ -24,7 +24,9 @@ import {
     Check,
     Layers,
     Cpu,
-    ExternalLink
+    ExternalLink,
+    Globe,
+    Languages
 } from 'lucide-react';
 
 export interface GeneratedAiQuestion {
@@ -57,6 +59,7 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
 
     // Generator inputs
     const [prompt, setPrompt] = useState('');
+    const [language, setLanguage] = useState<'bn' | 'en' | 'mixed'>('bn');
     const [questionTypes, setQuestionTypes] = useState<string[]>([
         'single_choice',
         'multiple_choice',
@@ -123,6 +126,7 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
         try {
             const payload = {
                 prompt,
+                language,
                 question_types: questionTypes,
                 count: Number(count),
                 difficulty,
@@ -172,6 +176,7 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
         try {
             const payload = {
                 prompt,
+                language,
                 question_types: questionTypes,
                 count: rejectedQuestions.length,
                 difficulty,
@@ -273,16 +278,73 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
                     {step === 'configure' ? (
                         <div className="space-y-6">
                             {/* Question Types Selection */}
-                            <div className="space-y-2">
-                                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
-                                    1. Select Question Types to Generate:
-                                </label>
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                            <div className="space-y-2.5">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                    <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                                        <Layers className="w-3.5 h-3.5 text-purple-600" />
+                                        <span>1. Select Question Types to Generate:</span>
+                                    </label>
+
+                                    {/* Quick Selection Presets */}
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-0.5">Quick Presets:</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setQuestionTypes(['single_choice', 'multiple_choice', 'fill_in_the_blank', 'written_paper'])}
+                                            className="px-2 py-0.5 text-[11px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition cursor-pointer"
+                                        >
+                                            All Types
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setQuestionTypes(['single_choice', 'multiple_choice'])}
+                                            className="px-2 py-0.5 text-[11px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition cursor-pointer"
+                                        >
+                                            MCQs Only
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setQuestionTypes(['fill_in_the_blank'])}
+                                            className="px-2 py-0.5 text-[11px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition cursor-pointer"
+                                        >
+                                            Blanks Only
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setQuestionTypes(['written_paper'])}
+                                            className="px-2 py-0.5 text-[11px] font-bold rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 transition cursor-pointer"
+                                        >
+                                            Written Only
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                                     {[
-                                        { key: 'single_choice', label: 'Single Choice (MCQ)', icon: Circle },
-                                        { key: 'multiple_choice', label: 'Multiple Choice', icon: CheckSquare },
-                                        { key: 'fill_in_the_blank', label: 'Fill in the Blanks', icon: Edit3 },
-                                        { key: 'written_paper', label: 'Written Paper', icon: FileText },
+                                        {
+                                            key: 'single_choice',
+                                            label: 'Single Choice (MCQ)',
+                                            desc: '4 choices with 1 correct answer',
+                                            icon: Circle,
+                                        },
+                                        {
+                                            key: 'multiple_choice',
+                                            label: 'Multiple Choice',
+                                            desc: '4 choices with multiple correct',
+                                            icon: CheckSquare,
+                                        },
+                                        {
+                                            key: 'fill_in_the_blank',
+                                            label: 'Fill in the Blanks',
+                                            desc: 'Sentence with ____ blank word',
+                                            icon: Edit3,
+                                        },
+                                        {
+                                            key: 'written_paper',
+                                            label: 'Written Paper',
+                                            desc: 'Descriptive & model solutions',
+                                            icon: FileText,
+                                        },
                                     ].map(item => {
                                         const Icon = item.icon;
                                         const isSelected = questionTypes.includes(item.key);
@@ -291,17 +353,115 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
                                                 key={item.key}
                                                 type="button"
                                                 onClick={() => toggleType(item.key)}
-                                                className={`p-3 rounded-2xl border text-left text-xs font-semibold flex flex-col gap-1.5 transition-all cursor-pointer ${
+                                                className={`p-3.5 rounded-2xl text-left transition-all cursor-pointer relative flex flex-col justify-between gap-3 ${
                                                     isSelected
-                                                        ? 'bg-purple-50 dark:bg-purple-950/50 border-purple-500 text-purple-900 dark:text-purple-200 ring-2 ring-purple-500/20'
-                                                        : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100'
+                                                        ? 'bg-purple-50/90 dark:bg-purple-950/60 border-2 border-purple-600 dark:border-purple-500 shadow-md ring-2 ring-purple-600/15'
+                                                        : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-400 opacity-65 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700'
                                                 }`}
                                             >
-                                                <div className="flex items-center justify-between">
-                                                    <Icon className="w-4 h-4" />
-                                                    {isSelected && <Check className="w-3.5 h-3.5 text-purple-600" />}
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                                                        isSelected
+                                                            ? 'bg-purple-600 text-white shadow-xs'
+                                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
+                                                    }`}>
+                                                        <Icon className="w-4 h-4" />
+                                                    </div>
+
+                                                    {/* Active / Inactive Badge */}
+                                                    {isSelected ? (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wide bg-purple-600 text-white flex items-center gap-1 shadow-xs">
+                                                            <Check className="w-3 h-3 stroke-[3]" />
+                                                            <span>Active</span>
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold text-slate-400 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                                                            Disabled
+                                                        </span>
+                                                    )}
                                                 </div>
-                                                <span>{item.label}</span>
+
+                                                <div>
+                                                    <div className={`text-xs font-black tracking-tight ${
+                                                        isSelected ? 'text-purple-950 dark:text-purple-100' : 'text-slate-600 dark:text-slate-400 font-semibold'
+                                                    }`}>
+                                                        {item.label}
+                                                    </div>
+                                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                                                        {item.desc}
+                                                    </p>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* Language Selection */}
+                            <div className="space-y-2.5">
+                                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Languages className="w-3.5 h-3.5 text-indigo-600" />
+                                    <span>2. Select Question Language:</span>
+                                </label>
+
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    {[
+                                        {
+                                            key: 'bn',
+                                            flag: '🇧🇩',
+                                            label: 'Bengali (বাংলা)',
+                                            desc: 'Questions, choices & explanations strictly in Bengali (বাংলা).',
+                                        },
+                                        {
+                                            key: 'en',
+                                            flag: '🇬🇧',
+                                            label: 'English',
+                                            desc: 'Questions, choices & explanations strictly in English.',
+                                        },
+                                        {
+                                            key: 'mixed',
+                                            flag: '🌐',
+                                            label: 'Bilingual (বাংলা + English)',
+                                            desc: 'Bangla phrasing with standard English terms and formulas.',
+                                        },
+                                    ].map(item => {
+                                        const isSelected = language === item.key;
+                                        return (
+                                            <button
+                                                key={item.key}
+                                                type="button"
+                                                onClick={() => setLanguage(item.key as any)}
+                                                className={`p-3.5 rounded-2xl text-left transition-all cursor-pointer relative flex flex-col justify-between gap-3 ${
+                                                    isSelected
+                                                        ? 'bg-indigo-50/90 dark:bg-indigo-950/60 border-2 border-indigo-600 dark:border-indigo-500 shadow-md ring-2 ring-indigo-600/15'
+                                                        : 'bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-400 opacity-65 hover:opacity-100 hover:border-slate-300 dark:hover:border-slate-700'
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className="text-xl leading-none">{item.flag}</span>
+
+                                                    {isSelected ? (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wide bg-indigo-600 text-white flex items-center gap-1 shadow-xs">
+                                                            <Check className="w-3 h-3 stroke-[3]" />
+                                                            <span>Selected</span>
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold text-slate-400 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                                                            Off
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <div>
+                                                    <div className={`text-xs font-black tracking-tight ${
+                                                        isSelected ? 'text-indigo-950 dark:text-indigo-100' : 'text-slate-600 dark:text-slate-400 font-semibold'
+                                                    }`}>
+                                                        {item.label}
+                                                    </div>
+                                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
+                                                        {item.desc}
+                                                    </p>
+                                                </div>
                                             </button>
                                         );
                                     })}
@@ -309,49 +469,55 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
                             </div>
 
                             {/* Numbers, Marks, Difficulty Grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Number of Questions:
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min={1}
-                                        max={25}
-                                        value={count}
-                                        onChange={e => setCount(Math.max(1, Math.min(25, Number(e.target.value) || 1)))}
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold dark:text-white"
-                                    />
-                                </div>
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                                    <Sliders className="w-3.5 h-3.5 text-sky-600" />
+                                    <span>3. Exam Parameters:</span>
+                                </label>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                            Number of Questions:
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min={1}
+                                            max={25}
+                                            value={count}
+                                            onChange={e => setCount(Math.max(1, Math.min(25, Number(e.target.value) || 1)))}
+                                            className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold dark:text-white"
+                                        />
+                                    </div>
 
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Marks per Question:
-                                    </label>
-                                    <input
-                                        type="number"
-                                        step={0.5}
-                                        min={0.5}
-                                        value={marksPerQuestion}
-                                        onChange={e => setMarksPerQuestion(Number(e.target.value) || 1)}
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold dark:text-white"
-                                    />
-                                </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                            Marks per Question:
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step={0.5}
+                                            min={0.5}
+                                            value={marksPerQuestion}
+                                            onChange={e => setMarksPerQuestion(Number(e.target.value) || 1)}
+                                            className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold dark:text-white"
+                                        />
+                                    </div>
 
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        Difficulty Level:
-                                    </label>
-                                    <select
-                                        value={difficulty}
-                                        onChange={e => setDifficulty(e.target.value as any)}
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold dark:text-white"
-                                    >
-                                        <option value="easy">Easy (Fundamentals)</option>
-                                        <option value="medium">Medium (Standard Academic)</option>
-                                        <option value="hard">Hard (Advanced Reasoning)</option>
-                                        <option value="mixed">Mixed (Balanced)</option>
-                                    </select>
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                            Difficulty Level:
+                                        </label>
+                                        <select
+                                            value={difficulty}
+                                            onChange={e => setDifficulty(e.target.value as any)}
+                                            className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold dark:text-white"
+                                        >
+                                            <option value="easy">Easy (Fundamentals)</option>
+                                            <option value="medium">Medium (Standard Academic)</option>
+                                            <option value="hard">Hard (Advanced Reasoning)</option>
+                                            <option value="mixed">Mixed (Balanced)</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -359,7 +525,7 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
                             <div className="space-y-1.5">
                                 <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                                     <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                                    <span>2. Prompt / Specific Instructions for AI:</span>
+                                    <span>4. Prompt / Specific Instructions for AI:</span>
                                 </label>
                                 <textarea
                                     rows={3}
@@ -375,7 +541,7 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
                                 <div className="flex items-center justify-between">
                                     <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                                         <BookOpen className="w-3.5 h-3.5 text-sky-600" />
-                                        <span>3. Reference Material, Book Pages or PDF (Optional):</span>
+                                        <span>5. Reference Material, Book Pages or PDF (Optional):</span>
                                     </label>
 
                                     <div className="flex items-center gap-2">
@@ -550,27 +716,47 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
                                                 <MathView content={q.question_text} className="text-sm font-semibold text-slate-900 dark:text-white leading-relaxed" />
 
                                                 {/* MCQ Options */}
-                                                {(q.question_type === 'single_choice' || q.question_type === 'multiple_choice') && q.options && (
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                                                        {q.options.map((opt, oIdx) => {
-                                                            const isCorrect = (q.correct_answers || []).includes(opt.id);
-                                                            return (
-                                                                <div
-                                                                    key={opt.id}
-                                                                    className={`px-3 py-2 rounded-xl border text-xs font-medium flex items-center gap-2 ${
-                                                                        isCorrect
-                                                                            ? 'bg-emerald-50 border-emerald-300 text-emerald-900 font-bold dark:bg-emerald-950/40'
-                                                                            : 'bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-800/40 dark:border-slate-700'
-                                                                    }`}
-                                                                >
-                                                                    <span className="font-bold text-slate-400 w-5">
-                                                                        {String.fromCharCode(65 + oIdx)}.
-                                                                    </span>
-                                                                    <MathView content={opt.text} inline className="flex-1 truncate" />
-                                                                    {isCorrect && <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
-                                                                </div>
-                                                            );
-                                                        })}
+                                                {(q.question_type === 'single_choice' || q.question_type === 'multiple_choice') && (
+                                                    <div className="space-y-1.5 pt-1">
+                                                        <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                                                            <span>Choices / Options:</span>
+                                                            <span className="text-[10px] font-semibold text-slate-400">
+                                                                {q.question_type === 'single_choice' ? 'Single correct answer' : 'Multiple correct answers'}
+                                                            </span>
+                                                        </div>
+                                                        {q.options && q.options.length > 0 ? (
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                {q.options.map((opt, oIdx) => {
+                                                                    const isCorrect = (q.correct_answers || []).includes(opt.id);
+                                                                    return (
+                                                                        <div
+                                                                            key={opt.id}
+                                                                            className={`px-3 py-2.5 rounded-xl border text-xs font-medium flex items-center gap-2.5 transition-all ${
+                                                                                isCorrect
+                                                                                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-400 dark:border-emerald-700 text-emerald-950 dark:text-emerald-100 font-bold shadow-2xs'
+                                                                                    : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                                                                            }`}
+                                                                        >
+                                                                            <span className={`w-6 h-6 rounded-lg text-xs font-black flex items-center justify-center shrink-0 ${
+                                                                                isCorrect ? 'bg-emerald-600 text-white shadow-2xs' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                                                            }`}>
+                                                                                {String.fromCharCode(65 + oIdx)}
+                                                                            </span>
+                                                                            <MathView content={opt.text} inline className="flex-1" />
+                                                                            {isCorrect && (
+                                                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-emerald-600 text-white flex items-center gap-1 shrink-0">
+                                                                                    <Check className="w-2.5 h-2.5 stroke-[3]" /> Correct
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        ) : (
+                                                            <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-xs text-amber-800 dark:text-amber-300">
+                                                                No options provided. Click the edit icon to add choices.
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
 
@@ -756,3 +942,4 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
         </div>
     );
 };
+
