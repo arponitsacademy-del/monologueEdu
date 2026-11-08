@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { apiClient, formatBDT } from '../../api/client';
 import { Course, Category, CustomPage } from '../../types';
 import { useLanguage } from '../../context/LanguageContext';
-import { PageBlockRenderer } from '../../components/builder/PageBlockRenderer';
 import { 
     Sparkles, 
     BookOpen, 
@@ -150,18 +149,6 @@ export const HomePage: React.FC = () => {
             setCoursesLoading(false);
         }
     };
-
-    // If customized in the Visual Page Builder, dynamically render custom blocks
-    if (customPage && Array.isArray(customPage.blocks) && customPage.blocks.length > 0) {
-        return (
-            <div className="space-y-0">
-                {customPage.custom_css && <style>{customPage.custom_css}</style>}
-                {customPage.blocks.map(block => (
-                    <PageBlockRenderer key={block.id} block={block} isBuilder={false} />
-                ))}
-            </div>
-        );
-    }
 
     const faqs = [
         {
