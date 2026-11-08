@@ -64,11 +64,34 @@ export const AdminAutoSmsPushPage: React.FC = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const { data } = await apiClient.get('/admin/sms/auto-push');
-            setEnabled(Boolean(data.setting?.enabled));
-            setGeneralTemplate(data.setting?.general_template || '');
-            setCourseTemplates(data.course_templates || []);
-            setCourses(data.courses || []);
+            const [autoSmsRes, coursesRes] = await Promise.all([
+                apiClient.get('/admin/sms/auto-push').catch(err => {
+                    console.error('Auto SMS settings API error:', err);
+                    return { data: null };
+                }),
+                apiClient.get('/admin/courses', { params: { per_page: 100 } }).catch(err => {
+                    console.error('Courses API error:', err);
+                    return { data: null };
+                }),
+            ]);
+
+            if (autoSmsRes?.data) {
+                setEnabled(Boolean(autoSmsRes.data.setting?.enabled));
+                setGeneralTemplate(autoSmsRes.data.setting?.general_template || '');
+                setCourseTemplates(autoSmsRes.data.course_templates || []);
+                if (autoSmsRes.data.courses && autoSmsRes.data.courses.length > 0) {
+                    setCourses(autoSmsRes.data.courses);
+                }
+            }
+
+            // Always ensure courses list is populated from /admin/courses if not already
+            if (coursesRes?.data?.data && coursesRes.data.data.length > 0) {
+                setCourses(coursesRes.data.data.map((c: any) => ({
+                    id: c.id,
+                    title: c.title,
+                    price: Number(c.price) || 0,
+                })));
+            }
         } catch (err: any) {
             setFeedback({ type: 'error', message: err.response?.data?.message || 'Failed to load Auto SMS Push settings.' });
         } finally {
@@ -382,7 +405,7 @@ export const AdminAutoSmsPushPage: React.FC = () => {
                                 className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-sky-500"
                                 required
                             >
-                                <option value="">-- Choose a Course --</option>
+                                <option value="">-- Choose a Course ({courses.length > 0 ? `${courses.length} courses available` : 'Loading...'}) --</option>
                                 {courses.map(c => (
                                     <option key={c.id} value={c.id}>
                                         {c.title} (৳{c.price})
@@ -551,3 +574,4 @@ export const AdminAutoSmsPushPage: React.FC = () => {
         </div>
     );
 };
+

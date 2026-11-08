@@ -76,3 +76,4 @@ class CoursePurchaseSmsService
         return $this->smsService->sendSms($phone, $rendered, 'course_purchase');
     }
 }
+

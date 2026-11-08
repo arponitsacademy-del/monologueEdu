@@ -22,5 +22,14 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
         }
+
+        try {
+            if (! \Illuminate\Support\Facades\Schema::hasTable('course_purchase_sms_settings') || 
+                ! \Illuminate\Support\Facades\Schema::hasTable('course_bundles')) {
+                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Auto-migration error: ' . $e->getMessage());
+        }
     }
 }

@@ -222,3 +222,4 @@ class AdminBundleController extends Controller
         return response()->json($courses);
     }
 }
+

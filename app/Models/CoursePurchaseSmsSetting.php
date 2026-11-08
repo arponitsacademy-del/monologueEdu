@@ -26,3 +26,4 @@ class CoursePurchaseSmsSetting extends Model
         );
     }
 }
+

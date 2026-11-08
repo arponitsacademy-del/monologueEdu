@@ -75,3 +75,4 @@ class CourseBundle extends Model
         return (int) round((($reg - $sale) / $reg) * 100);
     }
 }
+
