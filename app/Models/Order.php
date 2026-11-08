@@ -26,6 +26,7 @@ class Order extends Model
         'affiliate_id',
         'affiliate_code',
         'course_id',
+        'bundle_id',
         'original_price',
         'discount_amount',
         'affiliate_discount',
@@ -61,6 +62,11 @@ class Order extends Model
     public function course(): BelongsTo
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function bundle(): BelongsTo
+    {
+        return $this->belongsTo(CourseBundle::class, 'bundle_id');
     }
 
     public function items(): HasMany

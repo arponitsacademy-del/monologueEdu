@@ -14,7 +14,7 @@ class CoursePurchaseSmsService
     ) {}
 
     /**
-     * Dispatches an automated SMS to the customer when a course purchase is confirmed.
+     * Dispatches an automated SMS to the customer when a course or bundle purchase is confirmed.
      */
     public function sendPurchaseSms(Order $order): array
     {
@@ -37,16 +37,25 @@ class CoursePurchaseSmsService
             ];
         }
 
-        // Determine template (Course override vs General fallback)
-        $courseTemplate = null;
-        if ($order->course_id) {
-            $courseTemplate = CourseSmsTemplate::where('course_id', $order->course_id)
+        // Determine template (Bundle override vs Course override vs General fallback)
+        $specificTemplate = null;
+
+        if (! empty($order->bundle_id)) {
+            $specificTemplate = CourseSmsTemplate::where('type', 'bundle')
+                ->where('bundle_id', $order->bundle_id)
+                ->where('is_active', true)
+                ->first();
+        } elseif (! empty($order->course_id)) {
+            $specificTemplate = CourseSmsTemplate::where(function ($q) {
+                    $q->where('type', 'course')->orWhereNull('type');
+                })
+                ->where('course_id', $order->course_id)
                 ->where('is_active', true)
                 ->first();
         }
 
-        $rawTemplate = (! empty($courseTemplate) && ! empty(trim($courseTemplate->template)))
-            ? $courseTemplate->template
+        $rawTemplate = (! empty($specificTemplate) && ! empty(trim($specificTemplate->template)))
+            ? $specificTemplate->template
             : $setting->general_template;
 
         if (empty(trim($rawTemplate))) {
@@ -58,7 +67,8 @@ class CoursePurchaseSmsService
         }
 
         // Render message placeholders
-        $courseTitle = $order->course?->title ?? 'Course';
+        $courseTitle = $order->course?->title ?? ($order->bundle?->title ?? 'Course');
+        $bundleTitle = $order->bundle?->title ?? ($order->course?->title ?? 'Course Bundle');
         $studentName = $user?->name ?? 'Student';
         $orderNumber = $order->order_number ?? '#' . $order->id;
         $amount = '৳' . number_format((float) $order->final_amount, 2);
@@ -66,14 +76,13 @@ class CoursePurchaseSmsService
         $siteName = 'Monologue Edu';
 
         $rendered = str_replace(
-            ['{student_name}', '{course_title}', '{order_id}', '{amount}', '{site_name}', '{login_url}'],
-            [$studentName, $courseTitle, $orderNumber, $amount, $siteName, $loginUrl],
+            ['{student_name}', '{course_title}', '{bundle_title}', '{order_id}', '{amount}', '{site_name}', '{login_url}'],
+            [$studentName, $courseTitle, $bundleTitle, $orderNumber, $amount, $siteName, $loginUrl],
             $rawTemplate
         );
 
-        Log::info("Dispatching Course Purchase SMS to {$phone}: {$rendered}");
+        Log::info("Dispatching Purchase SMS to {$phone}: {$rendered}");
 
         return $this->smsService->sendSms($phone, $rendered, 'course_purchase');
     }
 }
-

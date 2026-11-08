@@ -4,19 +4,24 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\CourseBundle;
 use App\Models\CoursePurchaseSmsSetting;
 use App\Models\CourseSmsTemplate;
 use App\Services\GreenWebSmsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
 
 class AutoSmsPushController extends Controller
 {
     public function getSettings(): JsonResponse
     {
         try {
-            if (! \Illuminate\Support\Facades\Schema::hasTable('course_purchase_sms_settings')) {
-                \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            if (! Schema::hasTable('course_purchase_sms_settings') || 
+                ! Schema::hasTable('course_sms_templates') || 
+                ! Schema::hasColumn('course_sms_templates', 'bundle_id')) {
+                Artisan::call('migrate', ['--force' => true]);
             }
         } catch (\Throwable $e) {}
 
@@ -30,9 +35,12 @@ class AutoSmsPushController extends Controller
         }
 
         try {
-            $courseTemplates = CourseSmsTemplate::with('course:id,title,price,slug')
-                ->latest()
-                ->get();
+            $courseTemplates = CourseSmsTemplate::with([
+                'course:id,title,price,slug',
+                'bundle:id,title,regular_price,sale_price,slug',
+            ])
+            ->latest()
+            ->get();
         } catch (\Throwable $e) {
             $courseTemplates = [];
         }
@@ -41,10 +49,16 @@ class AutoSmsPushController extends Controller
             ->orderBy('title')
             ->get();
 
+        $bundles = CourseBundle::select('id', 'title', 'regular_price', 'sale_price', 'status')
+            ->withCount('courses')
+            ->orderBy('title')
+            ->get();
+
         return response()->json([
             'setting' => $setting,
             'course_templates' => $courseTemplates,
             'courses' => $courses,
+            'bundles' => $bundles,
         ]);
     }
 
@@ -67,33 +81,59 @@ class AutoSmsPushController extends Controller
     public function saveCourseTemplate(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'course_id' => ['required', 'exists:courses,id'],
+            'type' => ['nullable', 'in:course,bundle'],
+            'course_id' => ['nullable', 'required_if:type,course', 'exists:courses,id'],
+            'bundle_id' => ['nullable', 'required_if:type,bundle', 'exists:course_bundles,id'],
             'template' => ['required', 'string', 'max:500'],
             'is_active' => ['sometimes', 'boolean'],
         ]);
 
-        $template = CourseSmsTemplate::updateOrCreate(
-            ['course_id' => $validated['course_id']],
-            [
-                'template' => $validated['template'],
-                'is_active' => $validated['is_active'] ?? true,
-            ]
-        );
+        $type = $validated['type'] ?? (! empty($validated['bundle_id']) ? 'bundle' : 'course');
 
-        $template->load('course:id,title,price,slug');
+        if ($type === 'bundle') {
+            $template = CourseSmsTemplate::updateOrCreate(
+                [
+                    'type' => 'bundle',
+                    'bundle_id' => $validated['bundle_id'],
+                ],
+                [
+                    'course_id' => null,
+                    'template' => $validated['template'],
+                    'is_active' => $validated['is_active'] ?? true,
+                ]
+            );
+        } else {
+            $template = CourseSmsTemplate::updateOrCreate(
+                [
+                    'type' => 'course',
+                    'course_id' => $validated['course_id'],
+                ],
+                [
+                    'bundle_id' => null,
+                    'template' => $validated['template'],
+                    'is_active' => $validated['is_active'] ?? true,
+                ]
+            );
+        }
+
+        $template->load([
+            'course:id,title,price,slug',
+            'bundle:id,title,regular_price,sale_price,slug',
+        ]);
 
         return response()->json([
-            'message' => 'Course-specific SMS template saved successfully.',
+            'message' => ($type === 'bundle' ? 'Bundle' : 'Course') . '-specific SMS template saved successfully.',
             'template' => $template,
         ]);
     }
 
     public function deleteCourseTemplate(CourseSmsTemplate $template): JsonResponse
     {
+        $itemType = $template->type === 'bundle' ? 'Bundle' : 'Course';
         $template->delete();
 
         return response()->json([
-            'message' => 'Course-specific SMS template removed. Default general SMS will now be used.',
+            'message' => "{$itemType}-specific SMS template removed. Default general SMS will now be used.",
         ]);
     }
 
@@ -102,10 +142,14 @@ class AutoSmsPushController extends Controller
         $validated = $request->validate([
             'phone' => ['required', 'string'],
             'template' => ['required', 'string', 'max:500'],
+            'type' => ['nullable', 'in:course,bundle'],
             'course_id' => ['nullable', 'exists:courses,id'],
+            'bundle_id' => ['nullable', 'exists:course_bundles,id'],
         ]);
 
         $courseTitle = 'Sample Course';
+        $bundleTitle = 'Sample Course Bundle';
+
         if (! empty($validated['course_id'])) {
             $course = Course::find($validated['course_id']);
             if ($course) {
@@ -113,9 +157,16 @@ class AutoSmsPushController extends Controller
             }
         }
 
+        if (! empty($validated['bundle_id'])) {
+            $bundle = CourseBundle::find($validated['bundle_id']);
+            if ($bundle) {
+                $bundleTitle = $bundle->title;
+            }
+        }
+
         $rendered = str_replace(
-            ['{student_name}', '{course_title}', '{order_id}', '{amount}', '{site_name}', '{login_url}'],
-            ['Test Student', $courseTitle, 'ORD-9988', '৳1,500.00', 'Monologue Edu', url('/login')],
+            ['{student_name}', '{course_title}', '{bundle_title}', '{order_id}', '{amount}', '{site_name}', '{login_url}'],
+            ['Test Student', $courseTitle, $bundleTitle, 'ORD-9988', '৳1,500.00', 'Monologue Edu', url('/login')],
             $validated['template']
         );
 
@@ -128,4 +179,3 @@ class AutoSmsPushController extends Controller
         ]);
     }
 }
-

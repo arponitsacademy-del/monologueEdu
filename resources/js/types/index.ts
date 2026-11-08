@@ -440,13 +440,22 @@ export interface CoursePurchaseSmsSetting {
 
 export interface CourseSmsTemplate {
     id: number;
-    course_id: number;
+    type?: 'course' | 'bundle';
+    course_id?: number | null;
+    bundle_id?: number | null;
     template: string;
     is_active: boolean;
     course?: {
         id: number;
         title: string;
         price: number;
+        slug: string;
+    };
+    bundle?: {
+        id: number;
+        title: string;
+        regular_price: number | string;
+        sale_price: number | string;
         slug: string;
     };
     created_at?: string;
