@@ -26,7 +26,8 @@ import {
     Cpu,
     ExternalLink,
     Globe,
-    Languages
+    Languages,
+    Plus
 } from 'lucide-react';
 
 export interface GeneratedAiQuestion {
@@ -226,7 +227,26 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
     };
 
     const handleSaveInlineEdit = (updated: GeneratedAiQuestion) => {
+        if (!updated.question_text.trim()) {
+            alert('Question text cannot be empty.');
+            return;
+        }
+
+        if (updated.question_type === 'single_choice' || updated.question_type === 'multiple_choice') {
+            if (!updated.options || updated.options.length < 2) {
+                alert('Please provide at least 2 choices for multiple choice questions.');
+                return;
+            }
+            if (!updated.correct_answers || updated.correct_answers.length === 0) {
+                updated.correct_answers = ['1'];
+            }
+            if (updated.question_type === 'single_choice' && updated.correct_answers.length > 1) {
+                updated.correct_answers = [updated.correct_answers[0]];
+            }
+        }
+
         setGeneratedQuestions(prev => prev.map(q => q.id === updated.id ? updated : q));
+        setApprovedIds(prev => new Set(prev).add(updated.id));
         setEditingQuestion(null);
     };
 
@@ -687,22 +707,22 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
                                                     </span>
                                                 </div>
 
-                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                <div className="flex items-center gap-2 shrink-0">
                                                     <button
                                                         type="button"
-                                                        onClick={() => setEditingQuestion(q)}
-                                                        className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                                        title="Edit text / options"
+                                                        onClick={() => setEditingQuestion(JSON.parse(JSON.stringify(q)))}
+                                                        className="px-3 py-1.5 rounded-xl text-xs font-bold border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
                                                     >
-                                                        <Edit3 className="w-4 h-4" />
+                                                        <Edit3 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                                                        <span>Edit Question</span>
                                                     </button>
 
                                                     <button
                                                         type="button"
                                                         onClick={() => toggleApprove(q.id)}
-                                                        className={`px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
+                                                        className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition cursor-pointer ${
                                                             isApproved
-                                                                ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                                                                ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 shadow-2xs'
                                                                 : 'bg-rose-100 text-rose-700 hover:bg-rose-200'
                                                         }`}
                                                     >
@@ -844,96 +864,318 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
                 />
             )}
 
-            {/* Inline Quick Edit Question Modal */}
+            {/* Comprehensive Question Editor Modal */}
             {editingQuestion && (
-                <div className="fixed inset-0 z-60 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-2xl p-6 shadow-2xl space-y-4">
-                        <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                            <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                                <Edit3 className="w-4 h-4 text-indigo-600" />
-                                <span>Edit Generated Question</span>
-                            </h4>
-                            <button onClick={() => setEditingQuestion(null)} className="text-slate-400 hover:text-slate-600">
-                                <X className="w-4 h-4" />
+                <div className="fixed inset-0 z-60 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+                        
+                        {/* Editor Header */}
+                        <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                            <div className="flex items-center gap-2.5">
+                                <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-xs">
+                                    <Edit3 className="w-4 h-4" />
+                                </div>
+                                <div>
+                                    <h4 className="font-black text-sm text-slate-900 dark:text-white">
+                                        Edit Question
+                                    </h4>
+                                    <p className="text-[11px] text-slate-500">
+                                        Update question statement, options, correct answers, or marks
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setEditingQuestion(null)}
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <div>
-                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                Question Text:
-                            </label>
-                            <textarea
-                                rows={3}
-                                value={editingQuestion.question_text}
-                                onChange={e => setEditingQuestion({ ...editingQuestion, question_text: e.target.value })}
-                                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs font-medium dark:text-white"
-                            />
-                        </div>
-
-                        {/* Options if MCQ */}
-                        {editingQuestion.options && (
-                            <div className="space-y-2">
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">Options:</label>
-                                {editingQuestion.options.map((opt, idx) => (
-                                    <input
-                                        key={opt.id}
-                                        type="text"
-                                        value={opt.text}
-                                        onChange={e => {
-                                            const newOpts = [...editingQuestion.options!];
-                                            newOpts[idx].text = e.target.value;
-                                            setEditingQuestion({ ...editingQuestion, options: newOpts });
-                                        }}
-                                        className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border rounded-lg text-xs"
-                                    />
-                                ))}
+                        {/* Editor Body */}
+                        <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1">
+                            
+                            {/* Question Type Switcher */}
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                                    Question Type:
+                                </label>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    {[
+                                        { key: 'single_choice', label: 'Single Choice (MCQ)' },
+                                        { key: 'multiple_choice', label: 'Multiple Choice' },
+                                        { key: 'fill_in_the_blank', label: 'Fill in the Blank' },
+                                        { key: 'written_paper', label: 'Written Paper' },
+                                    ].map(t => {
+                                        const isCurrent = editingQuestion.question_type === t.key;
+                                        return (
+                                            <button
+                                                key={t.key}
+                                                type="button"
+                                                onClick={() => {
+                                                    if (t.key === 'single_choice' || t.key === 'multiple_choice') {
+                                                        const opts = (editingQuestion.options && editingQuestion.options.length >= 2)
+                                                            ? editingQuestion.options
+                                                            : [
+                                                                { id: '1', text: 'Option A' },
+                                                                { id: '2', text: 'Option B' },
+                                                                { id: '3', text: 'Option C' },
+                                                                { id: '4', text: 'Option D' },
+                                                            ];
+                                                        setEditingQuestion({
+                                                            ...editingQuestion,
+                                                            question_type: t.key as any,
+                                                            options: opts,
+                                                            correct_answers: t.key === 'single_choice'
+                                                                ? [opts[0].id]
+                                                                : [opts[0].id, opts[1]?.id || opts[0].id],
+                                                        });
+                                                    } else if (t.key === 'fill_in_the_blank') {
+                                                        setEditingQuestion({
+                                                            ...editingQuestion,
+                                                            question_type: 'fill_in_the_blank',
+                                                            options: null,
+                                                            correct_answers: editingQuestion.correct_answers || ['Correct Answer'],
+                                                        });
+                                                    } else {
+                                                        setEditingQuestion({
+                                                            ...editingQuestion,
+                                                            question_type: 'written_paper',
+                                                            options: null,
+                                                            correct_answers: null,
+                                                        });
+                                                    }
+                                                }}
+                                                className={`px-3 py-2 rounded-xl text-xs font-bold border transition text-center cursor-pointer ${
+                                                    isCurrent
+                                                        ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100'
+                                                }`}
+                                            >
+                                                {t.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        )}
 
-                        {/* Answer if fill in blank */}
-                        {editingQuestion.question_type === 'fill_in_the_blank' && (
-                            <div>
+                            {/* Question Text */}
+                            <div className="space-y-1.5">
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    Question Text (LaTeX formulas like <code className="font-mono text-purple-600">$E = mc^2$</code> supported):
+                                </label>
+                                <textarea
+                                    rows={3}
+                                    value={editingQuestion.question_text}
+                                    onChange={e => setEditingQuestion({ ...editingQuestion, question_text: e.target.value })}
+                                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium dark:text-white focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="Enter question statement..."
+                                />
+                                {editingQuestion.question_text && (
+                                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60">
+                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
+                                            Live Math Preview:
+                                        </div>
+                                        <MathView content={editingQuestion.question_text} className="text-xs font-medium text-slate-800 dark:text-slate-200" />
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Marks Input */}
+                            <div className="w-full sm:w-48">
                                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                    Accepted Correct Answer(s) (comma separated):
+                                    Marks for Question:
                                 </label>
                                 <input
-                                    type="text"
-                                    value={Array.isArray(editingQuestion.correct_answers) ? editingQuestion.correct_answers.join(', ') : (editingQuestion.correct_answers || '')}
-                                    onChange={e => setEditingQuestion({
-                                        ...editingQuestion,
-                                        correct_answers: e.target.value.split(',').map(s => s.trim()).filter(Boolean),
-                                    })}
-                                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs"
+                                    type="number"
+                                    step={0.5}
+                                    min={0.5}
+                                    value={editingQuestion.marks}
+                                    onChange={e => setEditingQuestion({ ...editingQuestion, marks: Number(e.target.value) || 1 })}
+                                    className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold dark:text-white"
                                 />
                             </div>
-                        )}
 
-                        <div>
-                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                Explanation:
-                            </label>
-                            <textarea
-                                rows={2}
-                                value={editingQuestion.explanation || ''}
-                                onChange={e => setEditingQuestion({ ...editingQuestion, explanation: e.target.value })}
-                                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border rounded-xl text-xs font-medium dark:text-white"
-                            />
+                            {/* MCQ Options Editor */}
+                            {(editingQuestion.question_type === 'single_choice' || editingQuestion.question_type === 'multiple_choice') && (
+                                <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                                                Choices & Correct Answer:
+                                            </label>
+                                            <p className="text-[11px] text-slate-500">
+                                                {editingQuestion.question_type === 'single_choice'
+                                                    ? 'Click "Correct Choice" button on the option that is correct.'
+                                                    : 'Click "Correct Choice" button on all options that are correct.'}
+                                            </p>
+                                        </div>
+
+                                        {(editingQuestion.options?.length || 0) < 6 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    const cur = editingQuestion.options || [];
+                                                    const nextId = String(cur.length + 1);
+                                                    setEditingQuestion({
+                                                        ...editingQuestion,
+                                                        options: [...cur, { id: nextId, text: `Option ${String.fromCharCode(65 + cur.length)}` }],
+                                                    });
+                                                }}
+                                                className="px-2.5 py-1 text-xs font-bold rounded-lg border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 flex items-center gap-1 cursor-pointer"
+                                            >
+                                                <Plus className="w-3.5 h-3.5" />
+                                                <span>Add Choice</span>
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-2.5">
+                                        {(editingQuestion.options || []).map((opt, idx) => {
+                                            const isCorrect = (editingQuestion.correct_answers || []).includes(opt.id);
+                                            return (
+                                                <div
+                                                    key={opt.id}
+                                                    className={`p-3 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center gap-3 ${
+                                                        isCorrect
+                                                            ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-400 dark:border-emerald-700'
+                                                            : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <span className={`w-7 h-7 rounded-xl text-xs font-black flex items-center justify-center shrink-0 ${
+                                                            isCorrect ? 'bg-emerald-600 text-white shadow-xs' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                                                        }`}>
+                                                            {String.fromCharCode(65 + idx)}
+                                                        </span>
+
+                                                        {/* Toggle Correct Button */}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (editingQuestion.question_type === 'single_choice') {
+                                                                    setEditingQuestion({
+                                                                        ...editingQuestion,
+                                                                        correct_answers: [opt.id],
+                                                                    });
+                                                                } else {
+                                                                    const cur = editingQuestion.correct_answers || [];
+                                                                    const next = cur.includes(opt.id)
+                                                                        ? cur.filter(id => id !== opt.id)
+                                                                        : [...cur, opt.id];
+                                                                    if (next.length === 0) return; // Keep at least one
+                                                                    setEditingQuestion({
+                                                                        ...editingQuestion,
+                                                                        correct_answers: next,
+                                                                    });
+                                                                }
+                                                            }}
+                                                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 transition cursor-pointer shrink-0 ${
+                                                                isCorrect
+                                                                    ? 'bg-emerald-600 text-white shadow-xs'
+                                                                    : 'bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-emerald-500'
+                                                            }`}
+                                                        >
+                                                            {isCorrect && <Check className="w-3 h-3 stroke-[3]" />}
+                                                            <span>{isCorrect ? 'Correct Answer' : 'Mark as Correct'}</span>
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Option text input */}
+                                                    <input
+                                                        type="text"
+                                                        value={opt.text}
+                                                        onChange={e => {
+                                                            const newOpts = [...(editingQuestion.options || [])];
+                                                            newOpts[idx].text = e.target.value;
+                                                            setEditingQuestion({ ...editingQuestion, options: newOpts });
+                                                        }}
+                                                        placeholder={`Enter text for Choice ${String.fromCharCode(65 + idx)}...`}
+                                                        className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium dark:text-white"
+                                                    />
+
+                                                    {/* Delete option */}
+                                                    {(editingQuestion.options?.length || 0) > 2 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const cur = editingQuestion.options || [];
+                                                                const filtered = cur.filter((_, i) => i !== idx);
+                                                                const remapped = filtered.map((o, i) => ({ id: String(i + 1), text: o.text }));
+                                                                let newCorrect = (editingQuestion.correct_answers || []).filter(id => id !== opt.id);
+                                                                if (newCorrect.length === 0) newCorrect = ['1'];
+                                                                setEditingQuestion({
+                                                                    ...editingQuestion,
+                                                                    options: remapped,
+                                                                    correct_answers: newCorrect,
+                                                                });
+                                                            }}
+                                                            className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition"
+                                                            title="Delete option"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Fill in the Blank Answer */}
+                            {editingQuestion.question_type === 'fill_in_the_blank' && (
+                                <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                        Accepted Correct Answer(s) (comma separated for synonyms):
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={Array.isArray(editingQuestion.correct_answers) ? editingQuestion.correct_answers.join(', ') : (editingQuestion.correct_answers || '')}
+                                        onChange={e => setEditingQuestion({
+                                            ...editingQuestion,
+                                            correct_answers: e.target.value.split(',').map(s => s.trim()).filter(Boolean),
+                                        })}
+                                        placeholder="e.g. Mitochondria, mitochondrion"
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium dark:text-white"
+                                    />
+                                    <p className="text-[11px] text-slate-500">
+                                        Hint: Ensure your question text above contains <code className="font-mono font-bold text-teal-600">____</code> (underscores) where the blank is placed.
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Explanation */}
+                            <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    Explanation / Model Solution (Optional):
+                                </label>
+                                <textarea
+                                    rows={2}
+                                    value={editingQuestion.explanation || ''}
+                                    onChange={e => setEditingQuestion({ ...editingQuestion, explanation: e.target.value })}
+                                    placeholder="Add detailed explanation or step-by-step solution..."
+                                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium dark:text-white"
+                                />
+                            </div>
                         </div>
 
-                        <div className="flex items-center justify-end gap-2 pt-2">
+                        {/* Editor Footer */}
+                        <div className="p-4 sm:p-5 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2.5 bg-slate-50 dark:bg-slate-900/60 shrink-0">
                             <button
                                 type="button"
                                 onClick={() => setEditingQuestion(null)}
-                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-xs font-bold rounded-xl"
+                                className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-300 text-xs font-bold rounded-xl cursor-pointer"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="button"
                                 onClick={() => handleSaveInlineEdit(editingQuestion)}
-                                className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl"
+                                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md shadow-indigo-600/20 cursor-pointer"
                             >
-                                Save Changes
+                                <Check className="w-4 h-4 stroke-[2.5]" />
+                                <span>Save Changes</span>
                             </button>
                         </div>
                     </div>

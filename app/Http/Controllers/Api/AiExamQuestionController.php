@@ -121,47 +121,105 @@ class AiExamQuestionController extends Controller
 
         $combinedReference = trim($referenceText . "\n" . $extractedMediaText);
 
-        // Build system and user prompt
+        // Build type-specific instructions and templates dynamically
+        $allowedTypeDescriptions = [];
+        $templateQuestions = [];
+
+        if (in_array('single_choice', $types)) {
+            $allowedTypeDescriptions[] = '- "single_choice": Standard Single Choice MCQ. Must provide exactly 4 options with ids "1", "2", "3", "4". "correct_answers" MUST be an array containing EXACTLY ONE id string (e.g. ["1"]). "options" MUST NOT be null or empty.';
+            $templateQuestions[] = [
+                'question_text' => 'What is the SI unit of electric force?',
+                'question_type' => 'single_choice',
+                'marks' => $marks,
+                'options' => [
+                    ['id' => '1', 'text' => 'Newton (N)'],
+                    ['id' => '2', 'text' => 'Joule (J)'],
+                    ['id' => '3', 'text' => 'Pascal (Pa)'],
+                    ['id' => '4', 'text' => 'Watt (W)'],
+                ],
+                'correct_answers' => ['1'],
+                'explanation' => 'Newton (N) is the SI unit of force, named after Sir Isaac Newton.',
+            ];
+        }
+
+        if (in_array('multiple_choice', $types)) {
+            $allowedTypeDescriptions[] = '- "multiple_choice": Multiple Choice question with 2 or more correct options. Must provide exactly 4 options with ids "1", "2", "3", "4". "correct_answers" MUST be an array of 2 or more id strings (e.g. ["1", "3"]). "options" MUST NOT be null or empty.';
+            if (empty($templateQuestions)) {
+                $templateQuestions[] = [
+                    'question_text' => 'Which of the following are vector quantities?',
+                    'question_type' => 'multiple_choice',
+                    'marks' => $marks,
+                    'options' => [
+                        ['id' => '1', 'text' => 'Velocity'],
+                        ['id' => '2', 'text' => 'Speed'],
+                        ['id' => '3', 'text' => 'Acceleration'],
+                        ['id' => '4', 'text' => 'Mass'],
+                    ],
+                    'correct_answers' => ['1', '3'],
+                    'explanation' => 'Velocity and Acceleration both have magnitude and direction.',
+                ];
+            }
+        }
+
+        if (in_array('fill_in_the_blank', $types)) {
+            $allowedTypeDescriptions[] = '- "fill_in_the_blank": Sentence with missing word. The "question_text" MUST contain "____" (four underscores). "options" MUST be null. "correct_answers" MUST be an array of accepted text answers/synonyms (e.g. ["Mitochondria"]).';
+            if (empty($templateQuestions)) {
+                $templateQuestions[] = [
+                    'question_text' => 'The powerhouse of the cell is the ____.',
+                    'question_type' => 'fill_in_the_blank',
+                    'marks' => $marks,
+                    'options' => null,
+                    'correct_answers' => ['Mitochondria', 'mitochondrion'],
+                    'explanation' => 'Mitochondria generate most of the chemical energy needed to power biochemical reactions.',
+                ];
+            }
+        }
+
+        if (in_array('written_paper', $types)) {
+            $allowedTypeDescriptions[] = '- "written_paper": Descriptive subjective or mathematical calculation problem. "options" MUST be null, "correct_answers" MUST be null. "explanation" MUST provide the step-by-step model solution.';
+            if (empty($templateQuestions)) {
+                $templateQuestions[] = [
+                    'question_text' => 'State and prove Bernoulli\'s theorem for the streamline flow of an ideal fluid.',
+                    'question_type' => 'written_paper',
+                    'marks' => $marks,
+                    'options' => null,
+                    'correct_answers' => null,
+                    'explanation' => 'Detailed derivation and boundary conditions.',
+                ];
+            }
+        }
+
+        $typeDescriptionsStr = implode("\n", $allowedTypeDescriptions);
         $typesListStr = implode(', ', $types);
+        $templateJson = json_encode(['questions' => $templateQuestions], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        $exclusiveTypeWarning = count($types) === 1
+            ? "ABSOLUTE STRICT RULE: The user selected ONLY '{$types[0]}'. You MUST ONLY generate questions of type '{$types[0]}'. DO NOT generate any other question type! Every single question in the 'questions' array MUST have \"question_type\": \"{$types[0]}\"."
+            : "ABSOLUTE STRICT RULE: You MUST ONLY generate questions of the requested types: [{$typesListStr}]. DO NOT generate any other types!";
+
         $systemMessage = "You are an expert exam question creator for \"Monologue Edu\", an advanced educational platform.
 Your task is to generate exactly {$count} high-quality, academically rigorous examination questions based strictly on the instructions and provided reference material.
 
 {$languageInstruction}
 
+{$exclusiveTypeWarning}
+
 CRITICAL RULES:
 1. Output format: You MUST return a single JSON object with exactly one top-level key: \"questions\".
-2. Allowed question types for this request: [{$typesListStr}].
-3. For \"single_choice\": Provide exactly 4 options. \"options\" MUST be an array of 4 objects with \"id\" and \"text\". \"correct_answers\" MUST be an array with exactly one id string (e.g. [\"1\"]). NEVER leave \"options\" empty or null.
-4. For \"multiple_choice\": Provide exactly 4 options. \"options\" MUST be an array of 4 objects with \"id\" and \"text\". \"correct_answers\" MUST be an array with 2 or more id strings (e.g. [\"1\", \"3\"]). NEVER leave \"options\" empty or null.
-5. For \"fill_in_the_blank\": The \"question_text\" MUST contain \"____\" (four underscores) indicating the missing word or phrase. \"correct_answers\" MUST be an array of accepted text answers/synonyms (e.g. [\"Mitochondria\"]). \"options\" MUST be null.
-6. For \"written_paper\": Provide a deep theoretical or mathematical problem. \"options\" MUST be null, \"correct_answers\" MUST be null. The \"explanation\" MUST contain a step-by-step model solution.
-7. Math & Formulas: Use standard LaTeX / KaTeX enclosed in dollar signs for mathematical, chemical or scientific formulas (e.g. \$E = mc^2\$, \$\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}\$, \$H_2O\$).
-8. Ensure clear, educational explanations for every single question in \"explanation\".
-9. Set \"marks\" to {$marks} for each question.
+2. Allowed question type(s) for this request: [{$typesListStr}].
+{$typeDescriptionsStr}
+3. Math & Formulas: Use standard LaTeX / KaTeX enclosed in dollar signs for mathematical, chemical or scientific formulas (e.g. \$E = mc^2\$, \$\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}\$, \$H_2O\$).
+4. Ensure clear, educational explanations for every single question in \"explanation\".
+5. Set \"marks\" to {$marks} for each question.
 
 MANDATORY JSON STRUCTURE TEMPLATE:
-{
-  \"questions\": [
-    {
-      \"question_text\": \"Question statement here?\",
-      \"question_type\": \"single_choice\",
-      \"marks\": {$marks},
-      \"options\": [
-        {\"id\": \"1\", \"text\": \"First option\"},
-        {\"id\": \"2\", \"text\": \"Second option\"},
-        {\"id\": \"3\", \"text\": \"Third option\"},
-        {\"id\": \"4\", \"text\": \"Fourth option\"}
-      ],
-      \"correct_answers\": [\"1\"],
-      \"explanation\": \"Detailed explanation here.\"
-    }
-  ]
-}";
+{$templateJson}";
 
         $userInstruction = "Please generate {$count} exam questions.
 {$languageInstruction}
-Difficulty level: {$difficulty}.
+{$exclusiveTypeWarning}
 Allowed question types: {$typesListStr}.
+Difficulty level: {$difficulty}.
 Exam context / Title: \"{$exam->title}\".
 Marks per question: {$marks}.";
 
@@ -236,9 +294,10 @@ Marks per question: {$marks}.";
                     continue;
                 }
 
-                $qType = $q['question_type'] ?? 'single_choice';
-                if (!in_array($qType, ['single_choice', 'multiple_choice', 'fill_in_the_blank', 'written_paper'])) {
-                    $qType = 'single_choice';
+                $qType = $q['question_type'] ?? $types[0];
+                // Enforce strictly that question_type MUST be one of the user-selected types!
+                if (!in_array($qType, $types)) {
+                    $qType = $types[0];
                 }
 
                 $options = null;
@@ -246,6 +305,15 @@ Marks per question: {$marks}.";
 
                 if ($qType === 'single_choice' || $qType === 'multiple_choice') {
                     [$options, $correctAnswers] = $this->parseOptionsAndAnswers($q, $qType);
+
+                    // Strictly enforce exactly ONE correct answer for single_choice
+                    if ($qType === 'single_choice') {
+                        if (count($correctAnswers) > 1) {
+                            $correctAnswers = [$correctAnswers[0]];
+                        } elseif (empty($correctAnswers)) {
+                            $correctAnswers = ['1'];
+                        }
+                    }
                 } elseif ($qType === 'fill_in_the_blank') {
                     $rawAnswers = $q['correct_answers'] ?? $q['correct_answer'] ?? $q['answer'] ?? null;
                     if (is_array($rawAnswers)) {
@@ -253,7 +321,6 @@ Marks per question: {$marks}.";
                     } elseif (!empty($rawAnswers)) {
                         $correctAnswers = [trim((string)$rawAnswers)];
                     } else {
-                        // Attempt to deduce from text if missing
                         $correctAnswers = ['Correct Answer'];
                     }
 
