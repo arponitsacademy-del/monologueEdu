@@ -30,6 +30,8 @@ use App\Http\Controllers\Api\TeacherPublicController;
 use App\Http\Controllers\Api\AutoSmsPushController;
 use App\Http\Controllers\Api\AdminBundleController;
 use App\Http\Controllers\Api\AiExamQuestionController;
+use App\Http\Controllers\Api\AdminCouponController;
+use App\Http\Controllers\Api\CouponValidationController;
 use App\Models\Course;
 use App\Models\LessonComment;
 use Illuminate\Http\Request;
@@ -85,6 +87,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Orders & Checkout
     Route::post('orders/checkout', [OrderController::class, 'checkout']);
     Route::get('orders/my-orders', [OrderController::class, 'myOrders']);
+    Route::post('coupons/validate', [CouponValidationController::class, 'validateCoupon']);
 
     // NexPilot Student Learning Room & Chatbot
     Route::prefix('student/nexpilot')->group(function () {
@@ -258,6 +261,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('sms-marketing/preview', [SmsMarketingController::class, 'getPreview']);
         Route::post('sms-marketing/send', [SmsMarketingController::class, 'sendMarketingSms']);
         Route::get('sms-marketing/history', [SmsMarketingController::class, 'getHistory']);
+
+        // Marketing: Coupons Management
+        Route::get('coupons', [AdminCouponController::class, 'index']);
+        Route::post('coupons', [AdminCouponController::class, 'store']);
+        Route::get('coupons/search-users', [AdminCouponController::class, 'searchUsers']);
+        Route::get('coupons/courses-and-categories', [AdminCouponController::class, 'getCoursesAndCategories']);
+        Route::get('coupons/{id}', [AdminCouponController::class, 'show']);
+        Route::put('coupons/{id}', [AdminCouponController::class, 'update']);
+        Route::delete('coupons/{id}', [AdminCouponController::class, 'destroy']);
+        Route::post('coupons/{id}/toggle-status', [AdminCouponController::class, 'toggleStatus']);
 
         // Website Settings & Appearance (Header / Footer Builder / Manual Payment)
         Route::put('website-settings', [WebsiteSettingsController::class, 'updateSettings']);

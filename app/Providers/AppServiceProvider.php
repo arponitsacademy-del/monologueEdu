@@ -25,7 +25,8 @@ class AppServiceProvider extends ServiceProvider
 
         try {
             if (! \Illuminate\Support\Facades\Schema::hasTable('course_purchase_sms_settings') || 
-                ! \Illuminate\Support\Facades\Schema::hasTable('course_bundles')) {
+                ! \Illuminate\Support\Facades\Schema::hasTable('course_bundles') ||
+                ! \Illuminate\Support\Facades\Schema::hasTable('coupons')) {
                 \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
             }
         } catch (\Throwable $e) {

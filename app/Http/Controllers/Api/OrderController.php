@@ -7,6 +7,8 @@ use App\Models\AuditLog;
 use App\Models\AffiliateCommission;
 use App\Models\AffiliateProfile;
 use App\Models\AffiliateSetting;
+use App\Models\Coupon;
+use App\Models\CouponUsage;
 use App\Models\Course;
 use App\Models\CourseAffiliateSetting;
 use App\Models\Enrollment;
@@ -30,6 +32,7 @@ class OrderController extends Controller
             'sender_phone' => ['required', 'string', 'max:20'],
             'notes' => ['nullable', 'string', 'max:500'],
             'affiliate_code' => ['nullable', 'string', 'max:50'],
+            'coupon_code' => ['nullable', 'string', 'max:50'],
         ]);
 
         $user = auth()->user();
@@ -98,9 +101,36 @@ class OrderController extends Controller
         }
 
         $courseFinalAmount = max(0, $courseFinalAmount - $affiliateDiscount);
+
+        // Check and apply coupon discount
+        $coupon = null;
+        $couponDiscount = 0.0;
+        if (!empty($validated['coupon_code'])) {
+            $code = strtoupper(trim($validated['coupon_code']));
+            $coupon = Coupon::where('code', $code)->first();
+
+            if (!$coupon) {
+                return response()->json([
+                    'message' => 'The coupon code provided is invalid.',
+                    'errors' => ['coupon_code' => ['Invalid coupon code.']],
+                ], 422);
+            }
+
+            $validation = $coupon->validateForCheckout($user, $course, $courseFinalAmount);
+            if (!$validation['valid']) {
+                return response()->json([
+                    'message' => $validation['message'],
+                    'errors' => ['coupon_code' => [$validation['message']]],
+                ], 422);
+            }
+
+            $couponDiscount = (float) $validation['calculated_discount'];
+            $courseFinalAmount = max(0, $courseFinalAmount - $couponDiscount);
+        }
+
         $finalAmount = $courseFinalAmount + $nexpilotPrice;
 
-        $order = DB::transaction(function () use ($user, $course, $validated, $price, $discountAmount, $affiliateDiscount, $affiliateProfile, $finalAmount, $includeNexPilot, $nexpilotId, $nexpilotPrice) {
+        $order = DB::transaction(function () use ($user, $course, $validated, $price, $discountAmount, $affiliateDiscount, $affiliateProfile, $coupon, $couponDiscount, $finalAmount, $includeNexPilot, $nexpilotId, $nexpilotPrice) {
             $order = Order::create([
                 'order_number' => Order::generateOrderNumber(),
                 'user_id' => $user->id,
@@ -110,6 +140,9 @@ class OrderController extends Controller
                 'original_price' => $price,
                 'discount_amount' => $discountAmount,
                 'affiliate_discount' => $affiliateDiscount,
+                'coupon_id' => $coupon ? $coupon->id : null,
+                'coupon_code' => $coupon ? $coupon->code : null,
+                'coupon_discount' => $couponDiscount,
                 'final_amount' => $finalAmount,
                 'has_nexpilot' => $nexpilotPrice > 0 || ($includeNexPilot && $nexpilotId),
                 'nexpilot_id' => $nexpilotId,
@@ -119,6 +152,17 @@ class OrderController extends Controller
                 'payment_method' => $validated['payment_method'],
                 'notes' => $validated['notes'] ?? null,
             ]);
+
+            // Track coupon usage
+            if ($coupon) {
+                CouponUsage::create([
+                    'coupon_id' => $coupon->id,
+                    'user_id' => $user->id,
+                    'order_id' => $order->id,
+                    'discount_amount' => $couponDiscount,
+                ]);
+                $coupon->increment('times_used');
+            }
 
             OrderItem::create([
                 'order_id' => $order->id,

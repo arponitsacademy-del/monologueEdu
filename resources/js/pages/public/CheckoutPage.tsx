@@ -17,6 +17,7 @@ import {
     Sparkles,
     Bot,
     Tag,
+    TicketPercent,
     X,
     Loader2
 } from 'lucide-react';
@@ -78,6 +79,21 @@ export const CheckoutPage: React.FC = () => {
     } | null>(null);
     const [checkingReferral, setCheckingReferral] = useState(false);
     const [referralMessage, setReferralMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+    // Coupon state
+    const [couponInput, setCouponInput] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState<{
+        coupon_id: number;
+        code: string;
+        title: string;
+        discount_type: string;
+        discount_amount: number;
+        calculated_discount: number;
+        final_price: number;
+        message: string;
+    } | null>(null);
+    const [checkingCoupon, setCheckingCoupon] = useState(false);
+    const [couponMessage, setCouponMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
     // Merge settings from context or fallback to defaults
     const manualSettings: ManualPaymentSettings = {
@@ -155,7 +171,37 @@ export const CheckoutPage: React.FC = () => {
     const pilotPrice = hasActivePilot && includeNexPilot ? Number(nexpilot.price || 0) : 0;
     const courseBasePrice = course ? Number(course.effective_price || course.price || 0) : 0;
     const referralDiscount = appliedReferral ? Number(appliedReferral.discount_amount || 0) : 0;
-    const totalPayable = Math.max(0, courseBasePrice + pilotPrice - referralDiscount);
+    const couponDiscount = appliedCoupon ? Number(appliedCoupon.calculated_discount || 0) : 0;
+    const totalPayable = Math.max(0, courseBasePrice + pilotPrice - referralDiscount - couponDiscount);
+
+    const validateCouponCode = async (codeToVerify: string, courseId: number) => {
+        if (!codeToVerify || !codeToVerify.trim()) return;
+        try {
+            setCheckingCoupon(true);
+            setCouponMessage(null);
+            const res = await apiClient.post('/coupons/validate', {
+                code: codeToVerify.trim().toUpperCase(),
+                course_id: courseId,
+            });
+
+            if (res.data.valid) {
+                setAppliedCoupon(res.data);
+                setCouponMessage({ type: 'success', text: res.data.message || 'Coupon applied successfully!' });
+            } else {
+                setCouponMessage({ type: 'error', text: res.data.message || 'Invalid coupon.' });
+            }
+        } catch (err: any) {
+            setCouponMessage({ type: 'error', text: err.response?.data?.message || 'Invalid coupon code.' });
+        } finally {
+            setCheckingCoupon(false);
+        }
+    };
+
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponInput('');
+        setCouponMessage(null);
+    };
 
     const validateReferralCode = async (codeToVerify: string, courseId: number) => {
         if (!codeToVerify || !codeToVerify.trim()) return;
@@ -245,6 +291,7 @@ export const CheckoutPage: React.FC = () => {
                 notes,
                 include_nexpilot: hasActivePilot && includeNexPilot,
                 affiliate_code: appliedReferral?.code || (referralInput.trim() ? referralInput.trim() : undefined),
+                coupon_code: appliedCoupon?.code || (couponInput.trim() ? couponInput.trim() : undefined),
             });
 
             navigate(`/order-status/${data.order.order_number}`, { state: { order: data.order } });
@@ -558,6 +605,68 @@ export const CheckoutPage: React.FC = () => {
                             )}
                         </div>
 
+                        {/* Coupon Code Box */}
+                        <div className="pt-2 border-t border-slate-100">
+                            {appliedCoupon ? (
+                                <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-2xl flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="p-1.5 bg-indigo-100 rounded-lg text-indigo-700">
+                                            <TicketPercent className="w-4 h-4" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="font-mono font-bold text-xs text-indigo-900">{appliedCoupon.code}</span>
+                                                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-indigo-200/80 text-indigo-800 rounded">
+                                                    -৳{appliedCoupon.calculated_discount} OFF
+                                                </span>
+                                            </div>
+                                            <p className="text-[11px] text-indigo-700 mt-0.5">
+                                                {appliedCoupon.title}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleRemoveCoupon}
+                                        className="text-slate-400 hover:text-red-500 p-1 transition-colors cursor-pointer"
+                                        title="Remove coupon"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                                        <TicketPercent className="w-3.5 h-3.5 text-indigo-600" />
+                                        <span>Have a Discount Coupon?</span>
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={couponInput}
+                                            onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                                            placeholder="Enter coupon code..."
+                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono uppercase focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                                        />
+                                        <button
+                                            type="button"
+                                            disabled={checkingCoupon || !couponInput.trim()}
+                                            onClick={() => validateCouponCode(couponInput, course.id)}
+                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors disabled:opacity-50 shrink-0 flex items-center gap-1 cursor-pointer"
+                                        >
+                                            {checkingCoupon && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                                            <span>Apply</span>
+                                        </button>
+                                    </div>
+                                    {couponMessage && (
+                                        <p className={`text-[11px] font-medium ${couponMessage.type === 'error' ? 'text-red-500' : 'text-emerald-600'}`}>
+                                            {couponMessage.text}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
                         {/* Pricing Breakdown */}
                         <div className="space-y-3 pt-4 border-t border-slate-100 text-sm">
                             <div className="flex justify-between text-slate-600">
@@ -579,6 +688,16 @@ export const CheckoutPage: React.FC = () => {
                                         <span>Referral Discount ({appliedReferral?.code})</span>
                                     </span>
                                     <span className="font-semibold">- {formatBDT(referralDiscount)}</span>
+                                </div>
+                            )}
+
+                            {couponDiscount > 0 && (
+                                <div className="flex justify-between text-indigo-600 font-medium">
+                                    <span className="flex items-center gap-1.5">
+                                        <TicketPercent className="w-3.5 h-3.5 text-indigo-600" />
+                                        <span>Coupon Discount ({appliedCoupon?.code})</span>
+                                    </span>
+                                    <span className="font-semibold">- {formatBDT(couponDiscount)}</span>
                                 </div>
                             )}
 

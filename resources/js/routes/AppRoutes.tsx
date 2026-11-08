@@ -40,6 +40,7 @@ import { AdminNexPilotsPage } from '../pages/admin/AdminNexPilotsPage';
 import { AdminNexPilotEditPage } from '../pages/admin/AdminNexPilotEditPage';
 import { AdminNexPilotBuilderPage } from '../pages/admin/AdminNexPilotBuilderPage';
 import { AdminNexPilotAiConfigPage } from '../pages/admin/AdminNexPilotAiConfigPage';
+import { AdminCouponsPage } from '../pages/admin/AdminCouponsPage';
 import { CustomPageView } from '../pages/public/CustomPageView';
 
 // Teacher pages
@@ -125,6 +126,9 @@ export const AppRoutes: React.FC = () => {
                 <Route path="appearance/footer" element={<AdminFooterBuilderPage />} />
                 <Route path="users" element={<AdminUsersPage />} />
                 <Route path="orders" element={<AdminOrdersPage />} />
+                {/* Marketing & Coupons */}
+                <Route path="marketing" element={<Navigate to="/admin/marketing/coupons" replace />} />
+                <Route path="marketing/coupons" element={<AdminCouponsPage />} />
                 <Route path="payments" element={<Navigate to="/admin/payments/manual" replace />} />
                 <Route path="payments/manual" element={<AdminManualPaymentPage />} />
                 {/* Affiliate Management */}

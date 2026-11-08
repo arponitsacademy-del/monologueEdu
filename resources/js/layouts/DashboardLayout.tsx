@@ -33,7 +33,8 @@ import {
     Sparkles,
     ClipboardList,
     Share2,
-    Boxes
+    Boxes,
+    TicketPercent
 } from 'lucide-react';
 
 export const DashboardLayout: React.FC = () => {
@@ -53,6 +54,7 @@ export const DashboardLayout: React.FC = () => {
         '/admin/nexpilot': true,
         '/admin/ai': true,
         '/admin/exams': true,
+        '/admin/marketing': true,
         '/teacher/exams': true,
     });
 
@@ -175,6 +177,14 @@ export const DashboardLayout: React.FC = () => {
                     ]
                 },
                 { title: t.sidebar.orders, path: '/admin/orders', icon: ShoppingCart },
+                { 
+                    title: 'Marketing', 
+                    path: '/admin/marketing', 
+                    icon: TicketPercent,
+                    children: [
+                        { title: 'Coupons', path: '/admin/marketing/coupons' },
+                    ]
+                },
                 { 
                     title: 'Affiliate', 
                     path: '/admin/affiliate', 

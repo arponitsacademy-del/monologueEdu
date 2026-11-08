@@ -30,6 +30,9 @@ class Order extends Model
         'original_price',
         'discount_amount',
         'affiliate_discount',
+        'coupon_id',
+        'coupon_code',
+        'coupon_discount',
         'final_amount',
         'has_nexpilot',
         'nexpilot_id',
@@ -44,6 +47,7 @@ class Order extends Model
         'original_price' => 'float',
         'discount_amount' => 'float',
         'affiliate_discount' => 'float',
+        'coupon_discount' => 'float',
         'final_amount' => 'float',
         'has_nexpilot' => 'boolean',
         'nexpilot_price' => 'float',
@@ -67,6 +71,11 @@ class Order extends Model
     public function bundle(): BelongsTo
     {
         return $this->belongsTo(CourseBundle::class, 'bundle_id');
+    }
+
+    public function coupon(): BelongsTo
+    {
+        return $this->belongsTo(Coupon::class);
     }
 
     public function items(): HasMany
