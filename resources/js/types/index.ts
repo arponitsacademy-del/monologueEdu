@@ -412,3 +412,44 @@ export interface ExamSubmission {
     exam?: Exam;
 }
 
+export interface CourseBundle {
+    id: number;
+    title: string;
+    slug: string;
+    thumbnail?: string | null;
+    short_description?: string | null;
+    description?: string | null;
+    regular_price: number | string;
+    sale_price: number | string;
+    status: 'draft' | 'published';
+    courses_count?: number;
+    total_regular_value?: number;
+    discount_percentage?: number;
+    courses?: Course[];
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface CoursePurchaseSmsSetting {
+    id: number;
+    enabled: boolean;
+    general_template: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface CourseSmsTemplate {
+    id: number;
+    course_id: number;
+    template: string;
+    is_active: boolean;
+    course?: {
+        id: number;
+        title: string;
+        price: number;
+        slug: string;
+    };
+    created_at?: string;
+    updated_at?: string;
+}
+

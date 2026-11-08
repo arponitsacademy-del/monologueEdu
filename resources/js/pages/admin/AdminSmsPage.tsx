@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { apiClient } from '../../api/client';
 import { SmsSetting } from '../../types';
 import { 
@@ -7,8 +6,7 @@ import {
     Save, 
     Send, 
     CheckCircle2, 
-    RefreshCw,
-    Sliders
+    RefreshCw
 } from 'lucide-react';
 
 export const AdminSmsPage: React.FC = () => {
@@ -95,22 +93,6 @@ export const AdminSmsPage: React.FC = () => {
 
     return (
         <div className="max-w-4xl mx-auto space-y-6 pb-16">
-            
-            {/* Top Navigation Tabs: Configuration vs Marketing */}
-            <div className="bg-white p-2 rounded-2xl border border-slate-200/90 shadow-2xs flex items-center gap-2">
-                <div className="flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold bg-sky-600 text-white shadow-sm flex items-center justify-center gap-2">
-                    <Sliders className="w-4 h-4 text-white" />
-                    <span>SMS Configuration</span>
-                </div>
-                <Link
-                    to="/admin/sms-marketing"
-                    className="flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center justify-center gap-2 transition"
-                >
-                    <Send className="w-4 h-4 text-slate-500" />
-                    <span>SMS Marketing & Bulk Sender</span>
-                </Link>
-            </div>
-
             <div>
                 <h2 className="text-2xl font-black text-slate-900 tracking-tight">GreenWeb SMS Gateway Configuration</h2>
                 <p className="text-xs text-slate-500 mt-0.5">Official GreenWeb SMS API and registration OTP verification management</p>

@@ -27,6 +27,8 @@ use App\Http\Controllers\Api\ExamSubmissionController;
 use App\Http\Controllers\Api\AffiliateAdminController;
 use App\Http\Controllers\Api\AffiliateStudentController;
 use App\Http\Controllers\Api\TeacherPublicController;
+use App\Http\Controllers\Api\AutoSmsPushController;
+use App\Http\Controllers\Api\AdminBundleController;
 use App\Models\Course;
 use App\Models\LessonComment;
 use Illuminate\Http\Request;
@@ -226,6 +228,24 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('sms-settings', [SmsSettingsController::class, 'getSettings']);
         Route::put('sms-settings', [SmsSettingsController::class, 'updateSettings']);
         Route::post('sms-settings/test', [SmsSettingsController::class, 'testSms']);
+
+        // Auto SMS Push on Course Purchase
+        Route::get('sms/auto-push', [AutoSmsPushController::class, 'getSettings']);
+        Route::put('sms/auto-push/settings', [AutoSmsPushController::class, 'updateGeneralSettings']);
+        Route::post('sms/auto-push/courses', [AutoSmsPushController::class, 'saveCourseTemplate']);
+        Route::delete('sms/auto-push/courses/{template}', [AutoSmsPushController::class, 'deleteCourseTemplate']);
+        Route::post('sms/auto-push/test', [AutoSmsPushController::class, 'sendTestSms']);
+
+        // Course Bundles & Bundle Builder
+        Route::get('bundles', [AdminBundleController::class, 'index']);
+        Route::post('bundles', [AdminBundleController::class, 'store']);
+        Route::get('bundles/{bundle}', [AdminBundleController::class, 'show']);
+        Route::put('bundles/{bundle}', [AdminBundleController::class, 'update']);
+        Route::delete('bundles/{bundle}', [AdminBundleController::class, 'destroy']);
+        Route::post('bundles/{bundle}/courses', [AdminBundleController::class, 'addCourse']);
+        Route::delete('bundles/{bundle}/courses/{course}', [AdminBundleController::class, 'removeCourse']);
+        Route::post('bundles/{bundle}/courses/reorder', [AdminBundleController::class, 'reorderCourses']);
+        Route::get('bundles/{bundle}/available-courses', [AdminBundleController::class, 'availableCourses']);
 
         // SMS Marketing
         Route::get('sms-marketing/courses', [SmsMarketingController::class, 'getCourses']);

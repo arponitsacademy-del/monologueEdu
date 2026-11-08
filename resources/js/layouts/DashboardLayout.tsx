@@ -32,7 +32,8 @@ import {
     Bot,
     Sparkles,
     ClipboardList,
-    Share2
+    Share2,
+    Boxes
 } from 'lucide-react';
 
 export const DashboardLayout: React.FC = () => {
@@ -127,6 +128,15 @@ export const DashboardLayout: React.FC = () => {
                     ]
                 },
                 { 
+                    title: 'Course Bundles', 
+                    path: '/admin/bundles', 
+                    icon: Boxes,
+                    children: [
+                        { title: 'Add New Bundle', path: '/admin/bundles/create' },
+                        { title: 'All Bundles', path: '/admin/bundles' },
+                    ]
+                },
+                { 
                     title: 'NexPilot', 
                     path: '/admin/nexpilot', 
                     icon: Bot,
@@ -182,7 +192,7 @@ export const DashboardLayout: React.FC = () => {
                     icon: MessageSquareText,
                     children: [
                         { title: t.sidebar.smsConfig, path: '/admin/sms' },
-                        { title: t.sidebar.smsMarketing, path: '/admin/sms-marketing' },
+                        { title: 'Auto SMS Push', path: '/admin/sms/auto-push' },
                     ]
                 },
                 { title: t.sidebar.users, path: '/admin/users', icon: Users },

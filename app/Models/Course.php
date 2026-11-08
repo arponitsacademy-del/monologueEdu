@@ -146,4 +146,11 @@ class Course extends Model
     {
         return $this->hasOne(CourseAffiliateSetting::class);
     }
+
+    public function bundles(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(CourseBundle::class, 'bundle_courses', 'course_id', 'bundle_id')
+            ->withPivot('sort_order')
+            ->withTimestamps();
+    }
 }

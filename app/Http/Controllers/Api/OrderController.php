@@ -36,20 +36,20 @@ class OrderController extends Controller
         $course = Course::with('nexpilot')->findOrFail($validated['course_id']);
 
         if ($course->status !== Course::STATUS_PUBLISHED) {
-            abort(404, 'কোর্সটি কেনার জন্য উপলব্ধ নেই।');
+            abort(404, 'Course is not available for purchase.');
         }
 
         if ($user->isEnrolledIn($course->id)) {
             return response()->json([
-                'message' => 'আপনি ইতিমধ্যে এই কোর্সে এনরোল করেছেন।',
+                'message' => 'You are already enrolled in this course.',
             ], 422);
         }
 
         // Prevent duplicate pending orders with same transaction reference
         if (Payment::where('transaction_ref', $validated['transaction_ref'])->exists()) {
             return response()->json([
-                'message' => 'এই ট্রানজেকশন আইডিটি ইতিমধ্যে একটি অর্ডারে ব্যবহার করা হয়েছে।',
-                'errors' => ['transaction_ref' => ['এই ট্রানজেকশন আইডিটি ইতিমধ্যে ব্যবহৃত হয়েছে।']],
+                'message' => 'This transaction reference has already been used for another order.',
+                'errors' => ['transaction_ref' => ['This transaction ID is already registered.']],
             ], 422);
         }
 
@@ -139,7 +139,7 @@ class OrderController extends Controller
         });
 
         return response()->json([
-            'message' => 'অর্ডার সফলভাবে তৈরি হয়েছে। পেমেন্ট যাচাইয়ের পর এনরোলমেন্ট সক্রিয় হবে।',
+            'message' => 'Order placed successfully. Enrollment will be activated upon payment verification.',
             'order' => $order->load(['course', 'latestPayment']),
         ], 201);
     }
@@ -183,7 +183,7 @@ class OrderController extends Controller
     {
         if ($order->payment_status === Order::PAYMENT_PAID) {
             return response()->json([
-                'message' => 'এই অর্ডারটির পেমেন্ট আগেই নিশ্চিত করা হয়েছে।',
+                'message' => 'Payment for this order has already been verified.',
             ], 422);
         }
 
@@ -271,10 +271,17 @@ class OrderController extends Controller
 
             // Notify student
             $order->user->notify(new PaymentConfirmedNotification($order));
+
+            // Dispatch Course Purchase Auto SMS Push
+            try {
+                app(\App\Services\CoursePurchaseSmsService::class)->sendPurchaseSms($order);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error('Auto SMS Push on payment confirmation failed: ' . $e->getMessage());
+            }
         });
 
         return response()->json([
-            'message' => 'পেমেন্ট সফলভাবে নিশ্চিত করা হয়েছে এবং শিক্ষার্থীর এনরোলমেন্ট সক্রিয় হয়েছে।',
+            'message' => 'Payment has been verified successfully and student enrollment is active.',
             'order' => $order->fresh(['user', 'course', 'latestPayment']),
         ]);
     }
@@ -289,7 +296,7 @@ class OrderController extends Controller
             $order->update([
                 'payment_status' => Order::PAYMENT_FAILED,
                 'order_status' => Order::ORDER_CANCELLED,
-                'notes' => $validated['reason'] ?? 'পেমেন্ট যাচাই ব্যর্থ হয়েছে।',
+                'notes' => $validated['reason'] ?? 'Payment verification failed.',
             ]);
 
             if ($order->latestPayment) {
@@ -305,7 +312,7 @@ class OrderController extends Controller
         });
 
         return response()->json([
-            'message' => 'পেমেন্ট বাতিল করা হয়েছে।',
+            'message' => 'Payment has been rejected.',
             'order' => $order->fresh(['user', 'course', 'latestPayment']),
         ]);
     }

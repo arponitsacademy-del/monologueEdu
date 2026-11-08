@@ -22,7 +22,11 @@ import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
 import { AdminOrdersPage } from '../pages/admin/AdminOrdersPage';
 import { AdminAnalyticsPage } from '../pages/admin/AdminAnalyticsPage';
 import { AdminSmsPage } from '../pages/admin/AdminSmsPage';
+import { AdminAutoSmsPushPage } from '../pages/admin/AdminAutoSmsPushPage';
 import { AdminSmsMarketingPage } from '../pages/admin/AdminSmsMarketingPage';
+import { AdminBundlesPage } from '../pages/admin/AdminBundlesPage';
+import { AdminBundleFormPage } from '../pages/admin/AdminBundleFormPage';
+import { AdminBundleBuilderPage } from '../pages/admin/AdminBundleBuilderPage';
 import { AdminSettingsPage } from '../pages/admin/AdminSettingsPage';
 import { AdminMediaPage } from '../pages/admin/AdminMediaPage';
 import { AdminCourseCategoriesPage } from '../pages/admin/AdminCourseCategoriesPage';
@@ -95,6 +99,11 @@ export const AppRoutes: React.FC = () => {
                 <Route path="courses/categories" element={<AdminCourseCategoriesPage />} />
                 <Route path="courses/:id/edit" element={<AdminCourseEditPage />} />
                 <Route path="courses/:id/builder" element={<AdminCourseBuilderPage />} />
+                {/* Course Bundles & Bundle Builder */}
+                <Route path="bundles" element={<AdminBundlesPage />} />
+                <Route path="bundles/create" element={<AdminBundleFormPage />} />
+                <Route path="bundles/:id/edit" element={<AdminBundleFormPage />} />
+                <Route path="bundles/:id/builder" element={<AdminBundleBuilderPage />} />
                 <Route path="nexpilot" element={<AdminNexPilotsPage />} />
                 <Route path="nexpilot/new" element={<AdminNexPilotEditPage />} />
                 <Route path="nexpilot/ai-configuration" element={<AdminNexPilotAiConfigPage />} />
@@ -122,6 +131,7 @@ export const AppRoutes: React.FC = () => {
                 <Route path="affiliate/members" element={<AdminAffiliateMembersPage />} />
                 <Route path="analytics" element={<AdminAnalyticsPage />} />
                 <Route path="sms" element={<AdminSmsPage />} />
+                <Route path="sms/auto-push" element={<AdminAutoSmsPushPage />} />
                 <Route path="sms-marketing" element={<AdminSmsMarketingPage />} />
                 <Route path="settings" element={<AdminSettingsPage />} />
                 <Route path="media" element={<AdminMediaPage />} />
