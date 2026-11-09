@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { PublicLayout } from '../layouts/PublicLayout';
 import { DashboardLayout } from '../layouts/DashboardLayout';
+import { StudentDashboardLayout } from '../layouts/StudentDashboardLayout';
 
 // Public pages
 import { HomePage } from '../pages/public/HomePage';
@@ -159,7 +160,7 @@ export const AppRoutes: React.FC = () => {
             </Route>
 
             {/* Student Dashboard */}
-            <Route path="/student" element={<DashboardLayout />}>
+            <Route path="/student" element={<StudentDashboardLayout />}>
                 <Route index element={<StudentDashboardPage />} />
                 <Route path="my-courses" element={<StudentCoursesPage />} />
                 <Route path="courses/:courseId/nexpilot" element={<StudentNexPilotPage />} />

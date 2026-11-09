@@ -3,17 +3,17 @@ import { Link } from 'react-router-dom';
 import { apiClient } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { 
-    BookOpen, 
-    CheckCircle2, 
-    Clock, 
-    PlayCircle, 
+    Play, 
     ArrowRight, 
+    GraduationCap, 
+    FileText, 
+    Calendar, 
+    Star, 
+    Clock, 
     Sparkles, 
-    GraduationCap,
-    Award,
-    ClipboardList,
-    AlertCircle,
-    Check
+    CheckCircle2, 
+    Award, 
+    Loader2 
 } from 'lucide-react';
 
 export const StudentDashboardPage: React.FC = () => {
@@ -41,297 +41,398 @@ export const StudentDashboardPage: React.FC = () => {
                 setAvailableExams(examsRes.value.data?.exams || []);
             }
         } catch {
+            // silent fail
         } finally {
             setLoading(false);
         }
     };
 
+    // Calculate time-aware Bengali greeting
+    const getBengaliGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour >= 5 && hour < 12) return 'শুভ সকাল';
+        if (hour >= 12 && hour < 16) return 'শুভ দুপুর';
+        if (hour >= 16 && hour < 18) return 'শুভ বিকাল';
+        return 'শুভ রাত্রি';
+    };
+
     if (loading) {
-        return <div className="p-12 text-center text-slate-400">Loading dashboard...</div>;
+        return (
+            <div className="py-20 flex flex-col items-center justify-center gap-3">
+                <Loader2 className="w-8 h-8 text-emerald-700 animate-spin" />
+                <span className="text-xs font-bold text-slate-500">ড্যাশবোর্ড লোড হচ্ছে...</span>
+            </div>
+        );
     }
 
     const totalEnrolled = coursesData.length;
-    const completedLessonsTotal = coursesData.reduce((acc, c) => acc + (c.completed_lessons || 0), 0);
-    const inProgressCount = coursesData.filter(c => c.progress_percentage > 0 && c.progress_percentage < 100).length;
-
     const recentCourse = coursesData[0];
+    const continueUrl = recentCourse?.last_lesson_id 
+        ? `/learning/${recentCourse.course.id}/lessons/${recentCourse.last_lesson_id}` 
+        : recentCourse?.course?.slug 
+            ? `/courses/${recentCourse.course.slug}` 
+            : '/courses';
+
+    const recentCourseTitle = recentCourse?.course?.title || 'SSC 26 Free Crash Course';
+    const recentLessonTitle = recentCourse?.last_lesson?.title || 'লেকচার -০১ | বাংলা ব্যাকরণ (সমাস)';
+    const progressPercent = recentCourse?.progress_percentage || 0;
 
     return (
-        <div className="space-y-8 max-w-7xl pb-16">
-            {/* Welcome Banner */}
-            <div className="bg-gradient-to-r from-sky-600 via-indigo-600 to-indigo-800 rounded-3xl p-6 sm:p-8 text-white shadow-xl shadow-sky-600/15 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <div className="space-y-2">
-                    <span className="px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold backdrop-blur-xs">
-                        Learning Space
-                    </span>
-                    <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
-                        Welcome, {user?.name}! 👋
-                    </h2>
-                    <p className="text-xs sm:text-sm text-sky-100 max-w-lg">
-                        Complete your lessons today and maintain steady learning progress.
+        <div className="space-y-6 max-w-7xl mx-auto">
+            {/* Top Greeting Row */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                        {getBengaliGreeting()}, {user?.name || 'শিক্ষার্থী'}
+                    </h1>
+                    <p className="text-xs sm:text-sm font-bold text-slate-500 mt-1">
+                        আজকে পড়া শুরু করো
                     </p>
                 </div>
 
-                {recentCourse && (
-                    <Link
-                        to={recentCourse.last_lesson_id 
-                            ? `/learning/${recentCourse.course.id}/lessons/${recentCourse.last_lesson_id}` 
-                            : `/courses/${recentCourse.course.slug}`}
-                        className="px-6 py-3.5 bg-white text-slate-900 hover:bg-slate-50 font-bold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 shrink-0 self-start sm:self-center"
+                {/* Profile Completion / Reward Points Badge */}
+                <div className="self-start sm:self-center">
+                    <button
+                        type="button"
+                        className="px-4 py-2 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-extrabold text-xs shadow-xs flex items-center gap-2 transition-all cursor-pointer"
                     >
-                        <PlayCircle className="w-5 h-5 text-sky-600" />
-                        <span>Continue Learning</span>
-                    </Link>
-                )}
+                        <span>প্রোফাইল পূরণ করো</span>
+                        <span className="bg-white/25 px-2 py-0.5 rounded-full text-[10px] tracking-wide">
+                            +৫০ পয়েন্ট
+                        </span>
+                    </button>
+                </div>
             </div>
 
-            {/* Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-                    <div>
-                        <span className="text-xs font-bold text-slate-400 block mb-1">Enrolled Courses</span>
-                        <div className="text-2xl font-black text-slate-900">{totalEnrolled}</div>
-                    </div>
-                    <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center">
-                        <BookOpen className="w-6 h-6" />
-                    </div>
-                </div>
+            {/* Hero Cards: Continue Learning & Upcoming Class */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* Left Card: Continue Class / Latest Lecture */}
+                <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-100 shadow-xs flex flex-col sm:flex-row items-center gap-5">
+                    {/* Video Thumbnail */}
+                    <Link
+                        to={continueUrl}
+                        className="w-full sm:w-56 h-36 bg-gradient-to-tr from-emerald-950 via-slate-900 to-emerald-900 rounded-2xl relative overflow-hidden flex items-center justify-center shrink-0 shadow-inner group cursor-pointer"
+                    >
+                        {recentCourse?.course?.thumbnail ? (
+                            <img
+                                src={recentCourse.course.thumbnail}
+                                alt={recentCourseTitle}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                        ) : (
+                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-700/40 via-emerald-950 to-slate-950 flex flex-col items-center justify-center p-3 text-center">
+                                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
+                                    বাংলা ব্যাকরণ
+                                </span>
+                                <span className="text-xl font-black text-white mt-1">সমাস</span>
+                                <span className="text-[10px] text-emerald-200/80">ভিডিও ক্লাস</span>
+                            </div>
+                        )}
 
-                <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-                    <div>
-                        <span className="text-xs font-bold text-slate-400 block mb-1">In-Progress Courses</span>
-                        <div className="text-2xl font-black text-slate-900">{inProgressCount}</div>
-                    </div>
-                    <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                        <Clock className="w-6 h-6" />
-                    </div>
-                </div>
+                        {/* Centered Play Button */}
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                            <div className="w-12 h-12 rounded-full bg-emerald-500/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform pl-0.5">
+                                <Play className="w-5 h-5 fill-white text-white" />
+                            </div>
+                        </div>
+                    </Link>
 
-                <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between">
-                    <div>
-                        <span className="text-xs font-bold text-slate-400 block mb-1">Completed Lessons</span>
-                        <div className="text-2xl font-black text-slate-900">{completedLessonsTotal}</div>
-                    </div>
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                        <CheckCircle2 className="w-6 h-6" />
-                    </div>
-                </div>
-
-                <Link
-                    to="/student/exams"
-                    className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-xs flex items-center justify-between hover:border-purple-300 hover:shadow-sm transition-all group"
-                >
-                    <div>
-                        <span className="text-xs font-bold text-slate-400 block mb-1 group-hover:text-purple-600 transition-colors">
-                            Available Exams
+                    {/* Course & Lesson Details */}
+                    <div className="flex-1 min-w-0 w-full space-y-2">
+                        <span className="text-[11px] font-bold text-slate-400 block">
+                            লেটেস্ট ক্লাস
                         </span>
-                        <div className="text-2xl font-black text-slate-900">
-                            {availableExams.length}
+                        <h3 className="font-extrabold text-slate-900 text-sm sm:text-base leading-snug line-clamp-1">
+                            {recentCourseTitle}
+                        </h3>
+                        <p className="text-xs text-slate-600 line-clamp-1">
+                            {recentLessonTitle}
+                        </p>
+
+                        {/* Progress Bar */}
+                        <div className="pt-1 space-y-1">
+                            <div className="flex items-center justify-end text-[11px] font-bold text-slate-400">
+                                <span>{progressPercent}%</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-emerald-600 rounded-full transition-all duration-500"
+                                    style={{ width: `${progressPercent}%` }}
+                                />
+                            </div>
+                        </div>
+
+                        {/* CTA Button */}
+                        <div className="pt-2">
+                            <Link
+                                to={continueUrl}
+                                className="inline-flex items-center gap-2 px-5 py-2 bg-[#03543f] hover:bg-[#024030] text-white font-bold text-xs rounded-full transition-all shadow-xs"
+                            >
+                                <span>শুরু করো</span>
+                                <ArrowRight className="w-3.5 h-3.5" />
+                            </Link>
                         </div>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all shadow-xs">
-                        <ClipboardList className="w-6 h-6" />
+                </div>
+
+                {/* Right Card: Live / Upcoming Class */}
+                <div className="lg:col-span-5 bg-white rounded-3xl p-5 border border-slate-100 shadow-xs flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 mb-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>আজ রাত ৮.০০</span>
+                        </div>
+                        <h4 className="font-extrabold text-slate-900 text-sm leading-snug">
+                            উচ্চতর গণিত • SSC26 ক্লাস ০৬ : Higher Math - অধ্যায় ৮ (ত্রিকোণমিতি)
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-1.5">
+                            মেন্টর প্যানেল • নিয়মিত লাইভ সেশন ও প্রশ্নোত্তর
+                        </p>
+                    </div>
+
+                    <div className="pt-4">
+                        <Link
+                            to="/student/my-courses"
+                            className="w-full py-2.5 bg-[#03543f] hover:bg-[#024030] text-white font-bold text-xs rounded-full transition-all shadow-xs text-center block"
+                        >
+                            বিস্তারিত
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
+            {/* 4-Card Quick Actions / Category Grid */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+                {/* 1. চলমান কোর্স */}
+                <Link
+                    to="/student/my-courses"
+                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-xs hover:border-rose-200 hover:shadow-sm transition-all group flex items-center gap-3.5"
+                >
+                    <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <GraduationCap className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <div className="font-extrabold text-slate-800 text-sm group-hover:text-rose-600 transition-colors">
+                            চলমান কোর্স
+                        </div>
+                        <div className="text-[11px] font-bold text-slate-400 mt-0.5">
+                            {totalEnrolled} টি কোর্স
+                        </div>
+                    </div>
+                </Link>
+
+                {/* 2. পরীক্ষা */}
+                <Link
+                    to="/student/exams"
+                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-xs hover:border-amber-200 hover:shadow-sm transition-all group flex items-center justify-between relative"
+                >
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <FileText className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <div className="font-extrabold text-slate-800 text-sm group-hover:text-amber-600 transition-colors">
+                                পরীক্ষা
+                            </div>
+                            <div className="text-[11px] font-bold text-slate-400 mt-0.5">
+                                মডেল টেস্ট ও কুইজ
+                            </div>
+                        </div>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black shrink-0">
+                        {availableExams.length}টি
+                    </span>
+                </Link>
+
+                {/* 3. রুটিন */}
+                <button
+                    type="button"
+                    onClick={() => {
+                        const el = document.getElementById('student-routine-section');
+                        el?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-xs hover:border-sky-200 hover:shadow-sm transition-all group flex items-center gap-3.5 text-left cursor-pointer"
+                >
+                    <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <Calendar className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <div className="font-extrabold text-slate-800 text-sm group-hover:text-sky-600 transition-colors">
+                            রুটিন
+                        </div>
+                        <div className="text-[11px] font-bold text-slate-400 mt-0.5">
+                            ক্লাস সিডিউল
+                        </div>
+                    </div>
+                </button>
+
+                {/* 4. ফ্রি রিসোর্স */}
+                <Link
+                    to="/courses?type=free"
+                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-xs hover:border-emerald-200 hover:shadow-sm transition-all group flex items-center gap-3.5"
+                >
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <Star className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <div className="font-extrabold text-slate-800 text-sm group-hover:text-emerald-700 transition-colors">
+                            ফ্রি রিসোর্স
+                        </div>
+                        <div className="text-[11px] font-bold text-slate-400 mt-0.5">
+                            নোট ও হ্যান্ডনোট
+                        </div>
                     </div>
                 </Link>
             </div>
 
-            {/* Published Exams & Assessments Section */}
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 flex items-center justify-center">
-                            <ClipboardList className="w-5 h-5" />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-black text-slate-900 tracking-tight">
-                                Published Exams & Assessments
+            {/* Bottom 2-Column Section: Take Exam & Today's Routine */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Left: পরীক্ষা দাও (Take Exams) */}
+                <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-100 flex flex-col justify-between">
+                    <div>
+                        <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                            <h3 className="font-extrabold text-slate-900 text-base">
+                                পরীক্ষা দাও
                             </h3>
-                            <p className="text-xs text-slate-500">
-                                Participate in live quizzes and examination papers to evaluate your learning
-                            </p>
+                            <Link
+                                to="/student/exams"
+                                className="text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors"
+                            >
+                                সব দেখুন
+                            </Link>
                         </div>
-                    </div>
 
-                    <Link
-                        to="/student/exams"
-                        className="text-xs font-bold text-purple-600 hover:text-purple-700 flex items-center gap-1 self-start sm:self-center"
-                    >
-                        <span>View All Exams ({availableExams.length})</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
-                </div>
-
-                {availableExams.length === 0 ? (
-                    <div className="py-10 text-center text-slate-400 space-y-2.5">
-                        <ClipboardList className="w-10 h-10 text-slate-300 mx-auto" />
-                        <h4 className="font-bold text-slate-700 text-sm">No exams scheduled currently</h4>
-                        <p className="text-xs max-w-sm mx-auto">
-                            Check back later when instructors publish new chapter tests and mock exams.
-                        </p>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                        {availableExams.map((exam) => {
-                            const courseTitle = exam.course?.title || exam.courses?.[0]?.title;
-
-                            return (
-                                <div
-                                    key={exam.id}
-                                    className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-purple-300 hover:shadow-sm transition-all flex flex-col justify-between gap-4"
-                                >
-                                    <div className="space-y-2.5">
-                                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-800">
-                                                {courseTitle || 'Open Assessment'}
-                                            </span>
-
-                                            {exam.has_negative_marking && (
-                                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-50 text-rose-600 border border-rose-200">
-                                                    Negative (-{exam.negative_marks})
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <h4 className="font-bold text-slate-900 text-sm leading-snug line-clamp-2">
-                                            {exam.title}
-                                        </h4>
-
-                                        {exam.description && (
-                                            <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                                                {exam.description}
-                                            </p>
-                                        )}
-
-                                        <div className="flex items-center gap-3 text-xs text-slate-600 font-medium pt-1">
-                                            <span className="flex items-center gap-1 font-bold text-purple-700">
-                                                <Award className="w-3.5 h-3.5" />
-                                                {exam.total_marks} Marks
-                                            </span>
-                                            <span className="text-slate-300">•</span>
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                                                {exam.duration_minutes} Mins
-                                            </span>
-                                            <span className="text-slate-300">•</span>
-                                            <span>
-                                                {exam.questions_count} Questions
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Button */}
-                                    <div className="pt-2">
-                                        {exam.has_submitted ? (
-                                            <div className="flex items-center justify-between pt-2 border-t border-slate-200/80">
-                                                <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
-                                                    <CheckCircle2 className="w-4 h-4" />
-                                                    Score: {exam.submission?.obtained_marks} / {exam.submission?.total_marks}
-                                                </span>
-                                                <Link
-                                                    to="/student/exams?tab=results"
-                                                    className="px-3 py-1.5 rounded-xl text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 transition"
-                                                >
-                                                    View Result
-                                                </Link>
+                        {/* Exams List */}
+                        {availableExams.length === 0 ? (
+                            <div className="py-8 text-center text-slate-400 space-y-2">
+                                <FileText className="w-8 h-8 text-slate-300 mx-auto" />
+                                <p className="text-xs font-bold text-slate-600">বর্তমানে কোনো পরীক্ষা নির্ধারিত নেই</p>
+                                <p className="text-[11px] text-slate-400">নতুন মডেল টেস্ট ও কুইজ প্রকাশিত হলে এখানে দেখতে পাবেন।</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-2.5">
+                                {availableExams.slice(0, 3).map((exam) => {
+                                    const courseName = exam.course?.title || exam.courses?.[0]?.title || 'মডেল টেস্ট';
+                                    return (
+                                        <div
+                                            key={exam.id}
+                                            className="p-3 rounded-2xl hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 border border-slate-100/70"
+                                        >
+                                            {/* Duration Pill */}
+                                            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 font-bold text-xs flex items-center justify-center shrink-0">
+                                                {exam.duration_minutes}′
                                             </div>
-                                        ) : exam.in_progress ? (
+
+                                            {/* Details */}
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-1">
+                                                    {exam.title}
+                                                </h4>
+                                                <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                                                    {courseName} • {exam.duration_minutes} মিনিট
+                                                </p>
+                                            </div>
+
+                                            {/* Action Button */}
                                             <Link
                                                 to={`/exams/${exam.id}/take`}
-                                                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+                                                className="px-4 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs shrink-0 transition-colors"
                                             >
-                                                <span>Resume Exam</span>
-                                                <ArrowRight className="w-4 h-4" />
+                                                শুরু
                                             </Link>
-                                        ) : !exam.is_enrolled ? (
-                                            <Link
-                                                to={`/courses/${exam.course?.slug || ''}`}
-                                                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors"
-                                            >
-                                                <span>Enroll in Course to Take</span>
-                                            </Link>
-                                        ) : (
-                                            <Link
-                                                to={`/exams/${exam.id}/take`}
-                                                className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-md shadow-purple-600/20"
-                                            >
-                                                <ClipboardList className="w-4 h-4" />
-                                                <span>Take Exam Now</span>
-                                                <ArrowRight className="w-4 h-4" />
-                                            </Link>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
 
-            {/* Enrolled Courses Progress */}
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                    <h3 className="text-lg font-bold text-slate-900">My Courses & Progress</h3>
-                    <Link to="/courses" className="text-xs font-bold text-sky-600 hover:text-sky-700">
-                        Find New Courses
-                    </Link>
-                </div>
-
-                {coursesData.length === 0 ? (
-                    <div className="py-12 text-center text-slate-400 space-y-3">
-                        <BookOpen className="w-12 h-12 text-slate-300 mx-auto" />
-                        <h4 className="font-bold text-slate-700">You haven't enrolled in any courses yet</h4>
-                        <p className="text-xs">Explore our catalog and find the course that fits your goals.</p>
+                    <div className="pt-4 border-t border-slate-100 mt-4 text-center">
                         <Link
-                            to="/courses"
-                            className="inline-block mt-2 px-6 py-2.5 bg-sky-600 text-white font-bold text-xs rounded-xl shadow-md"
+                            to="/student/exams"
+                            className="text-xs font-bold text-emerald-700 hover:underline"
                         >
-                            Browse Courses
+                            সকল পরীক্ষার তালিকা দেখুন →
                         </Link>
                     </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {coursesData.map((item) => {
-                            const { course, total_lessons, completed_lessons, progress_percentage, last_lesson_id } = item;
-                            return (
-                                <div
-                                    key={course.id}
-                                    className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-sky-300 hover:shadow-xs transition-all space-y-4 flex flex-col justify-between"
-                                >
-                                    <div>
-                                        <h4 className="font-bold text-slate-900 text-base">{course.title}</h4>
-                                        <p className="text-xs text-slate-500 mt-1">
-                                            Instructor: {course.instructors?.map((i: any) => i.name).join(', ') || 'Expert Mentor'}
-                                        </p>
-                                    </div>
+                </div>
 
-                                    {/* Progress Bar */}
-                                    <div className="space-y-1.5">
-                                        <div className="flex justify-between text-xs font-bold">
-                                            <span className="text-slate-600">{completed_lessons} / {total_lessons} Completed</span>
-                                            <span className="text-sky-600">{progress_percentage}%</span>
-                                        </div>
-                                        <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 rounded-full transition-all duration-500"
-                                                style={{ width: `${progress_percentage}%` }}
-                                            />
-                                        </div>
-                                    </div>
+                {/* Right: আজকের রুটিন (Today's Routine) */}
+                <div
+                    id="student-routine-section"
+                    className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-100 flex flex-col justify-between"
+                >
+                    <div>
+                        <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                            <h3 className="font-extrabold text-slate-900 text-base">
+                                আজকের রুটিন
+                            </h3>
+                            <button
+                                type="button"
+                                className="text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors"
+                            >
+                                রুটিন
+                            </button>
+                        </div>
 
-                                    <Link
-                                        to={last_lesson_id 
-                                            ? `/learning/${course.id}/lessons/${last_lesson_id}` 
-                                            : `/courses/${course.slug}`}
-                                        className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-xs"
-                                    >
-                                        <PlayCircle className="w-4 h-4" />
-                                        <span>Open Classroom</span>
-                                    </Link>
+                        {/* Timeline Routine Items */}
+                        <div className="space-y-4">
+                            {/* Class 1 */}
+                            <div className="flex items-start gap-3">
+                                <span className="text-xs font-bold text-slate-400 w-12 shrink-0 pt-0.5">
+                                    ৬:০০
+                                </span>
+                                <div className="border-l-2 border-emerald-500 pl-3.5 py-0.5 space-y-0.5">
+                                    <h4 className="font-bold text-slate-800 text-xs sm:text-sm">
+                                        উচ্চতর গণিত
+                                    </h4>
+                                    <p className="text-[11px] text-slate-500">
+                                        SSC26 ক্লাস ০৬ : Higher Math - অধ্যায় ৮ (ত্রিকোণমিতি)
+                                    </p>
                                 </div>
-                            );
-                        })}
+                            </div>
+
+                            {/* Class 2 */}
+                            <div className="flex items-start gap-3">
+                                <span className="text-xs font-bold text-slate-400 w-12 shrink-0 pt-0.5">
+                                    ৮:০০
+                                </span>
+                                <div className="border-l-2 border-emerald-500 pl-3.5 py-0.5 space-y-0.5">
+                                    <h4 className="font-bold text-slate-800 text-xs sm:text-sm">
+                                        পদার্থবিজ্ঞান
+                                    </h4>
+                                    <p className="text-[11px] text-slate-500">
+                                        গতিবিদ্যা ও ভেক্টর বিশ্লেষণ • নিয়মিত লাইভ সেশন
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Class 3 */}
+                            <div className="flex items-start gap-3">
+                                <span className="text-xs font-bold text-slate-400 w-12 shrink-0 pt-0.5">
+                                    ১০:০০
+                                </span>
+                                <div className="border-l-2 border-emerald-500 pl-3.5 py-0.5 space-y-0.5">
+                                    <h4 className="font-bold text-slate-800 text-xs sm:text-sm">
+                                        রসায়ন
+                                    </h4>
+                                    <p className="text-[11px] text-slate-500">
+                                        গুণগত রসায়ন ও দ্রাব্যতা নীতি • রিভিশন ও সলভিং ক্লাস
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                )}
+
+                    <div className="pt-4 border-t border-slate-100 mt-4 text-center">
+                        <Link
+                            to="/student/my-courses"
+                            className="text-xs font-bold text-emerald-700 hover:underline"
+                        >
+                            কোর্সের পূর্ণাঙ্গ সময়সূচি দেখুন →
+                        </Link>
+                    </div>
+                </div>
             </div>
         </div>
     );
