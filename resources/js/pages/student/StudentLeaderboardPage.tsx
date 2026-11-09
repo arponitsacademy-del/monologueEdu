@@ -470,3 +470,4 @@ export const StudentLeaderboardPage: React.FC = () => {
         </div>
     );
 };
+

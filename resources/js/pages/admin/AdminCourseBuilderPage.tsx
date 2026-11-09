@@ -35,7 +35,9 @@ import {
     AlertCircle,
     ExternalLink,
     BookOpen,
-    CheckCircle2
+    CheckCircle2,
+    Radio,
+    MessageSquare
 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 
@@ -49,8 +51,21 @@ export const AdminCourseBuilderPage: React.FC = () => {
     const [sections, setSections] = useState<CourseSection[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Tab state
-    const [activeTab, setActiveTab] = useState<'curriculum' | 'exams'>('curriculum');
+    // Tab state ('lessons' | 'live_classes' | 'exams')
+    const [activeTab, setActiveTab] = useState<'lessons' | 'live_classes' | 'exams'>('lessons');
+
+    // Live Classes state
+    const [liveClasses, setLiveClasses] = useState<any[]>([]);
+    const [loadingLiveClasses, setLoadingLiveClasses] = useState(false);
+    const [liveClassModalOpen, setLiveClassModalOpen] = useState(false);
+    const [editingLiveClass, setEditingLiveClass] = useState<any | null>(null);
+    const [liveClassTitle, setLiveClassTitle] = useState('');
+    const [liveClassDesc, setLiveClassDesc] = useState('');
+    const [liveClassUrl, setLiveClassUrl] = useState('');
+    const [liveClassStartTime, setLiveClassStartTime] = useState('');
+    const [liveClassEndTime, setLiveClassEndTime] = useState('');
+    const [liveClassStatus, setLiveClassStatus] = useState<'upcoming' | 'live' | 'completed' | 'cancelled'>('upcoming');
+    const [savingLiveClass, setSavingLiveClass] = useState(false);
 
     // Course Attached Exams state
     const [attachedExams, setAttachedExams] = useState<any[]>([]);
@@ -84,7 +99,110 @@ export const AdminCourseBuilderPage: React.FC = () => {
     useEffect(() => {
         fetchCurriculum();
         fetchCourseExams();
+        fetchLiveClasses();
     }, [id]);
+
+    const fetchLiveClasses = async () => {
+        try {
+            setLoadingLiveClasses(true);
+            const { data } = await apiClient.get(`/builder/${id}/live-classes`);
+            setLiveClasses(data.live_classes || []);
+        } catch (err) {
+            console.error('Failed to load live classes', err);
+        } finally {
+            setLoadingLiveClasses(false);
+        }
+    };
+
+    const openAddLiveClass = () => {
+        setEditingLiveClass(null);
+        setLiveClassTitle('');
+        setLiveClassDesc('');
+        setLiveClassUrl('');
+        const d = new Date();
+        d.setMinutes(d.getMinutes() + 60);
+        d.setMinutes(0);
+        const iso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        setLiveClassStartTime(iso);
+        setLiveClassEndTime('');
+        setLiveClassStatus('upcoming');
+        setLiveClassModalOpen(true);
+    };
+
+    const openEditLiveClass = (lc: any) => {
+        setEditingLiveClass(lc);
+        setLiveClassTitle(lc.title);
+        setLiveClassDesc(lc.description || '');
+        setLiveClassUrl(lc.live_url || '');
+        if (lc.start_time) {
+            const d = new Date(lc.start_time);
+            setLiveClassStartTime(new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16));
+        } else {
+            setLiveClassStartTime('');
+        }
+        if (lc.end_time) {
+            const d = new Date(lc.end_time);
+            setLiveClassEndTime(new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16));
+        } else {
+            setLiveClassEndTime('');
+        }
+        setLiveClassStatus(lc.status || 'upcoming');
+        setLiveClassModalOpen(true);
+    };
+
+    const handleSaveLiveClass = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!liveClassTitle.trim() || !liveClassUrl.trim() || !liveClassStartTime) {
+            alert('অনুগ্রহ করে ক্লাসের শিরোনাম, ইউটিউব লিংক এবং শুরুর সময় দিন।');
+            return;
+        }
+
+        try {
+            setSavingLiveClass(true);
+            const payload = {
+                title: liveClassTitle.trim(),
+                description: liveClassDesc.trim() || null,
+                live_url: liveClassUrl.trim(),
+                start_time: liveClassStartTime,
+                end_time: liveClassEndTime || null,
+                status: liveClassStatus,
+            };
+
+            if (editingLiveClass) {
+                await apiClient.put(`/builder/${id}/live-classes/${editingLiveClass.id}`, payload);
+            } else {
+                await apiClient.post(`/builder/${id}/live-classes`, payload);
+            }
+
+            setLiveClassModalOpen(false);
+            fetchLiveClasses();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'লাইভ ক্লাস সংরক্ষণ করতে সমস্যা হয়েছে।');
+        } finally {
+            setSavingLiveClass(false);
+        }
+    };
+
+    const handleDeleteLiveClass = async (lcId: number, title: string) => {
+        if (!window.confirm(`আপনি কি নিশ্চিত যে "${title}" লাইভ ক্লাসটি মুছে ফেলতে চান?`)) {
+            return;
+        }
+        try {
+            await apiClient.delete(`/builder/${id}/live-classes/${lcId}`);
+            setLiveClasses(prev => prev.filter(c => c.id !== lcId));
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'লাইভ ক্লাস ডিলিট করা যায়নি।');
+        }
+    };
+
+    const handleToggleLiveStatus = async (lc: any, newStatus: string) => {
+        try {
+            await apiClient.patch(`/builder/${id}/live-classes/${lc.id}/status`, { status: newStatus });
+            fetchLiveClasses();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'স্ট্যাটাস পরিবর্তন করা যায়নি।');
+        }
+    };
 
     const fetchCurriculum = async () => {
         try {
@@ -346,22 +464,34 @@ export const AdminCourseBuilderPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {activeTab === 'curriculum' ? (
+                    {activeTab === 'lessons' && (
                         <button
                             onClick={openAddSection}
-                            className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-xl shadow-md shadow-sky-600/30 flex items-center gap-2 transition-all"
+                            className="px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-xl shadow-md shadow-sky-600/30 flex items-center gap-2 transition-all cursor-pointer"
                         >
                             <Plus className="w-4 h-4" />
                             <span>Add New Section</span>
                         </button>
-                    ) : (
+                    )}
+
+                    {activeTab === 'live_classes' && (
+                        <button
+                            onClick={openAddLiveClass}
+                            className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl shadow-md shadow-rose-600/30 flex items-center gap-2 transition-all cursor-pointer"
+                        >
+                            <Plus className="w-4 h-4" />
+                            <span>+ নতুন লাইভ ক্লাস</span>
+                        </button>
+                    )}
+
+                    {activeTab === 'exams' && (
                         <div className="flex items-center gap-2.5">
                             <button
                                 onClick={() => {
                                     setSelectedExamId('');
                                     setAttachModalOpen(true);
                                 }}
-                                className="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-xl shadow-md shadow-sky-600/30 flex items-center gap-2 transition-all"
+                                className="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-xl shadow-md shadow-sky-600/30 flex items-center gap-2 transition-all cursor-pointer"
                             >
                                 <Plus className="w-4 h-4" />
                                 <span>Attach Exam</span>
@@ -382,23 +512,38 @@ export const AdminCourseBuilderPage: React.FC = () => {
             {/* Builder Navigation Tabs */}
             <div className="flex items-center gap-4 border-b border-slate-200">
                 <button
-                    onClick={() => setActiveTab('curriculum')}
-                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all ${
-                        activeTab === 'curriculum'
+                    onClick={() => setActiveTab('lessons')}
+                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                        activeTab === 'lessons'
                             ? 'border-sky-600 text-sky-600'
                             : 'border-transparent text-slate-500 hover:text-slate-800'
                     }`}
                 >
                     <Layers className="w-4 h-4" />
-                    <span>Curriculum & Lessons</span>
+                    <span>Lessons</span>
                     <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600">
                         {sections.reduce((acc, s) => acc + (s.lessons?.length || 0), 0)}
                     </span>
                 </button>
 
                 <button
+                    onClick={() => setActiveTab('live_classes')}
+                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                        activeTab === 'live_classes'
+                            ? 'border-rose-600 text-rose-600'
+                            : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                >
+                    <Radio className="w-4 h-4" />
+                    <span>Live Class</span>
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-700">
+                        {liveClasses.length}
+                    </span>
+                </button>
+
+                <button
                     onClick={() => setActiveTab('exams')}
-                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all ${
+                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
                         activeTab === 'exams'
                             ? 'border-sky-600 text-sky-600'
                             : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -412,8 +557,8 @@ export const AdminCourseBuilderPage: React.FC = () => {
                 </button>
             </div>
 
-            {/* Curriculum Tab Content */}
-            {activeTab === 'curriculum' && (
+            {/* Lessons Tab Content */}
+            {activeTab === 'lessons' && (
             <div className="space-y-6">
                 {sections.length === 0 ? (
                     <div className="bg-white p-12 rounded-3xl border border-slate-200/80 shadow-xs text-center space-y-4">
@@ -602,6 +747,189 @@ export const AdminCourseBuilderPage: React.FC = () => {
                     ))
                 )}
             </div>
+            )}
+
+            {/* Live Classes Tab Content */}
+            {activeTab === 'live_classes' && (
+                <div className="space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div>
+                            <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                <Radio className="w-5 h-5 text-rose-600 animate-pulse" />
+                                <span>কোর্স লাইভ ক্লাস ({liveClasses.length})</span>
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                                ইউটিউবে Unlisted Live চালু করে লিংক ও ক্লাসের সময় সেট করুন। শিক্ষার্থীরা সরাসরি জয়েন করে লাইভ দেখতে ও কমেন্ট করতে পারবে।
+                            </p>
+                        </div>
+                        <button
+                            onClick={openAddLiveClass}
+                            className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+                        >
+                            <Plus className="w-4 h-4" />
+                            <span>+ নতুন লাইভ ক্লাস তৈরি করুন</span>
+                        </button>
+                    </div>
+
+                    {loadingLiveClasses ? (
+                        <div className="bg-white p-12 rounded-3xl border border-slate-200/80 text-center">
+                            <Loader2 className="w-8 h-8 animate-spin text-rose-500 mx-auto mb-3" />
+                            <p className="text-xs text-slate-400">লাইভ ক্লাস লোড হচ্ছে...</p>
+                        </div>
+                    ) : liveClasses.length === 0 ? (
+                        <div className="bg-white p-12 rounded-3xl border border-slate-200/80 shadow-xs text-center space-y-4">
+                            <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center mx-auto">
+                                <Radio className="w-8 h-8" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-slate-800">কোনো লাইভ ক্লাস যুক্ত করা হয়নি</h3>
+                                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
+                                    শিক্ষার্থীদের সাথে লাইভ সেশন নিতে ইউটিউব আনলিস্টেড লাইভ লিংক দিয়ে এখনই একটি ক্লাস শিডিউল করুন।
+                                </p>
+                            </div>
+                            <div className="pt-2">
+                                <button
+                                    onClick={openAddLiveClass}
+                                    className="px-5 py-2.5 bg-rose-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-rose-700 flex items-center gap-1.5 mx-auto cursor-pointer"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    <span>প্রথম লাইভ ক্লাস তৈরি করুন</span>
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-4">
+                            {liveClasses.map((lc, index) => {
+                                const isLive = lc.status === 'live' || lc.is_currently_live;
+                                const isCompleted = lc.status === 'completed';
+
+                                return (
+                                    <div
+                                        key={lc.id}
+                                        className={`bg-white rounded-2xl border p-5 sm:p-6 transition-all space-y-4 shadow-xs ${
+                                            isLive
+                                                ? 'border-rose-300 ring-2 ring-rose-500/15'
+                                                : 'border-slate-200/80 hover:border-slate-300'
+                                        }`}
+                                    >
+                                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                                            <div className="space-y-1.5 flex-1">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <span className="w-6 h-6 rounded-md bg-slate-100 text-slate-700 text-xs font-bold flex items-center justify-center shrink-0">
+                                                        {index + 1}
+                                                    </span>
+                                                    <h4 className="text-base font-extrabold text-slate-900 tracking-tight">
+                                                        {lc.title}
+                                                    </h4>
+
+                                                    {/* Status Badge */}
+                                                    {isLive ? (
+                                                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-500 text-white animate-pulse">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-white" />
+                                                            <span>লাইভ চলছে</span>
+                                                        </span>
+                                                    ) : isCompleted ? (
+                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
+                                                            সমাপ্ত
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                                                            আসন্ন
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {lc.description && (
+                                                    <p className="text-xs text-slate-500 pl-8 line-clamp-2">
+                                                        {lc.description}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {/* Action buttons */}
+                                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                                                {/* Live Toggle */}
+                                                {!isLive && !isCompleted && (
+                                                    <button
+                                                        onClick={() => handleToggleLiveStatus(lc, 'live')}
+                                                        className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                                                        title="লাইভ শুরু করুন"
+                                                    >
+                                                        <Radio className="w-3.5 h-3.5" />
+                                                        <span>লাইভ শুরু করুন</span>
+                                                    </button>
+                                                )}
+                                                {isLive && (
+                                                    <button
+                                                        onClick={() => handleToggleLiveStatus(lc, 'completed')}
+                                                        className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                                                        title="লাইভ সমাপ্ত করুন"
+                                                    >
+                                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                                        <span>সমাপ্ত করুন</span>
+                                                    </button>
+                                                )}
+
+                                                <Link
+                                                    to={`/student/live-classes/${lc.id}`}
+                                                    target="_blank"
+                                                    className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-xs rounded-lg flex items-center gap-1 transition-colors"
+                                                    title="লাইভ ক্লাসরুম দেখুন"
+                                                >
+                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                    <span>ক্লাসরুম</span>
+                                                </Link>
+
+                                                <button
+                                                    onClick={() => openEditLiveClass(lc)}
+                                                    className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"
+                                                    title="এডিট করুন"
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+
+                                                <button
+                                                    onClick={() => handleDeleteLiveClass(lc.id, lc.title)}
+                                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                                    title="ডিলিট করুন"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Metadata row */}
+                                        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 pt-3 border-t border-slate-100">
+                                            <div className="flex items-center gap-1.5">
+                                                <Clock className="w-3.5 h-3.5 text-sky-600" />
+                                                <span>
+                                                    শুরু: <strong>{new Date(lc.start_time).toLocaleString('bn-BD', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</strong>
+                                                </span>
+                                            </div>
+
+                                            <div className="flex items-center gap-1.5 text-rose-600 font-semibold">
+                                                <ExternalLink className="w-3.5 h-3.5" />
+                                                <a
+                                                    href={lc.live_url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="hover:underline truncate max-w-xs"
+                                                >
+                                                    {lc.live_url}
+                                                </a>
+                                            </div>
+
+                                            <div className="flex items-center gap-1.5 ml-auto text-slate-500">
+                                                <MessageSquare className="w-3.5 h-3.5 text-slate-400" />
+                                                <span>{lc.comments_count || 0} টি মন্তব্য</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
             )}
 
             {/* Course Exams Tab Content */}
@@ -1020,6 +1348,113 @@ export const AdminCourseBuilderPage: React.FC = () => {
                     >
                         Save Lesson
                     </button>
+                </form>
+            </Modal>
+
+            {/* Live Class Modal */}
+            <Modal
+                isOpen={liveClassModalOpen}
+                onClose={() => setLiveClassModalOpen(false)}
+                title={editingLiveClass ? 'লাইভ ক্লাস সম্পাদনা করুন' : 'নতুন লাইভ ক্লাস তৈরি করুন'}
+            >
+                <form onSubmit={handleSaveLiveClass} className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                            ক্লাসের শিরোনাম / বিষয় *
+                        </label>
+                        <input
+                            type="text"
+                            required
+                            value={liveClassTitle}
+                            onChange={(e) => setLiveClassTitle(e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-medium focus:border-sky-500 focus:outline-hidden"
+                            placeholder="যেমন: পদার্থবিজ্ঞান ১ম পত্র - গতিবিদ্যা লাইভ ক্লাস ০১"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                            ইউটিউব লাইভ লিংক (Unlisted Live Stream URL) *
+                        </label>
+                        <input
+                            type="text"
+                            required
+                            value={liveClassUrl}
+                            onChange={(e) => setLiveClassUrl(e.target.value)}
+                            className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs sm:text-sm font-medium focus:border-sky-500 focus:outline-hidden"
+                            placeholder="https://www.youtube.com/watch?v=... বা https://youtu.be/..."
+                        />
+                        <p className="text-[11px] text-slate-400 mt-1">
+                            ইউটিউব স্টুডিও থেকে Unlisted Live চালু করে তার লিংকটি এখানে পেস্ট করুন। ক্লাসের সময় শিক্ষার্থীরা সরাসরি এই স্ট্রিমে যুক্ত হয়ে কমেন্ট করতে পারবে।
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                                ক্লাসের শুরুর সময় *
+                            </label>
+                            <input
+                                type="datetime-local"
+                                required
+                                value={liveClassStartTime}
+                                onChange={(e) => setLiveClassStartTime(e.target.value)}
+                                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:border-sky-500 focus:outline-hidden"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                                আনুমানিক সমাপ্তির সময় (ঐচ্ছিক)
+                            </label>
+                            <input
+                                type="datetime-local"
+                                value={liveClassEndTime}
+                                onChange={(e) => setLiveClassEndTime(e.target.value)}
+                                className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:border-sky-500 focus:outline-hidden"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                            স্ট্যাটাস
+                        </label>
+                        <select
+                            value={liveClassStatus}
+                            onChange={(e: any) => setLiveClassStatus(e.target.value)}
+                            className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:border-sky-500 focus:outline-hidden"
+                        >
+                            <option value="upcoming">আসন্ন (Upcoming)</option>
+                            <option value="live">🔴 চলমান লাইভ (Live Now)</option>
+                            <option value="completed">সমাপ্ত (Completed)</option>
+                            <option value="cancelled">বাতিল (Cancelled)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                            বিবরণ বা সিলেবাস (ঐচ্ছিক)
+                        </label>
+                        <textarea
+                            rows={3}
+                            value={liveClassDesc}
+                            onChange={(e) => setLiveClassDesc(e.target.value)}
+                            className="w-full px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:border-sky-500 focus:outline-hidden"
+                            placeholder="এই লাইভ ক্লাসে কী কী টপিক নিয়ে আলোচনা করা হবে..."
+                        />
+                    </div>
+
+                    <div className="pt-2">
+                        <button
+                            type="submit"
+                            disabled={savingLiveClass}
+                            className="w-full py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 text-white font-bold text-xs sm:text-sm shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+                        >
+                            {savingLiveClass && <Loader2 className="w-4 h-4 animate-spin" />}
+                            <span>{savingLiveClass ? 'সংরক্ষণ হচ্ছে...' : editingLiveClass ? 'আপডেট করুন' : 'লাইভ ক্লাস তৈরি করুন'}</span>
+                        </button>
+                    </div>
                 </form>
             </Modal>
         </div>

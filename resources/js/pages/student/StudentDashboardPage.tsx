@@ -13,13 +13,16 @@ import {
     Sparkles, 
     CheckCircle2, 
     Award, 
-    Loader2 
+    Loader2,
+    Radio
 } from 'lucide-react';
 
 export const StudentDashboardPage: React.FC = () => {
     const { user } = useAuth();
     const [coursesData, setCoursesData] = useState<any[]>([]);
     const [availableExams, setAvailableExams] = useState<any[]>([]);
+    const [activeLiveClass, setActiveLiveClass] = useState<any | null>(null);
+    const [upcomingLiveClass, setUpcomingLiveClass] = useState<any | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -29,9 +32,10 @@ export const StudentDashboardPage: React.FC = () => {
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
-            const [coursesRes, examsRes] = await Promise.allSettled([
+            const [coursesRes, examsRes, liveRes] = await Promise.allSettled([
                 apiClient.get('/student/my-courses'),
                 apiClient.get('/student/exams/available'),
+                apiClient.get('/student/live-classes'),
             ]);
 
             if (coursesRes.status === 'fulfilled') {
@@ -39,6 +43,13 @@ export const StudentDashboardPage: React.FC = () => {
             }
             if (examsRes.status === 'fulfilled') {
                 setAvailableExams(examsRes.value.data?.exams || []);
+            }
+            if (liveRes.status === 'fulfilled') {
+                const list = liveRes.value.data?.live_classes || [];
+                const live = list.find((c: any) => c.status === 'live' || c.is_currently_live);
+                const upcoming = list.find((c: any) => c.status === 'upcoming' && !c.is_currently_live);
+                setActiveLiveClass(live || null);
+                setUpcomingLiveClass(upcoming || null);
             }
         } catch {
             // silent fail
@@ -175,28 +186,105 @@ export const StudentDashboardPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Right Card: Live / Upcoming Class */}
-                <div className="lg:col-span-5 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
+                {/* Right Card: Dynamic Live / Upcoming Class */}
+                <div className={`lg:col-span-5 bg-white rounded-3xl p-5 border shadow-xs flex flex-col justify-between ${
+                    activeLiveClass ? 'border-rose-300 ring-2 ring-rose-500/20' : 'border-slate-200/80'
+                }`}>
                     <div>
-                        <div className="flex items-center gap-2 text-xs font-bold text-sky-700 mb-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse" />
-                            <span>আজ রাত ৮.০০</span>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                            {activeLiveClass ? (
+                                <div className="inline-flex items-center gap-1.5 text-xs font-black text-rose-600">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+                                    <span>🔴 লাইভ চলছে</span>
+                                </div>
+                            ) : upcomingLiveClass ? (
+                                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-700">
+                                    <span className="w-2 h-2 rounded-full bg-sky-500" />
+                                    <span>আসন্ন লাইভ ক্লাস</span>
+                                </div>
+                            ) : (
+                                <div className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                                    <Radio className="w-3.5 h-3.5 text-slate-400" />
+                                    <span>লাইভ ক্লাস</span>
+                                </div>
+                            )}
+
+                            <Link
+                                to="/student/live-classes"
+                                className="text-[11px] font-bold text-sky-600 hover:underline"
+                            >
+                                সবগুলো দেখুন
+                            </Link>
                         </div>
-                        <h4 className="font-extrabold text-slate-900 text-sm leading-snug">
-                            উচ্চতর গণিত • SSC26 ক্লাস ০৬ : Higher Math - অধ্যায় ৮ (ত্রিকোণমিতি)
-                        </h4>
-                        <p className="text-xs text-slate-500 mt-1.5">
-                            মেন্টর প্যানেল • নিয়মিত লাইভ সেশন ও প্রশ্নোত্তর
-                        </p>
+
+                        {activeLiveClass ? (
+                            <div>
+                                <span className="text-[11px] font-extrabold text-sky-700 block mb-1 truncate">
+                                    {activeLiveClass.course?.title}
+                                </span>
+                                <h4 className="font-black text-slate-900 text-sm sm:text-base leading-snug line-clamp-2">
+                                    {activeLiveClass.title}
+                                </h4>
+                                <p className="text-xs text-slate-500 mt-1 line-clamp-1">
+                                    {activeLiveClass.creator ? `মেন্টর: ${activeLiveClass.creator.name}` : 'ইন্টারঅ্যাক্টিভ লাইভ সেশন ও প্রশ্নোত্তর'}
+                                </p>
+                            </div>
+                        ) : upcomingLiveClass ? (
+                            <div>
+                                <span className="text-[11px] font-extrabold text-sky-700 block mb-1 truncate">
+                                    {upcomingLiveClass.course?.title}
+                                </span>
+                                <h4 className="font-extrabold text-slate-900 text-sm leading-snug line-clamp-2">
+                                    {upcomingLiveClass.title}
+                                </h4>
+                                <p className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
+                                    <Calendar className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                                    <span>
+                                        {new Date(upcomingLiveClass.start_time).toLocaleString('bn-BD', {
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit'
+                                        })}
+                                    </span>
+                                </p>
+                            </div>
+                        ) : (
+                            <div>
+                                <h4 className="font-extrabold text-slate-900 text-sm leading-snug">
+                                    এই মুহূর্তে কোনো লাইভ ক্লাস নেই
+                                </h4>
+                                <p className="text-xs text-slate-500 mt-1.5">
+                                    নতুন লাইভ ক্লাস শিডিউল করা হলে আপনার ড্যাশবোর্ডে সরাসরি নোটিফিকেশন ও লিংক পাবেন।
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="pt-4">
-                        <Link
-                            to="/student/my-courses"
-                            className="w-full py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold text-xs rounded-full transition-all shadow-md shadow-sky-600/20 text-center block"
-                        >
-                            বিস্তারিত
-                        </Link>
+                        {activeLiveClass ? (
+                            <Link
+                                to={`/student/live-classes/${activeLiveClass.id}`}
+                                className="w-full py-2.5 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold text-xs rounded-full transition-all shadow-md shadow-rose-600/25 text-center flex items-center justify-center gap-2"
+                            >
+                                <Radio className="w-3.5 h-3.5 text-white animate-pulse" />
+                                <span>এখনই ক্লাসে যুক্ত হও</span>
+                            </Link>
+                        ) : upcomingLiveClass ? (
+                            <Link
+                                to={`/student/live-classes/${upcomingLiveClass.id}`}
+                                className="w-full py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold text-xs rounded-full transition-all shadow-md shadow-sky-600/20 text-center block"
+                            >
+                                বিস্তারিত ও রুম লিংক
+                            </Link>
+                        ) : (
+                            <Link
+                                to="/student/live-classes"
+                                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-full transition-all text-center block"
+                            >
+                                লাইভ ক্লাসের তালিকা
+                            </Link>
+                        )}
                     </div>
                 </div>
             </div>

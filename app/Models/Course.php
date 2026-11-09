@@ -98,6 +98,11 @@ class Course extends Model
         return $this->hasOne(NexPilot::class);
     }
 
+    public function liveClasses(): HasMany
+    {
+        return $this->hasMany(LiveClass::class)->orderBy('start_time', 'desc');
+    }
+
     public function scopePublished($query)
     {
         return $query->where('status', self::STATUS_PUBLISHED);

@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\AiExamQuestionController;
 use App\Http\Controllers\Api\AdminCouponController;
 use App\Http\Controllers\Api\CouponValidationController;
 use App\Http\Controllers\Api\AnnouncementController;
+use App\Http\Controllers\Api\LiveClassController;
 use App\Models\Course;
 use App\Models\LessonComment;
 use Illuminate\Http\Request;
@@ -120,6 +121,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('upload-attachment', [ExamSubmissionController::class, 'uploadAnswerAttachment']);
     });
 
+    // Student Live Classes & Real-Time Q&A
+    Route::prefix('student/live-classes')->group(function () {
+        Route::get('/', [LiveClassController::class, 'studentLiveClasses']);
+        Route::get('{liveClass}', [LiveClassController::class, 'studentShow']);
+        Route::get('{liveClass}/comments', [LiveClassController::class, 'getComments']);
+        Route::post('{liveClass}/comments', [LiveClassController::class, 'storeComment']);
+    });
+
     // Student Affiliate Program
     Route::prefix('student/affiliate')->group(function () {
         Route::get('status', [AffiliateStudentController::class, 'getStatus']);
@@ -183,6 +192,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('{course}/exams', [CourseBuilderController::class, 'getCourseExams']);
         Route::post('{course}/exams', [CourseBuilderController::class, 'attachExam']);
         Route::delete('{course}/exams/{exam}', [CourseBuilderController::class, 'detachExam']);
+
+        // Course Live Classes
+        Route::get('{course}/live-classes', [LiveClassController::class, 'index']);
+        Route::post('{course}/live-classes', [LiveClassController::class, 'store']);
+        Route::put('{course}/live-classes/{liveClass}', [LiveClassController::class, 'update']);
+        Route::delete('{course}/live-classes/{liveClass}', [LiveClassController::class, 'destroy']);
+        Route::patch('{course}/live-classes/{liveClass}/status', [LiveClassController::class, 'toggleStatus']);
     });
 
     // Teacher Specific Routes
