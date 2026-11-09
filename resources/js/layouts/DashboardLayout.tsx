@@ -35,6 +35,7 @@ import {
     Share2,
     Boxes,
     TicketPercent,
+    Megaphone,
     Loader2
 } from 'lucide-react';
 
@@ -56,7 +57,9 @@ export const DashboardLayout: React.FC = () => {
         '/admin/ai': true,
         '/admin/exams': true,
         '/admin/marketing': true,
+        '/admin/announcements': true,
         '/teacher/exams': true,
+        '/teacher/announcements': true,
     });
 
     const toggleSubmenu = (path: string, e?: React.MouseEvent) => {
@@ -201,7 +204,16 @@ export const DashboardLayout: React.FC = () => {
                     path: '/admin/marketing', 
                     icon: TicketPercent,
                     children: [
-                        { title: 'Coupons', path: '/admin/marketing/coupons' },
+                        { title: 'Coupon Generator', path: '/admin/marketing/coupons/create' },
+                        { title: 'All Coupons', path: '/admin/marketing/coupons' },
+                    ]
+                },
+                { 
+                    title: 'Announcement', 
+                    path: '/admin/announcements', 
+                    icon: Megaphone,
+                    children: [
+                        { title: 'Notify Student', path: '/admin/announcements/notify' },
                     ]
                 },
                 { 
@@ -247,6 +259,14 @@ export const DashboardLayout: React.FC = () => {
                     children: [
                         { title: t.sidebar.createExam || 'Create New Exam', path: '/teacher/exams/create' },
                         { title: t.sidebar.allExams || 'All Exams', path: '/teacher/exams' },
+                    ]
+                },
+                { 
+                    title: 'Announcement', 
+                    path: '/teacher/announcements', 
+                    icon: Megaphone,
+                    children: [
+                        { title: 'Notify Student', path: '/teacher/announcements/notify' },
                     ]
                 },
                 { title: t.sidebar.studentQuestions, path: '/teacher/questions', icon: MessageSquare },

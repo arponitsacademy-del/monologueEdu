@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { apiClient, formatBDT } from '../../api/client';
 import { 
     TicketPercent, 
@@ -80,7 +81,12 @@ interface CouponStats {
     total_discount_given: number;
 }
 
-export const AdminCouponsPage: React.FC = () => {
+interface AdminCouponsPageProps {
+    autoOpenCreate?: boolean;
+}
+
+export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCreate }) => {
+    const location = useLocation();
     const [coupons, setCoupons] = useState<CouponItem[]>([]);
     const [stats, setStats] = useState<CouponStats>({
         total_coupons: 0,
@@ -141,6 +147,12 @@ export const AdminCouponsPage: React.FC = () => {
         fetchCoursesAndCategories();
     }, [page, discountTypeFilter, scopeFilter, statusFilter]);
 
+    useEffect(() => {
+        if (autoOpenCreate || location.pathname.endsWith('/create') || location.search.includes('action=create')) {
+            handleOpenCreateModal();
+        }
+    }, [autoOpenCreate, location.pathname, location.search]);
+
     const fetchCoupons = async () => {
         try {
             setLoading(true);
@@ -195,11 +207,16 @@ export const AdminCouponsPage: React.FC = () => {
     };
 
     const handleDeleteCoupon = async (coupon: CouponItem) => {
-        if (!window.confirm(`Are you sure you want to delete coupon "${coupon.code}"?`)) return;
+        if (!window.confirm(`আপনি কি নিশ্চিতভাবে কুপন "${coupon.code}" মুছে ফেলতে চান?`)) return;
 
         try {
             await apiClient.delete(`/admin/coupons/${coupon.id}`);
             setCoupons(prev => prev.filter(c => c.id !== coupon.id));
+            setStats(prev => ({
+                ...prev,
+                total_coupons: Math.max(0, prev.total_coupons - 1),
+                active_coupons: coupon.is_active ? Math.max(0, prev.active_coupons - 1) : prev.active_coupons
+            }));
         } catch (err) {
             alert('Failed to delete coupon.');
         }

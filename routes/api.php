@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\AdminBundleController;
 use App\Http\Controllers\Api\AiExamQuestionController;
 use App\Http\Controllers\Api\AdminCouponController;
 use App\Http\Controllers\Api\CouponValidationController;
+use App\Http\Controllers\Api\AnnouncementController;
 use App\Models\Course;
 use App\Models\LessonComment;
 use Illuminate\Http\Request;
@@ -142,6 +143,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{exam}/submissions', [ExamSubmissionController::class, 'getSubmissions']);
         Route::get('/{exam}/submissions/{submission}', [ExamSubmissionController::class, 'getSubmissionDetails']);
         Route::post('/{exam}/submissions/{submission}/evaluate', [ExamSubmissionController::class, 'evaluateSubmission']);
+    });
+
+    // Announcements & Student Notifications (Admin & Teacher)
+    Route::prefix('announcements')->middleware('role:teacher,admin')->group(function () {
+        Route::get('options', [AnnouncementController::class, 'options']);
+        Route::post('notify-students', [AnnouncementController::class, 'notifyStudents']);
+        Route::get('history', [AnnouncementController::class, 'history']);
     });
 
     // Course Builder (Accessible to Admin & Assigned Teachers)

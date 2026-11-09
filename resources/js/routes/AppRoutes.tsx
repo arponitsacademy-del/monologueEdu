@@ -42,6 +42,7 @@ import { AdminNexPilotEditPage } from '../pages/admin/AdminNexPilotEditPage';
 import { AdminNexPilotBuilderPage } from '../pages/admin/AdminNexPilotBuilderPage';
 import { AdminNexPilotAiConfigPage } from '../pages/admin/AdminNexPilotAiConfigPage';
 import { AdminCouponsPage } from '../pages/admin/AdminCouponsPage';
+import { NotifyStudentPage } from '../pages/shared/NotifyStudentPage';
 import { CustomPageView } from '../pages/public/CustomPageView';
 
 // Teacher pages
@@ -131,6 +132,10 @@ export const AppRoutes: React.FC = () => {
                 {/* Marketing & Coupons */}
                 <Route path="marketing" element={<Navigate to="/admin/marketing/coupons" replace />} />
                 <Route path="marketing/coupons" element={<AdminCouponsPage />} />
+                <Route path="marketing/coupons/create" element={<AdminCouponsPage autoOpenCreate={true} />} />
+                {/* Announcements & Notifications */}
+                <Route path="announcements" element={<Navigate to="/admin/announcements/notify" replace />} />
+                <Route path="announcements/notify" element={<NotifyStudentPage role="admin" />} />
                 <Route path="payments" element={<Navigate to="/admin/payments/manual" replace />} />
                 <Route path="payments/manual" element={<AdminManualPaymentPage />} />
                 {/* Affiliate Management */}
@@ -157,6 +162,9 @@ export const AppRoutes: React.FC = () => {
                 <Route path="exams/:id/edit" element={<ExamFormPage />} />
                 <Route path="exams/:id/builder" element={<ExamBuilderPage />} />
                 <Route path="exams/:id/submissions" element={<ExamSubmissionsPage />} />
+                {/* Announcements & Notifications */}
+                <Route path="announcements" element={<Navigate to="/teacher/announcements/notify" replace />} />
+                <Route path="announcements/notify" element={<NotifyStudentPage role="teacher" />} />
             </Route>
 
             {/* Student Dashboard */}

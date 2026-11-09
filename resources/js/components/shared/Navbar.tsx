@@ -5,6 +5,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useSettings } from '../../context/SettingsContext';
 import { ThemeSwitcher } from '../ui/ThemeSwitcher';
 import { getLocalizedText } from '../../utils/localization';
+import { apiClient } from '../../api/client';
 import { 
     Home,
     GraduationCap, 
@@ -23,7 +24,9 @@ import {
     Boxes,
     PhoneCall,
     BookMarked,
-    Shield
+    Shield,
+    Bell,
+    CheckCheck
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -40,6 +43,9 @@ export const Navbar: React.FC = () => {
     const [searchModalOpen, setSearchModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [logoError, setLogoError] = useState(false);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
 
     const headerSettings = settings?.header_settings;
     const logoUrl = headerSettings?.logo_url ?? settings?.logo_url;
@@ -70,7 +76,46 @@ export const Navbar: React.FC = () => {
         setBooksDropdownOpen(false);
         setUserDropdownOpen(false);
         setSearchModalOpen(false);
+        setNotifDropdownOpen(false);
     }, [location.pathname]);
+
+    useEffect(() => {
+        if (!user) return;
+        const fetchNotifs = async () => {
+            try {
+                const { data } = await apiClient.get('/notifications');
+                setNotifications(data.data || []);
+                const unreadRes = await apiClient.get('/notifications/unread-count');
+                setUnreadCount(unreadRes.data.unread_count || 0);
+            } catch {}
+        };
+        fetchNotifs();
+        const interval = setInterval(fetchNotifs, 30000);
+        return () => clearInterval(interval);
+    }, [user]);
+
+    const markAllRead = async () => {
+        try {
+            await apiClient.post('/notifications/read-all');
+            setUnreadCount(0);
+            setNotifications(prev => prev.map(n => ({ ...n, read_at: new Date().toISOString() })));
+        } catch {}
+    };
+
+    const handleNotificationClick = async (n: any) => {
+        try {
+            if (!n.read_at) {
+                await apiClient.post(`/notifications/${n.id}/read`);
+                setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read_at: new Date().toISOString() } : item));
+                setUnreadCount(prev => Math.max(0, prev - 1));
+            }
+        } catch {}
+        setNotifDropdownOpen(false);
+        const targetLink = n.data?.link || n.link;
+        if (targetLink) {
+            navigate(targetLink);
+        }
+    };
 
     const getDashboardPath = () => {
         if (!user) return '/login';
@@ -333,6 +378,70 @@ export const Navbar: React.FC = () => {
                     {/* Authentication and CTA Buttons */}
                     {user ? (
                         <div className="flex items-center gap-1 sm:gap-1.5">
+                            {/* Notification Bell */}
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
+                                    className="p-2 sm:p-2.5 text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer relative"
+                                    title="নোটিফিকেশনসমূহ"
+                                >
+                                    <Bell className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+                                    {unreadCount > 0 && (
+                                        <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-rose-500 rounded-full ring-2 ring-white animate-pulse" />
+                                    )}
+                                </button>
+
+                                {notifDropdownOpen && (
+                                    <div 
+                                        className="absolute right-0 mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                                        onMouseLeave={() => setNotifDropdownOpen(false)}
+                                    >
+                                        <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                            <span className="text-xs font-bold text-slate-800 dark:text-slate-100">নোটিফিকেশনসমূহ</span>
+                                            {unreadCount > 0 && (
+                                                <button
+                                                    onClick={markAllRead}
+                                                    className="text-[10px] font-bold text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-1 cursor-pointer"
+                                                >
+                                                    <CheckCheck className="w-3 h-3" />
+                                                    <span>পড়েছি চিহ্নিত করুন</span>
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div className="max-h-60 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-800">
+                                            {notifications.length === 0 ? (
+                                                <div className="p-4 text-center text-xs text-slate-400">
+                                                    কোনো নতুন নোটিফিকেশন নেই
+                                                </div>
+                                            ) : (
+                                                notifications.slice(0, 8).map((n) => (
+                                                    <div 
+                                                        key={n.id} 
+                                                        onClick={() => handleNotificationClick(n)}
+                                                        className={`p-3 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer ${
+                                                            !n.read_at ? 'bg-sky-50/50 dark:bg-sky-950/40' : ''
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center justify-between gap-1">
+                                                            <p className="text-xs font-bold text-slate-800 dark:text-slate-100 line-clamp-1">
+                                                                {n.data?.title || n.title || 'বিজ্ঞপ্তি'}
+                                                            </p>
+                                                            {!n.read_at && (
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
+                                                            )}
+                                                        </div>
+                                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
+                                                            {n.data?.message || n.message}
+                                                        </p>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Click on User / Admin directly goes to Admin Panel / Dashboard */}
                             <Link
                                 to={getDashboardPath()}

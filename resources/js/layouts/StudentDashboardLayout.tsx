@@ -75,6 +75,21 @@ export const StudentDashboardLayout: React.FC = () => {
         } catch {}
     };
 
+    const handleNotificationClick = async (n: any) => {
+        try {
+            if (!n.read_at) {
+                await apiClient.post(`/notifications/${n.id}/read`);
+                setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read_at: new Date().toISOString() } : item));
+                setUnreadCount(prev => Math.max(0, prev - 1));
+            }
+        } catch {}
+        setNotifDropdownOpen(false);
+        const targetLink = n.data?.link || n.link;
+        if (targetLink) {
+            navigate(targetLink);
+        }
+    };
+
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (searchQuery.trim()) {
@@ -365,10 +380,25 @@ export const StudentDashboardLayout: React.FC = () => {
                                                 কোনো নতুন নোটিফিকেশন নেই
                                             </div>
                                         ) : (
-                                            notifications.slice(0, 5).map((n) => (
-                                                <div key={n.id} className="p-3 hover:bg-slate-50 transition-colors">
-                                                    <p className="text-xs font-bold text-slate-800">{n.title}</p>
-                                                    <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">{n.message}</p>
+                                            notifications.slice(0, 8).map((n) => (
+                                                <div 
+                                                    key={n.id} 
+                                                    onClick={() => handleNotificationClick(n)}
+                                                    className={`p-3 hover:bg-slate-50 transition-colors cursor-pointer ${
+                                                        !n.read_at ? 'bg-sky-50/50' : ''
+                                                    }`}
+                                                >
+                                                    <div className="flex items-center justify-between gap-1">
+                                                        <p className="text-xs font-bold text-slate-800 line-clamp-1">
+                                                            {n.data?.title || n.title || 'বিজ্ঞপ্তি'}
+                                                        </p>
+                                                        {!n.read_at && (
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0" />
+                                                        )}
+                                                    </div>
+                                                    <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-2">
+                                                        {n.data?.message || n.message}
+                                                    </p>
                                                 </div>
                                             ))
                                         )}
