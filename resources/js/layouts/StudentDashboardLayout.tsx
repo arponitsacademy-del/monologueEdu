@@ -84,9 +84,9 @@ export const StudentDashboardLayout: React.FC = () => {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-[#f3f7f5] flex items-center justify-center">
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">
-                    <Loader2 className="w-8 h-8 text-emerald-700 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-sky-600 animate-spin" />
                     <span className="text-xs font-bold text-slate-500">লোড হচ্ছে...</span>
                 </div>
             </div>
@@ -156,7 +156,7 @@ export const StudentDashboardLayout: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f0f5f2] text-slate-800 flex font-sans antialiased selection:bg-emerald-500 selection:text-white">
+        <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex font-sans antialiased selection:bg-sky-500 selection:text-white">
             {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
                 <div
@@ -171,7 +171,7 @@ export const StudentDashboardLayout: React.FC = () => {
                     sidebarOpen ? 'left-0' : '-left-80 lg:left-0'
                 }`}
             >
-                <div className="w-64 h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] bg-white rounded-3xl shadow-sm border border-emerald-950/5 flex flex-col justify-between p-4 sm:p-5 overflow-y-auto">
+                <div className="w-64 h-[calc(100vh-1.5rem)] sm:h-[calc(100vh-2rem)] bg-white rounded-3xl shadow-sm border border-slate-200/80 flex flex-col justify-between p-4 sm:p-5 overflow-y-auto">
                     {/* Top: Logo & Nav items */}
                     <div className="space-y-6">
                         {/* Brand Logo Header */}
@@ -186,10 +186,10 @@ export const StudentDashboardLayout: React.FC = () => {
                                     />
                                 ) : (
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black shadow-xs">
+                                        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-black shadow-xs">
                                             <GraduationCap className="w-5 h-5" />
                                         </div>
-                                        <span className="font-extrabold text-base tracking-tight text-[#064e3b]">
+                                        <span className="font-extrabold text-base tracking-tight text-slate-900">
                                             {settings?.site_name || 'Monologue'}
                                         </span>
                                     </div>
@@ -219,10 +219,10 @@ export const StudentDashboardLayout: React.FC = () => {
                                                 setSidebarOpen(false);
                                                 item.action();
                                             }}
-                                            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all text-left ${
+                                            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all text-left cursor-pointer ${
                                                 active
-                                                    ? 'bg-[#03543f] text-white shadow-xs'
-                                                    : 'text-slate-600 hover:text-[#03543f] hover:bg-emerald-50/70'
+                                                    ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/25'
+                                                    : 'text-slate-600 hover:text-sky-600 hover:bg-sky-50/80'
                                             }`}
                                         >
                                             <Icon className={`w-4 h-4 ${active ? 'text-white' : 'text-slate-400'}`} />
@@ -237,8 +237,8 @@ export const StudentDashboardLayout: React.FC = () => {
                                         to={item.path}
                                         className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all ${
                                             active
-                                                ? 'bg-[#03543f] text-white shadow-xs'
-                                                : 'text-slate-600 hover:text-[#03543f] hover:bg-emerald-50/70'
+                                                ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/25'
+                                                : 'text-slate-600 hover:text-sky-600 hover:bg-sky-50/80'
                                         }`}
                                     >
                                         <Icon className={`w-4 h-4 ${active ? 'text-white' : 'text-slate-400'}`} />
@@ -252,15 +252,15 @@ export const StudentDashboardLayout: React.FC = () => {
                     {/* Bottom Support & User Info */}
                     <div className="space-y-3 pt-4 border-t border-slate-100">
                         {/* Support Card */}
-                        <div className="bg-[#edf5f0] rounded-2xl p-3 border border-emerald-900/5 flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-white text-emerald-700 shadow-2xs flex items-center justify-center shrink-0">
+                        <div className="bg-sky-50/80 rounded-2xl p-3 border border-sky-100 flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-white text-sky-600 shadow-2xs flex items-center justify-center shrink-0">
                                 <PhoneCall className="w-4 h-4" />
                             </div>
                             <div className="truncate">
                                 <span className="text-[10px] font-bold text-slate-500 block leading-tight">সাহায্য প্রয়োজন?</span>
                                 <a
                                     href={`tel:${supportPhone}`}
-                                    className="text-xs font-extrabold text-[#03543f] hover:underline truncate block"
+                                    className="text-xs font-extrabold text-sky-700 hover:underline truncate block"
                                 >
                                     {supportPhone}
                                 </a>
@@ -270,7 +270,7 @@ export const StudentDashboardLayout: React.FC = () => {
                         {/* User logout row */}
                         <div className="flex items-center justify-between px-1">
                             <div className="flex items-center gap-2 truncate">
-                                <div className="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
                                     {user.name.charAt(0).toUpperCase()}
                                 </div>
                                 <span className="text-xs font-bold text-slate-700 truncate max-w-[120px]">
@@ -313,7 +313,7 @@ export const StudentDashboardLayout: React.FC = () => {
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     placeholder="কী খুঁজছেন?"
-                                    className="w-full bg-white rounded-full pl-9 pr-4 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 border border-slate-200/80 shadow-2xs focus:outline-hidden focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                                    className="w-full bg-white rounded-full pl-9 pr-4 py-2 text-xs sm:text-sm text-slate-800 placeholder-slate-400 border border-slate-200/80 shadow-2xs focus:outline-hidden focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition-all"
                                 />
                             </div>
                         </form>
@@ -323,7 +323,7 @@ export const StudentDashboardLayout: React.FC = () => {
                     <div className="flex items-center gap-2 sm:gap-3">
                         {/* Academic Category Pill */}
                         <div className="hidden sm:flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-slate-200/80 text-xs font-bold text-slate-700 shadow-2xs">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <span className="w-2 h-2 rounded-full bg-sky-500"></span>
                             <span>এইচএসসি</span>
                             <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
                         </div>
@@ -332,7 +332,7 @@ export const StudentDashboardLayout: React.FC = () => {
                         <div className="relative">
                             <button
                                 onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
-                                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-slate-900 shadow-2xs transition-colors relative cursor-pointer"
+                                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200/80 flex items-center justify-center text-slate-600 hover:text-sky-600 shadow-2xs transition-colors relative cursor-pointer"
                                 aria-label="Notifications"
                             >
                                 <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -352,7 +352,7 @@ export const StudentDashboardLayout: React.FC = () => {
                                         {unreadCount > 0 && (
                                             <button
                                                 onClick={markAllRead}
-                                                className="text-[10px] font-bold text-emerald-700 hover:underline flex items-center gap-1"
+                                                className="text-[10px] font-bold text-sky-600 hover:text-sky-700 hover:underline flex items-center gap-1 cursor-pointer"
                                             >
                                                 <CheckCheck className="w-3 h-3" />
                                                 <span>পড়েছি চিহ্নিত করুন</span>
@@ -379,8 +379,8 @@ export const StudentDashboardLayout: React.FC = () => {
 
                         {/* Student Profile Avatar */}
                         <div className="flex items-center gap-2">
-                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-emerald-600 via-teal-600 to-emerald-500 p-0.5 shadow-2xs">
-                                <div className="w-full h-full rounded-full bg-white flex items-center justify-center font-black text-xs sm:text-sm text-emerald-800">
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-sky-500 via-indigo-600 to-sky-600 p-0.5 shadow-2xs">
+                                <div className="w-full h-full rounded-full bg-white flex items-center justify-center font-black text-xs sm:text-sm text-sky-700">
                                     {user.name.charAt(0).toUpperCase()}
                                 </div>
                             </div>

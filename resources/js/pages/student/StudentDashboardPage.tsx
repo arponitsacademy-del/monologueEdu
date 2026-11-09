@@ -59,7 +59,7 @@ export const StudentDashboardPage: React.FC = () => {
     if (loading) {
         return (
             <div className="py-20 flex flex-col items-center justify-center gap-3">
-                <Loader2 className="w-8 h-8 text-emerald-700 animate-spin" />
+                <Loader2 className="w-8 h-8 text-sky-600 animate-spin" />
                 <span className="text-xs font-bold text-slate-500">ড্যাশবোর্ড লোড হচ্ছে...</span>
             </div>
         );
@@ -94,10 +94,10 @@ export const StudentDashboardPage: React.FC = () => {
                 <div className="self-start sm:self-center">
                     <button
                         type="button"
-                        className="px-4 py-2 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-white font-extrabold text-xs shadow-xs flex items-center gap-2 transition-all cursor-pointer"
+                        className="px-4 py-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-extrabold text-xs shadow-xs flex items-center gap-2 transition-all cursor-pointer"
                     >
                         <span>প্রোফাইল পূরণ করো</span>
-                        <span className="bg-white/25 px-2 py-0.5 rounded-full text-[10px] tracking-wide">
+                        <span className="bg-white/25 px-2 py-0.5 rounded-full text-[10px] tracking-wide font-black">
                             +৫০ পয়েন্ট
                         </span>
                     </button>
@@ -107,11 +107,11 @@ export const StudentDashboardPage: React.FC = () => {
             {/* Hero Cards: Continue Learning & Upcoming Class */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
                 {/* Left Card: Continue Class / Latest Lecture */}
-                <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-100 shadow-xs flex flex-col sm:flex-row items-center gap-5">
+                <div className="lg:col-span-7 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col sm:flex-row items-center gap-5">
                     {/* Video Thumbnail */}
                     <Link
                         to={continueUrl}
-                        className="w-full sm:w-56 h-36 bg-gradient-to-tr from-emerald-950 via-slate-900 to-emerald-900 rounded-2xl relative overflow-hidden flex items-center justify-center shrink-0 shadow-inner group cursor-pointer"
+                        className="w-full sm:w-56 h-36 bg-gradient-to-tr from-slate-950 via-slate-900 to-indigo-950 rounded-2xl relative overflow-hidden flex items-center justify-center shrink-0 shadow-inner group cursor-pointer"
                     >
                         {recentCourse?.course?.thumbnail ? (
                             <img
@@ -120,18 +120,18 @@ export const StudentDashboardPage: React.FC = () => {
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                         ) : (
-                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-700/40 via-emerald-950 to-slate-950 flex flex-col items-center justify-center p-3 text-center">
-                                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">
+                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-600/40 via-slate-900 to-indigo-950 flex flex-col items-center justify-center p-3 text-center">
+                                <span className="text-[10px] font-bold text-sky-400 uppercase tracking-widest">
                                     বাংলা ব্যাকরণ
                                 </span>
                                 <span className="text-xl font-black text-white mt-1">সমাস</span>
-                                <span className="text-[10px] text-emerald-200/80">ভিডিও ক্লাস</span>
+                                <span className="text-[10px] text-sky-200/80">ভিডিও ক্লাস</span>
                             </div>
                         )}
 
                         {/* Centered Play Button */}
                         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                            <div className="w-12 h-12 rounded-full bg-emerald-500/90 text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform pl-0.5">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-sky-600/30 group-hover:scale-110 transition-transform pl-0.5">
                                 <Play className="w-5 h-5 fill-white text-white" />
                             </div>
                         </div>
@@ -156,7 +156,7 @@ export const StudentDashboardPage: React.FC = () => {
                             </div>
                             <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-emerald-600 rounded-full transition-all duration-500"
+                                    className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 rounded-full transition-all duration-500"
                                     style={{ width: `${progressPercent}%` }}
                                 />
                             </div>
@@ -166,7 +166,7 @@ export const StudentDashboardPage: React.FC = () => {
                         <div className="pt-2">
                             <Link
                                 to={continueUrl}
-                                className="inline-flex items-center gap-2 px-5 py-2 bg-[#03543f] hover:bg-[#024030] text-white font-bold text-xs rounded-full transition-all shadow-xs"
+                                className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold text-xs rounded-full transition-all shadow-md shadow-sky-600/20"
                             >
                                 <span>শুরু করো</span>
                                 <ArrowRight className="w-3.5 h-3.5" />
@@ -176,10 +176,10 @@ export const StudentDashboardPage: React.FC = () => {
                 </div>
 
                 {/* Right Card: Live / Upcoming Class */}
-                <div className="lg:col-span-5 bg-white rounded-3xl p-5 border border-slate-100 shadow-xs flex flex-col justify-between">
+                <div className="lg:col-span-5 bg-white rounded-3xl p-5 border border-slate-200/80 shadow-xs flex flex-col justify-between">
                     <div>
-                        <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 mb-2">
-                            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <div className="flex items-center gap-2 text-xs font-bold text-sky-700 mb-2">
+                            <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse" />
                             <span>আজ রাত ৮.০০</span>
                         </div>
                         <h4 className="font-extrabold text-slate-900 text-sm leading-snug">
@@ -193,7 +193,7 @@ export const StudentDashboardPage: React.FC = () => {
                     <div className="pt-4">
                         <Link
                             to="/student/my-courses"
-                            className="w-full py-2.5 bg-[#03543f] hover:bg-[#024030] text-white font-bold text-xs rounded-full transition-all shadow-xs text-center block"
+                            className="w-full py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold text-xs rounded-full transition-all shadow-md shadow-sky-600/20 text-center block"
                         >
                             বিস্তারিত
                         </Link>
@@ -206,13 +206,13 @@ export const StudentDashboardPage: React.FC = () => {
                 {/* 1. চলমান কোর্স */}
                 <Link
                     to="/student/my-courses"
-                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-xs hover:border-rose-200 hover:shadow-sm transition-all group flex items-center gap-3.5"
+                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:border-sky-300 hover:shadow-sm transition-all group flex items-center gap-3.5"
                 >
-                    <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                         <GraduationCap className="w-6 h-6" />
                     </div>
                     <div>
-                        <div className="font-extrabold text-slate-800 text-sm group-hover:text-rose-600 transition-colors">
+                        <div className="font-extrabold text-slate-800 text-sm group-hover:text-sky-600 transition-colors">
                             চলমান কোর্স
                         </div>
                         <div className="text-[11px] font-bold text-slate-400 mt-0.5">
@@ -224,14 +224,14 @@ export const StudentDashboardPage: React.FC = () => {
                 {/* 2. পরীক্ষা */}
                 <Link
                     to="/student/exams"
-                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-xs hover:border-amber-200 hover:shadow-sm transition-all group flex items-center justify-between relative"
+                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all group flex items-center justify-between relative"
                 >
                     <div className="flex items-center gap-3.5">
-                        <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                             <FileText className="w-6 h-6" />
                         </div>
                         <div>
-                            <div className="font-extrabold text-slate-800 text-sm group-hover:text-amber-600 transition-colors">
+                            <div className="font-extrabold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors">
                                 পরীক্ষা
                             </div>
                             <div className="text-[11px] font-bold text-slate-400 mt-0.5">
@@ -251,13 +251,13 @@ export const StudentDashboardPage: React.FC = () => {
                         const el = document.getElementById('student-routine-section');
                         el?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-xs hover:border-sky-200 hover:shadow-sm transition-all group flex items-center gap-3.5 text-left cursor-pointer"
+                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:border-amber-300 hover:shadow-sm transition-all group flex items-center gap-3.5 text-left cursor-pointer"
                 >
-                    <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                         <Calendar className="w-6 h-6" />
                     </div>
                     <div>
-                        <div className="font-extrabold text-slate-800 text-sm group-hover:text-sky-600 transition-colors">
+                        <div className="font-extrabold text-slate-800 text-sm group-hover:text-amber-600 transition-colors">
                             রুটিন
                         </div>
                         <div className="text-[11px] font-bold text-slate-400 mt-0.5">
@@ -269,7 +269,7 @@ export const StudentDashboardPage: React.FC = () => {
                 {/* 4. ফ্রি রিসোর্স */}
                 <Link
                     to="/courses?type=free"
-                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-100 shadow-xs hover:border-emerald-200 hover:shadow-sm transition-all group flex items-center gap-3.5"
+                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:border-emerald-300 hover:shadow-sm transition-all group flex items-center gap-3.5"
                 >
                     <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                         <Star className="w-6 h-6" />
@@ -288,7 +288,7 @@ export const StudentDashboardPage: React.FC = () => {
             {/* Bottom 2-Column Section: Take Exam & Today's Routine */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                 {/* Left: পরীক্ষা দাও (Take Exams) */}
-                <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-100 flex flex-col justify-between">
+                <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-200/80 flex flex-col justify-between">
                     <div>
                         <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
                             <h3 className="font-extrabold text-slate-900 text-base">
@@ -296,7 +296,7 @@ export const StudentDashboardPage: React.FC = () => {
                             </h3>
                             <Link
                                 to="/student/exams"
-                                className="text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors"
+                                className="text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors"
                             >
                                 সব দেখুন
                             </Link>
@@ -319,7 +319,7 @@ export const StudentDashboardPage: React.FC = () => {
                                             className="p-3 rounded-2xl hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 border border-slate-100/70"
                                         >
                                             {/* Duration Pill */}
-                                            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 font-bold text-xs flex items-center justify-center shrink-0">
+                                            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 font-bold text-xs flex items-center justify-center shrink-0">
                                                 {exam.duration_minutes}′
                                             </div>
 
@@ -336,7 +336,7 @@ export const StudentDashboardPage: React.FC = () => {
                                             {/* Action Button */}
                                             <Link
                                                 to={`/exams/${exam.id}/take`}
-                                                className="px-4 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs shrink-0 transition-colors"
+                                                className="px-4 py-1.5 rounded-full bg-sky-50 hover:bg-sky-600 hover:text-white text-sky-700 font-bold text-xs shrink-0 transition-colors shadow-2xs"
                                             >
                                                 শুরু
                                             </Link>
@@ -350,7 +350,7 @@ export const StudentDashboardPage: React.FC = () => {
                     <div className="pt-4 border-t border-slate-100 mt-4 text-center">
                         <Link
                             to="/student/exams"
-                            className="text-xs font-bold text-emerald-700 hover:underline"
+                            className="text-xs font-bold text-sky-600 hover:text-sky-700 hover:underline"
                         >
                             সকল পরীক্ষার তালিকা দেখুন →
                         </Link>
@@ -360,7 +360,7 @@ export const StudentDashboardPage: React.FC = () => {
                 {/* Right: আজকের রুটিন (Today's Routine) */}
                 <div
                     id="student-routine-section"
-                    className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-100 flex flex-col justify-between"
+                    className="bg-white rounded-3xl p-5 sm:p-6 shadow-xs border border-slate-200/80 flex flex-col justify-between"
                 >
                     <div>
                         <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
@@ -369,7 +369,7 @@ export const StudentDashboardPage: React.FC = () => {
                             </h3>
                             <button
                                 type="button"
-                                className="text-xs font-bold text-slate-500 hover:text-emerald-700 transition-colors"
+                                className="text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors cursor-pointer"
                             >
                                 রুটিন
                             </button>
@@ -382,7 +382,7 @@ export const StudentDashboardPage: React.FC = () => {
                                 <span className="text-xs font-bold text-slate-400 w-12 shrink-0 pt-0.5">
                                     ৬:০০
                                 </span>
-                                <div className="border-l-2 border-emerald-500 pl-3.5 py-0.5 space-y-0.5">
+                                <div className="border-l-2 border-sky-500 pl-3.5 py-0.5 space-y-0.5">
                                     <h4 className="font-bold text-slate-800 text-xs sm:text-sm">
                                         উচ্চতর গণিত
                                     </h4>
@@ -397,7 +397,7 @@ export const StudentDashboardPage: React.FC = () => {
                                 <span className="text-xs font-bold text-slate-400 w-12 shrink-0 pt-0.5">
                                     ৮:০০
                                 </span>
-                                <div className="border-l-2 border-emerald-500 pl-3.5 py-0.5 space-y-0.5">
+                                <div className="border-l-2 border-indigo-500 pl-3.5 py-0.5 space-y-0.5">
                                     <h4 className="font-bold text-slate-800 text-xs sm:text-sm">
                                         পদার্থবিজ্ঞান
                                     </h4>
@@ -412,7 +412,7 @@ export const StudentDashboardPage: React.FC = () => {
                                 <span className="text-xs font-bold text-slate-400 w-12 shrink-0 pt-0.5">
                                     ১০:০০
                                 </span>
-                                <div className="border-l-2 border-emerald-500 pl-3.5 py-0.5 space-y-0.5">
+                                <div className="border-l-2 border-sky-500 pl-3.5 py-0.5 space-y-0.5">
                                     <h4 className="font-bold text-slate-800 text-xs sm:text-sm">
                                         রসায়ন
                                     </h4>
@@ -427,7 +427,7 @@ export const StudentDashboardPage: React.FC = () => {
                     <div className="pt-4 border-t border-slate-100 mt-4 text-center">
                         <Link
                             to="/student/my-courses"
-                            className="text-xs font-bold text-emerald-700 hover:underline"
+                            className="text-xs font-bold text-sky-600 hover:text-sky-700 hover:underline"
                         >
                             কোর্সের পূর্ণাঙ্গ সময়সূচি দেখুন →
                         </Link>
