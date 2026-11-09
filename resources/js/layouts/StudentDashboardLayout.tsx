@@ -23,7 +23,8 @@ import {
     ChevronDown,
     GraduationCap,
     CheckCheck,
-    Loader2
+    Loader2,
+    Settings
 } from 'lucide-react';
 
 export const StudentDashboardLayout: React.FC = () => {
@@ -157,6 +158,11 @@ export const StudentDashboardLayout: React.FC = () => {
             title: 'রেফারেন্স',
             path: '/student/affiliate',
             icon: Share2
+        },
+        {
+            title: 'প্রোফাইল ও সেটিংস',
+            path: '/student/profile',
+            icon: Settings
         }
     ];
 
@@ -284,14 +290,18 @@ export const StudentDashboardLayout: React.FC = () => {
 
                         {/* User logout row */}
                         <div className="flex items-center justify-between px-1">
-                            <div className="flex items-center gap-2 truncate">
-                                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                            <Link
+                                to="/student/profile"
+                                className="flex items-center gap-2 truncate hover:opacity-80 transition-opacity group"
+                                title="প্রোফাইল ও সেটিংস"
+                            >
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                     {user.name.charAt(0).toUpperCase()}
                                 </div>
-                                <span className="text-xs font-bold text-slate-700 truncate max-w-[120px]">
+                                <span className="text-xs font-bold text-slate-700 truncate max-w-[120px] group-hover:text-sky-600">
                                     {user.name.split(' ')[0]}
                                 </span>
-                            </div>
+                            </Link>
                             <button
                                 type="button"
                                 onClick={logout}
@@ -408,13 +418,17 @@ export const StudentDashboardLayout: React.FC = () => {
                         </div>
 
                         {/* Student Profile Avatar */}
-                        <div className="flex items-center gap-2">
-                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-sky-500 via-indigo-600 to-sky-600 p-0.5 shadow-2xs">
+                        <Link
+                            to="/student/profile"
+                            title="প্রোফাইল ও সেটিংস"
+                            className="flex items-center gap-2 group cursor-pointer"
+                        >
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-sky-500 via-indigo-600 to-sky-600 p-0.5 shadow-2xs group-hover:scale-105 transition-transform">
                                 <div className="w-full h-full rounded-full bg-white flex items-center justify-center font-black text-xs sm:text-sm text-sky-700">
                                     {user.name.charAt(0).toUpperCase()}
                                 </div>
                             </div>
-                        </div>
+                        </Link>
                     </div>
                 </header>
 

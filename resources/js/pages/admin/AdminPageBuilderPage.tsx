@@ -3,31 +3,31 @@ import { useParams, Link } from 'react-router-dom';
 import { apiClient } from '../../api/client';
 import { CustomPage, PageBlock, BlockType, CourseTabItem, Category } from '../../types';
 import { PageBlockRenderer } from '../../components/builder/PageBlockRenderer';
-import { 
-    ArrowLeft, 
-    Save, 
-    Eye, 
-    Monitor, 
-    Tablet, 
-    Smartphone, 
-    Plus, 
-    Sliders, 
-    Layers, 
-    Trash2, 
-    Copy, 
-    ChevronUp, 
-    ChevronDown, 
-    Code, 
-    Check, 
-    Sparkles, 
-    BookOpen, 
-    Award, 
-    HelpCircle, 
-    Zap, 
-    Video, 
-    BarChart3, 
-    FileText, 
-    PanelLeftClose, 
+import {
+    ArrowLeft,
+    Save,
+    Eye,
+    Monitor,
+    Tablet,
+    Smartphone,
+    Plus,
+    Sliders,
+    Layers,
+    Trash2,
+    Copy,
+    ChevronUp,
+    ChevronDown,
+    Code,
+    Check,
+    Sparkles,
+    BookOpen,
+    Award,
+    HelpCircle,
+    Zap,
+    Video,
+    BarChart3,
+    FileText,
+    PanelLeftClose,
     PanelLeftOpen,
     ExternalLink,
     AlertCircle,
@@ -60,21 +60,19 @@ const DropZone: React.FC<DropZoneProps> = ({
             onDragOver={onDragOver}
             onDragLeave={onDragLeave}
             onDrop={onDrop}
-            className={`transition-all duration-200 relative z-30 ${
-                isDragging
-                    ? isActive
-                        ? 'py-4 my-2'
-                        : 'py-2 my-1'
-                    : 'py-1 my-0'
-            }`}
+            className={`transition-all duration-200 relative z-30 ${isDragging
+                ? isActive
+                    ? 'py-4 my-2'
+                    : 'py-2 my-1'
+                : 'py-1 my-0'
+                }`}
         >
             {isDragging ? (
                 <div
-                    className={`flex items-center justify-center rounded-xl border-2 border-dashed transition-all pointer-events-none ${
-                        isActive
-                            ? 'h-16 bg-sky-500/20 border-sky-500 text-sky-600 scale-[1.01] shadow-lg ring-4 ring-sky-500/20'
-                            : 'h-7 bg-sky-50/50 border-sky-300 text-sky-500/70'
-                    }`}
+                    className={`flex items-center justify-center rounded-xl border-2 border-dashed transition-all pointer-events-none ${isActive
+                        ? 'h-16 bg-sky-500/20 border-sky-500 text-sky-600 scale-[1.01] shadow-lg ring-4 ring-sky-500/20'
+                        : 'h-7 bg-sky-50/50 border-sky-300 text-sky-500/70'
+                        }`}
                 >
                     <div className="flex items-center gap-2 text-xs font-bold">
                         <Plus className={`w-4 h-4 ${isActive ? 'animate-bounce text-sky-600' : ''}`} />
@@ -141,7 +139,7 @@ export const AdminPageBuilderPage: React.FC = () => {
         try {
             const { data } = await apiClient.get('/categories');
             setDbCategories(data || []);
-        } catch {}
+        } catch { }
     };
 
     const fetchPage = async () => {
@@ -540,27 +538,24 @@ export const AdminPageBuilderPage: React.FC = () => {
                 <div className="flex items-center bg-slate-950/80 p-1 rounded-xl border border-slate-800">
                     <button
                         onClick={() => setDeviceView('desktop')}
-                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                            deviceView === 'desktop' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'
-                        }`}
+                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${deviceView === 'desktop' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'
+                            }`}
                         title="Desktop View (100%)"
                     >
                         <Monitor className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => setDeviceView('tablet')}
-                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                            deviceView === 'tablet' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'
-                        }`}
+                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${deviceView === 'tablet' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'
+                            }`}
                         title="Tablet View (768px)"
                     >
                         <Tablet className="w-4 h-4" />
                     </button>
                     <button
                         onClick={() => setDeviceView('mobile')}
-                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                            deviceView === 'mobile' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'
-                        }`}
+                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${deviceView === 'mobile' ? 'bg-sky-600 text-white' : 'text-slate-400 hover:text-white'
+                            }`}
                         title="Mobile View (375px)"
                     >
                         <Smartphone className="w-4 h-4" />
@@ -572,11 +567,10 @@ export const AdminPageBuilderPage: React.FC = () => {
                     <select
                         value={status}
                         onChange={(e) => setStatus(e.target.value as any)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
-                            status === 'published' 
-                                ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800/80' 
-                                : 'bg-amber-950/60 text-amber-400 border-amber-800/80'
-                        }`}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${status === 'published'
+                            ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800/80'
+                            : 'bg-amber-950/60 text-amber-400 border-amber-800/80'
+                            }`}
                     >
                         <option value="published" className="bg-slate-900 text-white">Published</option>
                         <option value="draft" className="bg-slate-900 text-white">Draft</option>
@@ -607,42 +601,38 @@ export const AdminPageBuilderPage: React.FC = () => {
             {/* ---------------- MAIN WORKSPACE ---------------- */}
             <div className="flex-1 flex overflow-hidden">
                 {/* ---------------- LEFT SIDEBAR PANEL ---------------- */}
-                <aside 
-                    className={`${
-                        sidebarOpen ? 'w-[380px]' : 'w-0'
-                    } transition-all duration-300 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 overflow-hidden z-20`}
+                <aside
+                    className={`${sidebarOpen ? 'w-[380px]' : 'w-0'
+                        } transition-all duration-300 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 overflow-hidden z-20`}
                 >
                     {/* Sidebar Tabs */}
                     <div className="flex items-center border-b border-slate-800 bg-slate-950/60 p-1.5 shrink-0">
                         <button
                             onClick={() => setActiveSidebarTab('widgets')}
-                            className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                                activeSidebarTab === 'widgets'
-                                    ? 'bg-sky-600 text-white shadow-xs'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${activeSidebarTab === 'widgets'
+                                ? 'bg-sky-600 text-white shadow-xs'
+                                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                                }`}
                         >
                             <Plus className="w-3.5 h-3.5" />
                             <span>Widgets</span>
                         </button>
                         <button
                             onClick={() => setActiveSidebarTab('inspector')}
-                            className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                                activeSidebarTab === 'inspector'
-                                    ? 'bg-sky-600 text-white shadow-xs'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${activeSidebarTab === 'inspector'
+                                ? 'bg-sky-600 text-white shadow-xs'
+                                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                                }`}
                         >
                             <Sliders className="w-3.5 h-3.5" />
                             <span>Settings</span>
                         </button>
                         <button
                             onClick={() => setActiveSidebarTab('css')}
-                            className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                                activeSidebarTab === 'css'
-                                    ? 'bg-sky-600 text-white shadow-xs'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${activeSidebarTab === 'css'
+                                ? 'bg-sky-600 text-white shadow-xs'
+                                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                                }`}
                         >
                             <Code className="w-3.5 h-3.5" />
                             <span>Page CSS</span>
@@ -910,7 +900,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                         {dbCategories
                                                             .filter(c => c.slug !== 'free-courses' && c.slug !== 'paid-courses')
                                                             .map(cat => {
-                                                                const currentSlugs: string[] = selectedBlock.settings.selectedCategorySlugs || 
+                                                                const currentSlugs: string[] = selectedBlock.settings.selectedCategorySlugs ||
                                                                     (selectedBlock.settings.tabs || [])
                                                                         .filter((t: CourseTabItem) => t.type === 'category' && t.categorySlug !== 'all')
                                                                         .map((t: CourseTabItem) => t.categorySlug as string);
@@ -919,11 +909,10 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                 return (
                                                                     <label
                                                                         key={cat.id}
-                                                                        className={`flex items-center gap-2 p-2 rounded-lg border text-[11px] font-bold cursor-pointer transition-all ${
-                                                                            isChecked
-                                                                                ? 'bg-sky-950/40 border-sky-600 text-sky-200'
-                                                                                : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
-                                                                        }`}
+                                                                        className={`flex items-center gap-2 p-2 rounded-lg border text-[11px] font-bold cursor-pointer transition-all ${isChecked
+                                                                            ? 'bg-sky-950/40 border-sky-600 text-sky-200'
+                                                                            : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                                                                            }`}
                                                                     >
                                                                         <input
                                                                             type="checkbox"
@@ -932,9 +921,9 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                                 const newSlugs = isChecked
                                                                                     ? currentSlugs.filter(s => s !== cat.slug)
                                                                                     : [...currentSlugs, cat.slug];
-                                                                                
+
                                                                                 handleUpdateSelectedSettings('selectedCategorySlugs', newSlugs);
-                                                                                
+
                                                                                 // Auto rebuild tabs
                                                                                 const currentTabs: CourseTabItem[] = selectedBlock.settings.tabs || [];
                                                                                 const allTab = currentTabs.find(t => t.categorySlug === 'all') || {
@@ -944,7 +933,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                                     categorySlug: 'all',
                                                                                 };
                                                                                 const customHtmlTabs = currentTabs.filter(t => t.type === 'html');
-                                                                                
+
                                                                                 const updatedCatTabs = dbCategories
                                                                                     .filter(c => newSlugs.includes(c.slug))
                                                                                     .map(c => {
@@ -1049,18 +1038,18 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                         <select
                                                                             value={tab.categorySlug || 'all'}
                                                                             onChange={(e) => {
-                                                                            const updated = [...selectedBlock.settings.tabs];
-                                                                            updated[tabIdx].categorySlug = e.target.value;
-                                                                            handleUpdateSelectedSettings('tabs', updated);
-                                                                        }}
-                                                                        className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-lg text-white font-bold"
-                                                                    >
-                                                                        <option value="all">All Courses</option>
-                                                                        {dbCategories.map(cat => (
-                                                                            <option key={cat.id} value={cat.slug}>{cat.name} ({cat.slug})</option>
-                                                                        ))}
-                                                                    </select>
-                                                                </div>
+                                                                                const updated = [...selectedBlock.settings.tabs];
+                                                                                updated[tabIdx].categorySlug = e.target.value;
+                                                                                handleUpdateSelectedSettings('tabs', updated);
+                                                                            }}
+                                                                            className="w-full px-2.5 py-1.5 bg-slate-900 border border-slate-700/80 rounded-lg text-white font-bold"
+                                                                        >
+                                                                            <option value="all">All Courses</option>
+                                                                            {dbCategories.map(cat => (
+                                                                                <option key={cat.id} value={cat.slug}>{cat.name} ({cat.slug})</option>
+                                                                            ))}
+                                                                        </select>
+                                                                    </div>
                                                                 ) : (
                                                                     <div className="space-y-2">
                                                                         <label className="block text-slate-400 text-[10px]">Custom HTML Code for this Tab</label>
@@ -1353,26 +1342,24 @@ export const AdminPageBuilderPage: React.FC = () => {
                 {/* ---------------- CENTER CANVAS AREA ---------------- */}
                 <main className="flex-1 bg-slate-950 overflow-y-auto p-4 sm:p-6 flex flex-col items-center">
                     {/* Responsive Frame Container */}
-                    <div 
-                        className={`transition-all duration-300 bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-800 text-slate-900 ${
-                            deviceView === 'desktop' 
-                                ? 'w-full max-w-[1280px]' 
-                                : deviceView === 'tablet' 
-                                    ? 'w-[768px]' 
-                                    : 'w-[375px]'
-                        }`}
+                    <div
+                        className={`transition-all duration-300 bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-800 text-slate-900 ${deviceView === 'desktop'
+                            ? 'w-full max-w-[1280px]'
+                            : deviceView === 'tablet'
+                                ? 'w-[768px]'
+                                : 'w-[375px]'
+                            }`}
                         style={{ minHeight: '800px' }}
                     >
                         {blocks.length === 0 ? (
-                            <div 
+                            <div
                                 onDragOver={(e) => handleDragOver(e, 0)}
                                 onDragLeave={() => setActiveDropZoneIndex(null)}
                                 onDrop={(e) => handleDrop(e, 0)}
-                                className={`py-32 text-center transition-all m-4 rounded-2xl border-2 border-dashed ${
-                                    isDragging && activeDropZoneIndex === 0
-                                        ? 'bg-sky-500/20 border-sky-500 ring-4 ring-sky-500/20 text-sky-600 scale-[1.01]'
-                                        : 'border-slate-300 text-slate-400'
-                                }`}
+                                className={`py-32 text-center transition-all m-4 rounded-2xl border-2 border-dashed ${isDragging && activeDropZoneIndex === 0
+                                    ? 'bg-sky-500/20 border-sky-500 ring-4 ring-sky-500/20 text-sky-600 scale-[1.01]'
+                                    : 'border-slate-300 text-slate-400'
+                                    }`}
                             >
                                 <Layers className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                                 <h3 className="text-xl font-bold text-slate-700">
@@ -1419,18 +1406,17 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                     setSelectedBlockId(block.id);
                                                     setActiveSidebarTab('inspector');
                                                 }}
-                                                className={`relative group transition-all rounded-xl overflow-hidden cursor-pointer ${
-                                                    isBlockBeingDragged
-                                                        ? 'opacity-40 border-2 border-dashed border-sky-500 scale-[0.98]'
-                                                        : isSelected 
-                                                            ? 'ring-3 ring-sky-500 ring-inset shadow-md' 
-                                                            : 'hover:outline hover:outline-2 hover:outline-sky-400/60'
-                                                }`}
+                                                className={`relative group transition-all rounded-xl overflow-hidden cursor-pointer ${isBlockBeingDragged
+                                                    ? 'opacity-40 border-2 border-dashed border-sky-500 scale-[0.98]'
+                                                    : isSelected
+                                                        ? 'ring-3 ring-sky-500 ring-inset shadow-md'
+                                                        : 'hover:outline hover:outline-2 hover:outline-sky-400/60'
+                                                    }`}
                                             >
                                                 {/* Hover / Active Block Toolbar */}
                                                 <div className="absolute top-2 right-2 z-30 flex items-center gap-1 bg-slate-900/95 backdrop-blur-xs text-white p-1 rounded-xl shadow-lg border border-slate-700 opacity-90 group-hover:opacity-100 transition-opacity">
                                                     {/* Drag to Reorder Handle */}
-                                                    <div 
+                                                    <div
                                                         className="px-2 py-1 flex items-center gap-1 text-slate-300 hover:text-white cursor-grab active:cursor-grabbing rounded hover:bg-slate-800"
                                                         title="Drag to reorder"
                                                     >
@@ -1468,10 +1454,10 @@ export const AdminPageBuilderPage: React.FC = () => {
 
                                                     <button
                                                         type="button"
-                                                        onClick={(e) => { 
-                                                            e.stopPropagation(); 
-                                                             setSelectedBlockId(block.id); 
-                                                             setActiveSidebarTab('inspector'); 
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedBlockId(block.id);
+                                                            setActiveSidebarTab('inspector');
                                                         }}
                                                         className="p-1 rounded hover:bg-slate-800 cursor-pointer text-sky-400"
                                                         title="Edit Settings"

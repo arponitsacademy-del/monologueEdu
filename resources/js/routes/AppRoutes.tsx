@@ -10,6 +10,7 @@ import { CoursesPage } from '../pages/public/CoursesPage';
 import { CourseDetailsPage } from '../pages/public/CourseDetailsPage';
 import { LoginPage } from '../pages/public/LoginPage';
 import { RegisterPage } from '../pages/public/RegisterPage';
+import { ForgotPasswordPage } from '../pages/public/ForgotPasswordPage';
 import { CheckoutPage } from '../pages/public/CheckoutPage';
 import { OrderStatusPage } from '../pages/public/OrderStatusPage';
 import { TeacherProfilePage } from '../pages/public/TeacherProfilePage';
@@ -57,6 +58,7 @@ import { StudentOrdersPage } from '../pages/student/StudentOrdersPage';
 import { StudentNexPilotPage } from '../pages/student/StudentNexPilotPage';
 import { StudentAffiliatePage } from '../pages/student/StudentAffiliatePage';
 import { StudentExamsPage } from '../pages/student/StudentExamsPage';
+import { StudentSettingsPage } from '../pages/student/StudentSettingsPage';
 
 // Affiliate Admin pages
 import { AdminAffiliateGeneralSettingsPage } from '../pages/admin/affiliate/AdminAffiliateGeneralSettingsPage';
@@ -82,6 +84,7 @@ export const AppRoutes: React.FC = () => {
                 <Route path="/courses" element={<CoursesPage />} />
                 <Route path="/courses/:slug" element={<CourseDetailsPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/checkout/:slug" element={<CheckoutPage />} />
                 <Route path="/order-status/:orderNumber" element={<OrderStatusPage />} />
@@ -175,6 +178,8 @@ export const AppRoutes: React.FC = () => {
                 <Route path="exams" element={<StudentExamsPage />} />
                 <Route path="orders" element={<StudentOrdersPage />} />
                 <Route path="affiliate" element={<StudentAffiliatePage />} />
+                <Route path="profile" element={<StudentSettingsPage />} />
+                <Route path="settings" element={<StudentSettingsPage />} />
             </Route>
 
             {/* Student Exam Room */}

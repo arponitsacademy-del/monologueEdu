@@ -230,11 +230,10 @@ export const AdminMediaPage: React.FC = () => {
                         <button
                             key={tab.value}
                             onClick={() => setFilterType(tab.value)}
-                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${
-                                filterType === tab.value
-                                    ? 'bg-sky-600 text-white shadow-sm'
-                                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                            }`}
+                            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${filterType === tab.value
+                                ? 'bg-sky-600 text-white shadow-sm'
+                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                }`}
                         >
                             {tab.label}
                         </button>
@@ -366,11 +365,10 @@ export const AdminMediaPage: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={(e) => handleCopyUrl(item, e)}
-                                        className={`mt-2.5 w-full py-1 px-2 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1 transition ${
-                                            isCopied
-                                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                                : 'bg-slate-50 hover:bg-sky-50 text-slate-600 hover:text-sky-600 border border-slate-200'
-                                        }`}
+                                        className={`mt-2.5 w-full py-1 px-2 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1 transition ${isCopied
+                                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                            : 'bg-slate-50 hover:bg-sky-50 text-slate-600 hover:text-sky-600 border border-slate-200'
+                                            }`}
                                     >
                                         {isCopied ? (
                                             <>

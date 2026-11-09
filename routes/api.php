@@ -47,6 +47,9 @@ Route::post('auth/login', [AuthController::class, 'login']);
 Route::post('auth/register', [AuthController::class, 'register']);
 Route::post('auth/otp/verify', [OtpController::class, 'verify']);
 Route::post('auth/otp/resend', [OtpController::class, 'resend']);
+Route::post('auth/forgot-password/send-otp', [AuthController::class, 'forgotPasswordSendOtp']);
+Route::post('auth/forgot-password/verify-otp', [AuthController::class, 'forgotPasswordVerifyOtp']);
+Route::post('auth/forgot-password/reset', [AuthController::class, 'forgotPasswordReset']);
 
 Route::get('courses', [PublicCourseController::class, 'index']);
 Route::get('courses/{slug}', [PublicCourseController::class, 'show']);
@@ -65,9 +68,14 @@ Route::get('instructors/{id}', [TeacherPublicController::class, 'getTeacherProfi
 |--------------------------------------------------------------------------
 */
 Route::middleware('auth:sanctum')->group(function () {
-    // Auth profile
+    // Auth profile & devices
     Route::get('auth/me', [AuthController::class, 'me']);
     Route::post('auth/logout', [AuthController::class, 'logout']);
+    Route::put('user/profile', [AuthController::class, 'updateProfile']);
+    Route::put('user/change-password', [AuthController::class, 'changePassword']);
+    Route::get('user/devices', [AuthController::class, 'getDevices']);
+    Route::delete('user/devices/{id}', [AuthController::class, 'revokeDevice']);
+    Route::post('user/devices/logout-others', [AuthController::class, 'logoutOtherDevices']);
 
     // Notifications
     Route::get('notifications', [NotificationController::class, 'index']);

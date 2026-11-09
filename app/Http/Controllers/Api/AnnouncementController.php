@@ -342,3 +342,4 @@ class AnnouncementController extends Controller
         ]);
     }
 }
+

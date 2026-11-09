@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiClient } from '../../api/client';
-import { 
-    Bot, 
-    ArrowLeft, 
-    BookOpen, 
-    Sparkles, 
-    Send, 
-    Loader2, 
-    AlertCircle, 
-    Paperclip, 
-    FileText, 
-    ExternalLink, 
-    CheckCircle2, 
+import {
+    Bot,
+    ArrowLeft,
+    BookOpen,
+    Sparkles,
+    Send,
+    Loader2,
+    AlertCircle,
+    Paperclip,
+    FileText,
+    ExternalLink,
+    CheckCircle2,
     RotateCcw,
     ChevronLeft,
     Lightbulb,
@@ -239,17 +239,15 @@ export const StudentNexPilotPage: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => setActiveMode('theory')}
-                        className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                            activeMode === 'theory'
-                                ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/20 scale-[1.01]'
-                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-white/50'
-                        }`}
+                        className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${activeMode === 'theory'
+                            ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/20 scale-[1.01]'
+                            : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-white/50'
+                            }`}
                     >
                         <BookOpen className="w-4 h-4" />
                         <span className="text-sm">Theory</span>
-                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
-                            activeMode === 'theory' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700'
-                        }`}>
+                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${activeMode === 'theory' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700'
+                            }`}>
                             {theoryTopics.length}
                         </span>
                     </button>
@@ -257,17 +255,15 @@ export const StudentNexPilotPage: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => setActiveMode('practice')}
-                        className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                            activeMode === 'practice'
-                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20 scale-[1.01]'
-                                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-white/50'
-                        }`}
+                        className={`flex-1 py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${activeMode === 'practice'
+                            ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md shadow-emerald-600/20 scale-[1.01]'
+                            : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 hover:bg-white/50'
+                            }`}
                     >
                         <Sparkles className="w-4 h-4 text-amber-300" />
                         <span className="text-sm">Practice</span>
-                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
-                            activeMode === 'practice' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700'
-                        }`}>
+                        <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${activeMode === 'practice' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-800 text-slate-700'
+                            }`}>
                             {practiceTopics.length}
                         </span>
                     </button>
@@ -282,8 +278,8 @@ export const StudentNexPilotPage: React.FC = () => {
                             {activeMode === 'theory' ? '📖 Start Reading Theory' : '🎯 Solve Problems & Practice'}
                         </h3>
                         <p className="text-xs text-slate-400">
-                            {activeMode === 'theory' 
-                                ? 'Select any topic, and NexPilot will explain each concept clearly with examples.' 
+                            {activeMode === 'theory'
+                                ? 'Select any topic, and NexPilot will explain each concept clearly with examples.'
                                 : 'Select a topic, and NexPilot will guide you through solving problems step by step.'}
                         </p>
                     </div>
@@ -303,11 +299,10 @@ export const StudentNexPilotPage: React.FC = () => {
                                 >
                                     <div className="space-y-2.5">
                                         <div className="flex items-center justify-between">
-                                            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                                                topic.type === 'theory' 
-                                                    ? 'bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300' 
-                                                    : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
-                                            }`}>
+                                            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${topic.type === 'theory'
+                                                ? 'bg-sky-50 dark:bg-sky-950 text-sky-700 dark:text-sky-300'
+                                                : 'bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                                                }`}>
                                                 Topic {index + 1}
                                             </span>
                                             {topic.attachments && topic.attachments.length > 0 && (
@@ -355,11 +350,10 @@ export const StudentNexPilotPage: React.FC = () => {
                             <div>
                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                                     <span>{selectedTopic.title}</span>
-                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                        selectedTopic.type === 'theory' 
-                                            ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300' 
-                                            : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
-                                    }`}>
+                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${selectedTopic.type === 'theory'
+                                        ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300'
+                                        : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300'
+                                        }`}>
                                         {selectedTopic.type === 'theory' ? 'Theory Class' : 'Practice Coach'}
                                     </span>
                                 </h3>
@@ -399,8 +393,8 @@ export const StudentNexPilotPage: React.FC = () => {
                                     {selectedTopic.type === 'theory' ? 'Welcome to Theory Class!' : 'Welcome to Practice Session!'}
                                 </h4>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                                    {selectedTopic.type === 'theory' 
-                                        ? `I am NexPilot, your personal tutor for "${selectedTopic.title}". Feel free to ask any question or click 'Explain Concepts' below.` 
+                                    {selectedTopic.type === 'theory'
+                                        ? `I am NexPilot, your personal tutor for "${selectedTopic.title}". Feel free to ask any question or click 'Explain Concepts' below.`
                                         : `I am your NexPilot practice coach for "${selectedTopic.title}". I will provide problems one by one for you to solve and guide you through. When you are ready, let's begin!`}
                                 </p>
 
@@ -458,11 +452,10 @@ export const StudentNexPilotPage: React.FC = () => {
                                         </div>
                                     )}
                                     <div
-                                        className={`max-w-[85%] sm:max-w-[78%] rounded-3xl px-5 py-3.5 text-xs sm:text-sm ${
-                                            isUser
-                                                ? 'bg-sky-600 text-white rounded-tr-none shadow-sm'
-                                                : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none shadow-xs'
-                                        }`}
+                                        className={`max-w-[85%] sm:max-w-[78%] rounded-3xl px-5 py-3.5 text-xs sm:text-sm ${isUser
+                                            ? 'bg-sky-600 text-white rounded-tr-none shadow-sm'
+                                            : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none shadow-xs'
+                                            }`}
                                     >
                                         {isUser ? (
                                             <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>

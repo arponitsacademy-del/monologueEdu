@@ -89,7 +89,7 @@ class OtpController extends Controller
                 $user->update(['status' => User::STATUS_ACTIVE]);
             }
 
-            $token = $user->createToken('auth_token')->plainTextToken;
+            $token = AuthController::issueDeviceToken($user, $request);
 
             return response()->json([
                 'message' => 'ওটিপি সফলভাবে যাচাই হয়েছে এবং অ্যাকাউন্ট সক্রিয় হয়েছে।',

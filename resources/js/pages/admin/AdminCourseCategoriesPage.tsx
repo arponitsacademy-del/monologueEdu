@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient } from '../../api/client';
 import { Category } from '../../types';
-import { 
-    Tag, 
-    Plus, 
-    Search, 
-    Edit, 
-    Trash2, 
-    BookOpen, 
-    AlertCircle, 
-    CheckCircle2, 
+import {
+    Tag,
+    Plus,
+    Search,
+    Edit,
+    Trash2,
+    BookOpen,
+    AlertCircle,
+    CheckCircle2,
     ExternalLink,
     Layers,
     FolderPlus,
@@ -144,8 +144,8 @@ export const AdminCourseCategoriesPage: React.FC = () => {
         }
     };
 
-    const filteredCategories = categories.filter(c => 
-        c.name.toLowerCase().includes(search.toLowerCase()) || 
+    const filteredCategories = categories.filter(c =>
+        c.name.toLowerCase().includes(search.toLowerCase()) ||
         c.slug.toLowerCase().includes(search.toLowerCase()) ||
         (c.description && c.description.toLowerCase().includes(search.toLowerCase()))
     );
@@ -278,11 +278,10 @@ export const AdminCourseCategoriesPage: React.FC = () => {
                                             {cat.description || <span className="text-slate-300 italic">No description</span>}
                                         </td>
                                         <td className="py-4 px-6 text-center">
-                                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
-                                                (cat.courses_count || 0) > 0 
-                                                    ? 'bg-sky-50 text-sky-700 border border-sky-200' 
-                                                    : 'bg-slate-100 text-slate-500'
-                                            }`}>
+                                            <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${(cat.courses_count || 0) > 0
+                                                ? 'bg-sky-50 text-sky-700 border border-sky-200'
+                                                : 'bg-slate-100 text-slate-500'
+                                                }`}>
                                                 <BookOpen className="w-3 h-3" />
                                                 {cat.courses_count || 0} Courses
                                             </span>

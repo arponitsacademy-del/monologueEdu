@@ -202,18 +202,16 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => setBrowserStyle('mac')}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                                browserStyle === 'mac' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
-                            }`}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${browserStyle === 'mac' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                                }`}
                         >
                             <span>macOS</span>
                         </button>
                         <button
                             type="button"
                             onClick={() => setBrowserStyle('windows')}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
-                                browserStyle === 'windows' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
-                            }`}
+                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${browserStyle === 'windows' ? 'bg-sky-600 text-white shadow-xs' : 'text-slate-400 hover:text-white'
+                                }`}
                         >
                             <span>Windows</span>
                         </button>
