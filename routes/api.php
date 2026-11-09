@@ -191,6 +191,8 @@ Route::middleware('auth:sanctum')->group(function () {
         // Course Attached Exams
         Route::get('{course}/exams', [CourseBuilderController::class, 'getCourseExams']);
         Route::post('{course}/exams', [CourseBuilderController::class, 'attachExam']);
+        Route::post('{course}/exams/create', [CourseBuilderController::class, 'storeCourseExam']);
+        Route::put('{course}/exams/{exam}', [CourseBuilderController::class, 'updateCourseExam']);
         Route::delete('{course}/exams/{exam}', [CourseBuilderController::class, 'detachExam']);
 
         // Course Live Classes

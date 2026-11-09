@@ -306,3 +306,4 @@ class LiveClassController extends Controller
         ], 201);
     }
 }
+

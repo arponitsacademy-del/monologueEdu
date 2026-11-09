@@ -106,3 +106,4 @@ class LiveClass extends Model
         return false;
     }
 }
+

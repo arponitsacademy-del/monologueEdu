@@ -276,3 +276,4 @@ export const StudentLiveClassesPage: React.FC = () => {
         </div>
     );
 };
+

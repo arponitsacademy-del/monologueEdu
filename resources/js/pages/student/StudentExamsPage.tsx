@@ -44,6 +44,12 @@ interface AvailableExam {
     start_time?: string | null;
     end_time?: string | null;
     status: string;
+    exam_type?: string;
+    effective_type?: string;
+    is_live?: boolean;
+    is_live_active?: boolean;
+    is_live_upcoming?: boolean;
+    is_live_expired?: boolean;
     courses?: { id: number; title: string; slug: string }[];
     course?: { id: number; title: string; slug: string } | null;
     is_open_to_all: boolean;
@@ -122,7 +128,7 @@ export const StudentExamsPage: React.FC = () => {
     const [availableExams, setAvailableExams] = useState<AvailableExam[]>([]);
     const [loadingAvailable, setLoadingAvailable] = useState(true);
     const [availableSearch, setAvailableSearch] = useState('');
-    const [availableFilter, setAvailableFilter] = useState<'all' | 'ready' | 'completed' | 'upcoming'>('all');
+    const [availableFilter, setAvailableFilter] = useState<'all' | 'live' | 'practice' | 'ready' | 'completed'>('all');
 
     // Submissions State
     const [submissions, setSubmissions] = useState<SubmissionItem[]>([]);
@@ -273,21 +279,25 @@ export const StudentExamsPage: React.FC = () => {
             if (!matchesTitle && !matchesDesc && !matchesCourse) return false;
         }
 
+        if (availableFilter === 'live') {
+            return (exam.exam_type === 'live' || exam.is_live) && !exam.is_live_expired;
+        }
+        if (availableFilter === 'practice') {
+            return (exam.exam_type ?? 'practice') === 'practice' || exam.is_live_expired;
+        }
         if (availableFilter === 'ready') {
-            return exam.is_enrolled && !exam.has_submitted && !exam.is_upcoming && !exam.is_expired;
+            return exam.is_enrolled && !exam.has_submitted && !exam.is_live_upcoming;
         }
         if (availableFilter === 'completed') {
             return exam.has_submitted;
         }
-        if (availableFilter === 'upcoming') {
-            return exam.is_upcoming;
-        }
         return true;
     });
 
-    const readyExamsCount = availableExams.filter((e) => e.is_enrolled && !e.has_submitted && !e.is_upcoming && !e.is_expired).length;
+    const liveExamsCount = availableExams.filter((e) => (e.exam_type === 'live' || e.is_live) && !e.is_live_expired).length;
+    const practiceExamsCount = availableExams.filter((e) => (e.exam_type ?? 'practice') === 'practice' || e.is_live_expired).length;
+    const readyExamsCount = availableExams.filter((e) => e.is_enrolled && !e.has_submitted && !e.is_live_upcoming).length;
     const completedExamsCount = availableExams.filter((e) => e.has_submitted).length;
-    const upcomingExamsCount = availableExams.filter((e) => e.is_upcoming).length;
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto pb-12">
@@ -387,7 +397,29 @@ export const StudentExamsPage: React.FC = () => {
                                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                             >
-                                All ({availableExams.length})
+                                সব পরীক্ষা ({availableExams.length})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setAvailableFilter('live')}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                                    availableFilter === 'live'
+                                        ? 'bg-rose-600 text-white shadow-xs'
+                                        : 'bg-rose-50 text-rose-700 hover:bg-rose-100'
+                                }`}
+                            >
+                                🔴 লাইভ এক্সাম ({liveExamsCount})
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setAvailableFilter('practice')}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                                    availableFilter === 'practice'
+                                        ? 'bg-sky-600 text-white shadow-xs'
+                                        : 'bg-sky-50 text-sky-700 hover:bg-sky-100'
+                                }`}
+                            >
+                                📝 প্র্যাকটিস এক্সাম ({practiceExamsCount})
                             </button>
                             <button
                                 type="button"
@@ -398,7 +430,7 @@ export const StudentExamsPage: React.FC = () => {
                                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                             >
-                                Ready to Take ({readyExamsCount})
+                                অংশ নেওয়ার উপযোগী ({readyExamsCount})
                             </button>
                             <button
                                 type="button"
@@ -409,21 +441,8 @@ export const StudentExamsPage: React.FC = () => {
                                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                             >
-                                Completed ({completedExamsCount})
+                                সম্পন্ন ({completedExamsCount})
                             </button>
-                            {upcomingExamsCount > 0 && (
-                                <button
-                                    type="button"
-                                    onClick={() => setAvailableFilter('upcoming')}
-                                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
-                                        availableFilter === 'upcoming'
-                                            ? 'bg-blue-600 text-white shadow-xs'
-                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                    }`}
-                                >
-                                    Upcoming ({upcomingExamsCount})
-                                </button>
-                            )}
                         </div>
                     </div>
 
@@ -483,17 +502,24 @@ export const StudentExamsPage: React.FC = () => {
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 shrink-0">
                                                         <Clock className="w-3 h-3" /> In Progress
                                                     </span>
-                                                ) : exam.is_upcoming ? (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800 shrink-0">
-                                                        <Calendar className="w-3 h-3" /> Upcoming
+                                                ) : exam.is_live_active ? (
+                                                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-rose-500 text-white shrink-0 animate-pulse shadow-xs">
+                                                        <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                                        <span>🔴 লাইভ চলছে</span>
                                                     </span>
-                                                ) : exam.is_expired ? (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-gray-100 text-gray-600 shrink-0">
-                                                        Expired
+                                                ) : exam.is_live_upcoming ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 shrink-0">
+                                                        <Clock className="w-3 h-3 text-amber-600" />
+                                                        <span>⏳ আসন্ন লাইভ</span>
+                                                    </span>
+                                                ) : exam.is_live_expired ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 shrink-0">
+                                                        <Sparkles className="w-3 h-3 text-purple-600" />
+                                                        <span>🔄 প্র্যাকটিস মোড</span>
                                                     </span>
                                                 ) : (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                                                        Ready to Take
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-sky-50 text-sky-700 border border-sky-200 shrink-0">
+                                                        <span>📝 প্র্যাকটিস এক্সাম</span>
                                                     </span>
                                                 )}
                                             </div>
@@ -502,6 +528,16 @@ export const StudentExamsPage: React.FC = () => {
                                             <h3 className="text-base font-bold text-gray-900 group-hover:text-indigo-600 transition-colors line-clamp-2 mb-1.5">
                                                 {exam.title}
                                             </h3>
+
+                                            {/* Live exam schedule tag if live or upcoming */}
+                                            {(exam.exam_type === 'live' || exam.is_live) && exam.start_time && (
+                                                <div className="mb-2 text-[11px] font-medium text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200/60 inline-flex items-center gap-1.5">
+                                                    <Clock className="w-3 h-3 text-amber-600 shrink-0" />
+                                                    <span>
+                                                        {new Date(exam.start_time).toLocaleDateString('bn-BD', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true })} হতে {exam.end_time ? new Date(exam.end_time).toLocaleDateString('bn-BD', { hour: '2-digit', minute: '2-digit', hour12: true }) : ''}
+                                                    </span>
+                                                </div>
+                                            )}
 
                                             {exam.description && (
                                                 <p className="text-xs text-gray-500 line-clamp-2 mb-4 leading-relaxed">
@@ -578,19 +614,13 @@ export const StudentExamsPage: React.FC = () => {
                                                     Resume Exam
                                                     <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
                                                 </Link>
-                                            ) : exam.is_upcoming ? (
+                                            ) : exam.is_live_upcoming ? (
                                                 <button
                                                     disabled
-                                                    className="w-full py-2.5 px-3 bg-gray-100 text-gray-400 text-xs font-bold rounded-xl cursor-not-allowed text-center"
+                                                    className="w-full py-2.5 px-3 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold rounded-xl cursor-not-allowed text-center flex items-center justify-center gap-1.5"
                                                 >
-                                                    Scheduled for {exam.start_time ? new Date(exam.start_time).toLocaleDateString() : 'Later'}
-                                                </button>
-                                            ) : exam.is_expired ? (
-                                                <button
-                                                    disabled
-                                                    className="w-full py-2.5 px-3 bg-gray-100 text-gray-400 text-xs font-bold rounded-xl cursor-not-allowed text-center"
-                                                >
-                                                    Assessment Ended
+                                                    <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                                    <span>শুরু হবে: {exam.start_time ? new Date(exam.start_time).toLocaleDateString('bn-BD', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true }) : 'শীঘ্রই'}</span>
                                                 </button>
                                             ) : !exam.is_enrolled ? (
                                                 <Link
@@ -599,6 +629,24 @@ export const StudentExamsPage: React.FC = () => {
                                                 >
                                                     Enroll Course to Unlock
                                                     <ChevronRight className="w-3.5 h-3.5" />
+                                                </Link>
+                                            ) : exam.is_live_active ? (
+                                                <Link
+                                                    to={`/exams/${exam.id}/take`}
+                                                    className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl transition-colors shadow-md animate-pulse"
+                                                >
+                                                    <PlayCircle className="w-4 h-4" />
+                                                    লাইভ পরীক্ষায় অংশ নিন
+                                                    <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+                                                </Link>
+                                            ) : exam.is_live_expired ? (
+                                                <Link
+                                                    to={`/exams/${exam.id}/take`}
+                                                    className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
+                                                >
+                                                    <PlayCircle className="w-4 h-4" />
+                                                    প্র্যাকটিস শুরু করুন
+                                                    <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
                                                 </Link>
                                             ) : (
                                                 <Link

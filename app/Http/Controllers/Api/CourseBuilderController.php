@@ -9,6 +9,7 @@ use App\Models\Exam;
 use App\Models\Lesson;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class CourseBuilderController extends Controller
@@ -227,8 +228,19 @@ class CourseBuilderController extends Controller
         ]);
     }
 
+    protected function ensureExamTypeColumn(): void
+    {
+        if (Schema::hasTable('exams') && !Schema::hasColumn('exams', 'exam_type')) {
+            Schema::table('exams', function ($table) {
+                $table->string('exam_type', 20)->default('practice')->after('duration_minutes');
+                $table->index('exam_type');
+            });
+        }
+    }
+
     public function getCourseExams(Course $course): JsonResponse
     {
+        $this->ensureExamTypeColumn();
         $this->authorizeCourseAccess($course);
         $user = auth()->user();
 
@@ -237,9 +249,20 @@ class CourseBuilderController extends Controller
             ->withCount(['questions', 'submissions'])
             ->get();
 
+        // Categorize attached exams:
+        // Practice exams list: native practice exams + live exams whose time has expired (auto-transitioned to practice)
+        $practiceExams = $attachedExams->filter(function ($e) {
+            return ($e->exam_type ?? Exam::TYPE_PRACTICE) === Exam::TYPE_PRACTICE || ($e->isLiveExam() && $e->isLiveExpired());
+        })->values();
+
+        // Live exams list: all exams created as live
+        $liveExams = $attachedExams->filter(function ($e) {
+            return ($e->exam_type ?? Exam::TYPE_PRACTICE) === Exam::TYPE_LIVE;
+        })->values();
+
         $attachedIds = $attachedExams->pluck('id')->toArray();
 
-        // Available exams query
+        // Available exams query (exams not attached to this course)
         $availableQuery = Exam::whereNotIn('id', $attachedIds);
 
         if (!$user->isAdmin()) {
@@ -254,21 +277,120 @@ class CourseBuilderController extends Controller
             });
         }
 
-        $availableExams = $availableQuery->latest()->get(['id', 'title', 'duration_minutes', 'total_marks', 'pass_marks', 'status']);
+        $availableExams = $availableQuery->latest()->get([
+            'id', 'title', 'exam_type', 'duration_minutes', 'total_marks', 'pass_marks', 'status', 'start_time', 'end_time'
+        ]);
 
         return response()->json([
             'attached_exams' => $attachedExams,
+            'practice_exams' => $practiceExams,
+            'live_exams' => $liveExams,
             'available_exams' => $availableExams,
+        ]);
+    }
+
+    public function storeCourseExam(Request $request, Course $course): JsonResponse
+    {
+        $this->ensureExamTypeColumn();
+        $this->authorizeCourseAccess($course);
+        $user = auth()->user();
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'exam_type' => ['required', 'in:practice,live'],
+            'duration_minutes' => ['required', 'integer', 'min:1', 'max:1440'],
+            'start_time' => ['nullable', 'date'],
+            'end_time' => ['nullable', 'date'],
+            'total_marks' => ['nullable', 'numeric', 'min:0'],
+            'pass_marks' => ['nullable', 'numeric', 'min:0'],
+            'has_negative_marking' => ['nullable', 'boolean'],
+            'negative_marks' => ['nullable', 'numeric', 'min:0'],
+            'status' => ['nullable', 'in:draft,published,archived'],
+        ]);
+
+        if ($validated['exam_type'] === Exam::TYPE_LIVE) {
+            if (empty($validated['start_time']) || empty($validated['end_time'])) {
+                return response()->json(['message' => 'লাইভ পরীক্ষার জন্য শুরুর সময় ও শেষের সময় দেওয়া আবশ্যক।'], 422);
+            }
+            if (strtotime($validated['end_time']) < strtotime($validated['start_time'])) {
+                return response()->json(['message' => 'শেষের সময় অবশ্যই শুরুর সময়ের পরবর্তী হতে হবে।'], 422);
+            }
+        }
+
+        $validated['created_by'] = $user->id;
+        $validated['course_id'] = $course->id;
+        $validated['status'] = $validated['status'] ?? Exam::STATUS_PUBLISHED;
+        $validated['has_negative_marking'] = (bool) ($validated['has_negative_marking'] ?? false);
+        $validated['negative_marks'] = $validated['has_negative_marking'] ? ($validated['negative_marks'] ?? 0) : 0;
+        $validated['total_marks'] = $validated['total_marks'] ?? 0;
+
+        $exam = Exam::create($validated);
+
+        // Attach to course
+        $nextOrder = $course->exams()->count() + 1;
+        $course->exams()->syncWithoutDetaching([
+            $exam->id => ['order' => $nextOrder],
+        ]);
+
+        return response()->json([
+            'message' => $exam->exam_type === Exam::TYPE_LIVE 
+                ? 'লাইভ পরীক্ষা সফলভাবে তৈরি করা হয়েছে।' 
+                : 'প্র্যাকটিস পরীক্ষা সফলভাবে তৈরি করা হয়েছে।',
+            'exam' => $exam->load(['creator:id,name,email'])->loadCount(['questions', 'submissions']),
+        ], 201);
+    }
+
+    public function updateCourseExam(Request $request, Course $course, Exam $exam): JsonResponse
+    {
+        $this->ensureExamTypeColumn();
+        $this->authorizeCourseAccess($course);
+
+        $validated = $request->validate([
+            'title' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'exam_type' => ['required', 'in:practice,live'],
+            'duration_minutes' => ['required', 'integer', 'min:1', 'max:1440'],
+            'start_time' => ['nullable', 'date'],
+            'end_time' => ['nullable', 'date'],
+            'total_marks' => ['nullable', 'numeric', 'min:0'],
+            'pass_marks' => ['nullable', 'numeric', 'min:0'],
+            'has_negative_marking' => ['nullable', 'boolean'],
+            'negative_marks' => ['nullable', 'numeric', 'min:0'],
+            'status' => ['nullable', 'in:draft,published,archived'],
+        ]);
+
+        if ($validated['exam_type'] === Exam::TYPE_LIVE) {
+            if (empty($validated['start_time']) || empty($validated['end_time'])) {
+                return response()->json(['message' => 'লাইভ পরীক্ষার জন্য শুরুর সময় ও শেষের সময় দেওয়া আবশ্যক।'], 422);
+            }
+            if (strtotime($validated['end_time']) < strtotime($validated['start_time'])) {
+                return response()->json(['message' => 'শেষের সময় অবশ্যই শুরুর সময়ের পরবর্তী হতে হবে।'], 422);
+            }
+        }
+
+        $validated['has_negative_marking'] = (bool) ($validated['has_negative_marking'] ?? false);
+        $validated['negative_marks'] = $validated['has_negative_marking'] ? ($validated['negative_marks'] ?? 0) : 0;
+
+        $exam->update($validated);
+
+        return response()->json([
+            'message' => 'পরীক্ষা সফলভাবে আপডেট করা হয়েছে।',
+            'exam' => $exam->load(['creator:id,name,email'])->loadCount(['questions', 'submissions']),
         ]);
     }
 
     public function attachExam(Request $request, Course $course): JsonResponse
     {
+        $this->ensureExamTypeColumn();
         $this->authorizeCourseAccess($course);
         $user = auth()->user();
 
         $validated = $request->validate([
             'exam_id' => ['required', 'exists:exams,id'],
+            'exam_type' => ['nullable', 'in:practice,live'],
+            'start_time' => ['nullable', 'date'],
+            'end_time' => ['nullable', 'date'],
         ]);
 
         $exam = Exam::findOrFail($validated['exam_id']);
@@ -293,6 +415,15 @@ class CourseBuilderController extends Controller
             if (!$hasAccess) {
                 return response()->json(['message' => 'এই পরীক্ষাটি যুক্ত করার অনুমতি আপনার নেই।'], 403);
             }
+        }
+
+        if (!empty($validated['exam_type'])) {
+            $exam->exam_type = $validated['exam_type'];
+            if ($validated['exam_type'] === Exam::TYPE_LIVE) {
+                if (!empty($validated['start_time'])) $exam->start_time = $validated['start_time'];
+                if (!empty($validated['end_time'])) $exam->end_time = $validated['end_time'];
+            }
+            $exam->save();
         }
 
         $nextOrder = $course->exams()->count() + 1;

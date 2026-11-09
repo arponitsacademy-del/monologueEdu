@@ -407,26 +407,42 @@ export const StudentDashboardPage: React.FC = () => {
                                             className="p-3 rounded-2xl hover:bg-slate-50 transition-colors flex items-center justify-between gap-3 border border-slate-100/70"
                                         >
                                             {/* Duration Pill */}
-                                            <div className="w-10 h-10 rounded-xl bg-sky-50 text-sky-700 font-bold text-xs flex items-center justify-center shrink-0">
-                                                {exam.duration_minutes}′
+                                            <div className={`w-10 h-10 rounded-xl font-bold text-xs flex items-center justify-center shrink-0 ${
+                                                exam.is_live_active 
+                                                    ? 'bg-rose-500 text-white animate-pulse shadow-xs' 
+                                                    : 'bg-sky-50 text-sky-700'
+                                            }`}>
+                                                {exam.is_live_active ? '🔴' : `${exam.duration_minutes}′`}
                                             </div>
 
                                             {/* Details */}
                                             <div className="flex-1 min-w-0">
-                                                <h4 className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-1">
-                                                    {exam.title}
-                                                </h4>
+                                                <div className="flex items-center gap-1.5">
+                                                    <h4 className="font-bold text-slate-900 text-xs sm:text-sm line-clamp-1">
+                                                        {exam.title}
+                                                    </h4>
+                                                    {exam.is_live_active && (
+                                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-black bg-rose-100 text-rose-700 shrink-0">
+                                                            লাইভ
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
                                                     {courseName} • {exam.duration_minutes} মিনিট
+                                                    {exam.is_live_expired && ' • প্র্যাকটিস মোড'}
                                                 </p>
                                             </div>
 
                                             {/* Action Button */}
                                             <Link
                                                 to={`/exams/${exam.id}/take`}
-                                                className="px-4 py-1.5 rounded-full bg-sky-50 hover:bg-sky-600 hover:text-white text-sky-700 font-bold text-xs shrink-0 transition-colors shadow-2xs"
+                                                className={`px-4 py-1.5 rounded-full font-bold text-xs shrink-0 transition-colors shadow-2xs ${
+                                                    exam.is_live_active
+                                                        ? 'bg-rose-600 hover:bg-rose-700 text-white animate-pulse'
+                                                        : 'bg-sky-50 hover:bg-sky-600 hover:text-white text-sky-700'
+                                                }`}
                                             >
-                                                শুরু
+                                                {exam.is_live_active ? 'অংশ নিন' : 'শুরু'}
                                             </Link>
                                         </div>
                                     );

@@ -9,10 +9,20 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class ExamController extends Controller
 {
+    protected function ensureExamTypeColumn(): void
+    {
+        if (Schema::hasTable('exams') && !Schema::hasColumn('exams', 'exam_type')) {
+            Schema::table('exams', function ($table) {
+                $table->string('exam_type', 20)->default('practice')->after('duration_minutes');
+                $table->index('exam_type');
+            });
+        }
+    }
     /**
      * Check if user is authorized to manage the exam
      */
@@ -60,6 +70,7 @@ class ExamController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
+        $this->ensureExamTypeColumn();
         $user = $request->user();
         $query = Exam::with(['courses:id,title,slug', 'course:id,title,slug', 'creator:id,name,email'])
             ->withCount(['questions', 'submissions']);
@@ -128,6 +139,7 @@ class ExamController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        $this->ensureExamTypeColumn();
         $user = $request->user();
 
         $validated = $request->validate([
@@ -136,6 +148,7 @@ class ExamController extends Controller
             'course_ids' => ['nullable', 'array'],
             'course_ids.*' => ['exists:courses,id'],
             'description' => ['nullable', 'string'],
+            'exam_type' => ['nullable', 'in:practice,live'],
             'total_marks' => ['nullable', 'numeric', 'min:0'],
             'pass_marks' => ['nullable', 'numeric', 'min:0'],
             'has_negative_marking' => ['nullable', 'boolean'],
@@ -153,6 +166,7 @@ class ExamController extends Controller
         unset($validated['course_ids']);
 
         $validated['created_by'] = $user->id;
+        $validated['exam_type'] = $validated['exam_type'] ?? Exam::TYPE_PRACTICE;
         $validated['status'] = $validated['status'] ?? Exam::STATUS_PUBLISHED;
         $validated['has_negative_marking'] = (bool) ($validated['has_negative_marking'] ?? false);
         $validated['negative_marks'] = $validated['has_negative_marking'] ? ($validated['negative_marks'] ?? 0) : 0;
@@ -190,6 +204,7 @@ class ExamController extends Controller
     {
         $user = $request->user();
         $this->authorizeExam($user, $exam);
+        $this->ensureExamTypeColumn();
 
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
@@ -197,6 +212,7 @@ class ExamController extends Controller
             'course_ids' => ['nullable', 'array'],
             'course_ids.*' => ['exists:courses,id'],
             'description' => ['nullable', 'string'],
+            'exam_type' => ['nullable', 'in:practice,live'],
             'total_marks' => ['nullable', 'numeric', 'min:0'],
             'pass_marks' => ['nullable', 'numeric', 'min:0'],
             'has_negative_marking' => ['nullable', 'boolean'],

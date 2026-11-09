@@ -13,11 +13,21 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ExamSubmissionController extends Controller
 {
+    protected function ensureExamTypeColumn(): void
+    {
+        if (Schema::hasTable('exams') && !Schema::hasColumn('exams', 'exam_type')) {
+            Schema::table('exams', function ($table) {
+                $table->string('exam_type', 20)->default('practice')->after('duration_minutes');
+                $table->index('exam_type');
+            });
+        }
+    }
     /**
      * Authorize user to evaluate or view all submissions
      */
@@ -207,6 +217,7 @@ class ExamSubmissionController extends Controller
      */
     public function studentAvailableExams(Request $request): JsonResponse
     {
+        $this->ensureExamTypeColumn();
         $user = $request->user();
 
         // Enrolled courses of the student
@@ -254,13 +265,18 @@ class ExamSubmissionController extends Controller
             $submission = $submissions->get($exam->id);
             $activeSubmission = $inProgress->get($exam->id);
 
-            $isUpcoming = $exam->start_time && $exam->start_time->isFuture();
-            $isExpired = $exam->end_time && $exam->end_time->isPast();
+            $isLive = ($exam->exam_type ?? Exam::TYPE_PRACTICE) === Exam::TYPE_LIVE;
+            $isLiveActive = $exam->isLiveActive();
+            $isLiveUpcoming = $exam->isLiveUpcoming();
+            $isLiveExpired = $exam->isLiveExpired();
+            $effectiveType = $exam->effective_type;
 
             return [
                 'id' => $exam->id,
                 'title' => $exam->title,
                 'description' => $exam->description,
+                'exam_type' => $exam->exam_type ?? Exam::TYPE_PRACTICE,
+                'effective_type' => $effectiveType,
                 'total_marks' => (float) $exam->total_marks,
                 'pass_marks' => (float) $exam->pass_marks,
                 'duration_minutes' => (int) $exam->duration_minutes,
@@ -274,8 +290,12 @@ class ExamSubmissionController extends Controller
                 'course' => $exam->course,
                 'is_open_to_all' => $isOpenToAll,
                 'is_enrolled' => $isEnrolled,
-                'is_upcoming' => $isUpcoming,
-                'is_expired' => $isExpired,
+                'is_live' => $isLive,
+                'is_live_active' => $isLiveActive,
+                'is_live_upcoming' => $isLiveUpcoming,
+                'is_live_expired' => $isLiveExpired,
+                'is_upcoming' => $isLiveUpcoming,
+                'is_expired' => $isLiveExpired,
                 'has_submitted' => $submission !== null,
                 'in_progress' => $activeSubmission !== null,
                 'submission' => $submission ? [
@@ -290,7 +310,7 @@ class ExamSubmissionController extends Controller
 
         return response()->json([
             'exams' => $formatted,
-            'total_available' => $formatted->filter(fn($e) => !$e['has_submitted'] && $e['is_enrolled'] && !$e['is_expired'])->count(),
+            'total_available' => $formatted->filter(fn($e) => !$e['has_submitted'] && $e['is_enrolled'] && !$e['is_live_upcoming'])->count(),
         ]);
     }
 
@@ -581,6 +601,12 @@ class ExamSubmissionController extends Controller
 
         if ($exam->status !== Exam::STATUS_PUBLISHED) {
             return response()->json(['message' => 'This exam is not currently published.'], 400);
+        }
+
+        if ($exam->isLiveUpcoming()) {
+            return response()->json([
+                'message' => 'এই লাইভ পরীক্ষাটি এখনো শুরু হয়নি। শুরুর সময়: ' . ($exam->start_time ? $exam->start_time->format('d M Y, h:i A') : ''),
+            ], 400);
         }
 
         // Check if student already submitted

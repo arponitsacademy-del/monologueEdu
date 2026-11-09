@@ -51,8 +51,8 @@ export const AdminCourseBuilderPage: React.FC = () => {
     const [sections, setSections] = useState<CourseSection[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Tab state ('lessons' | 'live_classes' | 'exams')
-    const [activeTab, setActiveTab] = useState<'lessons' | 'live_classes' | 'exams'>('lessons');
+    // Tab state ('lessons' | 'live_classes' | 'practice_exams' | 'live_exams')
+    const [activeTab, setActiveTab] = useState<'lessons' | 'live_classes' | 'practice_exams' | 'live_exams'>('lessons');
 
     // Live Classes state
     const [liveClasses, setLiveClasses] = useState<any[]>([]);
@@ -71,7 +71,27 @@ export const AdminCourseBuilderPage: React.FC = () => {
     const [attachedExams, setAttachedExams] = useState<any[]>([]);
     const [availableExams, setAvailableExams] = useState<any[]>([]);
     const [loadingExams, setLoadingExams] = useState(false);
+
+    // Create / Edit Exam Modal state
+    const [examModalOpen, setExamModalOpen] = useState(false);
+    const [examModalType, setExamModalType] = useState<'practice' | 'live'>('practice');
+    const [editingExam, setEditingExam] = useState<any | null>(null);
+    const [examTitle, setExamTitle] = useState('');
+    const [examDesc, setExamDesc] = useState('');
+    const [examDuration, setExamDuration] = useState('30');
+    const [examPassMarks, setExamPassMarks] = useState('0');
+    const [examHasNegativeMarking, setExamHasNegativeMarking] = useState(false);
+    const [examNegativeMarks, setExamNegativeMarks] = useState('0.25');
+    const [examStartTime, setExamStartTime] = useState('');
+    const [examEndTime, setExamEndTime] = useState('');
+    const [examStatus, setExamStatus] = useState<'published' | 'draft'>('published');
+    const [savingExam, setSavingExam] = useState(false);
+
+    // Attach Exam Modal state
     const [attachModalOpen, setAttachModalOpen] = useState(false);
+    const [attachExamType, setAttachExamType] = useState<'practice' | 'live'>('practice');
+    const [attachStartTime, setAttachStartTime] = useState('');
+    const [attachEndTime, setAttachEndTime] = useState('');
     const [selectedExamId, setSelectedExamId] = useState<string>('');
     const [attaching, setAttaching] = useState(false);
     const [examSearch, setExamSearch] = useState('');
@@ -229,14 +249,160 @@ export const AdminCourseBuilderPage: React.FC = () => {
         }
     };
 
+    const formatExamDate = (dateStr: string) => {
+        if (!dateStr) return '';
+        try {
+            const d = new Date(dateStr);
+            return d.toLocaleString('bn-BD', {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+            });
+        } catch {
+            return dateStr;
+        }
+    };
+
+    const isExamExpired = (exam: any) => {
+        if (!exam.end_time) return false;
+        return new Date(exam.end_time) < new Date();
+    };
+
+    const isExamLiveNow = (exam: any) => {
+        if (exam.exam_type !== 'live' || !exam.start_time || !exam.end_time) return false;
+        const now = new Date();
+        return new Date(exam.start_time) <= now && now <= new Date(exam.end_time);
+    };
+
+    const isExamUpcoming = (exam: any) => {
+        if (exam.exam_type !== 'live' || !exam.start_time) return false;
+        return new Date(exam.start_time) > new Date();
+    };
+
+    // Practice Exams List:
+    // 1) All exams where exam_type === 'practice' (or unset)
+    // 2) PLUS live exams whose end_time has passed (they automatically transition to practice exams!)
+    const practiceExamsList = attachedExams.filter(exam => {
+        const isLive = exam.exam_type === 'live';
+        if (!isLive) return true;
+        return isExamExpired(exam);
+    });
+
+    // Live Exams List:
+    // All exams created as 'live'
+    const liveExamsList = attachedExams.filter(exam => exam.exam_type === 'live');
+
+    const openAddExam = (type: 'practice' | 'live') => {
+        setEditingExam(null);
+        setExamModalType(type);
+        setExamTitle('');
+        setExamDesc('');
+        setExamDuration('30');
+        setExamPassMarks('0');
+        setExamHasNegativeMarking(false);
+        setExamNegativeMarks('0.25');
+        setExamStartTime('');
+        setExamEndTime('');
+        setExamStatus('published');
+        setExamModalOpen(true);
+    };
+
+    const openEditExam = (exam: any) => {
+        setEditingExam(exam);
+        setExamModalType(exam.exam_type === 'live' ? 'live' : 'practice');
+        setExamTitle(exam.title || '');
+        setExamDesc(exam.description || '');
+        setExamDuration(String(exam.duration_minutes || 30));
+        setExamPassMarks(String(exam.pass_marks || 0));
+        setExamHasNegativeMarking(Boolean(exam.has_negative_marking));
+        setExamNegativeMarks(String(exam.negative_marks || 0.25));
+        setExamStartTime(exam.start_time ? exam.start_time.substring(0, 16) : '');
+        setExamEndTime(exam.end_time ? exam.end_time.substring(0, 16) : '');
+        setExamStatus(exam.status || 'published');
+        setExamModalOpen(true);
+    };
+
+    const openAttachModal = (type: 'practice' | 'live') => {
+        setSelectedExamId('');
+        setAttachExamType(type);
+        setAttachStartTime('');
+        setAttachEndTime('');
+        setExamSearch('');
+        setAttachModalOpen(true);
+    };
+
+    const handleSaveExam = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!examTitle.trim()) {
+            alert('পরীক্ষার শিরোনাম দেওয়া আবশ্যক।');
+            return;
+        }
+        if (examModalType === 'live') {
+            if (!examStartTime || !examEndTime) {
+                alert('লাইভ পরীক্ষার শুরুর সময় এবং শেষের সময় দেওয়া আবশ্যক।');
+                return;
+            }
+            if (new Date(examEndTime) <= new Date(examStartTime)) {
+                alert('লাইভ পরীক্ষার শেষের সময় অবশ্যই শুরুর সময়ের পরবর্তী হতে হবে।');
+                return;
+            }
+        }
+
+        try {
+            setSavingExam(true);
+            const payload = {
+                title: examTitle.trim(),
+                description: examDesc.trim() || null,
+                exam_type: examModalType,
+                duration_minutes: parseInt(examDuration) || 30,
+                pass_marks: parseFloat(examPassMarks) || 0,
+                has_negative_marking: examHasNegativeMarking,
+                negative_marks: examHasNegativeMarking ? (parseFloat(examNegativeMarks) || 0) : 0,
+                start_time: examModalType === 'live' ? examStartTime : null,
+                end_time: examModalType === 'live' ? examEndTime : null,
+                status: examStatus,
+            };
+
+            if (editingExam) {
+                await apiClient.put(`/builder/${id}/exams/${editingExam.id}`, payload);
+            } else {
+                await apiClient.post(`/builder/${id}/exams/create`, payload);
+            }
+
+            setExamModalOpen(false);
+            fetchCourseExams();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'পরীক্ষা সংরক্ষণ করতে ব্যর্থ হয়েছে।');
+        } finally {
+            setSavingExam(false);
+        }
+    };
+
     const handleAttachExam = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!selectedExamId) return;
+
+        if (attachExamType === 'live') {
+            if (!attachStartTime || !attachEndTime) {
+                alert('লাইভ পরীক্ষার শুরুর সময় এবং শেষের সময় দেওয়া আবশ্যক।');
+                return;
+            }
+            if (new Date(attachEndTime) <= new Date(attachStartTime)) {
+                alert('লাইভ পরীক্ষার শেষের সময় অবশ্যই শুরুর সময়ের পরবর্তী হতে হবে।');
+                return;
+            }
+        }
 
         try {
             setAttaching(true);
             await apiClient.post(`/builder/${id}/exams`, {
                 exam_id: Number(selectedExamId),
+                exam_type: attachExamType,
+                start_time: attachExamType === 'live' ? attachStartTime : null,
+                end_time: attachExamType === 'live' ? attachEndTime : null,
             });
             setSelectedExamId('');
             setAttachModalOpen(false);
@@ -484,36 +650,51 @@ export const AdminCourseBuilderPage: React.FC = () => {
                         </button>
                     )}
 
-                    {activeTab === 'exams' && (
+                    {activeTab === 'practice_exams' && (
                         <div className="flex items-center gap-2.5">
                             <button
-                                onClick={() => {
-                                    setSelectedExamId('');
-                                    setAttachModalOpen(true);
-                                }}
+                                onClick={() => openAddExam('practice')}
                                 className="px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-xl shadow-md shadow-sky-600/30 flex items-center gap-2 transition-all cursor-pointer"
                             >
                                 <Plus className="w-4 h-4" />
-                                <span>Attach Exam</span>
+                                <span>+ নতুন প্র্যাকটিস এক্সাম</span>
                             </button>
-                            <Link
-                                to={`${examBasePath}/create`}
-                                target="_blank"
-                                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl flex items-center gap-2 transition-all"
+                            <button
+                                onClick={() => openAttachModal('practice')}
+                                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl flex items-center gap-2 transition-all cursor-pointer"
                             >
-                                <ExternalLink className="w-4 h-4" />
-                                <span>Create New Exam</span>
-                            </Link>
+                                <Paperclip className="w-4 h-4" />
+                                <span>+ পূর্বের এক্সাম যুক্ত করুন</span>
+                            </button>
+                        </div>
+                    )}
+
+                    {activeTab === 'live_exams' && (
+                        <div className="flex items-center gap-2.5">
+                            <button
+                                onClick={() => openAddExam('live')}
+                                className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm rounded-xl shadow-md shadow-amber-600/30 flex items-center gap-2 transition-all cursor-pointer"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>+ নতুন লাইভ এক্সাম</span>
+                            </button>
+                            <button
+                                onClick={() => openAttachModal('live')}
+                                className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl flex items-center gap-2 transition-all cursor-pointer"
+                            >
+                                <Paperclip className="w-4 h-4" />
+                                <span>+ পূর্বের এক্সাম লাইভ হিসেবে যুক্ত করুন</span>
+                            </button>
                         </div>
                     )}
                 </div>
             </div>
 
             {/* Builder Navigation Tabs */}
-            <div className="flex items-center gap-4 border-b border-slate-200">
+            <div className="flex items-center gap-2 sm:gap-4 border-b border-slate-200 overflow-x-auto pb-1 sm:pb-0">
                 <button
                     onClick={() => setActiveTab('lessons')}
-                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                         activeTab === 'lessons'
                             ? 'border-sky-600 text-sky-600'
                             : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -528,7 +709,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
 
                 <button
                     onClick={() => setActiveTab('live_classes')}
-                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                         activeTab === 'live_classes'
                             ? 'border-rose-600 text-rose-600'
                             : 'border-transparent text-slate-500 hover:text-slate-800'
@@ -542,17 +723,32 @@ export const AdminCourseBuilderPage: React.FC = () => {
                 </button>
 
                 <button
-                    onClick={() => setActiveTab('exams')}
-                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
-                        activeTab === 'exams'
+                    onClick={() => setActiveTab('practice_exams')}
+                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                        activeTab === 'practice_exams'
                             ? 'border-sky-600 text-sky-600'
                             : 'border-transparent text-slate-500 hover:text-slate-800'
                     }`}
                 >
-                    <ClipboardList className="w-4 h-4" />
-                    <span>Course Exams</span>
+                    <BookOpen className="w-4 h-4" />
+                    <span>Practice Exam</span>
                     <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-700">
-                        {attachedExams.length}
+                        {practiceExamsList.length}
+                    </span>
+                </button>
+
+                <button
+                    onClick={() => setActiveTab('live_exams')}
+                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                        activeTab === 'live_exams'
+                            ? 'border-amber-600 text-amber-700'
+                            : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                >
+                    <Clock className="w-4 h-4" />
+                    <span>Live Exam</span>
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
+                        {liveExamsList.length}
                     </span>
                 </button>
             </div>
@@ -932,188 +1128,684 @@ export const AdminCourseBuilderPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Course Exams Tab Content */}
-            {activeTab === 'exams' && (
+            {/* Practice Exams Tab Content */}
+            {activeTab === 'practice_exams' && (
                 <div className="space-y-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
                         <div>
                             <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
-                                <ClipboardList className="w-5 h-5 text-sky-600" />
-                                <span>Course Exams</span>
+                                <BookOpen className="w-5 h-5 text-sky-600" />
+                                <span>প্র্যাকটিস এক্সাম (Practice Exams)</span>
                             </h3>
                             <p className="text-xs text-slate-500 mt-0.5">
-                                Total {attachedExams.length} exams attached to this course. The same exam can also be shared across multiple courses.
+                                মোট {practiceExamsList.length} টি প্র্যাকটিস পরীক্ষা। লাইভ পরীক্ষার সময়সীমা শেষ হলেও তা স্বয়ংক্রিয়ভাবে এখানে চলে আসবে যেন শিক্ষার্থীরা যে কোনো সময় অনুশীলন করতে পারে।
                             </p>
                         </div>
-                        <button
-                            onClick={() => {
-                                setSelectedExamId('');
-                                setAttachModalOpen(true);
-                            }}
-                            className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 self-start sm:self-auto"
-                        >
-                            <Plus className="w-4 h-4" />
-                            <span>+ Attach Exam to Course</span>
-                        </button>
+                        <div className="flex items-center gap-2 self-start sm:self-auto">
+                            <button
+                                onClick={() => openAddExam('practice')}
+                                className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>+ নতুন প্র্যাকটিস এক্সাম</span>
+                            </button>
+                            <button
+                                onClick={() => openAttachModal('practice')}
+                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <Paperclip className="w-4 h-4" />
+                                <span>+ পূর্বের এক্সাম যুক্ত করুন</span>
+                            </button>
+                        </div>
                     </div>
 
                     {loadingExams ? (
                         <div className="bg-white p-12 rounded-3xl border border-slate-200/80 text-center">
                             <Loader2 className="w-8 h-8 animate-spin text-sky-500 mx-auto mb-3" />
-                            <p className="text-xs text-slate-400">Loading exams...</p>
+                            <p className="text-xs text-slate-400">Loading practice exams...</p>
                         </div>
-                    ) : attachedExams.length === 0 ? (
+                    ) : practiceExamsList.length === 0 ? (
                         <div className="bg-white p-12 rounded-3xl border border-slate-200/80 shadow-xs text-center space-y-4">
                             <div className="w-16 h-16 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center mx-auto">
-                                <ClipboardList className="w-8 h-8" />
+                                <BookOpen className="w-8 h-8" />
                             </div>
                             <div>
-                                <h3 className="text-base font-bold text-slate-800">No exams attached to this course</h3>
+                                <h3 className="text-base font-bold text-slate-800">কোনো প্র্যাকটিস এক্সাম পাওয়া যায়নি</h3>
                                 <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
-                                    Attach any existing exam or create a new exam to evaluate your students.
+                                    শিক্ষার্থীদের নিয়মিত অনুশীলনের জন্য নতুন প্র্যাকটিস পরীক্ষা তৈরি করুন অথবা পূর্বের তৈরি করা পরীক্ষা যুক্ত করুন।
                                 </p>
                             </div>
                             <div className="flex items-center justify-center gap-3 pt-2">
                                 <button
-                                    onClick={() => {
-                                        setSelectedExamId('');
-                                        setAttachModalOpen(true);
-                                    }}
-                                    className="px-5 py-2.5 bg-sky-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-sky-700 flex items-center gap-1.5"
+                                    onClick={() => openAddExam('practice')}
+                                    className="px-5 py-2.5 bg-sky-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-sky-700 flex items-center gap-1.5 cursor-pointer"
                                 >
                                     <Plus className="w-4 h-4" />
-                                    <span>Attach Exam</span>
+                                    <span>নতুন প্র্যাকটিস এক্সাম তৈরি করুন</span>
                                 </button>
-                                <Link
-                                    to={`${examBasePath}/create`}
-                                    target="_blank"
-                                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center gap-1.5"
+                                <button
+                                    onClick={() => openAttachModal('practice')}
+                                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
                                 >
-                                    <ExternalLink className="w-4 h-4" />
-                                    <span>Create New Exam</span>
-                                </Link>
+                                    <Paperclip className="w-4 h-4" />
+                                    <span>পূর্বের এক্সাম যুক্ত করুন</span>
+                                </button>
                             </div>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 gap-4">
-                            {attachedExams.map((exam, index) => (
-                                <div
-                                    key={exam.id}
-                                    className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 hover:border-sky-200 transition-all space-y-4"
-                                >
-                                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="w-6 h-6 rounded-md bg-sky-100 text-sky-700 text-xs font-bold flex items-center justify-center shrink-0">
-                                                    {index + 1}
-                                                </span>
-                                                <h4 className="text-base font-bold text-slate-900 tracking-tight">
-                                                    {exam.title}
-                                                </h4>
-                                                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                                                    exam.status === 'published' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'
-                                                }`}>
-                                                    {exam.status}
-                                                </span>
+                            {practiceExamsList.map((exam, index) => {
+                                const isFromLive = exam.exam_type === 'live';
+                                return (
+                                    <div
+                                        key={exam.id}
+                                        className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 hover:border-sky-200 transition-all space-y-4"
+                                    >
+                                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                                            <div className="space-y-1.5">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span className="w-6 h-6 rounded-md bg-sky-100 text-sky-700 text-xs font-bold flex items-center justify-center shrink-0">
+                                                        {index + 1}
+                                                    </span>
+                                                    <h4 className="text-base font-bold text-slate-900 tracking-tight">
+                                                        {exam.title}
+                                                    </h4>
+                                                    {isFromLive ? (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 flex items-center gap-1">
+                                                            <Sparkles className="w-3 h-3 text-purple-600" />
+                                                            <span>🔄 লাইভ সম্পন্ন • এখন প্র্যাকটিস মোডে উন্মুক্ত</span>
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 uppercase">
+                                                            প্র্যাকটিস এক্সাম
+                                                        </span>
+                                                    )}
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                                        exam.status === 'published' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'
+                                                    }`}>
+                                                        {exam.status}
+                                                    </span>
+                                                </div>
+                                                {exam.description && (
+                                                    <p className="text-xs text-slate-500 line-clamp-2 pl-8">
+                                                        {exam.description}
+                                                    </p>
+                                                )}
                                             </div>
-                                            {exam.description && (
-                                                <p className="text-xs text-slate-500 line-clamp-2 pl-8">
-                                                    {exam.description}
-                                                </p>
+
+                                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                                                <Link
+                                                    to={`${examBasePath}/${exam.id}/builder`}
+                                                    className="px-3.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors"
+                                                    title="Add or edit questions"
+                                                >
+                                                    <Edit className="w-3.5 h-3.5 text-sky-600" />
+                                                    <span>Question Builder</span>
+                                                </Link>
+
+                                                <Link
+                                                    to={`${examBasePath}/${exam.id}/submissions`}
+                                                    className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors"
+                                                    title="View student submissions and results"
+                                                >
+                                                    <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                                                    <span>Submissions ({exam.submissions_count ?? 0})</span>
+                                                </Link>
+
+                                                <button
+                                                    onClick={() => openEditExam(exam)}
+                                                    className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"
+                                                    title="Edit Exam"
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+
+                                                <button
+                                                    onClick={() => handleDetachExam(exam.id, exam.title)}
+                                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                                    title="Detach exam from course"
+                                                >
+                                                    <Unlink className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Meta Badges */}
+                                        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 pt-3 border-t border-slate-100">
+                                            <div className="flex items-center gap-1.5 font-medium">
+                                                <Award className="w-4 h-4 text-amber-500" />
+                                                <span>Total Marks: <strong className="text-slate-800">{exam.total_marks}</strong></span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 font-medium">
+                                                <Clock className="w-4 h-4 text-sky-500" />
+                                                <span>Time: <strong className="text-slate-800">{exam.duration_minutes} mins</strong></span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 font-medium">
+                                                <FileText className="w-4 h-4 text-violet-500" />
+                                                <span>Questions: <strong className="text-slate-800">{exam.questions_count ?? 0}</strong></span>
+                                            </div>
+                                            {exam.has_negative_marking ? (
+                                                <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 text-[11px] font-semibold">
+                                                    Negative Marking: -{exam.negative_marks}
+                                                </span>
+                                            ) : (
+                                                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[11px] font-semibold">
+                                                    No Negative Marking
+                                                </span>
+                                            )}
+                                            {exam.creator && (
+                                                <span className="text-slate-400 text-[11px] ml-auto">
+                                                    Created by: {exam.creator.name}
+                                                </span>
                                             )}
                                         </div>
-
-                                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                                            <Link
-                                                to={`${examBasePath}/${exam.id}/builder`}
-                                                className="px-3.5 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors"
-                                                title="Add or edit questions"
-                                            >
-                                                <Edit className="w-3.5 h-3.5 text-sky-600" />
-                                                <span>Question Builder</span>
-                                            </Link>
-
-                                            <Link
-                                                to={`${examBasePath}/${exam.id}/submissions`}
-                                                className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors"
-                                                title="View student submissions and results"
-                                            >
-                                                <FileText className="w-3.5 h-3.5 text-emerald-600" />
-                                                <span>Submissions ({exam.submissions_count ?? 0})</span>
-                                            </Link>
-
-                                            <button
-                                                onClick={() => handleDetachExam(exam.id, exam.title)}
-                                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                                                title="Detach exam from course"
-                                            >
-                                                <Unlink className="w-4 h-4" />
-                                            </button>
-                                        </div>
                                     </div>
-
-                                    {/* Meta Badges */}
-                                    <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 pt-3 border-t border-slate-100">
-                                        <div className="flex items-center gap-1.5 font-medium">
-                                            <Award className="w-4 h-4 text-amber-500" />
-                                            <span>Total Marks: <strong className="text-slate-800">{exam.total_marks}</strong></span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5 font-medium">
-                                            <Clock className="w-4 h-4 text-sky-500" />
-                                            <span>Time: <strong className="text-slate-800">{exam.duration_minutes} mins</strong></span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5 font-medium">
-                                            <FileText className="w-4 h-4 text-violet-500" />
-                                            <span>Questions: <strong className="text-slate-800">{exam.questions_count ?? 0}</strong></span>
-                                        </div>
-                                        {exam.has_negative_marking ? (
-                                            <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 text-[11px] font-semibold">
-                                                Negative Marking: -{exam.negative_marks}
-                                            </span>
-                                        ) : (
-                                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[11px] font-semibold">
-                                                No Negative Marking
-                                            </span>
-                                        )}
-                                        {exam.creator && (
-                                            <span className="text-slate-400 text-[11px] ml-auto">
-                                                Created by: {exam.creator.name}
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Attach Exam Modal */}
+            {/* Live Exams Tab Content */}
+            {activeTab === 'live_exams' && (
+                <div className="space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div>
+                            <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                <Clock className="w-5 h-5 text-amber-600" />
+                                <span>লাইভ এক্সাম (Live Exams)</span>
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-0.5">
+                                মোট {liveExamsList.length} টি লাইভ পরীক্ষা। নির্ধারিত সময় (শুরু ও শেষ) অনুযায়ী শিক্ষার্থীরা লাইভ পরীক্ষায় অংশ নেয়। সময় শেষ হলে এটি স্বয়ংক্রিয়ভাবে প্র্যাকটিস এক্সামে চলে যায়।
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2 self-start sm:self-auto">
+                            <button
+                                onClick={() => openAddExam('live')}
+                                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>+ নতুন লাইভ এক্সাম</span>
+                            </button>
+                            <button
+                                onClick={() => openAttachModal('live')}
+                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <Paperclip className="w-4 h-4" />
+                                <span>+ পূর্বের এক্সাম লাইভ হিসেবে যুক্ত করুন</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/70 text-amber-900 text-xs flex items-start gap-2.5">
+                        <Sparkles className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                            <span className="font-bold">স্বয়ংক্রিয় প্র্যাকটিস রূপান্তর সিস্টেম: </span>
+                            লাইভ পরীক্ষার জন্য নির্ধারিত শেষের সময় (End Time) অতিক্রম করার সাথে সাথে পরীক্ষাটি স্বয়ংক্রিয়ভাবে <strong>প্র্যাকটিস এক্সাম</strong> ট্যাবে চলে যাবে এবং শিক্ষার্থীরা নিয়মিত যেকোনো সময় প্র্যাকটিস হিসেবে অংশ নিতে পারবে।
+                        </div>
+                    </div>
+
+                    {loadingExams ? (
+                        <div className="bg-white p-12 rounded-3xl border border-slate-200/80 text-center">
+                            <Loader2 className="w-8 h-8 animate-spin text-amber-500 mx-auto mb-3" />
+                            <p className="text-xs text-slate-400">Loading live exams...</p>
+                        </div>
+                    ) : liveExamsList.length === 0 ? (
+                        <div className="bg-white p-12 rounded-3xl border border-slate-200/80 shadow-xs text-center space-y-4">
+                            <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto">
+                                <Clock className="w-8 h-8" />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-bold text-slate-800">কোনো লাইভ এক্সাম তৈরি করা হয়নি</h3>
+                                <p className="text-xs text-slate-500 max-w-md mx-auto mt-1">
+                                    নির্দিষ্ট সময়সীমা নির্ধারণ করে একটি লাইভ এক্সাম তৈরি করুন। শিক্ষার্থীরা একই সময়ে পরীক্ষা দিয়ে মেধা তালিকায় প্রতিযোগিতা করতে পারবে।
+                                </p>
+                            </div>
+                            <div className="flex items-center justify-center gap-3 pt-2">
+                                <button
+                                    onClick={() => openAddExam('live')}
+                                    className="px-5 py-2.5 bg-amber-600 text-white font-bold text-xs rounded-xl shadow-md hover:bg-amber-700 flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <Plus className="w-4 h-4" />
+                                    <span>নতুন লাইভ এক্সাম তৈরি করুন</span>
+                                </button>
+                                <button
+                                    onClick={() => openAttachModal('live')}
+                                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer"
+                                >
+                                    <Paperclip className="w-4 h-4" />
+                                    <span>পূর্বের এক্সাম লাইভ হিসেবে যুক্ত করুন</span>
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-4">
+                            {liveExamsList.map((exam, index) => {
+                                const isLiveNow = isExamLiveNow(exam);
+                                const isUpcoming = isExamUpcoming(exam);
+                                const isExpired = isExamExpired(exam);
+
+                                return (
+                                    <div
+                                        key={exam.id}
+                                        className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6 hover:border-amber-200 transition-all space-y-4"
+                                    >
+                                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                                            <div className="space-y-1.5">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    <span className="w-6 h-6 rounded-md bg-amber-100 text-amber-800 text-xs font-bold flex items-center justify-center shrink-0">
+                                                        {index + 1}
+                                                    </span>
+                                                    <h4 className="text-base font-bold text-slate-900 tracking-tight">
+                                                        {exam.title}
+                                                    </h4>
+
+                                                    {isLiveNow && (
+                                                        <span className="px-2.5 py-1 rounded-full text-xs font-black bg-rose-500 text-white flex items-center gap-1.5 animate-pulse shadow-sm">
+                                                            <Radio className="w-3.5 h-3.5" />
+                                                            <span>🔴 লাইভ চলছে</span>
+                                                        </span>
+                                                    )}
+
+                                                    {isUpcoming && (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 flex items-center gap-1">
+                                                            <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                                            <span>⏳ আসন্ন লাইভ</span>
+                                                        </span>
+                                                    )}
+
+                                                    {isExpired && (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
+                                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                                            <span>🔄 সময় সমাপ্ত (প্র্যাকটিস এক্সামে সক্রিয়)</span>
+                                                        </span>
+                                                    )}
+
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                                        exam.status === 'published' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'
+                                                    }`}>
+                                                        {exam.status}
+                                                    </span>
+                                                </div>
+
+                                                {/* Live Schedule Timeline */}
+                                                {(exam.start_time || exam.end_time) && (
+                                                    <div className="flex flex-wrap items-center gap-3 text-xs bg-amber-50/70 border border-amber-200/60 px-3 py-1.5 rounded-xl text-amber-900 font-medium">
+                                                        <div className="flex items-center gap-1">
+                                                            <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                                            <span>শুরু: <strong>{formatExamDate(exam.start_time)}</strong></span>
+                                                        </div>
+                                                        <span>—</span>
+                                                        <div className="flex items-center gap-1">
+                                                            <span>শেষ: <strong>{formatExamDate(exam.end_time)}</strong></span>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {exam.description && (
+                                                    <p className="text-xs text-slate-500 line-clamp-2 pl-8">
+                                                        {exam.description}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                                                <Link
+                                                    to={`${examBasePath}/${exam.id}/builder`}
+                                                    className="px-3.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors"
+                                                    title="Add or edit questions"
+                                                >
+                                                    <Edit className="w-3.5 h-3.5 text-amber-600" />
+                                                    <span>Question Builder</span>
+                                                </Link>
+
+                                                <Link
+                                                    to={`${examBasePath}/${exam.id}/submissions`}
+                                                    className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors"
+                                                    title="View student submissions and results"
+                                                >
+                                                    <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                                                    <span>Submissions ({exam.submissions_count ?? 0})</span>
+                                                </Link>
+
+                                                <button
+                                                    onClick={() => openEditExam(exam)}
+                                                    className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                                                    title="Edit Schedule / Settings"
+                                                >
+                                                    <Edit className="w-4 h-4" />
+                                                </button>
+
+                                                <button
+                                                    onClick={() => handleDetachExam(exam.id, exam.title)}
+                                                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                                    title="Detach exam from course"
+                                                >
+                                                    <Unlink className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Meta Badges */}
+                                        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 pt-3 border-t border-slate-100">
+                                            <div className="flex items-center gap-1.5 font-medium">
+                                                <Award className="w-4 h-4 text-amber-500" />
+                                                <span>Total Marks: <strong className="text-slate-800">{exam.total_marks}</strong></span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 font-medium">
+                                                <Clock className="w-4 h-4 text-sky-500" />
+                                                <span>পরীক্ষার সময়সীমা: <strong className="text-slate-800">{exam.duration_minutes} mins</strong></span>
+                                            </div>
+                                            <div className="flex items-center gap-1.5 font-medium">
+                                                <FileText className="w-4 h-4 text-violet-500" />
+                                                <span>Questions: <strong className="text-slate-800">{exam.questions_count ?? 0}</strong></span>
+                                            </div>
+                                            {exam.has_negative_marking ? (
+                                                <span className="px-2 py-0.5 rounded-md bg-rose-50 text-rose-600 text-[11px] font-semibold">
+                                                    Negative Marking: -{exam.negative_marks}
+                                                </span>
+                                            ) : (
+                                                <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[11px] font-semibold">
+                                                    No Negative Marking
+                                                </span>
+                                            )}
+                                            {exam.creator && (
+                                                <span className="text-slate-400 text-[11px] ml-auto">
+                                                    Created by: {exam.creator.name}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Create / Edit Exam Modal */}
+            <Modal
+                isOpen={examModalOpen}
+                onClose={() => setExamModalOpen(false)}
+                title={editingExam ? 'পরীক্ষা সম্পাদনা করুন' : (examModalType === 'live' ? 'নতুন লাইভ এক্সাম তৈরি করুন' : 'নতুন প্র্যাকটিস এক্সাম তৈরি করুন')}
+                maxWidth="lg"
+            >
+                <form onSubmit={handleSaveExam} className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                            পরীক্ষার নাম / শিরোনাম <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            required
+                            value={examTitle}
+                            onChange={e => setExamTitle(e.target.value)}
+                            placeholder={examModalType === 'live' ? 'e.g. পদার্থবিজ্ঞান অধ্যায় ১ - লাইভ উইকলি টেস্ট' : 'e.g. রসায়ন ১ম পত্র মডেল টেস্ট - ০১'}
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                            বিবরণ ও নির্দেশনা (ঐচ্ছিক)
+                        </label>
+                        <textarea
+                            rows={3}
+                            value={examDesc}
+                            onChange={e => setExamDesc(e.target.value)}
+                            placeholder="পরীক্ষার নিয়মাবলী ও প্রয়োজনীয় নির্দেশনা..."
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500"
+                        />
+                    </div>
+
+                    {/* Live Exam Times Window */}
+                    {examModalType === 'live' && (
+                        <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-3">
+                            <div className="flex items-center gap-2 text-amber-900 text-xs font-bold">
+                                <Clock className="w-4 h-4 text-amber-600" />
+                                <span>লাইভ পরীক্ষার সময়সূচি (শুরু ও শেষ) <span className="text-rose-500">*</span></span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                        কখন শুরু হবে (Start Time)
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        required
+                                        value={examStartTime}
+                                        onChange={e => setExamStartTime(e.target.value)}
+                                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-amber-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                        কখন শেষ হবে (End Time)
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        required
+                                        value={examEndTime}
+                                        onChange={e => setExamEndTime(e.target.value)}
+                                        className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-amber-500"
+                                    />
+                                </div>
+                            </div>
+                            <p className="text-[11px] text-amber-800 leading-relaxed">
+                                💡 <strong>স্বয়ংক্রিয় প্র্যাকটিস রূপান্তর:</strong> এই নির্ধারিত সময় শেষ হওয়ার সাথে সাথেই পরীক্ষাটি স্বয়ংক্রিয়ভাবে <strong>প্র্যাকটিস এক্সামে</strong> চলে যাবে এবং শিক্ষার্থীরা নিয়মিত অনুশীলনের জন্য পরীক্ষাটি দিতে পারবে।
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                                পরীক্ষার সময়সীমা (মিনিট) <span className="text-rose-500">*</span>
+                            </label>
+                            <input
+                                type="number"
+                                min="1"
+                                max="1440"
+                                required
+                                value={examDuration}
+                                onChange={e => setExamDuration(e.target.value)}
+                                placeholder="30"
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                                পাস মার্ক (ঐচ্ছিক)
+                            </label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.5"
+                                value={examPassMarks}
+                                onChange={e => setExamPassMarks(e.target.value)}
+                                placeholder="0"
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-sky-500"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Negative Marking */}
+                    <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-800">
+                            <input
+                                type="checkbox"
+                                checked={examHasNegativeMarking}
+                                onChange={e => setExamHasNegativeMarking(e.target.checked)}
+                                className="rounded text-sky-600 focus:ring-sky-500"
+                            />
+                            <span>নেগেটিভ মার্কিং চালু করুন</span>
+                        </label>
+                        {examHasNegativeMarking && (
+                            <div className="flex items-center gap-2 pl-6">
+                                <span className="text-xs text-slate-500">ভুল উত্তরের জন্য কাটা মার্ক:</span>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.05"
+                                    value={examNegativeMarks}
+                                    onChange={e => setExamNegativeMarks(e.target.value)}
+                                    placeholder="0.25"
+                                    className="w-24 px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-sky-500"
+                                />
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Status */}
+                    <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">স্ট্যাটাস</label>
+                        <div className="flex items-center gap-4 text-xs font-medium">
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="exam_status"
+                                    value="published"
+                                    checked={examStatus === 'published'}
+                                    onChange={() => setExamStatus('published')}
+                                    className="text-sky-600"
+                                />
+                                <span>Published (শিক্ষার্থীদের জন্য দৃশ্যমান)</span>
+                            </label>
+                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                <input
+                                    type="radio"
+                                    name="exam_status"
+                                    value="draft"
+                                    checked={examStatus === 'draft'}
+                                    onChange={() => setExamStatus('draft')}
+                                    className="text-sky-600"
+                                />
+                                <span>Draft (খসড়া)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                        <button
+                            type="button"
+                            onClick={() => setExamModalOpen(false)}
+                            className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
+                        >
+                            বাতিল
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={savingExam}
+                            className={`px-6 py-2.5 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer disabled:opacity-50 ${
+                                examModalType === 'live' ? 'bg-amber-600 hover:bg-amber-700' : 'bg-sky-600 hover:bg-sky-700'
+                            }`}
+                        >
+                            {savingExam ? (
+                                <>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    <span>সংরক্ষণ হচ্ছে...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                    <span>{editingExam ? 'আপডেট করুন' : 'তৈরি করুন'}</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
+
+            {/* Enhanced Attach Exam Modal */}
             <Modal
                 isOpen={attachModalOpen}
                 onClose={() => setAttachModalOpen(false)}
-                title="Attach Exam to Course"
+                title={attachExamType === 'live' ? 'কোর্সে লাইভ এক্সাম হিসেবে যুক্ত করুন' : 'কোর্সে প্র্যাকটিস এক্সাম হিসেবে যুক্ত করুন'}
                 maxWidth="lg"
             >
                 <div className="space-y-4">
+                    {/* Mode Toggle */}
+                    <div className="flex items-center gap-2 p-1.5 bg-slate-100 rounded-xl">
+                        <button
+                            type="button"
+                            onClick={() => setAttachExamType('practice')}
+                            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                                attachExamType === 'practice'
+                                    ? 'bg-white text-sky-700 shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                        >
+                            📝 প্র্যাকটিস এক্সাম হিসেবে
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setAttachExamType('live')}
+                            className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                                attachExamType === 'live'
+                                    ? 'bg-white text-amber-800 shadow-xs'
+                                    : 'text-slate-600 hover:text-slate-900'
+                            }`}
+                        >
+                            ⏰ লাইভ এক্সাম হিসেবে
+                        </button>
+                    </div>
+
+                    {attachExamType === 'live' && (
+                        <div className="p-3 bg-amber-50 rounded-xl border border-amber-200/70 space-y-2.5">
+                            <p className="text-xs font-bold text-amber-900 flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                                <span>লাইভ পরীক্ষার নির্ধারিত সময়সীমা (শুরু ও শেষ) দিন</span>
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">শুরুর সময়</label>
+                                    <input
+                                        type="datetime-local"
+                                        required
+                                        value={attachStartTime}
+                                        onChange={e => setAttachStartTime(e.target.value)}
+                                        className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-700 mb-0.5">শেষের সময়</label>
+                                    <input
+                                        type="datetime-local"
+                                        required
+                                        value={attachEndTime}
+                                        onChange={e => setAttachEndTime(e.target.value)}
+                                        className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
+                                    />
+                                </div>
+                            </div>
+                            <p className="text-[10px] text-amber-700">
+                                💡 সময় শেষ হলে এই পরীক্ষাটি স্বয়ংক্রিয়ভাবে প্র্যাকটিস এক্সামে রূপান্তর হয়ে যাবে।
+                            </p>
+                        </div>
+                    )}
+
                     <p className="text-xs text-slate-500">
-                        Select any exam from the list below to attach to this course. You can attach the same exam to multiple courses.
+                        নিচের তালিকা থেকে একটি পরীক্ষা নির্বাচন করুন:
                     </p>
 
                     {availableExams.length === 0 ? (
                         <div className="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-3">
                             <AlertCircle className="w-8 h-8 text-slate-400 mx-auto" />
                             <p className="text-xs text-slate-600 font-medium">
-                                No exams available to attach.
+                                কোনো উন্মুক্ত পরীক্ষা পাওয়া যায়নি।
                             </p>
-                            <Link
-                                to={`${examBasePath}/create`}
-                                target="_blank"
-                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs"
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setAttachModalOpen(false);
+                                    openAddExam(attachExamType);
+                                }}
+                                className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer"
                             >
                                 <Plus className="w-3.5 h-3.5" />
-                                <span>Create New Exam</span>
-                            </Link>
+                                <span>নতুন পরীক্ষা তৈরি করুন</span>
+                            </button>
                         </div>
                     ) : (
                         <form onSubmit={handleAttachExam} className="space-y-4">
@@ -1123,7 +1815,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                     type="text"
                                     value={examSearch}
                                     onChange={e => setExamSearch(e.target.value)}
-                                    placeholder="Search exams by name..."
+                                    placeholder="পরীক্ষার নাম দিয়ে খুঁজুন..."
                                     className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-sky-500"
                                 />
                             </div>
@@ -1169,24 +1861,24 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() => setAttachModalOpen(false)}
-                                    className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl"
+                                    className="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer"
                                 >
-                                    Cancel
+                                    বাতিল
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={!selectedExamId || attaching}
-                                    className="px-5 py-2 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5"
+                                    className="px-5 py-2 bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer"
                                 >
                                     {attaching ? (
                                         <>
                                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                            <span>Attaching...</span>
+                                            <span>যুক্ত হচ্ছে...</span>
                                         </>
                                     ) : (
                                         <>
                                             <CheckCircle2 className="w-3.5 h-3.5" />
-                                            <span>Attach to Course</span>
+                                            <span>কোর্সে যুক্ত করুন</span>
                                         </>
                                     )}
                                 </button>

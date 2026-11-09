@@ -32,6 +32,7 @@ export const ExamFormPage: React.FC = () => {
     const [formData, setFormData] = useState({
         title: '',
         description: '',
+        exam_type: 'practice' as 'practice' | 'live',
         total_marks: 100,
         pass_marks: 33,
         has_negative_marking: false,
@@ -63,6 +64,7 @@ export const ExamFormPage: React.FC = () => {
             setFormData({
                 title: data.title || '',
                 description: data.description || '',
+                exam_type: data.exam_type || 'practice',
                 total_marks: data.total_marks || 0,
                 pass_marks: data.pass_marks || 0,
                 has_negative_marking: Boolean(data.has_negative_marking),
@@ -202,6 +204,90 @@ export const ExamFormPage: React.FC = () => {
                                     </span>
                                 ))}
                             </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Exam Type Selector (Practice Exam vs Live Exam) */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
+                    <label className="block text-sm font-bold text-slate-900 dark:text-white">
+                        পরীক্ষার ধরন (Exam Type)
+                    </label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
+                            formData.exam_type === 'practice'
+                                ? 'bg-sky-50/70 border-sky-500 text-sky-950 dark:bg-sky-950/40 dark:text-sky-200'
+                                : 'border-slate-200 hover:bg-slate-100 dark:border-slate-700'
+                        }`}>
+                            <input
+                                type="radio"
+                                name="exam_type"
+                                value="practice"
+                                checked={formData.exam_type === 'practice'}
+                                onChange={() => setFormData({ ...formData, exam_type: 'practice' })}
+                                className="mt-1 text-sky-600 focus:ring-sky-500"
+                            />
+                            <div>
+                                <span className="text-sm font-bold block">📝 প্র্যাকটিস এক্সাম (Practice Exam)</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 block">
+                                    শিক্ষার্থীরা যেকোনো সময় অনুশীলনের অংশ হিসেবে এই পরীক্ষা দিতে পারবে।
+                                </span>
+                            </div>
+                        </label>
+
+                        <label className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
+                            formData.exam_type === 'live'
+                                ? 'bg-amber-50/70 border-amber-500 text-amber-950 dark:bg-amber-950/40 dark:text-amber-200'
+                                : 'border-slate-200 hover:bg-slate-100 dark:border-slate-700'
+                        }`}>
+                            <input
+                                type="radio"
+                                name="exam_type"
+                                value="live"
+                                checked={formData.exam_type === 'live'}
+                                onChange={() => setFormData({ ...formData, exam_type: 'live' })}
+                                className="mt-1 text-amber-600 focus:ring-amber-500"
+                            />
+                            <div>
+                                <span className="text-sm font-bold block">⏰ লাইভ এক্সাম (Live Exam)</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 block">
+                                    নির্দিষ্ট সময়সীমার মধ্যে লাইভ চলবে। সময় শেষ হলে স্বয়ংক্রিয়ভাবে প্র্যাকটিস এক্সামে চলে যাবে।
+                                </span>
+                            </div>
+                        </label>
+                    </div>
+
+                    {formData.exam_type === 'live' && (
+                        <div className="pt-2 border-t border-slate-200 dark:border-slate-700 space-y-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        লাইভ শুরুর সময় (Start Time) <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        required={formData.exam_type === 'live'}
+                                        value={formData.start_time}
+                                        onChange={e => setFormData({ ...formData, start_time: e.target.value })}
+                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl text-xs text-slate-900 dark:text-white"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        লাইভ শেষের সময় (End Time) <span className="text-rose-500">*</span>
+                                    </label>
+                                    <input
+                                        type="datetime-local"
+                                        required={formData.exam_type === 'live'}
+                                        value={formData.end_time}
+                                        onChange={e => setFormData({ ...formData, end_time: e.target.value })}
+                                        className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl text-xs text-slate-900 dark:text-white"
+                                    />
+                                </div>
+                            </div>
+                            <p className="text-[11px] text-amber-700 dark:text-amber-400">
+                                💡 নির্ধারিত শেষের সময় অতিক্রম করলে সিস্টেম স্বয়ংক্রিয়ভাবে এটিকে প্র্যাকটিস এক্সামে রূপান্তর করবে।
+                            </p>
                         </div>
                     )}
                 </div>
