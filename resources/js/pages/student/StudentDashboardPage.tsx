@@ -23,6 +23,7 @@ export const StudentDashboardPage: React.FC = () => {
     const [availableExams, setAvailableExams] = useState<any[]>([]);
     const [activeLiveClass, setActiveLiveClass] = useState<any | null>(null);
     const [upcomingLiveClass, setUpcomingLiveClass] = useState<any | null>(null);
+    const [todayRoutineEvents, setTodayRoutineEvents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -32,10 +33,11 @@ export const StudentDashboardPage: React.FC = () => {
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
-            const [coursesRes, examsRes, liveRes] = await Promise.allSettled([
+            const [coursesRes, examsRes, liveRes, routineRes] = await Promise.allSettled([
                 apiClient.get('/student/my-courses'),
                 apiClient.get('/student/exams/available'),
                 apiClient.get('/student/live-classes'),
+                apiClient.get('/student/routine'),
             ]);
 
             if (coursesRes.status === 'fulfilled') {
@@ -50,6 +52,13 @@ export const StudentDashboardPage: React.FC = () => {
                 const upcoming = list.find((c: any) => c.status === 'upcoming' && !c.is_currently_live);
                 setActiveLiveClass(live || null);
                 setUpcomingLiveClass(upcoming || null);
+            }
+            if (routineRes.status === 'fulfilled') {
+                const allEvts = routineRes.value.data?.events || [];
+                const now = new Date();
+                const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                const todayList = allEvts.filter((e: any) => e.date === todayStr);
+                setTodayRoutineEvents(todayList.length > 0 ? todayList : allEvts.slice(0, 3));
             }
         } catch {
             // silent fail
@@ -333,13 +342,9 @@ export const StudentDashboardPage: React.FC = () => {
                 </Link>
 
                 {/* 3. রুটিন */}
-                <button
-                    type="button"
-                    onClick={() => {
-                        const el = document.getElementById('student-routine-section');
-                        el?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:border-amber-300 hover:shadow-sm transition-all group flex items-center gap-3.5 text-left cursor-pointer"
+                <Link
+                    to="/student/routine"
+                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:border-amber-300 hover:shadow-sm transition-all group flex items-center gap-3.5"
                 >
                     <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                         <Calendar className="w-6 h-6" />
@@ -352,7 +357,7 @@ export const StudentDashboardPage: React.FC = () => {
                             ক্লাস সিডিউল
                         </div>
                     </div>
-                </button>
+                </Link>
 
                 {/* 4. ফ্রি রিসোর্স */}
                 <Link
@@ -471,68 +476,65 @@ export const StudentDashboardPage: React.FC = () => {
                             <h3 className="font-extrabold text-slate-900 text-base">
                                 আজকের রুটিন
                             </h3>
-                            <button
-                                type="button"
-                                className="text-xs font-bold text-sky-600 hover:text-sky-700 transition-colors cursor-pointer"
+                            <Link
+                                to="/student/routine"
+                                className="text-xs font-bold text-[#0B4B34] hover:text-emerald-800 transition-colors cursor-pointer"
                             >
-                                রুটিন
-                            </button>
+                                রুটিন ক্যালেন্ডার
+                            </Link>
                         </div>
 
                         {/* Timeline Routine Items */}
                         <div className="space-y-4">
-                            {/* Class 1 */}
-                            <div className="flex items-start gap-3">
-                                <span className="text-xs font-bold text-slate-400 w-12 shrink-0 pt-0.5">
-                                    ৬:০০
-                                </span>
-                                <div className="border-l-2 border-sky-500 pl-3.5 py-0.5 space-y-0.5">
-                                    <h4 className="font-bold text-slate-800 text-xs sm:text-sm">
-                                        উচ্চতর গণিত
-                                    </h4>
-                                    <p className="text-[11px] text-slate-500">
-                                        SSC26 ক্লাস ০৬ : Higher Math - অধ্যায় ৮ (ত্রিকোণমিতি)
-                                    </p>
+                            {todayRoutineEvents.length === 0 ? (
+                                <div className="py-8 text-center text-slate-400 space-y-2">
+                                    <Calendar className="w-8 h-8 text-slate-300 mx-auto" />
+                                    <p className="text-xs">আজকের দিনে নির্ধারিত কোনো ক্লাস বা পরীক্ষা নেই।</p>
                                 </div>
-                            </div>
-
-                            {/* Class 2 */}
-                            <div className="flex items-start gap-3">
-                                <span className="text-xs font-bold text-slate-400 w-12 shrink-0 pt-0.5">
-                                    ৮:০০
-                                </span>
-                                <div className="border-l-2 border-indigo-500 pl-3.5 py-0.5 space-y-0.5">
-                                    <h4 className="font-bold text-slate-800 text-xs sm:text-sm">
-                                        পদার্থবিজ্ঞান
-                                    </h4>
-                                    <p className="text-[11px] text-slate-500">
-                                        গতিবিদ্যা ও ভেক্টর বিশ্লেষণ • নিয়মিত লাইভ সেশন
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Class 3 */}
-                            <div className="flex items-start gap-3">
-                                <span className="text-xs font-bold text-slate-400 w-12 shrink-0 pt-0.5">
-                                    ১০:০০
-                                </span>
-                                <div className="border-l-2 border-sky-500 pl-3.5 py-0.5 space-y-0.5">
-                                    <h4 className="font-bold text-slate-800 text-xs sm:text-sm">
-                                        রসায়ন
-                                    </h4>
-                                    <p className="text-[11px] text-slate-500">
-                                        গুণগত রসায়ন ও দ্রাব্যতা নীতি • রিভিশন ও সলভিং ক্লাস
-                                    </p>
-                                </div>
-                            </div>
+                            ) : (
+                                todayRoutineEvents.slice(0, 3).map((evt: any) => (
+                                    <div key={`${evt.type}-${evt.id}`} className="flex items-start gap-3">
+                                        <div className="w-12 shrink-0 pt-0.5 text-right">
+                                            <span className="text-xs font-bold text-slate-700 block">
+                                                {evt.time_time || '—'}
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 font-bold block">
+                                                {evt.time_period || ''}
+                                            </span>
+                                        </div>
+                                        <div className={`border-l-2 ${evt.type === 'live_exam' ? 'border-rose-500' : 'border-[#0B4B34]'} pl-3.5 py-0.5 space-y-0.5 flex-1 min-w-0`}>
+                                            <div className="flex items-center gap-1.5">
+                                                <h4 className="font-bold text-slate-800 text-xs sm:text-sm line-clamp-1">
+                                                    {evt.title}
+                                                </h4>
+                                                {evt.is_live && (
+                                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-rose-500 text-white shrink-0 animate-pulse">
+                                                        লাইভ
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-[11px] text-slate-500 line-clamp-1">
+                                                {evt.subject} • {evt.course_title}
+                                            </p>
+                                        </div>
+                                        <Link
+                                            to={evt.action_url || '/student/routine'}
+                                            className="px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 hover:bg-emerald-50 hover:text-[#0B4B34] text-slate-600 shrink-0 transition-colors self-center"
+                                        >
+                                            {evt.is_live ? 'যুক্ত হন' : 'দেখুন'}
+                                        </Link>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
 
                     <div className="pt-4 border-t border-slate-100 mt-4 text-center">
                         <Link
-                            to="/student/my-courses"
-                            className="text-xs font-bold text-sky-600 hover:text-sky-700 hover:underline"
+                            to="/student/routine"
+                            className="text-xs font-bold text-[#0B4B34] hover:text-emerald-800 hover:underline"
                         >
+                            পূর্ণাঙ্গ রুটিন ক্যালেন্ডার দেখুন →
                             কোর্সের পূর্ণাঙ্গ সময়সূচি দেখুন →
                         </Link>
                     </div>

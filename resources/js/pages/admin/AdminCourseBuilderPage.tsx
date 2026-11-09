@@ -37,7 +37,8 @@ import {
     BookOpen,
     CheckCircle2,
     Radio,
-    MessageSquare
+    MessageSquare,
+    Calendar
 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 
@@ -51,8 +52,12 @@ export const AdminCourseBuilderPage: React.FC = () => {
     const [sections, setSections] = useState<CourseSection[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Tab state ('lessons' | 'live_classes' | 'practice_exams' | 'live_exams')
-    const [activeTab, setActiveTab] = useState<'lessons' | 'live_classes' | 'practice_exams' | 'live_exams'>('lessons');
+    // Tab state ('lessons' | 'live_classes' | 'practice_exams' | 'live_exams' | 'routine')
+    const [activeTab, setActiveTab] = useState<'lessons' | 'live_classes' | 'practice_exams' | 'live_exams' | 'routine'>('lessons');
+
+    // Routine state
+    const [routineItems, setRoutineItems] = useState<any[]>([]);
+    const [loadingRoutine, setLoadingRoutine] = useState(false);
 
     // Live Classes state
     const [liveClasses, setLiveClasses] = useState<any[]>([]);
@@ -120,7 +125,20 @@ export const AdminCourseBuilderPage: React.FC = () => {
         fetchCurriculum();
         fetchCourseExams();
         fetchLiveClasses();
+        fetchCourseRoutine();
     }, [id]);
+
+    const fetchCourseRoutine = async () => {
+        try {
+            setLoadingRoutine(true);
+            const { data } = await apiClient.get(`/builder/${id}/routine`);
+            setRoutineItems(data.routine_items || []);
+        } catch (err) {
+            console.error('Failed to load course routine', err);
+        } finally {
+            setLoadingRoutine(false);
+        }
+    };
 
     const fetchLiveClasses = async () => {
         try {
@@ -196,6 +214,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
 
             setLiveClassModalOpen(false);
             fetchLiveClasses();
+            fetchCourseRoutine();
         } catch (err: any) {
             alert(err.response?.data?.message || 'লাইভ ক্লাস সংরক্ষণ করতে সমস্যা হয়েছে।');
         } finally {
@@ -203,13 +222,17 @@ export const AdminCourseBuilderPage: React.FC = () => {
         }
     };
 
-    const handleDeleteLiveClass = async (lcId: number, title: string) => {
-        if (!window.confirm(`আপনি কি নিশ্চিত যে "${title}" লাইভ ক্লাসটি মুছে ফেলতে চান?`)) {
+    const handleDeleteLiveClass = async (lcId: number, title?: string) => {
+        if (title && !window.confirm(`আপনি কি নিশ্চিত যে "${title}" লাইভ ক্লাসটি মুছে ফেলতে চান?`)) {
+            return;
+        }
+        if (!title && !window.confirm('আপনি কি নিশ্চিত যে এই লাইভ ক্লাসটি মুছে ফেলতে চান?')) {
             return;
         }
         try {
             await apiClient.delete(`/builder/${id}/live-classes/${lcId}`);
             setLiveClasses(prev => prev.filter(c => c.id !== lcId));
+            fetchCourseRoutine();
         } catch (err: any) {
             alert(err.response?.data?.message || 'লাইভ ক্লাস ডিলিট করা যায়নি।');
         }
@@ -219,6 +242,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
         try {
             await apiClient.patch(`/builder/${id}/live-classes/${lc.id}/status`, { status: newStatus });
             fetchLiveClasses();
+            fetchCourseRoutine();
         } catch (err: any) {
             alert(err.response?.data?.message || 'স্ট্যাটাস পরিবর্তন করা যায়নি।');
         }
@@ -374,6 +398,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
 
             setExamModalOpen(false);
             fetchCourseExams();
+            fetchCourseRoutine();
         } catch (err: any) {
             alert(err.response?.data?.message || 'পরীক্ষা সংরক্ষণ করতে ব্যর্থ হয়েছে।');
         } finally {
@@ -407,6 +432,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
             setSelectedExamId('');
             setAttachModalOpen(false);
             fetchCourseExams();
+            fetchCourseRoutine();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Failed to attach exam.');
         } finally {
@@ -423,6 +449,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
             await apiClient.delete(`/builder/${id}/exams/${examId}`);
             setAttachedExams(prev => prev.filter(e => e.id !== examId));
             fetchCourseExams();
+            fetchCourseRoutine();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Failed to detach exam.');
         }
@@ -687,6 +714,25 @@ export const AdminCourseBuilderPage: React.FC = () => {
                             </button>
                         </div>
                     )}
+
+                    {activeTab === 'routine' && (
+                        <div className="flex items-center gap-2.5">
+                            <button
+                                onClick={openAddLiveClass}
+                                className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl shadow-md shadow-rose-600/20 flex items-center gap-2 transition-all cursor-pointer"
+                            >
+                                <Radio className="w-4 h-4" />
+                                <span>+ লাইভ ক্লাস সিডিউল</span>
+                            </button>
+                            <button
+                                onClick={() => openAddExam('live')}
+                                className="px-4 py-2.5 bg-[#0B4B34] hover:bg-[#083827] text-white font-bold text-sm rounded-xl shadow-md shadow-emerald-950/20 flex items-center gap-2 transition-all cursor-pointer"
+                            >
+                                <Clock className="w-4 h-4" />
+                                <span>+ লাইভ এক্সাম সিডিউল</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -749,6 +795,21 @@ export const AdminCourseBuilderPage: React.FC = () => {
                     <span>Live Exam</span>
                     <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800">
                         {liveExamsList.length}
+                    </span>
+                </button>
+
+                <button
+                    onClick={() => setActiveTab('routine')}
+                    className={`pb-3 px-3 font-bold text-sm flex items-center gap-2 border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                        activeTab === 'routine'
+                            ? 'border-[#0B4B34] text-[#0B4B34]'
+                            : 'border-transparent text-slate-500 hover:text-slate-800'
+                    }`}
+                >
+                    <Calendar className="w-4 h-4" />
+                    <span>রুটিন (Routine)</span>
+                    <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-[#0B4B34]">
+                        {routineItems.length}
                     </span>
                 </button>
             </div>
@@ -1514,6 +1575,272 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                                 <span className="text-slate-400 text-[11px] ml-auto">
                                                     Created by: {exam.creator.name}
                                                 </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Routine Tab Content */}
+            {activeTab === 'routine' && (
+                <div className="space-y-6">
+                    {/* Header Card */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div>
+                            <h3 className="text-base font-bold text-slate-800 flex items-center gap-2">
+                                <Calendar className="w-5 h-5 text-[#0B4B34]" />
+                                <span>কোর্স রুটিন (Course Routine)</span>
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
+                                এই কোর্সের সকল লাইভ ক্লাস এবং লাইভ পরীক্ষার সমন্বিত সময়সূচী। এখান থেকেই সরাসরি লাইভ ক্লাস বা লাইভ পরীক্ষা সিডিউল করতে পারেন। এখানে যুক্ত হওয়া যেকোনো সূচী স্বয়ংক্রিয়ভাবে লাইভ ক্লাস / লাইভ এক্সাম সেকশনে এবং শিক্ষার্থীদের রুটিনে ও ড্যাশবোর্ডে প্রদর্শিত হবে।
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                            <button
+                                onClick={openAddLiveClass}
+                                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                            >
+                                <Radio className="w-3.5 h-3.5" />
+                                <span>+ লাইভ ক্লাস</span>
+                            </button>
+                            <button
+                                onClick={() => openAddExam('live')}
+                                className="px-3.5 py-2 bg-[#0B4B34] hover:bg-[#083827] text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                            >
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>+ লাইভ এক্সাম</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Quick Stats Strip */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#0B4B34] flex items-center justify-center font-black">
+                                <Calendar className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <span className="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">সর্বমোট ইভেন্ট</span>
+                                <span className="text-lg font-black text-slate-800">{routineItems.length} টি</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-black">
+                                <Radio className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <span className="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">লাইভ ক্লাস</span>
+                                <span className="text-lg font-black text-slate-800">{routineItems.filter(i => i.type === 'live_class').length} টি</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-black">
+                                <Clock className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <span className="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">লাইভ এক্সাম</span>
+                                <span className="text-lg font-black text-slate-800">{routineItems.filter(i => i.type === 'live_exam').length} টি</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Routine Items List */}
+                    {loadingRoutine ? (
+                        <div className="p-12 text-center bg-white rounded-3xl border border-slate-200/80 shadow-xs">
+                            <Loader2 className="w-8 h-8 text-[#0B4B34] animate-spin mx-auto mb-2" />
+                            <p className="text-xs text-slate-500 font-bold">রুটিন ডাটা লোড হচ্ছে...</p>
+                        </div>
+                    ) : routineItems.length === 0 ? (
+                        <div className="bg-white p-12 rounded-3xl border border-slate-200/80 shadow-xs text-center space-y-4">
+                            <Calendar className="w-12 h-12 text-slate-300 mx-auto" />
+                            <h3 className="text-base font-bold text-slate-800">এখনও কোনো রুটিন সূচী যুক্ত করা হয়নি</h3>
+                            <p className="text-xs text-slate-500 max-w-md mx-auto">
+                                আপনার শিক্ষার্থীদের জন্য লাইভ ক্লাস অথবা লাইভ পরীক্ষা সিডিউল করুন। সিডিউল যোগ করলে এখানে টাইমলাইন অনুযায়ী প্রদর্শিত হবে।
+                            </p>
+                            <div className="flex items-center justify-center gap-3 pt-2">
+                                <button
+                                    onClick={openAddLiveClass}
+                                    className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-all"
+                                >
+                                    <Radio className="w-4 h-4" />
+                                    <span>লাইভ ক্লাস সিডিউল করুন</span>
+                                </button>
+                                <button
+                                    onClick={() => openAddExam('live')}
+                                    className="px-4 py-2.5 bg-[#0B4B34] hover:bg-[#083827] text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-all"
+                                >
+                                    <Clock className="w-4 h-4" />
+                                    <span>লাইভ এক্সাম সিডিউল করুন</span>
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {routineItems.map((item: any) => {
+                                const isClass = item.type === 'live_class';
+                                const matchingLiveClass = isClass ? liveClasses.find(lc => lc.id === item.id) : null;
+                                const matchingLiveExam = !isClass ? liveExamsList.find(e => e.id === item.id) : null;
+
+                                return (
+                                    <div
+                                        key={`${item.type}-${item.id}`}
+                                        className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
+                                    >
+                                        <div className="flex items-start gap-4 flex-1">
+                                            {/* Date / Time Card */}
+                                            <div className="shrink-0 text-center w-28 p-2.5 rounded-xl bg-slate-50 border border-slate-200/60">
+                                                <div className="text-[11px] font-extrabold text-[#0B4B34] uppercase tracking-wider">
+                                                    {item.day_name || 'তারিখ'}
+                                                </div>
+                                                <div className="text-sm font-black text-slate-800 my-0.5">
+                                                    {item.date_formatted?.split(' ')?.[0] || ''} {item.date_formatted?.split(' ')?.[1] || ''}
+                                                </div>
+                                                <div className="text-[10px] font-bold text-slate-500">
+                                                    {item.time_bangla || 'সময় নির্ধারিত'}
+                                                </div>
+                                            </div>
+
+                                            {/* Main Info */}
+                                            <div className="space-y-1.5 flex-1 min-w-0">
+                                                <div className="flex flex-wrap items-center gap-2">
+                                                    {isClass ? (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
+                                                            <Radio className="w-3 h-3 text-rose-500 animate-pulse" />
+                                                            <span>লাইভ ক্লাস</span>
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
+                                                            <Clock className="w-3 h-3 text-amber-600" />
+                                                            <span>লাইভ এক্সাম</span>
+                                                        </span>
+                                                    )}
+
+                                                    {item.status === 'live' ? (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white flex items-center gap-1 shadow-xs animate-pulse">
+                                                            <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
+                                                            <span>লাইভ চলছে</span>
+                                                        </span>
+                                                    ) : item.status === 'completed' ? (
+                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">
+                                                            সম্পন্ন
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700">
+                                                            আসন্ন
+                                                        </span>
+                                                    )}
+
+                                                    {item.subject_theme && (
+                                                        <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">
+                                                            • বিষয়ভিত্তিক সূচী
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <h4 className="text-sm sm:text-base font-bold text-slate-900 truncate">
+                                                    {item.title}
+                                                </h4>
+
+                                                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                                                    {item.instructor_name && (
+                                                        <span className="flex items-center gap-1">
+                                                            <Users className="w-3.5 h-3.5 text-slate-400" />
+                                                            <span>{item.instructor_name}</span>
+                                                        </span>
+                                                    )}
+                                                    {isClass && item.live_url && (
+                                                        <span className="text-emerald-600 font-medium text-[11px] flex items-center gap-1">
+                                                            <ExternalLink className="w-3 h-3" />
+                                                            <span>ইউটিউব লাইভ লিংক সংযুক্ত</span>
+                                                        </span>
+                                                    )}
+                                                    {!isClass && matchingLiveExam && (
+                                                        <span className="text-amber-700 font-medium text-[11px] flex items-center gap-1">
+                                                            <Award className="w-3 h-3 text-amber-500" />
+                                                            <span>পূর্ণমান: {matchingLiveExam.total_marks} | প্রশ্ন: {matchingLiveExam.questions_count ?? 0}</span>
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex items-center gap-2 shrink-0 self-end md:self-auto border-t md:border-t-0 pt-2 md:pt-0 w-full md:w-auto justify-end">
+                                            {isClass ? (
+                                                <>
+                                                    <Link
+                                                        to={`/student/live-class/${item.id}`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors"
+                                                        title="লাইভ ক্লাস ভিউ"
+                                                    >
+                                                        <Radio className="w-3.5 h-3.5 text-rose-600" />
+                                                        <span>ক্লাস রুম</span>
+                                                    </Link>
+
+                                                    {matchingLiveClass && (
+                                                        <button
+                                                            onClick={() => openEditLiveClass(matchingLiveClass)}
+                                                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                                            title="লাইভ ক্লাস সম্পাদনা"
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+
+                                                    <button
+                                                        onClick={() => handleDeleteLiveClass(item.id)}
+                                                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                                        title="লাইভ ক্লাস ডিলিট"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Link
+                                                        to={`${examBasePath}/${item.id}/builder`}
+                                                        className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors"
+                                                        title="Question Builder"
+                                                    >
+                                                        <Edit className="w-3.5 h-3.5 text-amber-600" />
+                                                        <span>Question Builder</span>
+                                                    </Link>
+
+                                                    <Link
+                                                        to={`${examBasePath}/${item.id}/submissions`}
+                                                        className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors"
+                                                        title="Submissions"
+                                                    >
+                                                        <FileText className="w-3.5 h-3.5 text-emerald-600" />
+                                                        <span>ফলাফল ({matchingLiveExam?.submissions_count ?? 0})</span>
+                                                    </Link>
+
+                                                    {matchingLiveExam && (
+                                                        <button
+                                                            onClick={() => openEditExam(matchingLiveExam)}
+                                                            className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
+                                                            title="লাইভ এক্সাম সম্পাদনা"
+                                                        >
+                                                            <Edit className="w-4 h-4" />
+                                                        </button>
+                                                    )}
+
+                                                    <button
+                                                        onClick={() => handleDetachExam(item.id, item.title)}
+                                                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                                        title="কোর্স থেকে পরীক্ষা বাদ দিন"
+                                                    >
+                                                        <Unlink className="w-4 h-4" />
+                                                    </button>
+                                                </>
                                             )}
                                         </div>
                                     </div>

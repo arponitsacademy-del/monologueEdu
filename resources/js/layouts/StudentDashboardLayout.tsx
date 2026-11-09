@@ -151,17 +151,8 @@ export const StudentDashboardLayout: React.FC = () => {
         },
         {
             title: 'রুটিন',
-            path: '/student#routine',
+            path: '/student/routine',
             icon: Calendar,
-            isAction: true,
-            action: () => {
-                if (location.pathname !== '/student') {
-                    navigate('/student#routine');
-                } else {
-                    const el = document.getElementById('student-routine-section');
-                    el?.scrollIntoView({ behavior: 'smooth' });
-                }
-            }
         },
         {
             title: 'পরীক্ষা',

@@ -33,6 +33,7 @@ use App\Http\Controllers\Api\AiExamQuestionController;
 use App\Http\Controllers\Api\AdminCouponController;
 use App\Http\Controllers\Api\CouponValidationController;
 use App\Http\Controllers\Api\AnnouncementController;
+use App\Http\Controllers\Api\RoutineController;
 use App\Http\Controllers\Api\LiveClassController;
 use App\Models\Course;
 use App\Models\LessonComment;
@@ -129,6 +130,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('{liveClass}/comments', [LiveClassController::class, 'storeComment']);
     });
 
+    // Student Unified Routine (Live Classes & Live Exams)
+    Route::get('student/routine', [RoutineController::class, 'studentRoutine']);
+
     // Student Affiliate Program
     Route::prefix('student/affiliate')->group(function () {
         Route::get('status', [AffiliateStudentController::class, 'getStatus']);
@@ -201,6 +205,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('{course}/live-classes/{liveClass}', [LiveClassController::class, 'update']);
         Route::delete('{course}/live-classes/{liveClass}', [LiveClassController::class, 'destroy']);
         Route::patch('{course}/live-classes/{liveClass}/status', [LiveClassController::class, 'toggleStatus']);
+
+        // Course Unified Routine
+        Route::get('{course}/routine', [RoutineController::class, 'getCourseRoutine']);
     });
 
     // Teacher Specific Routes
