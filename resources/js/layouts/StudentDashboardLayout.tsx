@@ -24,7 +24,10 @@ import {
     GraduationCap,
     CheckCheck,
     Loader2,
-    Settings
+    Settings,
+    Smartphone,
+    KeyRound,
+    User as UserIcon
 } from 'lucide-react';
 
 export const StudentDashboardLayout: React.FC = () => {
@@ -40,6 +43,7 @@ export const StudentDashboardLayout: React.FC = () => {
     const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [logoError, setLogoError] = useState(false);
+    const [settingsSubmenuOpen, setSettingsSubmenuOpen] = useState(true);
 
     const headerSettings = settings?.header_settings;
     const logoUrl = headerSettings?.logo_url ?? settings?.logo_url;
@@ -113,7 +117,21 @@ export const StudentDashboardLayout: React.FC = () => {
         return <Navigate to="/login" replace />;
     }
 
-    const menuItems = [
+    interface MenuItem {
+        title: string;
+        path: string;
+        icon: any;
+        exact?: boolean;
+        isAction?: boolean;
+        action?: () => void;
+        children?: Array<{
+            title: string;
+            path: string;
+            icon: any;
+        }>;
+    }
+
+    const menuItems: MenuItem[] = [
         {
             title: 'হোম',
             path: '/student',
@@ -161,17 +179,37 @@ export const StudentDashboardLayout: React.FC = () => {
         },
         {
             title: 'প্রোফাইল ও সেটিংস',
-            path: '/student/profile',
-            icon: Settings
+            path: '/student/settings',
+            icon: Settings,
+            children: [
+                {
+                    title: 'লগইন ডিভাইস',
+                    path: '/student/settings/devices',
+                    icon: Smartphone
+                },
+                {
+                    title: 'প্রোফাইল তথ্য',
+                    path: '/student/settings/profile',
+                    icon: UserIcon
+                },
+                {
+                    title: 'পাসওয়ার্ড পরিবর্তন',
+                    path: '/student/settings/password',
+                    icon: KeyRound
+                }
+            ]
         }
     ];
 
-    const isCurrentActive = (item: typeof menuItems[0]) => {
+    const isCurrentActive = (item: MenuItem) => {
         if (item.exact) {
             return location.pathname === item.path && !location.hash;
         }
         if (item.isAction) {
             return location.hash === '#routine';
+        }
+        if (item.children) {
+            return location.pathname.startsWith('/student/settings') || location.pathname.startsWith('/student/profile');
         }
         return location.pathname.startsWith(item.path.split('?')[0]);
     };
@@ -230,6 +268,62 @@ export const StudentDashboardLayout: React.FC = () => {
                             {menuItems.map((item) => {
                                 const active = isCurrentActive(item);
                                 const Icon = item.icon;
+
+                                if (item.children) {
+                                    return (
+                                        <div key={item.title} className="space-y-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => setSettingsSubmenuOpen(!settingsSubmenuOpen)}
+                                                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all text-left cursor-pointer ${
+                                                    active
+                                                        ? 'bg-sky-50 text-sky-700 font-extrabold'
+                                                        : 'text-slate-600 hover:text-sky-600 hover:bg-sky-50/80'
+                                                }`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <Icon className={`w-4 h-4 ${active ? 'text-sky-600' : 'text-slate-400'}`} />
+                                                    <span>{item.title}</span>
+                                                </div>
+                                                <ChevronDown
+                                                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                                                        settingsSubmenuOpen ? 'rotate-180 text-sky-600' : 'text-slate-400'
+                                                    }`}
+                                                />
+                                            </button>
+
+                                            {settingsSubmenuOpen && (
+                                                <div className="pl-3 pr-1 py-1 space-y-1 ml-4 border-l-2 border-slate-100">
+                                                    {item.children.map((child) => {
+                                                        const ChildIcon = child.icon;
+                                                        const isChildActive = location.pathname === child.path || (
+                                                            child.path === '/student/settings/profile' && location.pathname === '/student/profile'
+                                                        ) || (
+                                                            child.path === '/student/settings/devices' && location.pathname === '/student/settings'
+                                                        );
+                                                        return (
+                                                            <Link
+                                                                key={child.path}
+                                                                to={child.path}
+                                                                onClick={() => setSidebarOpen(false)}
+                                                                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold text-xs transition-all ${
+                                                                    isChildActive
+                                                                        ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-xs'
+                                                                        : 'text-slate-500 hover:text-sky-600 hover:bg-sky-50/70'
+                                                                }`}
+                                                            >
+                                                                {ChildIcon && (
+                                                                    <ChildIcon className={`w-3.5 h-3.5 ${isChildActive ? 'text-white' : 'text-slate-400'}`} />
+                                                                )}
+                                                                <span>{child.title}</span>
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
 
                                 if (item.isAction) {
                                     return (
@@ -291,9 +385,9 @@ export const StudentDashboardLayout: React.FC = () => {
                         {/* User logout row */}
                         <div className="flex items-center justify-between px-1">
                             <Link
-                                to="/student/profile"
+                                to="/student/settings/profile"
                                 className="flex items-center gap-2 truncate hover:opacity-80 transition-opacity group"
-                                title="প্রোফাইল ও সেটিংস"
+                                title="প্রোফাইল তথ্য ও সেটিংস"
                             >
                                 <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                     {user.name.charAt(0).toUpperCase()}
@@ -419,8 +513,8 @@ export const StudentDashboardLayout: React.FC = () => {
 
                         {/* Student Profile Avatar */}
                         <Link
-                            to="/student/profile"
-                            title="প্রোফাইল ও সেটিংস"
+                            to="/student/settings/profile"
+                            title="প্রোফাইল তথ্য ও সেটিংস"
                             className="flex items-center gap-2 group cursor-pointer"
                         >
                             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-sky-500 via-indigo-600 to-sky-600 p-0.5 shadow-2xs group-hover:scale-105 transition-transform">

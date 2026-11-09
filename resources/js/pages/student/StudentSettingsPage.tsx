@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
 import {
@@ -16,8 +17,6 @@ import {
     RefreshCw,
     Clock,
     Globe,
-    Check,
-    AlertTriangle,
     Shield
 } from 'lucide-react';
 
@@ -31,11 +30,22 @@ interface DeviceItem {
     created_at: string | null;
 }
 
-export const StudentSettingsPage: React.FC = () => {
-    const { user, updateUser } = useAuth();
+interface StudentSettingsPageProps {
+    defaultView?: 'devices' | 'profile' | 'password';
+}
 
-    // Tabs: 'devices' | 'profile' | 'password'
-    const [activeTab, setActiveTab] = useState<'devices' | 'profile' | 'password'>('devices');
+export const StudentSettingsPage: React.FC<StudentSettingsPageProps> = ({ defaultView }) => {
+    const { user, updateUser } = useAuth();
+    const location = useLocation();
+
+    // Determine active view strictly based on route URL (No internal tabs needed)
+    const activeView = (() => {
+        const path = location.pathname;
+        if (path.includes('/devices')) return 'devices';
+        if (path.includes('/password')) return 'password';
+        if (path.includes('/profile')) return 'profile';
+        return defaultView || 'devices';
+    })();
 
     // Devices state
     const [devices, setDevices] = useState<DeviceItem[]>([]);
@@ -70,8 +80,10 @@ export const StudentSettingsPage: React.FC = () => {
     }, [user]);
 
     useEffect(() => {
-        fetchDevices();
-    }, []);
+        if (activeView === 'devices') {
+            fetchDevices();
+        }
+    }, [activeView]);
 
     const fetchDevices = async () => {
         setDevicesLoading(true);
@@ -206,7 +218,7 @@ export const StudentSettingsPage: React.FC = () => {
 
     return (
         <div className="max-w-5xl mx-auto space-y-6">
-            {/* Page Header */}
+            {/* Page Header (No Internal Tabs) */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -223,57 +235,37 @@ export const StudentSettingsPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Active Tabs Pills */}
-                    <div className="flex flex-wrap items-center bg-slate-100 p-1.5 rounded-2xl text-xs font-bold">
-                        <button
-                            type="button"
-                            onClick={() => setActiveTab('devices')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all cursor-pointer ${
-                                activeTab === 'devices'
-                                    ? 'bg-white text-sky-600 shadow-xs'
-                                    : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                        >
-                            <ShieldCheck className="w-4 h-4" />
-                            <span>লগইন ডিভাইস</span>
-                            <span className="px-1.5 py-0.5 text-[10px] rounded-full bg-sky-100 text-sky-700">
-                                {devices.length}/2
-                            </span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => setActiveTab('profile')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all cursor-pointer ${
-                                activeTab === 'profile'
-                                    ? 'bg-white text-sky-600 shadow-xs'
-                                    : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                        >
-                            <UserIcon className="w-4 h-4" />
-                            <span>প্রোফাইল তথ্য</span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => setActiveTab('password')}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all cursor-pointer ${
-                                activeTab === 'password'
-                                    ? 'bg-white text-sky-600 shadow-xs'
-                                    : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                        >
-                            <KeyRound className="w-4 h-4" />
-                            <span>পাসওয়ার্ড পরিবর্তন</span>
-                        </button>
+                    {/* Active Section Indicator Badge */}
+                    <div>
+                        {activeView === 'devices' && (
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-sky-50 text-sky-700 border border-sky-200 text-xs sm:text-sm font-bold shadow-2xs">
+                                <Smartphone className="w-4 h-4 text-sky-600" />
+                                <span>লগইন ডিভাইস ও নিরাপত্তা</span>
+                                <span className="px-2 py-0.5 text-xs rounded-full bg-sky-200/80 text-sky-800 font-extrabold">
+                                    {devices.length}/2 টি সক্রিয়
+                                </span>
+                            </div>
+                        )}
+                        {activeView === 'profile' && (
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-sky-50 text-sky-700 border border-sky-200 text-xs sm:text-sm font-bold shadow-2xs">
+                                <UserIcon className="w-4 h-4 text-sky-600" />
+                                <span>প্রোফাইল তথ্য ও একাউন্ট</span>
+                            </div>
+                        )}
+                        {activeView === 'password' && (
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-sky-50 text-sky-700 border border-sky-200 text-xs sm:text-sm font-bold shadow-2xs">
+                                <KeyRound className="w-4 h-4 text-sky-600" />
+                                <span>পাসওয়ার্ড পরিবর্তন</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* TAB 1: ACTIVE DEVICES & SECURITY */}
-            {activeTab === 'devices' && (
+            {/* VIEW 1: ACTIVE DEVICES & SECURITY */}
+            {activeView === 'devices' && (
                 <div className="space-y-6">
-                    {/* Security Notice Card */}
+                    {/* Security Policy Card */}
                     <div className="bg-gradient-to-r from-sky-50 via-indigo-50/50 to-blue-50 border border-sky-100 rounded-3xl p-6 relative overflow-hidden">
                         <div className="flex items-start gap-4 relative z-10">
                             <div className="w-12 h-12 rounded-2xl bg-white text-sky-600 shadow-sm flex items-center justify-center shrink-0">
@@ -439,8 +431,8 @@ export const StudentSettingsPage: React.FC = () => {
                 </div>
             )}
 
-            {/* TAB 2: PROFILE INFORMATION */}
-            {activeTab === 'profile' && (
+            {/* VIEW 2: PROFILE INFORMATION */}
+            {activeView === 'profile' && (
                 <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
                     <div>
                         <h3 className="text-base font-black text-slate-900">ব্যক্তিগত তথ্য</h3>
@@ -523,8 +515,8 @@ export const StudentSettingsPage: React.FC = () => {
                 </div>
             )}
 
-            {/* TAB 3: CHANGE PASSWORD */}
-            {activeTab === 'password' && (
+            {/* VIEW 3: CHANGE PASSWORD */}
+            {activeView === 'password' && (
                 <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
                     <div>
                         <h3 className="text-base font-black text-slate-900">পাসওয়ার্ড পরিবর্তন করুন</h3>
@@ -630,4 +622,3 @@ export const StudentSettingsPage: React.FC = () => {
         </div>
     );
 };
-

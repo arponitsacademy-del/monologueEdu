@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { apiClient, formatBDT } from '../../api/client';
-import { 
-    Bot, 
-    Plus, 
-    Wrench, 
-    Edit3, 
-    Trash2, 
-    Search, 
-    Sparkles, 
-    Settings, 
-    BookOpen, 
-    CheckCircle2, 
-    AlertCircle, 
-    Loader2, 
-    Check, 
+import {
+    Bot,
+    Plus,
+    Wrench,
+    Edit3,
+    Trash2,
+    Search,
+    Sparkles,
+    Settings,
+    BookOpen,
+    CheckCircle2,
+    AlertCircle,
+    Loader2,
+    Check,
     ExternalLink,
     HelpCircle,
     GraduationCap,
@@ -224,11 +224,10 @@ export const AdminNexPilotsPage: React.FC = () => {
                                             </span>
                                         </div>
 
-                                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                                            pilot.is_active 
-                                                ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300' 
-                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                                        }`}>
+                                        <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${pilot.is_active
+                                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300'
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                                            }`}>
                                             {pilot.is_active ? 'Active' : 'Inactive'}
                                         </span>
                                     </div>
@@ -415,11 +414,10 @@ export const AdminNexPilotsPage: React.FC = () => {
                                     </div>
 
                                     <div className="flex items-center gap-2 shrink-0">
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                                            st.has_nexpilot
-                                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                                                : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-                                        }`}>
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${st.has_nexpilot
+                                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                            : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+                                            }`}>
                                             {st.has_nexpilot ? 'NexPilot Active' : 'Inactive'}
                                         </span>
 
@@ -427,11 +425,10 @@ export const AdminNexPilotsPage: React.FC = () => {
                                             type="button"
                                             onClick={() => handleToggleStudentAccess(st.enrollment_id)}
                                             disabled={actionLoading === st.enrollment_id}
-                                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
-                                                st.has_nexpilot
-                                                    ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300'
-                                                    : 'bg-sky-600 text-white hover:bg-sky-700'
-                                            }`}
+                                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors cursor-pointer ${st.has_nexpilot
+                                                ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-950/40 dark:text-rose-300'
+                                                : 'bg-sky-600 text-white hover:bg-sky-700'
+                                                }`}
                                         >
                                             {actionLoading === st.enrollment_id
                                                 ? '...'

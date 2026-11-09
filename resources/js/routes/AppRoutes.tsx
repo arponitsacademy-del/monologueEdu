@@ -178,8 +178,11 @@ export const AppRoutes: React.FC = () => {
                 <Route path="exams" element={<StudentExamsPage />} />
                 <Route path="orders" element={<StudentOrdersPage />} />
                 <Route path="affiliate" element={<StudentAffiliatePage />} />
-                <Route path="profile" element={<StudentSettingsPage />} />
-                <Route path="settings" element={<StudentSettingsPage />} />
+                <Route path="profile" element={<StudentSettingsPage defaultView="profile" />} />
+                <Route path="settings" element={<Navigate to="/student/settings/devices" replace />} />
+                <Route path="settings/devices" element={<StudentSettingsPage defaultView="devices" />} />
+                <Route path="settings/profile" element={<StudentSettingsPage defaultView="profile" />} />
+                <Route path="settings/password" element={<StudentSettingsPage defaultView="password" />} />
             </Route>
 
             {/* Student Exam Room */}
