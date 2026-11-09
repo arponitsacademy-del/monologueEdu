@@ -38,7 +38,10 @@ import {
     CheckCircle2,
     Radio,
     MessageSquare,
-    Calendar
+    Calendar,
+    Package,
+    Truck,
+    FileUp
 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 
@@ -58,6 +61,20 @@ export const AdminCourseBuilderPage: React.FC = () => {
     // Routine state
     const [routineItems, setRoutineItems] = useState<any[]>([]);
     const [loadingRoutine, setLoadingRoutine] = useState(false);
+    const [routineModalOpen, setRoutineModalOpen] = useState(false);
+    const [editingRoutineItem, setEditingRoutineItem] = useState<any | null>(null);
+    const [routineItemType, setRoutineItemType] = useState<'class_upload' | 'material' | 'book_parcel' | 'general'>('class_upload');
+    const [routineItemTitle, setRoutineItemTitle] = useState('');
+    const [routineItemSubject, setRoutineItemSubject] = useState('');
+    const [routineItemStartTime, setRoutineItemStartTime] = useState('');
+    const [routineItemEndTime, setRoutineItemEndTime] = useState('');
+    const [routineItemDesc, setRoutineItemDesc] = useState('');
+    const [routineItemLinkUrl, setRoutineItemLinkUrl] = useState('');
+    const [routineItemActionText, setRoutineItemActionText] = useState('');
+    const [routineItemStatus, setRoutineItemStatus] = useState('upcoming');
+    const [routineItemCourier, setRoutineItemCourier] = useState('');
+    const [routineItemTracking, setRoutineItemTracking] = useState('');
+    const [savingRoutineItem, setSavingRoutineItem] = useState(false);
 
     // Live Classes state
     const [liveClasses, setLiveClasses] = useState<any[]>([]);
@@ -137,6 +154,110 @@ export const AdminCourseBuilderPage: React.FC = () => {
             console.error('Failed to load course routine', err);
         } finally {
             setLoadingRoutine(false);
+        }
+    };
+
+    const openAddRoutineItem = (defaultType?: 'class_upload' | 'material' | 'book_parcel' | 'general') => {
+        setEditingRoutineItem(null);
+        setRoutineItemType(defaultType || 'class_upload');
+        setRoutineItemTitle('');
+        setRoutineItemSubject('');
+
+        const now = new Date();
+        now.setHours(16, 0, 0, 0);
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const h = String(now.getHours()).padStart(2, '0');
+        const min = String(now.getMinutes()).padStart(2, '0');
+        setRoutineItemStartTime(`${y}-${m}-${d}T${h}:${min}`);
+        setRoutineItemEndTime('');
+        setRoutineItemDesc('');
+        setRoutineItemLinkUrl('');
+        setRoutineItemActionText('');
+        setRoutineItemStatus('upcoming');
+        setRoutineItemCourier('');
+        setRoutineItemTracking('');
+        setRoutineModalOpen(true);
+    };
+
+    const openEditRoutineItem = (item: any) => {
+        setEditingRoutineItem(item);
+        setRoutineItemType(item.type || 'class_upload');
+        setRoutineItemTitle(item.title || '');
+        setRoutineItemSubject(item.subject || '');
+
+        const formatForInput = (isoStr: string | null) => {
+            if (!isoStr) return '';
+            const dt = new Date(isoStr);
+            const y = dt.getFullYear();
+            const m = String(dt.getMonth() + 1).padStart(2, '0');
+            const d = String(dt.getDate()).padStart(2, '0');
+            const h = String(dt.getHours()).padStart(2, '0');
+            const min = String(dt.getMinutes()).padStart(2, '0');
+            return `${y}-${m}-${d}T${h}:${min}`;
+        };
+
+        setRoutineItemStartTime(formatForInput(item.start_time));
+        setRoutineItemEndTime(formatForInput(item.end_time));
+        setRoutineItemDesc(item.description || '');
+        setRoutineItemLinkUrl(item.link_url || '');
+        setRoutineItemActionText(item.action_text || '');
+        setRoutineItemStatus(item.status || 'upcoming');
+        setRoutineItemCourier(item.meta?.courier_name || '');
+        setRoutineItemTracking(item.meta?.tracking_code || '');
+        setRoutineModalOpen(true);
+    };
+
+    const handleSaveRoutineItem = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!routineItemTitle.trim() || !routineItemStartTime) {
+            alert('দয়া করে শিরোনাম এবং তারিখ/সময় প্রদান করুন।');
+            return;
+        }
+
+        try {
+            setSavingRoutineItem(true);
+            const payload: any = {
+                type: routineItemType,
+                title: routineItemTitle.trim(),
+                subject: routineItemSubject.trim() || null,
+                start_time: routineItemStartTime,
+                end_time: routineItemEndTime || null,
+                description: routineItemDesc.trim() || null,
+                link_url: routineItemLinkUrl.trim() || null,
+                action_text: routineItemActionText.trim() || null,
+                status: routineItemStatus,
+                meta: routineItemType === 'book_parcel' ? {
+                    courier_name: routineItemCourier.trim() || null,
+                    tracking_code: routineItemTracking.trim() || null,
+                } : null,
+            };
+
+            if (editingRoutineItem) {
+                await apiClient.put(`/builder/${id}/routine/items/${editingRoutineItem.id}`, payload);
+            } else {
+                await apiClient.post(`/builder/${id}/routine/items`, payload);
+            }
+
+            setRoutineModalOpen(false);
+            fetchCourseRoutine();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'রুটিন সূচী সংরক্ষণ করতে সমস্যা হয়েছে।');
+        } finally {
+            setSavingRoutineItem(false);
+        }
+    };
+
+    const handleDeleteRoutineItem = async (itemId: number, title: string) => {
+        if (!window.confirm(`আপনি কি নিশ্চিত যে "${title}" রুটিন সূচীটি মুছে ফেলতে চান?`)) {
+            return;
+        }
+        try {
+            await apiClient.delete(`/builder/${id}/routine/items/${itemId}`);
+            fetchCourseRoutine();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'রুটিন সূচী মোছা সম্ভব হয়নি।');
         }
     };
 
@@ -716,20 +837,27 @@ export const AdminCourseBuilderPage: React.FC = () => {
                     )}
 
                     {activeTab === 'routine' && (
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex flex-wrap items-center gap-2">
                             <button
                                 onClick={openAddLiveClass}
-                                className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-sm rounded-xl shadow-md shadow-rose-600/20 flex items-center gap-2 transition-all cursor-pointer"
+                                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
                             >
-                                <Radio className="w-4 h-4" />
-                                <span>+ লাইভ ক্লাস সিডিউল</span>
+                                <Radio className="w-3.5 h-3.5" />
+                                <span>+ লাইভ ক্লাস</span>
                             </button>
                             <button
                                 onClick={() => openAddExam('live')}
-                                className="px-4 py-2.5 bg-[#0B4B34] hover:bg-[#083827] text-white font-bold text-sm rounded-xl shadow-md shadow-emerald-950/20 flex items-center gap-2 transition-all cursor-pointer"
+                                className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
                             >
-                                <Clock className="w-4 h-4" />
-                                <span>+ লাইভ এক্সাম সিডিউল</span>
+                                <Clock className="w-3.5 h-3.5" />
+                                <span>+ লাইভ এক্সাম</span>
+                            </button>
+                            <button
+                                onClick={() => openAddRoutineItem()}
+                                className="px-3.5 py-2 bg-[#0B4B34] hover:bg-[#083827] text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                            >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>+ নতুন সূচী (ক্লাস আপলোড / ম্যাটেরিয়াল / পার্সেল)</span>
                             </button>
                         </div>
                     )}
@@ -1596,56 +1724,107 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                 <span>কোর্স রুটিন (Course Routine)</span>
                             </h3>
                             <p className="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
-                                এই কোর্সের সকল লাইভ ক্লাস এবং লাইভ পরীক্ষার সমন্বিত সময়সূচী। এখান থেকেই সরাসরি লাইভ ক্লাস বা লাইভ পরীক্ষা সিডিউল করতে পারেন। এখানে যুক্ত হওয়া যেকোনো সূচী স্বয়ংক্রিয়ভাবে লাইভ ক্লাস / লাইভ এক্সাম সেকশনে এবং শিক্ষার্থীদের রুটিনে ও ড্যাশবোর্ডে প্রদর্শিত হবে।
+                                এই কোর্সের সকল লাইভ ক্লাস, লাইভ পরীক্ষা, ক্লাস আপলোড, স্টাডি ম্যাটেরিয়াল এবং বই/পার্সেল ডেলিভারির পূর্ণাঙ্গ সময়সূচী। এখান থেকে যোগ করা যেকোনো সূচী স্বয়ংক্রিয়ভাবে শিক্ষার্থীদের রুটিনে ও ড্যাশবোর্ডে প্রদর্শিত হবে।
                             </p>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex flex-wrap items-center gap-2 shrink-0">
                             <button
                                 onClick={openAddLiveClass}
-                                className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                                className="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
                             >
                                 <Radio className="w-3.5 h-3.5" />
                                 <span>+ লাইভ ক্লাস</span>
                             </button>
                             <button
                                 onClick={() => openAddExam('live')}
-                                className="px-3.5 py-2 bg-[#0B4B34] hover:bg-[#083827] text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
                             >
                                 <Clock className="w-3.5 h-3.5" />
                                 <span>+ লাইভ এক্সাম</span>
+                            </button>
+                            <button
+                                onClick={() => openAddRoutineItem('class_upload')}
+                                className="px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                            >
+                                <Video className="w-3.5 h-3.5" />
+                                <span>+ ক্লাস আপলোড</span>
+                            </button>
+                            <button
+                                onClick={() => openAddRoutineItem('material')}
+                                className="px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                            >
+                                <FileText className="w-3.5 h-3.5" />
+                                <span>+ ম্যাটেরিয়াল</span>
+                            </button>
+                            <button
+                                onClick={() => openAddRoutineItem('book_parcel')}
+                                className="px-3 py-1.5 bg-[#0B4B34] hover:bg-[#083827] text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
+                            >
+                                <Package className="w-3.5 h-3.5" />
+                                <span>+ বই/পার্সেল ডেলিভারি</span>
                             </button>
                         </div>
                     </div>
 
                     {/* Quick Stats Strip */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#0B4B34] flex items-center justify-center font-black">
-                                <Calendar className="w-5 h-5" />
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#0B4B34] flex items-center justify-center font-black shrink-0">
+                                <Calendar className="w-4 h-4" />
                             </div>
-                            <div>
-                                <span className="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">সর্বমোট ইভেন্ট</span>
-                                <span className="text-lg font-black text-slate-800">{routineItems.length} টি</span>
-                            </div>
-                        </div>
-
-                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-black">
-                                <Radio className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <span className="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">লাইভ ক্লাস</span>
-                                <span className="text-lg font-black text-slate-800">{routineItems.filter(i => i.type === 'live_class').length} টি</span>
+                            <div className="min-w-0">
+                                <span className="text-[10px] font-bold text-slate-400 block uppercase truncate">মোট ইভেন্ট</span>
+                                <span className="text-base font-black text-slate-800">{routineItems.length} টি</span>
                             </div>
                         </div>
 
-                        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-black">
-                                <Clock className="w-5 h-5" />
+                        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center font-black shrink-0">
+                                <Radio className="w-4 h-4" />
                             </div>
-                            <div>
-                                <span className="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">লাইভ এক্সাম</span>
-                                <span className="text-lg font-black text-slate-800">{routineItems.filter(i => i.type === 'live_exam').length} টি</span>
+                            <div className="min-w-0">
+                                <span className="text-[10px] font-bold text-slate-400 block uppercase truncate">লাইভ ক্লাস</span>
+                                <span className="text-base font-black text-slate-800">{routineItems.filter(i => i.type === 'live_class').length} টি</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center font-black shrink-0">
+                                <Clock className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                                <span className="text-[10px] font-bold text-slate-400 block uppercase truncate">লাইভ এক্সাম</span>
+                                <span className="text-base font-black text-slate-800">{routineItems.filter(i => i.type === 'live_exam').length} টি</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-black shrink-0">
+                                <Video className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                                <span className="text-[10px] font-bold text-slate-400 block uppercase truncate">ক্লাস আপলোড</span>
+                                <span className="text-base font-black text-slate-800">{routineItems.filter(i => i.type === 'class_upload').length} টি</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-black shrink-0">
+                                <FileText className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                                <span className="text-[10px] font-bold text-slate-400 block uppercase truncate">ম্যাটেরিয়াল</span>
+                                <span className="text-base font-black text-slate-800">{routineItems.filter(i => i.type === 'material').length} টি</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-black shrink-0">
+                                <Package className="w-4 h-4" />
+                            </div>
+                            <div className="min-w-0">
+                                <span className="text-[10px] font-bold text-slate-400 block uppercase truncate">বই ও পার্সেল</span>
+                                <span className="text-base font-black text-slate-800">{routineItems.filter(i => i.type === 'book_parcel').length} টি</span>
                             </div>
                         </div>
                     </div>
@@ -1661,22 +1840,29 @@ export const AdminCourseBuilderPage: React.FC = () => {
                             <Calendar className="w-12 h-12 text-slate-300 mx-auto" />
                             <h3 className="text-base font-bold text-slate-800">এখনও কোনো রুটিন সূচী যুক্ত করা হয়নি</h3>
                             <p className="text-xs text-slate-500 max-w-md mx-auto">
-                                আপনার শিক্ষার্থীদের জন্য লাইভ ক্লাস অথবা লাইভ পরীক্ষা সিডিউল করুন। সিডিউল যোগ করলে এখানে টাইমলাইন অনুযায়ী প্রদর্শিত হবে।
+                                আপনার শিক্ষার্থীদের জন্য লাইভ ক্লাস, লাইভ পরীক্ষা, ক্লাস আপলোড, স্টাডি ম্যাটেরিয়াল কিংবা বই/পার্সেল ডেলিভারি সিডিউল করুন।
                             </p>
-                            <div className="flex items-center justify-center gap-3 pt-2">
+                            <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
                                 <button
                                     onClick={openAddLiveClass}
-                                    className="px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-all"
+                                    className="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-all"
                                 >
-                                    <Radio className="w-4 h-4" />
-                                    <span>লাইভ ক্লাস সিডিউল করুন</span>
+                                    <Radio className="w-3.5 h-3.5" />
+                                    <span>লাইভ ক্লাস</span>
                                 </button>
                                 <button
                                     onClick={() => openAddExam('live')}
-                                    className="px-4 py-2.5 bg-[#0B4B34] hover:bg-[#083827] text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-2 cursor-pointer transition-all"
+                                    className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-all"
                                 >
-                                    <Clock className="w-4 h-4" />
-                                    <span>লাইভ এক্সাম সিডিউল করুন</span>
+                                    <Clock className="w-3.5 h-3.5" />
+                                    <span>লাইভ এক্সাম</span>
+                                </button>
+                                <button
+                                    onClick={() => openAddRoutineItem()}
+                                    className="px-3.5 py-2 bg-[#0B4B34] hover:bg-[#083827] text-white font-bold text-xs rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>অন্যান্য রুটিন সূচী (ক্লাস আপলোড / ম্যাটেরিয়াল / পার্সেল)</span>
                                 </button>
                             </div>
                         </div>
@@ -1684,15 +1870,21 @@ export const AdminCourseBuilderPage: React.FC = () => {
                         <div className="space-y-3">
                             {routineItems.map((item: any) => {
                                 const isClass = item.type === 'live_class';
+                                const isExam = item.type === 'live_exam';
+                                const isCustom = Boolean(item.is_custom_routine);
+                                const isClassUpload = item.type === 'class_upload';
+                                const isMaterial = item.type === 'material';
+                                const isBookParcel = item.type === 'book_parcel';
+
                                 const matchingLiveClass = isClass ? liveClasses.find(lc => lc.id === item.id) : null;
-                                const matchingLiveExam = !isClass ? liveExamsList.find(e => e.id === item.id) : null;
+                                const matchingLiveExam = isExam ? liveExamsList.find(e => e.id === item.id) : null;
 
                                 return (
                                     <div
                                         key={`${item.type}-${item.id}`}
                                         className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
                                     >
-                                        <div className="flex items-start gap-4 flex-1">
+                                        <div className="flex items-start gap-4 flex-1 min-w-0">
                                             {/* Date / Time Card */}
                                             <div className="shrink-0 text-center w-28 p-2.5 rounded-xl bg-slate-50 border border-slate-200/60">
                                                 <div className="text-[11px] font-extrabold text-[#0B4B34] uppercase tracking-wider">
@@ -1702,33 +1894,68 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                                     {item.date_formatted?.split(' ')?.[0] || ''} {item.date_formatted?.split(' ')?.[1] || ''}
                                                 </div>
                                                 <div className="text-[10px] font-bold text-slate-500">
-                                                    {item.time_bangla || 'সময় নির্ধারিত'}
+                                                    {item.time_display || 'সময় নির্ধারিত'}
                                                 </div>
                                             </div>
 
                                             {/* Main Info */}
                                             <div className="space-y-1.5 flex-1 min-w-0">
                                                 <div className="flex flex-wrap items-center gap-2">
-                                                    {isClass ? (
+                                                    {isClass && (
                                                         <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-rose-50 text-rose-700 border border-rose-200 flex items-center gap-1">
                                                             <Radio className="w-3 h-3 text-rose-500 animate-pulse" />
                                                             <span>লাইভ ক্লাস</span>
                                                         </span>
-                                                    ) : (
+                                                    )}
+                                                    {isExam && (
                                                         <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-amber-50 text-amber-800 border border-amber-200 flex items-center gap-1">
                                                             <Clock className="w-3 h-3 text-amber-600" />
                                                             <span>লাইভ এক্সাম</span>
                                                         </span>
                                                     )}
+                                                    {isClassUpload && (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-sky-50 text-sky-700 border border-sky-200 flex items-center gap-1">
+                                                            <Video className="w-3 h-3 text-sky-600" />
+                                                            <span>ক্লাস আপলোড</span>
+                                                        </span>
+                                                    )}
+                                                    {isMaterial && (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-teal-50 text-teal-700 border border-teal-200 flex items-center gap-1">
+                                                            <FileText className="w-3 h-3 text-teal-600" />
+                                                            <span>স্টাডি ম্যাটেরিয়াল</span>
+                                                        </span>
+                                                    )}
+                                                    {isBookParcel && (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-orange-50 text-orange-700 border border-orange-200 flex items-center gap-1">
+                                                            <Package className="w-3 h-3 text-orange-600" />
+                                                            <span>বই / পার্সেল ডেলিভারি</span>
+                                                        </span>
+                                                    )}
+                                                    {!isClass && !isExam && !isClassUpload && !isMaterial && !isBookParcel && (
+                                                        <span className="px-2.5 py-0.5 rounded-full text-[11px] font-black bg-slate-100 text-slate-700 border border-slate-200 flex items-center gap-1">
+                                                            <Calendar className="w-3 h-3 text-slate-600" />
+                                                            <span>{item.type_label || 'সাধারণ সূচী'}</span>
+                                                        </span>
+                                                    )}
 
+                                                    {/* Status Badge */}
                                                     {item.status === 'live' ? (
                                                         <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-rose-600 text-white flex items-center gap-1 shadow-xs animate-pulse">
                                                             <span className="w-1.5 h-1.5 rounded-full bg-white"></span>
                                                             <span>লাইভ চলছে</span>
                                                         </span>
-                                                    ) : item.status === 'completed' ? (
+                                                    ) : item.status === 'completed' || item.status === 'delivered' ? (
                                                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-500">
-                                                            সম্পন্ন
+                                                            {item.status === 'delivered' ? 'ডেলিভারি সম্পন্ন' : 'সম্পন্ন'}
+                                                        </span>
+                                                    ) : item.status === 'shipped' ? (
+                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 flex items-center gap-1">
+                                                            <Truck className="w-3 h-3" />
+                                                            <span>কুরিয়ারে পাঠানো হয়েছে</span>
+                                                        </span>
+                                                    ) : item.status === 'published' ? (
+                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                                            প্রকাশিত
                                                         </span>
                                                     ) : (
                                                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-50 text-sky-700">
@@ -1736,9 +1963,9 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                                         </span>
                                                     )}
 
-                                                    {item.subject_theme && (
-                                                        <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">
-                                                            • বিষয়ভিত্তিক সূচী
+                                                    {item.subject && (
+                                                        <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                                                            {item.subject}
                                                         </span>
                                                     )}
                                                 </div>
@@ -1747,11 +1974,18 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                                     {item.title}
                                                 </h4>
 
-                                                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                                                    {item.instructor_name && (
-                                                        <span className="flex items-center gap-1">
-                                                            <Users className="w-3.5 h-3.5 text-slate-400" />
-                                                            <span>{item.instructor_name}</span>
+                                                {item.description && (
+                                                    <p className="text-xs text-slate-500 line-clamp-1">
+                                                        {item.description}
+                                                    </p>
+                                                )}
+
+                                                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-1">
+                                                    {isBookParcel && item.meta?.courier_name && (
+                                                        <span className="flex items-center gap-1 text-orange-700 font-semibold bg-orange-50 px-2 py-0.5 rounded-md text-[11px]">
+                                                            <Truck className="w-3.5 h-3.5" />
+                                                            <span>কুরিয়ার: {item.meta.courier_name}</span>
+                                                            {item.meta.tracking_code && <span>(ট্র্যাকিং: {item.meta.tracking_code})</span>}
                                                         </span>
                                                     )}
                                                     {isClass && item.live_url && (
@@ -1760,10 +1994,16 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                                             <span>ইউটিউব লাইভ লিংক সংযুক্ত</span>
                                                         </span>
                                                     )}
-                                                    {!isClass && matchingLiveExam && (
+                                                    {isExam && matchingLiveExam && (
                                                         <span className="text-amber-700 font-medium text-[11px] flex items-center gap-1">
                                                             <Award className="w-3 h-3 text-amber-500" />
                                                             <span>পূর্ণমান: {matchingLiveExam.total_marks} | প্রশ্ন: {matchingLiveExam.questions_count ?? 0}</span>
+                                                        </span>
+                                                    )}
+                                                    {item.link_url && (
+                                                        <span className="text-sky-600 font-medium text-[11px] flex items-center gap-1 truncate max-w-[200px]">
+                                                            <Paperclip className="w-3 h-3 shrink-0" />
+                                                            <span className="truncate">{item.action_text || 'সংযুক্ত লিংক'}</span>
                                                         </span>
                                                     )}
                                                 </div>
@@ -1772,7 +2012,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
 
                                         {/* Action Buttons */}
                                         <div className="flex items-center gap-2 shrink-0 self-end md:self-auto border-t md:border-t-0 pt-2 md:pt-0 w-full md:w-auto justify-end">
-                                            {isClass ? (
+                                            {isClass && (
                                                 <>
                                                     <Link
                                                         to={`/student/live-class/${item.id}`}
@@ -1803,7 +2043,9 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                                         <Trash2 className="w-4 h-4" />
                                                     </button>
                                                 </>
-                                            ) : (
+                                            )}
+
+                                            {isExam && (
                                                 <>
                                                     <Link
                                                         to={`${examBasePath}/${item.id}/builder`}
@@ -1842,6 +2084,38 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                                     </button>
                                                 </>
                                             )}
+
+                                            {isCustom && (
+                                                <>
+                                                    {item.link_url && (
+                                                        <a
+                                                            href={item.link_url}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-colors"
+                                                        >
+                                                            <ExternalLink className="w-3.5 h-3.5" />
+                                                            <span>{item.action_text || 'লিংক দেখুন'}</span>
+                                                        </a>
+                                                    )}
+
+                                                    <button
+                                                        onClick={() => openEditRoutineItem(item)}
+                                                        className="p-1.5 text-slate-400 hover:text-[#0B4B34] hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                                                        title="সূচী সম্পাদনা"
+                                                    >
+                                                        <Edit className="w-4 h-4" />
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleDeleteRoutineItem(item.id, item.title)}
+                                                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                                                        title="সূচী মুছে ফেলুন"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 );
@@ -1850,6 +2124,280 @@ export const AdminCourseBuilderPage: React.FC = () => {
                     )}
                 </div>
             )}
+
+            {/* Custom Routine Item Modal (Class Upload, Materials, Book/Parcel Delivery, Notice) */}
+            <Modal
+                isOpen={routineModalOpen}
+                onClose={() => setRoutineModalOpen(false)}
+                title={editingRoutineItem ? 'রুটিন সূচী সম্পাদনা করুন' : 'নতুন রুটিন সূচী যুক্ত করুন'}
+                maxWidth="lg"
+            >
+                <form onSubmit={handleSaveRoutineItem} className="space-y-4">
+                    {/* Routine Type Selector */}
+                    <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-2">
+                            সূচীর ধরন নির্বাচন করুন <span className="text-rose-500">*</span>
+                        </label>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setRoutineItemType('class_upload')}
+                                className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                                    routineItemType === 'class_upload'
+                                        ? 'border-sky-500 bg-sky-50 text-sky-700 ring-2 ring-sky-400/20 shadow-xs'
+                                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                                }`}
+                            >
+                                <Video className="w-5 h-5 text-sky-600" />
+                                <span>ক্লাস আপলোড</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setRoutineItemType('material')}
+                                className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                                    routineItemType === 'material'
+                                        ? 'border-teal-500 bg-teal-50 text-teal-700 ring-2 ring-teal-400/20 shadow-xs'
+                                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                                }`}
+                            >
+                                <FileText className="w-5 h-5 text-teal-600" />
+                                <span>স্টাডি ম্যাটেরিয়াল</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setRoutineItemType('book_parcel')}
+                                className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                                    routineItemType === 'book_parcel'
+                                        ? 'border-orange-500 bg-orange-50 text-orange-700 ring-2 ring-orange-400/20 shadow-xs'
+                                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                                }`}
+                            >
+                                <Package className="w-5 h-5 text-orange-600" />
+                                <span>বই / পার্সেল ডেলিভারি</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setRoutineItemType('general')}
+                                className={`p-3 rounded-xl border text-xs font-bold flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                                    routineItemType === 'general'
+                                        ? 'border-emerald-500 bg-emerald-50 text-[#0B4B34] ring-2 ring-emerald-400/20 shadow-xs'
+                                        : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
+                                }`}
+                            >
+                                <Calendar className="w-5 h-5 text-[#0B4B34]" />
+                                <span>সাধারণ নোটিশ</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Title */}
+                    <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                            শিরোনাম <span className="text-rose-500">*</span>
+                        </label>
+                        <input
+                            type="text"
+                            required
+                            value={routineItemTitle}
+                            onChange={e => setRoutineItemTitle(e.target.value)}
+                            placeholder={
+                                routineItemType === 'class_upload'
+                                    ? 'e.g. পদার্থবিজ্ঞান ১ম পত্র - গতিবিদ্যা লেকচার ০২ আপলোড'
+                                    : routineItemType === 'material'
+                                    ? 'e.g. রসায়ন ১ম অধ্যায়ের স্পেশাল শিট ও প্র্যাকটিস বুকলেট পিডিএফ'
+                                    : routineItemType === 'book_parcel'
+                                    ? 'e.g. পদার্থবিজ্ঞান প্রশ্নব্যাংক ও প্র্যাকটিস বুক কুরিয়ার ডেলিভারি'
+                                    : 'e.g. বিশেষ সেশন / নোটিশ'
+                            }
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0B4B34]"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {/* Subject */}
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                                বিষয় / টপিক (ঐচ্ছিক)
+                            </label>
+                            <input
+                                type="text"
+                                value={routineItemSubject}
+                                onChange={e => setRoutineItemSubject(e.target.value)}
+                                placeholder="e.g. পদার্থবিজ্ঞান, রসায়ন, বাংলা, বই ডেলিভারি"
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0B4B34]"
+                            />
+                        </div>
+
+                        {/* Status */}
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                                স্ট্যাটাস
+                            </label>
+                            <select
+                                value={routineItemStatus}
+                                onChange={e => setRoutineItemStatus(e.target.value)}
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0B4B34]"
+                            >
+                                <option value="upcoming">আসন্ন (Upcoming)</option>
+                                <option value="published">প্রকাশিত (Published / Uploaded)</option>
+                                {routineItemType === 'book_parcel' && (
+                                    <>
+                                        <option value="shipped">কুরিয়ারে পাঠানো হয়েছে (Shipped)</option>
+                                        <option value="delivered">ডেলিভারি সম্পন্ন (Delivered)</option>
+                                    </>
+                                )}
+                                <option value="completed">সম্পন্ন (Completed)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Schedule Date & Times */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                                তারিখ ও শুরুর সময় <span className="text-rose-500">*</span>
+                            </label>
+                            <input
+                                type="datetime-local"
+                                required
+                                value={routineItemStartTime}
+                                onChange={e => setRoutineItemStartTime(e.target.value)}
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0B4B34]"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                                শেষ সময় / প্রত্যাশিত ডেলিভারি (ঐচ্ছিক)
+                            </label>
+                            <input
+                                type="datetime-local"
+                                value={routineItemEndTime}
+                                onChange={e => setRoutineItemEndTime(e.target.value)}
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0B4B34]"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Book / Parcel specific fields */}
+                    {routineItemType === 'book_parcel' && (
+                        <div className="p-4 rounded-2xl bg-orange-50/70 border border-orange-200/80 space-y-3">
+                            <h4 className="text-xs font-bold text-orange-900 flex items-center gap-1.5">
+                                <Truck className="w-4 h-4 text-orange-600" />
+                                <span>কুরিয়ার ও পার্সেল ট্র্যাকিং তথ্য</span>
+                            </h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                        কুরিয়ার সার্ভিস
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={routineItemCourier}
+                                        onChange={e => setRoutineItemCourier(e.target.value)}
+                                        placeholder="e.g. Steadfast, Sundarban, RedX, Pathao"
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-orange-400"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                        ট্র্যাকিং কোড বা চালান নম্বর
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={routineItemTracking}
+                                        onChange={e => setRoutineItemTracking(e.target.value)}
+                                        placeholder="e.g. TRK-982341 বা চালান #402"
+                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-orange-400"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Link & Action Button Text */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                                লিংক / ফাইল / ট্র্যাকিং ইউআরএল (ঐচ্ছিক)
+                            </label>
+                            <input
+                                type="url"
+                                value={routineItemLinkUrl}
+                                onChange={e => setRoutineItemLinkUrl(e.target.value)}
+                                placeholder="https://..."
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0B4B34]"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1">
+                                বাটন টেক্সট (ঐচ্ছিক)
+                            </label>
+                            <input
+                                type="text"
+                                value={routineItemActionText}
+                                onChange={e => setRoutineItemActionText(e.target.value)}
+                                placeholder={
+                                    routineItemType === 'class_upload'
+                                        ? 'e.g. ক্লাস দেখুন'
+                                        : routineItemType === 'material'
+                                        ? 'e.g. নোট ডাউনলোড'
+                                        : routineItemType === 'book_parcel'
+                                        ? 'e.g. পার্সেল ট্র্যাক'
+                                        : 'e.g. বিস্তারিত দেখুন'
+                                }
+                                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0B4B34]"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                        <label className="block text-xs font-bold text-slate-700 mb-1">
+                            বিস্তারিত বিবরণ / শিক্ষার্থী বার্তা (ঐচ্ছিক)
+                        </label>
+                        <textarea
+                            rows={3}
+                            value={routineItemDesc}
+                            onChange={e => setRoutineItemDesc(e.target.value)}
+                            placeholder="শিক্ষার্থীদের জন্য কোনো বিশেষ নির্দেশনা, অধ্যায় বা পার্সেল পাওয়ার সময়সীমা..."
+                            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-[#0B4B34]"
+                        />
+                    </div>
+
+                    {/* Submit Buttons */}
+                    <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
+                        <button
+                            type="button"
+                            onClick={() => setRoutineModalOpen(false)}
+                            className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer transition-colors"
+                        >
+                            বাতিল
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={savingRoutineItem}
+                            className="px-5 py-2.5 bg-[#0B4B34] hover:bg-[#083827] text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-950/20 flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                        >
+                            {savingRoutineItem ? (
+                                <>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    <span>সংরক্ষণ হচ্ছে...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="w-3.5 h-3.5" />
+                                    <span>{editingRoutineItem ? 'আপডেট করুন' : 'সংরক্ষণ করুন'}</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Create / Edit Exam Modal */}
             <Modal

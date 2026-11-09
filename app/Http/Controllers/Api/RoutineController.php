@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Course;
+use App\Models\CourseRoutine;
 use App\Models\Enrollment;
 use App\Models\Exam;
 use App\Models\LiveClass;
@@ -16,10 +17,13 @@ use Illuminate\Support\Facades\Schema;
 class RoutineController extends Controller
 {
     /**
-     * Get routine events for student (live classes and live exams)
+     * Get routine events for student (Live Classes, Live Exams, Class Uploads, Materials, Book/Parcel Deliveries)
+     * Automatically merges all items from all courses the student is enrolled in!
      */
     public function studentRoutine(Request $request): JsonResponse
     {
+        CourseRoutine::ensureTableExists();
+
         $user = $request->user();
 
         // 1. Get enrolled courses of the student
@@ -33,11 +37,25 @@ class RoutineController extends Controller
             $enrolledCourseIds = Course::where('status', Course::STATUS_PUBLISHED)->pluck('id')->toArray();
         }
 
+        // Fetch enrolled courses info for the course filter dropdown/pills
+        $enrolledCourses = Course::whereIn('id', $enrolledCourseIds)
+            ->select('id', 'title', 'slug', 'thumbnail')
+            ->get();
+
+        // Filter by course if specified
+        $selectedCourseId = $request->input('course_id');
+        $targetCourseIds = $enrolledCourseIds;
+        if (!empty($selectedCourseId) && $selectedCourseId !== 'all') {
+            $targetCourseIds = array_values(array_intersect($enrolledCourseIds, [(int) $selectedCourseId]));
+        }
+
+        $typeFilter = $request->input('type', 'all');
+
         $events = [];
 
         // 2. Fetch Live Classes
-        if (Schema::hasTable('live_classes')) {
-            $liveClasses = LiveClass::whereIn('course_id', $enrolledCourseIds)
+        if (Schema::hasTable('live_classes') && ($typeFilter === 'all' || $typeFilter === 'live_class')) {
+            $liveClasses = LiveClass::whereIn('course_id', $targetCourseIds)
                 ->where('status', '!=', LiveClass::STATUS_CANCELLED)
                 ->whereNotNull('start_time')
                 ->with(['course:id,title,slug,instructor_id', 'course.instructor:id,name'])
@@ -59,6 +77,7 @@ class RoutineController extends Controller
                 $events[] = [
                     'id' => $class->id,
                     'type' => 'live_class',
+                    'type_label' => 'লাইভ ক্লাস',
                     'title' => $class->title,
                     'description' => $class->description,
                     'start_time' => $start ? $start->toISOString() : null,
@@ -76,18 +95,19 @@ class RoutineController extends Controller
                     'is_upcoming' => $isUpcoming,
                     'is_completed' => $isCompleted,
                     'action_url' => "/student/live-classes/{$class->id}/room",
+                    'action_text' => $isLive ? 'ক্লাসে যুক্ত হন' : 'রিমাইন্ডার',
                     'status' => $class->status,
                 ];
             }
         }
 
         // 3. Fetch Live Exams
-        if (Schema::hasTable('exams')) {
+        if (Schema::hasTable('exams') && ($typeFilter === 'all' || $typeFilter === 'live_exam')) {
             $liveExams = Exam::where('exam_type', Exam::TYPE_LIVE)
                 ->where('status', Exam::STATUS_PUBLISHED)
-                ->where(function ($q) use ($enrolledCourseIds) {
-                    $q->whereIn('course_id', $enrolledCourseIds)
-                      ->orWhereHas('courses', fn($cq) => $cq->whereIn('courses.id', $enrolledCourseIds));
+                ->where(function ($q) use ($targetCourseIds) {
+                    $q->whereIn('course_id', $targetCourseIds)
+                      ->orWhereHas('courses', fn($cq) => $cq->whereIn('courses.id', $targetCourseIds));
                 })
                 ->whereNotNull('start_time')
                 ->with(['course:id,title,slug,instructor_id', 'course.instructor:id,name', 'courses:id,title,slug'])
@@ -97,7 +117,6 @@ class RoutineController extends Controller
             foreach ($liveExams as $exam) {
                 $start = $exam->start_time;
                 $end = $exam->end_time;
-                $now = now();
 
                 $isLive = $exam->isLiveActive();
                 $isUpcoming = $exam->isLiveUpcoming();
@@ -109,6 +128,7 @@ class RoutineController extends Controller
                 $events[] = [
                     'id' => $exam->id,
                     'type' => 'live_exam',
+                    'type_label' => 'লাইভ এক্সাম',
                     'title' => $exam->title,
                     'description' => $exam->description,
                     'start_time' => $start ? $start->toISOString() : null,
@@ -126,6 +146,7 @@ class RoutineController extends Controller
                     'is_upcoming' => $isUpcoming,
                     'is_completed' => $isCompleted,
                     'action_url' => "/exams/{$exam->id}/take",
+                    'action_text' => $isLive ? 'পরীক্ষায় অংশ নিন' : ($isCompleted ? 'ফলাফল দেখুন' : 'সিডিউল'),
                     'duration_minutes' => $exam->duration_minutes,
                     'total_marks' => $exam->total_marks,
                     'status' => $isLive ? 'live' : ($isUpcoming ? 'upcoming' : 'completed'),
@@ -133,17 +154,68 @@ class RoutineController extends Controller
             }
         }
 
-        // 4. Sort all events by start_time ascending
+        // 4. Fetch Custom Course Routines (Class Upload, Study Materials, Book/Parcel Delivery, General Notices)
+        if (Schema::hasTable('course_routines')) {
+            $query = CourseRoutine::whereIn('course_id', $targetCourseIds)
+                ->whereNotNull('start_time')
+                ->with(['course:id,title,slug,instructor_id', 'course.instructor:id,name']);
+
+            if ($typeFilter !== 'all' && in_array($typeFilter, ['class_upload', 'material', 'book_parcel', 'general'])) {
+                $query->where('type', $typeFilter);
+            }
+
+            $routines = $query->orderBy('start_time')->get();
+
+            foreach ($routines as $cr) {
+                $start = $cr->start_time;
+                $end = $cr->end_time;
+
+                $timeInfo = $this->formatBengaliTimeParts($start);
+                
+                // Determine styling and labels based on type
+                $typeConfig = $this->getTypeConfig($cr->type, $cr->subject, $cr->title, $cr->course?->title);
+
+                $events[] = [
+                    'id' => $cr->id,
+                    'type' => $cr->type,
+                    'type_label' => $typeConfig['label'],
+                    'title' => $cr->title,
+                    'description' => $cr->description,
+                    'start_time' => $start ? $start->toISOString() : null,
+                    'end_time' => $end ? $end->toISOString() : null,
+                    'date' => $start ? $start->format('Y-m-d') : null,
+                    'time_time' => $timeInfo['time'],
+                    'time_period' => $timeInfo['period'],
+                    'time_display' => $timeInfo['full'],
+                    'subject' => $cr->subject ?: $typeConfig['default_subject'],
+                    'subject_theme' => $typeConfig['theme'],
+                    'course_id' => $cr->course_id,
+                    'course_title' => $cr->course?->title ?? 'কোর্স',
+                    'instructor_name' => $cr->course?->instructor?->name ?? 'শিক্ষক',
+                    'is_live' => false,
+                    'is_upcoming' => $start ? $start->isFuture() : false,
+                    'is_completed' => $start ? $start->isPast() : false,
+                    'action_url' => $cr->link_url ?: "/student/courses/{$cr->course_id}",
+                    'action_text' => $cr->action_text ?: $typeConfig['default_action'],
+                    'meta' => $cr->meta,
+                    'status' => $cr->status,
+                ];
+            }
+        }
+
+        // 5. Sort all events chronologically by start_time ascending
         usort($events, function ($a, $b) {
             return strcmp($a['start_time'] ?? '', $b['start_time'] ?? '');
         });
 
-        // 5. Unique dates that have events
+        // 6. Unique dates that have events
         $datesWithEvents = array_values(array_unique(array_filter(array_column($events, 'date'))));
 
         return response()->json([
             'events' => $events,
             'dates_with_events' => $datesWithEvents,
+            'enrolled_courses' => $enrolledCourses,
+            'selected_course_id' => $selectedCourseId ?: 'all',
             'server_today' => now()->format('Y-m-d'),
         ]);
     }
@@ -153,6 +225,8 @@ class RoutineController extends Controller
      */
     public function getCourseRoutine(Course $course): JsonResponse
     {
+        CourseRoutine::ensureTableExists();
+
         $user = auth()->user();
         if (!$user->isAdmin() && !$course->isAssignedTeacher($user->id)) {
             abort(403, 'অনুমতি নেই।');
@@ -174,6 +248,7 @@ class RoutineController extends Controller
                 $items[] = [
                     'id' => $lc->id,
                     'type' => 'live_class',
+                    'type_label' => 'লাইভ ক্লাস',
                     'title' => $lc->title,
                     'description' => $lc->description,
                     'live_url' => $lc->live_url,
@@ -204,6 +279,7 @@ class RoutineController extends Controller
                 $items[] = [
                     'id' => $exam->id,
                     'type' => 'live_exam',
+                    'type_label' => 'লাইভ এক্সাম',
                     'title' => $exam->title,
                     'description' => $exam->description,
                     'duration_minutes' => $exam->duration_minutes,
@@ -222,6 +298,40 @@ class RoutineController extends Controller
             }
         }
 
+        // 3. Custom Routines of this course (Class Upload, Materials, Book/Parcel, General)
+        if (Schema::hasTable('course_routines')) {
+            $customRoutines = CourseRoutine::where('course_id', $course->id)
+                ->orderBy('start_time')
+                ->get();
+
+            foreach ($customRoutines as $cr) {
+                $start = $cr->start_time;
+                $end = $cr->end_time;
+                $timeInfo = $this->formatBengaliTimeParts($start);
+                $typeConfig = $this->getTypeConfig($cr->type, $cr->subject, $cr->title, $course->title);
+
+                $items[] = [
+                    'id' => $cr->id,
+                    'is_custom_routine' => true,
+                    'type' => $cr->type,
+                    'type_label' => $typeConfig['label'],
+                    'title' => $cr->title,
+                    'description' => $cr->description,
+                    'subject' => $cr->subject ?: $typeConfig['default_subject'],
+                    'start_time' => $start ? $start->toISOString() : null,
+                    'end_time' => $end ? $end->toISOString() : null,
+                    'date' => $start ? $start->format('Y-m-d') : null,
+                    'time_display' => $timeInfo['full'],
+                    'link_url' => $cr->link_url,
+                    'action_text' => $cr->action_text ?: $typeConfig['default_action'],
+                    'status' => $cr->status,
+                    'meta' => $cr->meta,
+                    'is_upcoming' => $start ? $start->isFuture() : false,
+                    'is_completed' => $start ? $start->isPast() : false,
+                ];
+            }
+        }
+
         usort($items, function ($a, $b) {
             return strcmp($a['start_time'] ?? '', $b['start_time'] ?? '');
         });
@@ -230,6 +340,142 @@ class RoutineController extends Controller
             'routine_items' => $items,
             'total_items' => count($items),
         ]);
+    }
+
+    /**
+     * Store custom routine item for course (Class Upload, Material, Book/Parcel Delivery, General)
+     */
+    public function storeRoutineItem(Request $request, Course $course): JsonResponse
+    {
+        CourseRoutine::ensureTableExists();
+
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$course->isAssignedTeacher($user->id)) {
+            abort(403, 'অনুমতি নেই।');
+        }
+
+        $validated = $request->validate([
+            'type' => 'required|string|in:class_upload,material,book_parcel,general',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'subject' => 'nullable|string|max:100',
+            'start_time' => 'required|date',
+            'end_time' => 'nullable|date',
+            'link_url' => 'nullable|string|max:500',
+            'action_text' => 'nullable|string|max:100',
+            'status' => 'nullable|string|max:30',
+            'meta' => 'nullable|array',
+        ]);
+
+        $validated['course_id'] = $course->id;
+        $validated['created_by'] = $user->id;
+        if (empty($validated['status'])) {
+            $validated['status'] = 'upcoming';
+        }
+
+        $routine = CourseRoutine::create($validated);
+
+        return response()->json([
+            'message' => 'রুটিন সূচী সফলভাবে তৈরি করা হয়েছে।',
+            'item' => $routine,
+        ], 201);
+    }
+
+    /**
+     * Update custom routine item
+     */
+    public function updateRoutineItem(Request $request, Course $course, CourseRoutine $routine): JsonResponse
+    {
+        CourseRoutine::ensureTableExists();
+
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$course->isAssignedTeacher($user->id)) {
+            abort(403, 'অনুমতি নেই।');
+        }
+
+        if ($routine->course_id !== $course->id) {
+            abort(404, 'রুটিন সূচীটি এই কোর্সের সাথে সম্পর্কিত নয়।');
+        }
+
+        $validated = $request->validate([
+            'type' => 'required|string|in:class_upload,material,book_parcel,general',
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'subject' => 'nullable|string|max:100',
+            'start_time' => 'required|date',
+            'end_time' => 'nullable|date',
+            'link_url' => 'nullable|string|max:500',
+            'action_text' => 'nullable|string|max:100',
+            'status' => 'nullable|string|max:30',
+            'meta' => 'nullable|array',
+        ]);
+
+        $routine->update($validated);
+
+        return response()->json([
+            'message' => 'রুটিন সূচী সফলভাবে আপডেট করা হয়েছে।',
+            'item' => $routine,
+        ]);
+    }
+
+    /**
+     * Delete custom routine item
+     */
+    public function deleteRoutineItem(Course $course, CourseRoutine $routine): JsonResponse
+    {
+        $user = auth()->user();
+        if (!$user->isAdmin() && !$course->isAssignedTeacher($user->id)) {
+            abort(403, 'অনুমতি নেই।');
+        }
+
+        if ($routine->course_id !== $course->id) {
+            abort(404, 'রুটিন সূচীটি এই কোর্সের সাথে সম্পর্কিত নয়।');
+        }
+
+        $routine->delete();
+
+        return response()->json([
+            'message' => 'রুটিন সূচী সফলভাবে মুছে ফেলা হয়েছে।',
+        ]);
+    }
+
+    /**
+     * Get label, theme, and default values based on routine type
+     */
+    protected function getTypeConfig(string $type, ?string $subject, string $title, ?string $courseTitle): array
+    {
+        switch ($type) {
+            case CourseRoutine::TYPE_CLASS_UPLOAD:
+                return [
+                    'label' => 'ক্লাস আপলোড',
+                    'theme' => 'blue',
+                    'default_subject' => 'রেকর্ডেড ক্লাস',
+                    'default_action' => 'ক্লাস দেখুন',
+                ];
+            case CourseRoutine::TYPE_MATERIAL:
+                return [
+                    'label' => 'স্টাডি ম্যাটেরিয়াল',
+                    'theme' => 'teal',
+                    'default_subject' => 'নোট ও শিট',
+                    'default_action' => 'ডাউনলোড করুন',
+                ];
+            case CourseRoutine::TYPE_BOOK_PARCEL:
+                return [
+                    'label' => 'বই / পার্সেল ডেলিভারি',
+                    'theme' => 'amber',
+                    'default_subject' => 'বই ও কুরিয়ার',
+                    'default_action' => 'ট্র্যাকিং দেখুন',
+                ];
+            case CourseRoutine::TYPE_GENERAL:
+            default:
+                $detected = $this->detectSubjectAndTheme($title, $courseTitle);
+                return [
+                    'label' => 'সাধারণ সূচী',
+                    'theme' => $detected['theme'] ?? 'emerald',
+                    'default_subject' => $detected['name'] ?? 'নোটিশ',
+                    'default_action' => 'বিস্তারিত',
+                ];
+        }
     }
 
     /**
@@ -299,7 +545,7 @@ class RoutineController extends Controller
         }
 
         return [
-            'name' => $courseTitle ? mb_substr($courseTitle, 0, 15) : 'লাইভ ক্লাস',
+            'name' => $courseTitle ? mb_substr($courseTitle, 0, 15) : 'সাধারণ',
             'theme' => 'emerald',
         ];
     }

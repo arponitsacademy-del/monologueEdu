@@ -208,6 +208,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Course Unified Routine
         Route::get('{course}/routine', [RoutineController::class, 'getCourseRoutine']);
+        Route::post('{course}/routine/items', [RoutineController::class, 'storeRoutineItem']);
+        Route::put('{course}/routine/items/{routine}', [RoutineController::class, 'updateRoutineItem']);
+        Route::delete('{course}/routine/items/{routine}', [RoutineController::class, 'deleteRoutineItem']);
     });
 
     // Teacher Specific Routes

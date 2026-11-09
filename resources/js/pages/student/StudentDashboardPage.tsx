@@ -502,14 +502,31 @@ export const StudentDashboardPage: React.FC = () => {
                                                 {evt.time_period || ''}
                                             </span>
                                         </div>
-                                        <div className={`border-l-2 ${evt.type === 'live_exam' ? 'border-rose-500' : 'border-[#0B4B34]'} pl-3.5 py-0.5 space-y-0.5 flex-1 min-w-0`}>
-                                            <div className="flex items-center gap-1.5">
+                                        <div className={`border-l-2 ${
+                                            evt.type === 'live_exam'
+                                                ? 'border-amber-500'
+                                                : evt.type === 'live_class'
+                                                ? 'border-rose-500'
+                                                : evt.type === 'class_upload'
+                                                ? 'border-sky-500'
+                                                : evt.type === 'material'
+                                                ? 'border-teal-500'
+                                                : evt.type === 'book_parcel'
+                                                ? 'border-orange-500'
+                                                : 'border-[#0B4B34]'
+                                        } pl-3.5 py-0.5 space-y-0.5 flex-1 min-w-0`}>
+                                            <div className="flex items-center gap-1.5 flex-wrap">
                                                 <h4 className="font-bold text-slate-800 text-xs sm:text-sm line-clamp-1">
                                                     {evt.title}
                                                 </h4>
                                                 {evt.is_live && (
                                                     <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-rose-500 text-white shrink-0 animate-pulse">
-                                                        লাইভ
+                                                        লাইভ চলছে
+                                                    </span>
+                                                )}
+                                                {evt.type === 'book_parcel' && (
+                                                    <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-orange-100 text-orange-800 shrink-0">
+                                                        বই/পার্সেল
                                                     </span>
                                                 )}
                                             </div>
@@ -521,7 +538,7 @@ export const StudentDashboardPage: React.FC = () => {
                                             to={evt.action_url || '/student/routine'}
                                             className="px-3 py-1 rounded-full text-[11px] font-bold bg-slate-100 hover:bg-emerald-50 hover:text-[#0B4B34] text-slate-600 shrink-0 transition-colors self-center"
                                         >
-                                            {evt.is_live ? 'যুক্ত হন' : 'দেখুন'}
+                                            {evt.is_live ? 'যুক্ত হন' : (evt.action_text || 'দেখুন')}
                                         </Link>
                                     </div>
                                 ))

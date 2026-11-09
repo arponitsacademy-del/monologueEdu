@@ -103,6 +103,11 @@ class Course extends Model
         return $this->hasMany(LiveClass::class)->orderBy('start_time', 'desc');
     }
 
+    public function routines(): HasMany
+    {
+        return $this->hasMany(CourseRoutine::class)->orderBy('start_time', 'asc');
+    }
+
     public function scopePublished($query)
     {
         return $query->where('status', self::STATUS_PUBLISHED);
