@@ -164,7 +164,7 @@ export const StudentDashboardLayout: React.FC = () => {
         },
         {
             title: 'লিডারবোর্ড',
-            path: '/student/exams?tab=leaderboard',
+            path: '/student/leaderboard',
             icon: Trophy
         },
         {

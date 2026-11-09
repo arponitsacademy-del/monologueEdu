@@ -361,6 +361,137 @@ class ExamSubmissionController extends Controller
     }
 
     /**
+     * Get Course-based Student Leaderboard
+     */
+    public function studentLeaderboard(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // 1. Fetch all active enrolled courses of the student
+        $enrollments = Enrollment::where('user_id', $user->id)
+            ->where('status', Enrollment::STATUS_ACTIVE)
+            ->with(['course:id,title,slug,thumbnail'])
+            ->get();
+
+        $enrolledCourses = $enrollments->map(function ($enr) {
+            if (!$enr->course) return null;
+            return [
+                'id' => $enr->course->id,
+                'title' => $enr->course->title,
+                'slug' => $enr->course->slug,
+                'thumbnail' => $enr->course->thumbnail,
+            ];
+        })->filter()->values();
+
+        // If admin/teacher or user has no enrollments yet, provide published courses so they can preview
+        if ($enrolledCourses->isEmpty()) {
+            $enrolledCourses = Course::where('status', Course::STATUS_PUBLISHED)
+                ->select('id', 'title', 'slug', 'thumbnail')
+                ->take(10)
+                ->get();
+        }
+
+        // 2. Determine selected course
+        $selectedCourseId = $request->input('course_id');
+        if ($selectedCourseId !== 'all') {
+            if ($selectedCourseId) {
+                $selectedCourseId = (int) $selectedCourseId;
+            } else {
+                // Default to the first enrolled course if available
+                $selectedCourseId = $enrolledCourses->first() ? $enrolledCourses->first()['id'] ?? $enrolledCourses->first()->id : 'all';
+            }
+        }
+
+        // 3. Find published exams for this course or all enrolled courses
+        if ($selectedCourseId && $selectedCourseId !== 'all') {
+            $examIds = Exam::where(function ($q) use ($selectedCourseId) {
+                    $q->where('course_id', $selectedCourseId)
+                      ->orWhereHas('courses', fn($cq) => $cq->where('courses.id', $selectedCourseId));
+                })
+                ->where('status', Exam::STATUS_PUBLISHED)
+                ->pluck('id');
+        } else {
+            $enrolledIds = collect($enrolledCourses)->pluck('id')->filter()->toArray();
+            $examIds = Exam::where(function ($q) use ($enrolledIds) {
+                    $q->whereIn('course_id', $enrolledIds)
+                      ->orWhereHas('courses', fn($cq) => $cq->whereIn('courses.id', $enrolledIds));
+                })
+                ->where('status', Exam::STATUS_PUBLISHED)
+                ->pluck('id');
+        }
+
+        // 4. Time period filter ('week' | 'month' | 'all')
+        $period = $request->input('period', 'week'); // default to 'week' like in the design!
+        $submissionsQuery = ExamSubmission::whereIn('exam_id', $examIds)
+            ->whereIn('status', [ExamSubmission::STATUS_SUBMITTED, ExamSubmission::STATUS_EVALUATED]);
+
+        if ($period === 'week') {
+            $submissionsQuery->where('submitted_at', '>=', now()->startOfWeek());
+        } elseif ($period === 'month') {
+            $submissionsQuery->where('submitted_at', '>=', now()->startOfMonth());
+        }
+
+        // 5. Aggregate student points
+        $rankingsData = $submissionsQuery->select(
+                'user_id',
+                DB::raw('ROUND(SUM(obtained_marks), 1) as total_points'),
+                DB::raw('COUNT(id) as exams_count'),
+                DB::raw('MAX(submitted_at) as latest_submission_at')
+            )
+            ->groupBy('user_id')
+            ->orderByDesc('total_points')
+            ->orderBy('latest_submission_at')
+            ->with(['user:id,name,email,phone'])
+            ->get();
+
+        // 6. Format leaderboard and current user ranking
+        $leaderboard = [];
+        $currentUserRanking = null;
+
+        foreach ($rankingsData as $index => $item) {
+            $rank = $index + 1;
+            $u = $item->user;
+            $isMe = ($item->user_id === $user->id);
+
+            $entry = [
+                'rank' => $rank,
+                'user_id' => $item->user_id,
+                'name' => $u ? $u->name : 'শিক্ষার্থী',
+                'total_points' => (float) $item->total_points,
+                'exams_count' => (int) $item->exams_count,
+                'is_current_user' => $isMe,
+            ];
+
+            $leaderboard[] = $entry;
+
+            if ($isMe) {
+                $currentUserRanking = $entry;
+            }
+        }
+
+        // If current user has no submissions in this view
+        if (!$currentUserRanking) {
+            $currentUserRanking = [
+                'rank' => null,
+                'user_id' => $user->id,
+                'name' => $user->name,
+                'total_points' => 0,
+                'exams_count' => 0,
+                'is_current_user' => true,
+            ];
+        }
+
+        return response()->json([
+            'enrolled_courses' => $enrolledCourses,
+            'selected_course_id' => $selectedCourseId,
+            'period' => $period,
+            'total_participants' => count($leaderboard),
+            'leaderboard' => $leaderboard,
+            'current_user' => $currentUserRanking,
+        ]);
+    }
+
+    /**
      * Get full question-by-question review and analysis for a student submission
      */
     public function studentSubmissionReview(Request $request, ExamSubmission $submission): JsonResponse

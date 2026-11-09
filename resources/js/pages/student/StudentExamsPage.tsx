@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, Navigate } from 'react-router-dom';
 import { apiClient } from '../../api/client';
 import { MathView } from '../../components/shared/MathView';
 import { Modal } from '../../components/ui/Modal';
@@ -110,6 +110,11 @@ interface QuestionReview {
 
 export const StudentExamsPage: React.FC = () => {
     const [searchParams, setSearchParams] = useSearchParams();
+
+    if (searchParams.get('tab') === 'leaderboard') {
+        return <Navigate to="/student/leaderboard" replace />;
+    }
+
     const initialTab = searchParams.get('tab') === 'results' ? 'results' : 'available';
     const [activeTab, setActiveTab] = useState<'available' | 'results'>(initialTab);
 
