@@ -32,8 +32,8 @@ const DEFAULT_SHURJOPAY: ShurjopaySettings = {
     sandbox_username: 'sp_sandbox',
     sandbox_password: 'pyyk97hu&6u6',
     sandbox_prefix: 'sp',
-    display_name: 'অনলাইন পেমেন্ট (বিকাশ, নগদ, রকেট, কার্ড)',
-    description: 'shurjoPay এর মাধ্যমে বিকাশ, নগদ, রকেট, উপায়, ভিসা, মাস্টারকার্ড বা ইন্টারনেট ব্যাংকিং দিয়ে সাথে সাথে স্বয়ংক্রিয়ভাবে পেমেন্ট সম্পন্ন করুন।',
+    display_name: 'Pay with shurjoPay',
+    description: 'bKash, Nagad, Rocket, Cards',
 };
 
 export const AdminShurjopayPage: React.FC = () => {

@@ -388,24 +388,23 @@ export const CheckoutPage: React.FC = () => {
                                                 <Zap className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-extrabold text-sm text-slate-900">
-                                                        {settings?.shurjopay_settings?.display_name || 'অনলাইন পেমেন্ট (বিকাশ, নগদ, রকেট, কার্ড)'}
-                                                    </span>
-                                                    <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                                                        অটোমেটিক এক্সেস
-                                                    </span>
-                                                </div>
-                                                <p className="text-xs text-slate-500 mt-0.5">
-                                                    {settings?.shurjopay_settings?.description || 'bKash, Nagad, Rocket, Cards বা Net Banking দিয়ে সাথে সাথে পেমেন্ট করুন'}
-                                                </p>
+                                                <span className="font-extrabold text-base text-slate-900 block">
+                                                    {settings?.shurjopay_settings?.display_name && !settings.shurjopay_settings.display_name.includes('অনলাইন পেমেন্ট')
+                                                        ? settings.shurjopay_settings.display_name
+                                                        : 'Pay with shurjoPay'}
+                                                </span>
+                                                <span className="text-xs text-slate-500 font-medium">
+                                                    {settings?.shurjopay_settings?.description && !settings.shurjopay_settings.description.includes('shurjoPay এর মাধ্যমে')
+                                                        ? settings.shurjopay_settings.description
+                                                        : 'bKash, Nagad, Rocket, Cards'}
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
-                                            <span className="px-2 py-0.5 bg-pink-50 border border-pink-200 rounded text-[10px] font-bold text-pink-600">bKash</span>
-                                            <span className="px-2 py-0.5 bg-orange-50 border border-orange-200 rounded text-[10px] font-bold text-orange-600">Nagad</span>
-                                            <span className="px-2 py-0.5 bg-purple-50 border border-purple-200 rounded text-[10px] font-bold text-purple-600">Rocket</span>
-                                            <span className="px-2 py-0.5 bg-blue-50 border border-blue-200 rounded text-[10px] font-bold text-blue-600">Cards</span>
+                                            <span className="px-2.5 py-1 bg-pink-50 border border-pink-200 rounded-lg text-[11px] font-bold text-pink-600">bKash</span>
+                                            <span className="px-2.5 py-1 bg-orange-50 border border-orange-200 rounded-lg text-[11px] font-bold text-orange-600">Nagad</span>
+                                            <span className="px-2.5 py-1 bg-purple-50 border border-purple-200 rounded-lg text-[11px] font-bold text-purple-600">Rocket</span>
+                                            <span className="px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-bold text-blue-600">Cards</span>
                                         </div>
                                     </div>
                                 </button>
@@ -466,20 +465,11 @@ export const CheckoutPage: React.FC = () => {
                         {/* Conditional Form: shurjoPay VS Manual */}
                         {paymentMethod === 'shurjopay' ? (
                             <div className="space-y-4 pt-1">
-                                <div className="p-5 rounded-2xl bg-gradient-to-br from-sky-50 via-slate-50 to-white border border-sky-100 text-xs text-slate-700 space-y-2.5">
-                                    <div className="flex items-center gap-2">
-                                        <ShieldCheck className="w-4 h-4 text-sky-600" />
-                                        <span className="font-bold text-slate-900">
-                                            সুরক্ষিত অনলাইন পেমেন্ট (shurjoPay Gateway)
-                                        </span>
-                                    </div>
-                                    <p className="text-slate-600 leading-relaxed">
-                                        নিচের বাটনে ক্লিক করলে আপনাকে shurjoPay এর অফিসিয়াল ও সুরক্ষিত পেমেন্ট গেটওয়েতে নিয়ে যাওয়া হবে। সেখানে আপনি বিকাশ, নগদ, রকেট, কার্ড বা ইন্টারনেট ব্যাংকিং নির্বাচন করে পেমেন্ট সম্পন্ন করতে পারবেন।
-                                    </p>
-                                    <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1.5 pt-1">
-                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                                        <span>পেমেন্ট সফল হওয়ামাত্রই স্বয়ংক্রিয়ভাবে কোর্স এনরোলমেন্ট একটিভ হয়ে যাবে।</span>
-                                    </div>
+                                <div className="p-3.5 rounded-2xl bg-sky-50/80 border border-sky-100 text-xs text-slate-700 flex items-center gap-2.5">
+                                    <ShieldCheck className="w-4 h-4 text-sky-600 shrink-0" />
+                                    <span>
+                                        Pay securely with bKash, Nagad, Rocket, or Cards via shurjoPay. Course access will unlock automatically.
+                                    </span>
                                 </div>
 
                                 <div>
