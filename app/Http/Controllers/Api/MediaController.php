@@ -69,6 +69,18 @@ class MediaController extends Controller
         $path = $file->store('media', 'public');
         $url = asset('storage/' . $path);
 
+        // Also copy directly to public/storage for shared hosting environments where symlink may not exist
+        try {
+            $destPath = public_path('storage/' . $path);
+            $destDir = dirname($destPath);
+            if (!file_exists($destDir)) {
+                @mkdir($destDir, 0755, true);
+            }
+            @copy(storage_path('app/public/' . $path), $destPath);
+        } catch (\Throwable $e) {
+            // ignore if permissions prevent direct copy
+        }
+
         $media = Media::create([
             'user_id' => auth()->id(),
             'file_name' => $originalName,
@@ -92,6 +104,15 @@ class MediaController extends Controller
     {
         if (Storage::disk('public')->exists($media->file_path)) {
             Storage::disk('public')->delete($media->file_path);
+        }
+
+        try {
+            $pubFile = public_path('storage/' . $media->file_path);
+            if (file_exists($pubFile)) {
+                @unlink($pubFile);
+            }
+        } catch (\Throwable $e) {
+            // ignore
         }
 
         $media->delete();
