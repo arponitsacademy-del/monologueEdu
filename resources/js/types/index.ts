@@ -222,6 +222,21 @@ export interface ManualPaymentSettings {
     rocket: ManualPaymentGatewayConfig;
 }
 
+export interface ShurjopaySettings {
+    enabled: boolean;
+    environment: 'sandbox' | 'live';
+    live_api_url: string;
+    live_username: string;
+    live_password?: string;
+    live_prefix: string;
+    sandbox_api_url: string;
+    sandbox_username: string;
+    sandbox_password?: string;
+    sandbox_prefix: string;
+    display_name?: string;
+    description?: string;
+}
+
 export interface WebsiteSetting {
     id?: number;
     site_name: string;
@@ -240,6 +255,7 @@ export interface WebsiteSetting {
     header_settings?: HeaderSettings;
     footer_settings?: FooterSettings;
     manual_payment_settings?: ManualPaymentSettings;
+    shurjopay_settings?: ShurjopaySettings;
 }
 
 export interface SmsSetting {

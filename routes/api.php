@@ -35,6 +35,7 @@ use App\Http\Controllers\Api\CouponValidationController;
 use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\RoutineController;
 use App\Http\Controllers\Api\LiveClassController;
+use App\Http\Controllers\Api\ShurjopayController;
 use App\Models\Course;
 use App\Models\LessonComment;
 use Illuminate\Http\Request;
@@ -63,6 +64,10 @@ Route::get('affiliate/check-code/{code}', [AffiliateStudentController::class, 'c
 Route::get('teachers/featured', [TeacherPublicController::class, 'getFeaturedTeachers']);
 Route::get('teachers/{id}', [TeacherPublicController::class, 'getTeacherProfile']);
 Route::get('instructors/{id}', [TeacherPublicController::class, 'getTeacherProfile']);
+
+// shurjoPay Public Redirect Callback & Cancel
+Route::match(['get', 'post'], 'payment/shurjopay/callback', [ShurjopayController::class, 'callback']);
+Route::match(['get', 'post'], 'payment/shurjopay/cancel', [ShurjopayController::class, 'cancel']);
 
 /*
 |--------------------------------------------------------------------------
@@ -99,6 +104,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Orders & Checkout
     Route::post('orders/checkout', [OrderController::class, 'checkout']);
+    Route::post('orders/shurjopay/checkout', [ShurjopayController::class, 'initiate']);
     Route::get('orders/my-orders', [OrderController::class, 'myOrders']);
     Route::post('coupons/validate', [CouponValidationController::class, 'validateCoupon']);
 
@@ -325,6 +331,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('website-settings/header', [WebsiteSettingsController::class, 'updateHeaderSettings']);
         Route::put('website-settings/footer', [WebsiteSettingsController::class, 'updateFooterSettings']);
         Route::put('website-settings/manual-payment', [WebsiteSettingsController::class, 'updateManualPaymentSettings']);
+
+        // shurjoPay Integration Settings
+        Route::prefix('payments/shurjopay')->group(function () {
+            Route::get('/', [ShurjopayController::class, 'getSettings']);
+            Route::put('/', [ShurjopayController::class, 'updateSettings']);
+            Route::post('test-connection', [ShurjopayController::class, 'testConnection']);
+        });
 
         // Media Library
         Route::get('media', [MediaController::class, 'index']);

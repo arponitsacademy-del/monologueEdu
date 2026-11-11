@@ -162,6 +162,7 @@ const enTranslations = {
         orders: 'Orders & Payments',
         payments: 'Payments',
         manualPayment: 'Manual Payment',
+        shurjopayIntegration: 'shurjoPay Integration',
         analytics: 'Revenue & Analytics',
         sms: 'SMS Gateway',
         smsConfig: 'SMS Configuration',

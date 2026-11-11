@@ -232,6 +232,7 @@ export const DashboardLayout: React.FC = () => {
                     icon: CreditCard,
                     children: [
                         { title: t.sidebar.manualPayment, path: '/admin/payments/manual' },
+                        { title: (t.sidebar as any).shurjopayIntegration || 'shurjoPay Integration', path: '/admin/payments/shurjopay' },
                     ]
                 },
                 { title: t.sidebar.analytics, path: '/admin/analytics', icon: BarChart3 },

@@ -19,7 +19,8 @@ import {
     Tag,
     TicketPercent,
     X,
-    Loader2
+    Loader2,
+    Zap
 } from 'lucide-react';
 import { getStoredReferralCode, setStoredReferralCode, clearStoredReferralCode } from '../../utils/referralTracker';
 
@@ -60,7 +61,8 @@ export const CheckoutPage: React.FC = () => {
     const [course, setCourse] = useState<Course | null>(null);
     const [loading, setLoading] = useState(true);
     const [includeNexPilot, setIncludeNexPilot] = useState(true);
-    const [paymentMethod, setPaymentMethod] = useState<'manual_bkash' | 'manual_nagad' | 'manual_rocket'>('manual_bkash');
+    const isShurjopayEnabled = settings?.shurjopay_settings ? settings.shurjopay_settings.enabled : true;
+    const [paymentMethod, setPaymentMethod] = useState<'shurjopay' | 'manual_bkash' | 'manual_nagad' | 'manual_rocket'>('shurjopay');
     const [transactionRef, setTransactionRef] = useState('');
     const [senderPhone, setSenderPhone] = useState(user?.phone || '');
     const [notes, setNotes] = useState('');
@@ -132,12 +134,18 @@ export const CheckoutPage: React.FC = () => {
         },
     ].filter(gw => gw.config?.enabled !== false);
 
-    // Automatically select the first enabled gateway if current selection is disabled
+    // Automatically select gateway based on availability
     useEffect(() => {
-        if (availableGateways.length > 0 && !availableGateways.some(gw => gw.id === paymentMethod)) {
+        if (paymentMethod === 'shurjopay' && !isShurjopayEnabled && availableGateways.length > 0) {
             setPaymentMethod(availableGateways[0].id);
+        } else if (paymentMethod !== 'shurjopay' && !availableGateways.some(gw => gw.id === paymentMethod)) {
+            if (isShurjopayEnabled) {
+                setPaymentMethod('shurjopay');
+            } else if (availableGateways.length > 0) {
+                setPaymentMethod(availableGateways[0].id);
+            }
         }
-    }, [availableGateways, paymentMethod]);
+    }, [isShurjopayEnabled, availableGateways, paymentMethod]);
 
     useEffect(() => {
         if (!user) {
@@ -302,6 +310,34 @@ export const CheckoutPage: React.FC = () => {
         }
     };
 
+    const handleShurjopayCheckout = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (!course) return;
+
+        setError(null);
+        setSubmitting(true);
+
+        try {
+            const { data } = await apiClient.post('/orders/shurjopay/checkout', {
+                course_id: course.id,
+                notes,
+                include_nexpilot: hasActivePilot && includeNexPilot,
+                affiliate_code: appliedReferral?.code || (referralInput.trim() ? referralInput.trim() : undefined),
+                coupon_code: appliedCoupon?.code || (couponInput.trim() ? couponInput.trim() : undefined),
+            });
+
+            if (data.checkout_url) {
+                window.location.href = data.checkout_url;
+            } else {
+                setError('shurjoPay checkout URL could not be generated. Please try again.');
+                setSubmitting(false);
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Failed to initialize payment gateway.');
+            setSubmitting(false);
+        }
+    };
+
     if (loading || !course) {
         return (
             <div className="max-w-4xl mx-auto px-4 py-20 text-center text-slate-400">
@@ -330,86 +366,82 @@ export const CheckoutPage: React.FC = () => {
                             Select Payment Method
                         </h3>
 
-                        {availableGateways.length === 0 ? (
-                            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs">
-                                No payment gateway is currently available. Please contact support.
-                            </div>
-                        ) : (
-                            <div className={`grid grid-cols-${Math.min(availableGateways.length, 3)} gap-3`}>
-                                {availableGateways.map(gw => {
-                                    const isSelected = paymentMethod === gw.id;
-                                    return (
-                                        <button
-                                            key={gw.id}
-                                            type="button"
-                                            onClick={() => setPaymentMethod(gw.id)}
-                                            className={`p-4 rounded-2xl border-2 text-center transition-all cursor-pointer ${
-                                                isSelected
-                                                    ? `${gw.colorClass} shadow-xs`
-                                                    : `border-slate-200 hover:border-slate-300 ${gw.inactiveClass}`
-                                            }`}
-                                        >
-                                            <span className={`block font-black text-base ${gw.textColor}`}>{gw.title}</span>
-                                            <span className="text-[11px] text-slate-500 font-semibold block truncate">
-                                                {gw.title} {getMethodTypeLabel(gw.config?.type || 'send_money')}
-                                            </span>
-                                        </button>
-                                    );
-                                })}
+                        {/* shurjoPay Online Payment Option */}
+                        {isShurjopayEnabled && (
+                            <div className="space-y-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setPaymentMethod('shurjopay')}
+                                    className={`w-full p-4.5 rounded-2xl border-2 text-left transition-all cursor-pointer relative overflow-hidden ${
+                                        paymentMethod === 'shurjopay'
+                                            ? 'border-sky-500 bg-sky-50/70 text-sky-950 shadow-xs ring-2 ring-sky-500/20'
+                                            : 'border-slate-200 hover:border-slate-300 bg-white'
+                                    }`}
+                                >
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-sky-500/20">
+                                                <Zap className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-extrabold text-sm text-slate-900">
+                                                        {settings?.shurjopay_settings?.display_name || 'অনলাইন পেমেন্ট (বিকাশ, নগদ, রকেট, কার্ড)'}
+                                                    </span>
+                                                    <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                                                        অটোমেটিক এক্সেস
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-slate-500 mt-0.5">
+                                                    {settings?.shurjopay_settings?.description || 'bKash, Nagad, Rocket, Cards বা Net Banking দিয়ে সাথে সাথে পেমেন্ট করুন'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
+                                            <span className="px-2 py-0.5 bg-pink-50 border border-pink-200 rounded text-[10px] font-bold text-pink-600">bKash</span>
+                                            <span className="px-2 py-0.5 bg-orange-50 border border-orange-200 rounded text-[10px] font-bold text-orange-600">Nagad</span>
+                                            <span className="px-2 py-0.5 bg-purple-50 border border-purple-200 rounded text-[10px] font-bold text-purple-600">Rocket</span>
+                                            <span className="px-2 py-0.5 bg-blue-50 border border-blue-200 rounded text-[10px] font-bold text-blue-600">Cards</span>
+                                        </div>
+                                    </div>
+                                </button>
                             </div>
                         )}
 
-                        {/* Instructions */}
-                        {activeGateway && (
-                            <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-700 space-y-2.5">
-                                <div className="font-bold text-slate-900 flex items-center justify-between">
-                                    <span className="flex items-center gap-1.5">
-                                        <span>
-                                            Payment Instructions ({activeGateway.title}):
+                        {/* Manual Payment Section */}
+                        {availableGateways.length > 0 && (
+                            <div className="space-y-3 pt-2">
+                                {isShurjopayEnabled && (
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-px bg-slate-200 flex-1"></div>
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                            বা ম্যানুয়াল সেন্ড মানি (TrxID)
                                         </span>
-                                    </span>
-                                    <button
-                                        type="button"
-                                        onClick={handleCopyNumber}
-                                        className="inline-flex items-center gap-1 text-sky-600 font-bold hover:underline cursor-pointer"
-                                    >
-                                        {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                                        <span>{copied ? 'Copied' : 'Copy Number'}</span>
-                                    </button>
-                                </div>
-
-                                <p className="leading-relaxed">
-                                    {`1. Open your ${activeGateway.title} app or dial code and select ${getMethodTypeLabel(currentType)}.`}
-                                </p>
-
-                                <div className="flex items-center gap-2 pt-0.5">
-                                    <span>2. Recipient Number: </span>
-                                    <strong className="font-mono text-sm text-slate-900 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200 shadow-2xs">
-                                        {currentNumber}
-                                    </strong>
-                                    <span className="text-[11px] text-slate-500 font-medium">
-                                        ({getAccountTypeBadge(currentType)})
-                                    </span>
-                                </div>
-
-                                <p className="pt-0.5">
-                                    3. Send Amount: 
-                                    <strong className="text-slate-900">{formatBDT(totalPayable)}</strong>
-                                </p>
-
-                                {/* Custom instruction note from admin if provided */}
-                                {(activeGateway.config?.instructions_en || activeGateway.config?.instructions) && (
-                                    <div className="p-3 bg-white rounded-xl border border-slate-200/90 text-slate-600 leading-relaxed font-normal">
-                                        <span className="font-semibold text-slate-800 block mb-0.5">
-                                            Special Instruction:
-                                        </span>
-                                        {activeGateway.config?.instructions_en || activeGateway.config?.instructions}
+                                        <div className="h-px bg-slate-200 flex-1"></div>
                                     </div>
                                 )}
-
-                                <p className="pt-0.5 text-slate-500">
-                                    4. Enter the TrxID below after successful transfer.
-                                </p>
+                                <div className={`grid grid-cols-${Math.min(availableGateways.length, 3)} gap-3`}>
+                                    {availableGateways.map(gw => {
+                                        const isSelected = paymentMethod === gw.id;
+                                        return (
+                                            <button
+                                                key={gw.id}
+                                                type="button"
+                                                onClick={() => setPaymentMethod(gw.id)}
+                                                className={`p-3.5 rounded-2xl border-2 text-center transition-all cursor-pointer ${
+                                                    isSelected
+                                                        ? `${gw.colorClass} shadow-xs ring-2 ring-slate-400/20`
+                                                        : `border-slate-200 hover:border-slate-300 ${gw.inactiveClass}`
+                                                }`}
+                                            >
+                                                <span className={`block font-black text-sm ${gw.textColor}`}>{gw.title}</span>
+                                                <span className="text-[11px] text-slate-500 font-semibold block truncate">
+                                                    {gw.title} {getMethodTypeLabel(gw.config?.type || 'send_money')}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         )}
 
@@ -420,58 +452,167 @@ export const CheckoutPage: React.FC = () => {
                             </div>
                         )}
 
-                        {/* Payment Verification Form */}
-                        <form onSubmit={handleSubmitOrder} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                    Sender Mobile Number
-                                </label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={senderPhone}
-                                    onChange={(e) => setSenderPhone(e.target.value)}
-                                    placeholder="017xxxxxxxx"
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
-                                />
-                            </div>
+                        {/* Conditional Form: shurjoPay VS Manual */}
+                        {paymentMethod === 'shurjopay' ? (
+                            <div className="space-y-4 pt-1">
+                                <div className="p-5 rounded-2xl bg-gradient-to-br from-sky-50 via-slate-50 to-white border border-sky-100 text-xs text-slate-700 space-y-2.5">
+                                    <div className="flex items-center gap-2">
+                                        <ShieldCheck className="w-4 h-4 text-sky-600" />
+                                        <span className="font-bold text-slate-900">
+                                            সুরক্ষিত অনলাইন পেমেন্ট (shurjoPay Gateway)
+                                        </span>
+                                    </div>
+                                    <p className="text-slate-600 leading-relaxed">
+                                        নিচের বাটনে ক্লিক করলে আপনাকে shurjoPay এর অফিসিয়াল ও সুরক্ষিত পেমেন্ট গেটওয়েতে নিয়ে যাওয়া হবে। সেখানে আপনি বিকাশ, নগদ, রকেট, কার্ড বা ইন্টারনেট ব্যাংকিং নির্বাচন করে পেমেন্ট সম্পন্ন করতে পারবেন।
+                                    </p>
+                                    <div className="text-[11px] text-emerald-700 font-bold flex items-center gap-1.5 pt-1">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                        <span>পেমেন্ট সফল হওয়ামাত্রই স্বয়ংক্রিয়ভাবে কোর্স এনরোলমেন্ট একটিভ হয়ে যাবে।</span>
+                                    </div>
+                                </div>
 
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                    Transaction ID (TrxID)
-                                </label>
-                                <input
-                                    type="text"
-                                    required
-                                    value={transactionRef}
-                                    onChange={(e) => setTransactionRef(e.target.value)}
-                                    placeholder="e.g. 9J3K8LQZ"
-                                    className="w-full px-4 py-3 font-mono uppercase bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
-                                />
-                            </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                        Additional Notes (Optional)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={notes}
+                                        onChange={(e) => setNotes(e.target.value)}
+                                        placeholder="Any special note or reference"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
+                                    />
+                                </div>
 
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                    Additional Notes (Optional)
-                                </label>
-                                <input
-                                    type="text"
-                                    value={notes}
-                                    onChange={(e) => setNotes(e.target.value)}
-                                    placeholder="Any special note or reference"
-                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
-                                />
+                                <button
+                                    type="button"
+                                    onClick={handleShurjopayCheckout}
+                                    disabled={submitting}
+                                    className="w-full py-4 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-black text-base rounded-2xl shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-4 cursor-pointer"
+                                >
+                                    {submitting ? (
+                                        <>
+                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            <span>shurjoPay গেটওয়েতে সংযোগ হচ্ছে...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ShieldCheck className="w-5 h-5" />
+                                            <span>Pay {formatBDT(totalPayable)} with shurjoPay</span>
+                                            <ArrowRight className="w-5 h-5 ml-1" />
+                                        </>
+                                    )}
+                                </button>
                             </div>
+                        ) : (
+                            <>
+                                {/* Manual Instructions */}
+                                {activeGateway && (
+                                    <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-700 space-y-2.5">
+                                        <div className="font-bold text-slate-900 flex items-center justify-between">
+                                            <span className="flex items-center gap-1.5">
+                                                <span>
+                                                    Payment Instructions ({activeGateway.title}):
+                                                </span>
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={handleCopyNumber}
+                                                className="inline-flex items-center gap-1 text-sky-600 font-bold hover:underline cursor-pointer"
+                                            >
+                                                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                                                <span>{copied ? 'Copied' : 'Copy Number'}</span>
+                                            </button>
+                                        </div>
 
-                            <button
-                                type="submit"
-                                disabled={submitting}
-                                className="w-full py-4 bg-sky-600 hover:bg-sky-700 text-white font-bold text-base rounded-xl shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-4 cursor-pointer"
-                            >
-                                <span>{submitting ? 'Processing Order...' : 'Payment Completed & Confirm Order'}</span>
-                                <ArrowRight className="w-5 h-5" />
-                            </button>
-                        </form>
+                                        <p className="leading-relaxed">
+                                            {`1. Open your ${activeGateway.title} app or dial code and select ${getMethodTypeLabel(currentType)}.`}
+                                        </p>
+
+                                        <div className="flex items-center gap-2 pt-0.5">
+                                            <span>2. Recipient Number: </span>
+                                            <strong className="font-mono text-sm text-slate-900 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200 shadow-2xs">
+                                                {currentNumber}
+                                            </strong>
+                                            <span className="text-[11px] text-slate-500 font-medium">
+                                                ({getAccountTypeBadge(currentType)})
+                                            </span>
+                                        </div>
+
+                                        <p className="pt-0.5">
+                                            3. Send Amount: 
+                                            <strong className="text-slate-900">{formatBDT(totalPayable)}</strong>
+                                        </p>
+
+                                        {(activeGateway.config?.instructions_en || activeGateway.config?.instructions) && (
+                                            <div className="p-3 bg-white rounded-xl border border-slate-200/90 text-slate-600 leading-relaxed font-normal">
+                                                <span className="font-semibold text-slate-800 block mb-0.5">
+                                                    Special Instruction:
+                                                </span>
+                                                {activeGateway.config?.instructions_en || activeGateway.config?.instructions}
+                                            </div>
+                                        )}
+
+                                        <p className="pt-0.5 text-slate-500">
+                                            4. Enter the TrxID below after successful transfer.
+                                        </p>
+                                    </div>
+                                )}
+
+                                {/* Manual Verification Form */}
+                                <form onSubmit={handleSubmitOrder} className="space-y-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                            Sender Mobile Number
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={senderPhone}
+                                            onChange={(e) => setSenderPhone(e.target.value)}
+                                            placeholder="017xxxxxxxx"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                            Transaction ID (TrxID)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={transactionRef}
+                                            onChange={(e) => setTransactionRef(e.target.value)}
+                                            placeholder="e.g. 9J3K8LQZ"
+                                            className="w-full px-4 py-3 font-mono uppercase bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                            Additional Notes (Optional)
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={notes}
+                                            onChange={(e) => setNotes(e.target.value)}
+                                            placeholder="Any special note or reference"
+                                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
+                                        />
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={submitting}
+                                        className="w-full py-4 bg-sky-600 hover:bg-sky-700 text-white font-bold text-base rounded-xl shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-4 cursor-pointer"
+                                    >
+                                        <span>{submitting ? 'Processing Order...' : 'Payment Completed & Confirm Order'}</span>
+                                        <ArrowRight className="w-5 h-5" />
+                                    </button>
+                                </form>
+                            </>
+                        )}
                     </div>
                 </div>
 

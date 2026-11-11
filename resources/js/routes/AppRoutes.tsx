@@ -38,6 +38,7 @@ import { AdminHeaderBuilderPage } from '../pages/admin/AdminHeaderBuilderPage';
 import { AdminFooterBuilderPage } from '../pages/admin/AdminFooterBuilderPage';
 import { AdminAppearanceGeneralPage } from '../pages/admin/AdminAppearanceGeneralPage';
 import { AdminManualPaymentPage } from '../pages/admin/AdminManualPaymentPage';
+import { AdminShurjopayPage } from '../pages/admin/AdminShurjopayPage';
 import { AdminNexPilotsPage } from '../pages/admin/AdminNexPilotsPage';
 import { AdminNexPilotEditPage } from '../pages/admin/AdminNexPilotEditPage';
 import { AdminNexPilotBuilderPage } from '../pages/admin/AdminNexPilotBuilderPage';
@@ -145,6 +146,7 @@ export const AppRoutes: React.FC = () => {
                 <Route path="announcements/notify" element={<NotifyStudentPage role="admin" />} />
                 <Route path="payments" element={<Navigate to="/admin/payments/manual" replace />} />
                 <Route path="payments/manual" element={<AdminManualPaymentPage />} />
+                <Route path="payments/shurjopay" element={<AdminShurjopayPage />} />
                 {/* Affiliate Management */}
                 <Route path="affiliate" element={<Navigate to="/admin/affiliate/settings" replace />} />
                 <Route path="affiliate/settings" element={<AdminAffiliateGeneralSettingsPage />} />

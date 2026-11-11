@@ -20,6 +20,7 @@ class WebsiteSetting extends Model
         'header_settings',
         'footer_settings',
         'manual_payment_settings',
+        'shurjopay_settings',
         'openai_settings',
     ];
 
@@ -27,6 +28,7 @@ class WebsiteSetting extends Model
         'header_settings' => 'array',
         'footer_settings' => 'array',
         'manual_payment_settings' => 'array',
+        'shurjopay_settings' => 'array',
         'openai_settings' => 'array',
     ];
 
@@ -121,6 +123,24 @@ class WebsiteSetting extends Model
         ];
     }
 
+    public static function defaultShurjopaySettings(): array
+    {
+        return [
+            'enabled' => true,
+            'environment' => 'live', // 'sandbox' or 'live'
+            'live_api_url' => 'https://engine.shurjopayment.com',
+            'live_username' => 'Monologue Edu',
+            'live_password' => 'FMN4G@wK*!5p',
+            'live_prefix' => 'MLE',
+            'sandbox_api_url' => 'https://sandbox.shurjopayment.com',
+            'sandbox_username' => 'sp_sandbox',
+            'sandbox_password' => 'pyyk97hu&6u6',
+            'sandbox_prefix' => 'sp',
+            'display_name' => 'অনলাইন পেমেন্ট (বিকাশ, নগদ, রকেট, কার্ড)',
+            'description' => 'shurjoPay এর মাধ্যমে বিকাশ, নগদ, রকেট, উপায়, ভিসা, মাস্টারকার্ড বা ইন্টারনেট ব্যাংকিং দিয়ে সাথে সাথে স্বয়ংক্রিয়ভাবে পেমেন্ট সম্পন্ন করুন।',
+        ];
+    }
+
     public static function defaultOpenaiSettings(): array
     {
         return [
@@ -149,6 +169,7 @@ class WebsiteSetting extends Model
                 'header_settings' => static::defaultHeaderSettings(),
                 'footer_settings' => static::defaultFooterSettings(),
                 'manual_payment_settings' => static::defaultManualPaymentSettings(),
+                'shurjopay_settings' => static::defaultShurjopaySettings(),
                 'openai_settings' => static::defaultOpenaiSettings(),
             ]);
         }
@@ -189,6 +210,9 @@ class WebsiteSetting extends Model
         }
         if (empty($setting->openai_settings)) {
             $setting->openai_settings = static::defaultOpenaiSettings();
+        }
+        if (empty($setting->shurjopay_settings)) {
+            $setting->shurjopay_settings = static::defaultShurjopaySettings();
         }
 
         return $setting;
