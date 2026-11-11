@@ -384,27 +384,36 @@ export const CheckoutPage: React.FC = () => {
                                 >
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-sky-500/20">
+                                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-sky-500/20">
                                                 <Zap className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <span className="font-extrabold text-base text-slate-900 block">
-                                                    {settings?.shurjopay_settings?.display_name && !settings.shurjopay_settings.display_name.includes('অনলাইন পেমেন্ট')
-                                                        ? settings.shurjopay_settings.display_name
-                                                        : 'Pay with shurjoPay'}
-                                                </span>
-                                                <span className="text-xs text-slate-500 font-medium">
-                                                    {settings?.shurjopay_settings?.description && !settings.shurjopay_settings.description.includes('shurjoPay এর মাধ্যমে')
-                                                        ? settings.shurjopay_settings.description
-                                                        : 'bKash, Nagad, Rocket, Cards'}
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-extrabold text-base text-slate-900">
+                                                        অনলাইন পেমেন্ট
+                                                    </span>
+                                                    <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                                                        অটোমেটিক
+                                                    </span>
+                                                </div>
+                                                <span className="text-xs text-slate-500 font-medium block mt-0.5">
+                                                    ইন্সট্যান্ট কোর্স অ্যাক্টিভেশন
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-1.5 shrink-0 self-start sm:self-center">
-                                            <span className="px-2.5 py-1 bg-pink-50 border border-pink-200 rounded-lg text-[11px] font-bold text-pink-600">bKash</span>
-                                            <span className="px-2.5 py-1 bg-orange-50 border border-orange-200 rounded-lg text-[11px] font-bold text-orange-600">Nagad</span>
-                                            <span className="px-2.5 py-1 bg-purple-50 border border-purple-200 rounded-lg text-[11px] font-bold text-purple-600">Rocket</span>
-                                            <span className="px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-bold text-blue-600">Cards</span>
+                                        <div className="grid grid-cols-2 gap-1.5 shrink-0 self-start sm:self-center">
+                                            <span className="px-3 py-1 bg-pink-50 border border-pink-200 rounded-lg text-[11px] font-bold text-pink-600 text-center shadow-2xs">
+                                                bKash
+                                            </span>
+                                            <span className="px-3 py-1 bg-orange-50 border border-orange-200 rounded-lg text-[11px] font-bold text-orange-600 text-center shadow-2xs">
+                                                Nagad
+                                            </span>
+                                            <span className="px-3 py-1 bg-purple-50 border border-purple-200 rounded-lg text-[11px] font-bold text-purple-600 text-center shadow-2xs">
+                                                Rocket
+                                            </span>
+                                            <span className="px-3 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-bold text-blue-600 text-center shadow-2xs">
+                                                Cards
+                                            </span>
                                         </div>
                                     </div>
                                 </button>
