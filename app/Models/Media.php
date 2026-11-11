@@ -47,4 +47,29 @@ class Media extends Model
 
         return $bytes . ' B';
     }
+
+    /**
+     * Dynamically resolve media URL to ensure HTTPS and prevent domain/symlink mismatches
+     */
+    public function getUrlAttribute($value): string
+    {
+        $filePath = $this->file_path;
+        if ($filePath) {
+            $path = ltrim(str_replace('public/', '', $filePath), '/');
+            $assetUrl = asset('storage/' . $path);
+            if ((request()->isSecure() || str_contains(request()->getHost(), 'monologueedu.com') || request()->server('HTTP_X_FORWARDED_PROTO') === 'https') && str_starts_with($assetUrl, 'http://')) {
+                return 'https://' . substr($assetUrl, 7);
+            }
+            return $assetUrl;
+        }
+
+        if ($value) {
+            if ((request()->isSecure() || str_contains(request()->getHost(), 'monologueedu.com') || request()->server('HTTP_X_FORWARDED_PROTO') === 'https') && str_starts_with($value, 'http://')) {
+                return 'https://' . substr($value, 7);
+            }
+            return $value;
+        }
+
+        return '';
+    }
 }

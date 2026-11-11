@@ -347,7 +347,14 @@ export const AdminCourseEditPage: React.FC = () => {
                                         alt="Thumbnail Preview"
                                         className="w-full h-full object-cover"
                                         onError={(e) => {
-                                            (e.target as HTMLElement).style.display = 'none';
+                                            const target = e.target as HTMLImageElement;
+                                            if (!target.dataset.fallback && thumbnail.includes('/storage/')) {
+                                                target.dataset.fallback = 'true';
+                                                const path = thumbnail.substring(thumbnail.indexOf('/storage/'));
+                                                target.src = path;
+                                                return;
+                                            }
+                                            target.style.display = 'none';
                                         }}
                                     />
                                     <div className="absolute top-2 right-2 flex items-center gap-1.5">

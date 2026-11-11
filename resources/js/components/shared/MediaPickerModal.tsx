@@ -121,8 +121,15 @@ export const MediaPickerModal: React.FC<MediaPickerModalProps> = ({
                     src={item.url}
                     alt={item.file_name}
                     className="w-full h-full object-cover rounded-lg group-hover:scale-105 transition-transform"
+                    loading="lazy"
                     onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
+                        const target = e.target as HTMLImageElement;
+                        if (!target.dataset.fallback && item.file_path) {
+                            target.dataset.fallback = 'true';
+                            target.src = `/storage/${item.file_path.replace(/^public\//, '')}`;
+                            return;
+                        }
+                        target.style.display = 'none';
                     }}
                 />
             );

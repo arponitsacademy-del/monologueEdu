@@ -11,7 +11,7 @@
     RewriteRule ^database(?:/|$) - [F,L,NC]
     RewriteRule ^resources(?:/|$) - [F,L,NC]
     RewriteRule ^routes(?:/|$) - [F,L,NC]
-    RewriteRule ^storage(?:/|$) - [F,L,NC]
+    RewriteRule ^storage/(?:app/private|framework|logs)(?:/|$) - [F,L,NC]
     RewriteRule ^vendor(?:/|$) - [F,L,NC]
     RewriteRule (^|/)\. - [F,L]
 

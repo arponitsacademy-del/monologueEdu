@@ -141,8 +141,15 @@ export const AdminMediaPage: React.FC = () => {
                     src={item.url}
                     alt={item.file_name}
                     className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                    loading="lazy"
                     onError={(e) => {
-                        (e.target as HTMLElement).style.display = 'none';
+                        const target = e.target as HTMLImageElement;
+                        if (!target.dataset.fallback && item.file_path) {
+                            target.dataset.fallback = 'true';
+                            target.src = `/storage/${item.file_path.replace(/^public\//, '')}`;
+                            return;
+                        }
+                        target.style.display = 'none';
                     }}
                 />
             );
@@ -436,6 +443,13 @@ export const AdminMediaPage: React.FC = () => {
                                         src={selectedItem.url}
                                         alt={selectedItem.file_name}
                                         className="w-full h-full object-contain"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            if (!target.dataset.fallback && selectedItem.file_path) {
+                                                target.dataset.fallback = 'true';
+                                                target.src = `/storage/${selectedItem.file_path.replace(/^public\//, '')}`;
+                                            }
+                                        }}
                                     />
                                 ) : (
                                     renderThumbnail(selectedItem)
