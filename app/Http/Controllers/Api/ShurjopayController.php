@@ -126,12 +126,6 @@ class ShurjopayController extends Controller
             return response()->json(['message' => 'Course is not available for purchase.'], 404);
         }
 
-        if ($course->enable_shurjopay === false) {
-            return response()->json([
-                'message' => 'এই কোর্সের জন্য shurjoPay অনলাইন পেমেন্ট সক্রিয় নয়। অনুগ্রহ করে ম্যানুয়াল পেমেন্ট ব্যবহার করুন।',
-            ], 422);
-        }
-
         if ($user->isEnrolledIn($course->id)) {
             return response()->json(['message' => 'You are already enrolled in this course.'], 422);
         }

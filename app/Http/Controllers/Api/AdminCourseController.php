@@ -46,8 +46,6 @@ class AdminCourseController extends Controller
             'sale_price' => ['nullable', 'numeric', 'min:0', 'lte:price'],
             'thumbnail' => ['nullable', 'string'],
             'is_featured' => ['nullable', 'boolean'],
-            'enable_manual_payment' => ['nullable', 'boolean'],
-            'enable_shurjopay' => ['nullable', 'boolean'],
             'status' => ['required', 'in:draft,published,archived'],
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['exists:categories,id'],
@@ -74,8 +72,6 @@ class AdminCourseController extends Controller
             'sale_price' => isset($validated['sale_price']) && $validated['sale_price'] !== '' ? (float) $validated['sale_price'] : null,
             'thumbnail' => $validated['thumbnail'] ?? null,
             'is_featured' => (bool) ($validated['is_featured'] ?? false),
-            'enable_manual_payment' => array_key_exists('enable_manual_payment', $validated) ? (bool) $validated['enable_manual_payment'] : true,
-            'enable_shurjopay' => array_key_exists('enable_shurjopay', $validated) ? (bool) $validated['enable_shurjopay'] : true,
             'status' => $validated['status'],
         ]);
 
@@ -114,8 +110,6 @@ class AdminCourseController extends Controller
             'sale_price' => ['nullable', 'numeric', 'min:0', 'lte:price'],
             'thumbnail' => ['nullable', 'string'],
             'is_featured' => ['nullable', 'boolean'],
-            'enable_manual_payment' => ['nullable', 'boolean'],
-            'enable_shurjopay' => ['nullable', 'boolean'],
             'status' => ['required', 'in:draft,published,archived'],
             'category_ids' => ['nullable', 'array'],
             'category_ids.*' => ['exists:categories,id'],
@@ -136,8 +130,6 @@ class AdminCourseController extends Controller
             'sale_price' => isset($validated['sale_price']) && $validated['sale_price'] !== '' ? (float) $validated['sale_price'] : null,
             'thumbnail' => $validated['thumbnail'] ?? $course->thumbnail,
             'is_featured' => (bool) ($validated['is_featured'] ?? false),
-            'enable_manual_payment' => array_key_exists('enable_manual_payment', $validated) ? (bool) $validated['enable_manual_payment'] : ($course->enable_manual_payment ?? true),
-            'enable_shurjopay' => array_key_exists('enable_shurjopay', $validated) ? (bool) $validated['enable_shurjopay'] : ($course->enable_shurjopay ?? true),
             'status' => $validated['status'],
         ]);
 

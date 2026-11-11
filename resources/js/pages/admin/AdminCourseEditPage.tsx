@@ -14,9 +14,7 @@ import {
     Image as ImageIcon,
     Trash2,
     Loader2,
-    ExternalLink,
-    CreditCard,
-    Zap
+    ExternalLink
 } from 'lucide-react';
 
 export const AdminCourseEditPage: React.FC = () => {
@@ -30,8 +28,6 @@ export const AdminCourseEditPage: React.FC = () => {
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('0');
     const [salePrice, setSalePrice] = useState('');
-    const [enableManualPayment, setEnableManualPayment] = useState(true);
-    const [enableShurjopay, setEnableShurjopay] = useState(true);
     const [thumbnail, setThumbnail] = useState('');
     const [status, setStatus] = useState<'draft' | 'published' | 'archived'>('draft');
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
@@ -95,8 +91,6 @@ export const AdminCourseEditPage: React.FC = () => {
             setDescription(c.description || '');
             setPrice(String(c.price));
             setSalePrice(c.sale_price ? String(c.sale_price) : '');
-            setEnableManualPayment(c.enable_manual_payment !== false);
-            setEnableShurjopay(c.enable_shurjopay !== false);
             setThumbnail(c.thumbnail || '');
             setStatus(c.status);
             setSelectedCategoryIds(c.categories?.map((cat: any) => cat.id) || []);
@@ -130,8 +124,6 @@ export const AdminCourseEditPage: React.FC = () => {
                 description,
                 price: numPrice,
                 sale_price: numSale,
-                enable_manual_payment: enableManualPayment,
-                enable_shurjopay: enableShurjopay,
                 thumbnail,
                 status,
                 category_ids: selectedCategoryIds,
@@ -421,94 +413,6 @@ export const AdminCourseEditPage: React.FC = () => {
                                 className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                             />
                         </div>
-                    </div>
-
-                    {/* Course Payment Gateways Toggles */}
-                    <div className="p-5 rounded-2xl bg-slate-50/80 border border-slate-200/90 space-y-4">
-                        <div className="flex items-center justify-between border-b border-slate-200/80 pb-3">
-                            <div className="flex items-center gap-2">
-                                <CreditCard className="w-4 h-4 text-sky-600" />
-                                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                                    কোর্সের পেমেন্ট পদ্ধতি (Course Payment Methods)
-                                </span>
-                            </div>
-                            <span className="text-[11px] text-slate-500 font-medium">
-                                এই কোর্সে কোন মাধ্যমে পেমেন্ট গ্রহণ করবেন তা নির্ধারণ করুন
-                            </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {/* Manual Payment Toggle */}
-                            <div className={`p-4 rounded-xl border transition-all ${
-                                enableManualPayment 
-                                    ? 'bg-white border-pink-200 shadow-2xs' 
-                                    : 'bg-slate-100/70 border-slate-200 opacity-60'
-                            }`}>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-lg bg-pink-100 text-pink-700 flex items-center justify-center font-black text-xs">
-                                            ৳
-                                        </div>
-                                        <div>
-                                            <span className="block text-xs font-bold text-slate-800">
-                                                ম্যানুয়াল পেমেন্ট (Manual Payment)
-                                            </span>
-                                            <span className="text-[11px] text-slate-500">
-                                                বিকাশ, নগদ, রকেট সেন্ড মানি (TrxID)
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={enableManualPayment}
-                                            onChange={(e) => setEnableManualPayment(e.target.checked)}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-10 h-5.5 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-pink-600"></div>
-                                    </label>
-                                </div>
-                            </div>
-
-                            {/* shurjoPay Online Payment Toggle */}
-                            <div className={`p-4 rounded-xl border transition-all ${
-                                enableShurjopay 
-                                    ? 'bg-white border-sky-200 shadow-2xs' 
-                                    : 'bg-slate-100/70 border-slate-200 opacity-60'
-                            }`}>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2.5">
-                                        <div className="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-black text-xs">
-                                            <Zap className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <span className="block text-xs font-bold text-slate-800">
-                                                shurjoPay অনলাইন পেমেন্ট
-                                            </span>
-                                            <span className="text-[11px] text-slate-500">
-                                                স্বয়ংক্রিয় অনলাইন পেমেন্ট গেটওয়ে
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <label className="relative inline-flex items-center cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={enableShurjopay}
-                                            onChange={(e) => setEnableShurjopay(e.target.checked)}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-10 h-5.5 bg-slate-300 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-sky-600"></div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
-                        {!enableManualPayment && !enableShurjopay && (
-                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs flex items-center gap-2">
-                                <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
-                                <span>সতর্কতা: দুটি মেথডই বন্ধ থাকলে স্টুডেন্টরা চেকআউট পেজে কোনো পেমেন্ট অপশন পাবে না (ফ্রি কোর্স ছাড়া)।</span>
-                            </div>
-                        )}
                     </div>
 
                     {/* Multi-Teacher Assignment */}

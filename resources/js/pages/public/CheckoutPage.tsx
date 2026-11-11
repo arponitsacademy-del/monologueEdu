@@ -61,10 +61,7 @@ export const CheckoutPage: React.FC = () => {
     const [course, setCourse] = useState<Course | null>(null);
     const [loading, setLoading] = useState(true);
     const [includeNexPilot, setIncludeNexPilot] = useState(true);
-    const isGlobalShurjopayEnabled = settings?.shurjopay_settings ? settings.shurjopay_settings.enabled : true;
-    const isCourseShurjopayEnabled = course ? (course.enable_shurjopay !== false) : true;
-    const isShurjopayAllowed = isGlobalShurjopayEnabled && isCourseShurjopayEnabled;
-    const isCourseManualAllowed = course ? (course.enable_manual_payment !== false) : true;
+    const isShurjopayAllowed = settings?.shurjopay_settings ? settings.shurjopay_settings.enabled : true;
 
     const [paymentMethod, setPaymentMethod] = useState<'shurjopay' | 'manual_bkash' | 'manual_nagad' | 'manual_rocket'>('shurjopay');
     const [transactionRef, setTransactionRef] = useState('');
@@ -136,7 +133,7 @@ export const CheckoutPage: React.FC = () => {
             textColor: 'text-purple-600',
             title: 'Rocket',
         },
-    ].filter(gw => isCourseManualAllowed && gw.config?.enabled !== false);
+    ].filter(gw => gw.config?.enabled !== false);
 
     // Automatically select gateway based on availability
     useEffect(() => {
