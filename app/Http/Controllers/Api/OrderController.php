@@ -42,6 +42,12 @@ class OrderController extends Controller
             abort(404, 'Course is not available for purchase.');
         }
 
+        if ($course->enable_manual_payment === false) {
+            return response()->json([
+                'message' => 'এই কোর্সের জন্য ম্যানুয়াল পেমেন্ট সক্রিয় নয়। অনুগ্রহ করে অনলাইন পেমেন্ট ব্যবহার করুন।',
+            ], 422);
+        }
+
         if ($user->isEnrolledIn($course->id)) {
             return response()->json([
                 'message' => 'You are already enrolled in this course.',

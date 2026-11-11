@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class Course extends Model
@@ -25,6 +27,8 @@ class Course extends Model
         'price',
         'sale_price',
         'is_featured',
+        'enable_manual_payment',
+        'enable_shurjopay',
         'status',
     ];
 
@@ -32,10 +36,27 @@ class Course extends Model
         'price' => 'float',
         'sale_price' => 'float',
         'is_featured' => 'boolean',
+        'enable_manual_payment' => 'boolean',
+        'enable_shurjopay' => 'boolean',
     ];
 
     public static function booted(): void
     {
+        if (Schema::hasTable('courses') && !Schema::hasColumn('courses', 'enable_manual_payment')) {
+            try {
+                Schema::table('courses', function (Blueprint $table) {
+                    if (!Schema::hasColumn('courses', 'enable_manual_payment')) {
+                        $table->boolean('enable_manual_payment')->default(true)->after('is_featured');
+                    }
+                    if (!Schema::hasColumn('courses', 'enable_shurjopay')) {
+                        $table->boolean('enable_shurjopay')->default(true)->after('enable_manual_payment');
+                    }
+                });
+            } catch (\Throwable $e) {
+                // columns already exist
+            }
+        }
+
         static::creating(function (self $course): void {
             if (empty($course->slug)) {
                 $course->slug = Str::slug($course->title);

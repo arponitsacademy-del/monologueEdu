@@ -617,3 +617,4 @@ export const AdminShurjopayPage: React.FC = () => {
         </div>
     );
 };
+

@@ -61,7 +61,11 @@ export const CheckoutPage: React.FC = () => {
     const [course, setCourse] = useState<Course | null>(null);
     const [loading, setLoading] = useState(true);
     const [includeNexPilot, setIncludeNexPilot] = useState(true);
-    const isShurjopayEnabled = settings?.shurjopay_settings ? settings.shurjopay_settings.enabled : true;
+    const isGlobalShurjopayEnabled = settings?.shurjopay_settings ? settings.shurjopay_settings.enabled : true;
+    const isCourseShurjopayEnabled = course ? (course.enable_shurjopay !== false) : true;
+    const isShurjopayAllowed = isGlobalShurjopayEnabled && isCourseShurjopayEnabled;
+    const isCourseManualAllowed = course ? (course.enable_manual_payment !== false) : true;
+
     const [paymentMethod, setPaymentMethod] = useState<'shurjopay' | 'manual_bkash' | 'manual_nagad' | 'manual_rocket'>('shurjopay');
     const [transactionRef, setTransactionRef] = useState('');
     const [senderPhone, setSenderPhone] = useState(user?.phone || '');
@@ -132,20 +136,20 @@ export const CheckoutPage: React.FC = () => {
             textColor: 'text-purple-600',
             title: 'Rocket',
         },
-    ].filter(gw => gw.config?.enabled !== false);
+    ].filter(gw => isCourseManualAllowed && gw.config?.enabled !== false);
 
     // Automatically select gateway based on availability
     useEffect(() => {
-        if (paymentMethod === 'shurjopay' && !isShurjopayEnabled && availableGateways.length > 0) {
+        if (paymentMethod === 'shurjopay' && !isShurjopayAllowed && availableGateways.length > 0) {
             setPaymentMethod(availableGateways[0].id);
         } else if (paymentMethod !== 'shurjopay' && !availableGateways.some(gw => gw.id === paymentMethod)) {
-            if (isShurjopayEnabled) {
+            if (isShurjopayAllowed) {
                 setPaymentMethod('shurjopay');
             } else if (availableGateways.length > 0) {
                 setPaymentMethod(availableGateways[0].id);
             }
         }
-    }, [isShurjopayEnabled, availableGateways, paymentMethod]);
+    }, [isShurjopayAllowed, availableGateways, paymentMethod]);
 
     useEffect(() => {
         if (!user) {
@@ -367,7 +371,7 @@ export const CheckoutPage: React.FC = () => {
                         </h3>
 
                         {/* shurjoPay Online Payment Option */}
-                        {isShurjopayEnabled && (
+                        {isShurjopayAllowed && (
                             <div className="space-y-2">
                                 <button
                                     type="button"
@@ -411,7 +415,7 @@ export const CheckoutPage: React.FC = () => {
                         {/* Manual Payment Section */}
                         {availableGateways.length > 0 && (
                             <div className="space-y-3 pt-2">
-                                {isShurjopayEnabled && (
+                                {isShurjopayAllowed && (
                                     <div className="flex items-center gap-3">
                                         <div className="h-px bg-slate-200 flex-1"></div>
                                         <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
@@ -442,6 +446,13 @@ export const CheckoutPage: React.FC = () => {
                                         );
                                     })}
                                 </div>
+                            </div>
+                        )}
+
+                        {!isShurjopayAllowed && availableGateways.length === 0 && (
+                            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center gap-2">
+                                <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+                                <span>এই কোর্সের জন্য বর্তমানে কোনো পেমেন্ট মেথড সক্রিয় নেই। অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।</span>
                             </div>
                         )}
 

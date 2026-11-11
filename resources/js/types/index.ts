@@ -35,6 +35,8 @@ export interface Course {
     discount_percent?: number;
     thumbnail?: string | null;
     is_featured: boolean;
+    enable_manual_payment?: boolean;
+    enable_shurjopay?: boolean;
     status: 'draft' | 'published' | 'archived';
     instructors?: User[];
     instructor?: User;
