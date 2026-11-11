@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class WebsiteSetting extends Model
 {
@@ -153,6 +155,16 @@ class WebsiteSetting extends Model
 
     public static function current(): self
     {
+        if (Schema::hasTable('website_settings') && !Schema::hasColumn('website_settings', 'shurjopay_settings')) {
+            try {
+                Schema::table('website_settings', function (Blueprint $table) {
+                    $table->json('shurjopay_settings')->nullable()->after('manual_payment_settings');
+                });
+            } catch (\Throwable $e) {
+                // Table/column might already exist
+            }
+        }
+
         $setting = static::first();
         if (! $setting) {
             $setting = static::create([
