@@ -51,6 +51,11 @@ class AdminCourseController extends Controller
             'category_ids.*' => ['exists:categories,id'],
             'instructor_ids' => ['nullable', 'array'],
             'instructor_ids.*' => ['exists:users,id'],
+            'features' => ['nullable', 'array'],
+            'features.*' => ['string', 'max:500'],
+            'fake_enrollment_count' => ['nullable', 'integer', 'min:0'],
+            'class_starts_at' => ['nullable', 'string', 'max:100'],
+            'action_buttons' => ['nullable', 'array'],
         ], [
             'sale_price.lte' => 'অফার মূল্য অবশ্যই রেগুলার মূল্যের সমান বা কম হতে হবে।',
         ]);
@@ -72,6 +77,10 @@ class AdminCourseController extends Controller
             'sale_price' => isset($validated['sale_price']) && $validated['sale_price'] !== '' ? (float) $validated['sale_price'] : null,
             'thumbnail' => $validated['thumbnail'] ?? null,
             'is_featured' => (bool) ($validated['is_featured'] ?? false),
+            'features' => $validated['features'] ?? null,
+            'fake_enrollment_count' => isset($validated['fake_enrollment_count']) ? (int) $validated['fake_enrollment_count'] : 0,
+            'class_starts_at' => $validated['class_starts_at'] ?? null,
+            'action_buttons' => $validated['action_buttons'] ?? null,
             'status' => $validated['status'],
         ]);
 
@@ -115,6 +124,11 @@ class AdminCourseController extends Controller
             'category_ids.*' => ['exists:categories,id'],
             'instructor_ids' => ['nullable', 'array'],
             'instructor_ids.*' => ['exists:users,id'],
+            'features' => ['nullable', 'array'],
+            'features.*' => ['string', 'max:500'],
+            'fake_enrollment_count' => ['nullable', 'integer', 'min:0'],
+            'class_starts_at' => ['nullable', 'string', 'max:100'],
+            'action_buttons' => ['nullable', 'array'],
         ], [
             'sale_price.lte' => 'অফার মূল্য অবশ্যই রেগুলার মূল্যের সমান বা কম হতে হবে।',
         ]);
@@ -130,6 +144,10 @@ class AdminCourseController extends Controller
             'sale_price' => isset($validated['sale_price']) && $validated['sale_price'] !== '' ? (float) $validated['sale_price'] : null,
             'thumbnail' => $validated['thumbnail'] ?? $course->thumbnail,
             'is_featured' => (bool) ($validated['is_featured'] ?? false),
+            'features' => $validated['features'] ?? null,
+            'fake_enrollment_count' => isset($validated['fake_enrollment_count']) ? (int) $validated['fake_enrollment_count'] : 0,
+            'class_starts_at' => $validated['class_starts_at'] ?? null,
+            'action_buttons' => $validated['action_buttons'] ?? null,
             'status' => $validated['status'],
         ]);
 

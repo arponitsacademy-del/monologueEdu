@@ -15,8 +15,19 @@ import {
     ChevronDown, 
     ChevronUp,
     ShieldCheck,
-    ArrowRight
+    ArrowRight,
+    Calendar,
+    GraduationCap,
+    FileText,
+    ExternalLink
 } from 'lucide-react';
+
+const DEFAULT_FEATURES = [
+    'Full HD video lectures & live discussions',
+    'Downloadable practice sheets & lecture notes',
+    'Direct Q&A doubt-solving support with instructors',
+    'Lifetime course access from any device',
+];
 
 export const CourseDetailsPage: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
@@ -97,6 +108,8 @@ export const CourseDetailsPage: React.FC = () => {
     if (!course) return null;
 
     const firstLessonId = course.sections?.[0]?.lessons?.[0]?.id;
+    const totalEnrolled = (course.fake_enrollment_count || 0) + (course.enrollments_count || 0);
+    const courseFeatures = (course.features && course.features.length > 0) ? course.features : DEFAULT_FEATURES;
 
     return (
         <div className="bg-slate-50 min-h-screen pb-20">
@@ -124,7 +137,7 @@ export const CourseDetailsPage: React.FC = () => {
                             </span>
                             <span className="flex items-center gap-1.5">
                                 <Users className="w-4 h-4 text-sky-400" />
-                                {course.enrollments_count || 0} Students
+                                {totalEnrolled} Students
                             </span>
                         </div>
                     </div>
@@ -271,19 +284,52 @@ export const CourseDetailsPage: React.FC = () => {
                                 )}
                             </div>
 
+                            {/* Admission Count & Class Start Badges (Matches User Image) */}
+                            <div className="grid grid-cols-2 gap-2.5">
+                                {/* Admission Count Badge */}
+                                <div className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl p-3 flex items-center gap-2.5 shadow-2xs">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
+                                        <GraduationCap className="w-5 h-5 text-indigo-600" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <span className="text-[11px] font-bold text-slate-700 block truncate">
+                                            ভর্তি সংখ্যা
+                                        </span>
+                                        <span className="text-xl font-black text-indigo-700 leading-tight">
+                                            {totalEnrolled}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Class Start Badge */}
+                                <div className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl p-3 flex items-center gap-2.5 shadow-2xs">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
+                                        <Calendar className="w-5 h-5 text-indigo-600" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <span className="text-[11px] font-bold text-slate-700 block truncate">
+                                            ক্লাস শুরু
+                                        </span>
+                                        <span className="text-xs sm:text-sm font-extrabold text-indigo-700 truncate block leading-tight">
+                                            {course.class_starts_at || 'ভর্তি চলছে'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
                             {/* Price */}
                             <div className="flex items-baseline justify-between pt-2">
                                 <div>
-                                    <span className="text-xs font-semibold text-slate-400 block">Course Fee</span>
+                                    <span className="text-xs font-semibold text-slate-400 block mb-1">কোর্স ফি</span>
                                     {course.price === 0 ? (
                                         <span className="text-3xl font-black text-emerald-600">Free</span>
                                     ) : (
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-3xl font-black text-slate-900">
-                                                {formatBDT(course.effective_price || course.price)}
+                                        <div className="flex items-baseline gap-2.5">
+                                            <span className="text-3xl font-black text-indigo-600">
+                                                {formatBDT(course.effective_price || (course.sale_price && course.sale_price < course.price ? course.sale_price : course.price))}
                                             </span>
                                             {course.sale_price && course.sale_price < course.price && (
-                                                <span className="text-sm text-slate-400 line-through">
+                                                <span className="text-base text-slate-400 line-through font-bold">
                                                     {formatBDT(course.price)}
                                                 </span>
                                             )}
@@ -299,53 +345,67 @@ export const CourseDetailsPage: React.FC = () => {
                             </div>
 
                             {/* Action CTA */}
-                            <div>
+                            <div className="space-y-2.5">
                                 {isEnrolled ? (
                                     <Link
                                         to={firstLessonId ? `/learning/${course.id}/lessons/${firstLessonId}` : '/student/my-courses'}
-                                        className="w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all"
+                                        className="w-full py-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 transition-all"
                                     >
-                                        <span>Go to Classroom</span>
-                                        <ArrowRight className="w-5 h-5" />
+                                        <PlayCircle className="w-5 h-5" />
+                                        <span>ক্লাস শুরু করুন</span>
                                     </Link>
                                 ) : course.price === 0 ? (
                                     <button
                                         onClick={handleFreeEnroll}
                                         disabled={enrollingFree}
-                                        className="w-full py-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 transition-all disabled:opacity-50"
+                                        className="w-full py-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-50 cursor-pointer"
                                     >
-                                        <span>{enrollingFree ? 'Enrolling...' : 'Enroll for Free'}</span>
                                         <Sparkles className="w-5 h-5" />
+                                        <span>{enrollingFree ? 'এনরোল হচ্ছে...' : 'ফ্রিতে ক্লাস শুরু করুন'}</span>
                                     </button>
                                 ) : (
                                     <Link
                                         to={`/checkout/${course.slug}`}
-                                        className="w-full py-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-base flex items-center justify-center gap-2 shadow-lg shadow-sky-600/30 transition-all"
+                                        className="w-full py-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 transition-all"
                                     >
-                                        <span>Buy Now</span>
+                                        <span>কোর্সটি কিনুন</span>
                                         <ArrowRight className="w-5 h-5" />
                                     </Link>
+                                )}
+
+                                {/* Custom Action Buttons (Outline, How to buy, etc.) */}
+                                {course.action_buttons && course.action_buttons.length > 0 && (
+                                    <div className="space-y-2 pt-1">
+                                        {course.action_buttons.map((btn) => (
+                                            <a
+                                                key={btn.id}
+                                                href={btn.url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="w-full py-3.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-indigo-600 font-bold text-sm flex items-center justify-center gap-2 shadow-2xs transition group"
+                                            >
+                                                {btn.type === 'file' ? (
+                                                    <FileText className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition" />
+                                                ) : (
+                                                    <PlayCircle className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition" />
+                                                )}
+                                                <span>{btn.label}</span>
+                                                <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-500 transition ml-0.5" />
+                                            </a>
+                                        ))}
+                                    </div>
                                 )}
                             </div>
 
                             {/* Course Features Checklist */}
                             <div className="space-y-3 pt-4 border-t border-slate-100 text-xs text-slate-600 font-medium">
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>Full HD video lectures & live discussions</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>Downloadable practice sheets & lecture notes</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>Direct Q&A doubt-solving support with instructors</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                                    <span>Lifetime course access from any device</span>
-                                </div>
+                                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">এই কোর্সে যা যা থাকছে:</h4>
+                                {courseFeatures.map((feat, idx) => (
+                                    <div key={idx} className="flex items-start gap-2.5">
+                                        <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+                                        <span className="leading-tight text-slate-700">{feat}</span>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>

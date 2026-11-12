@@ -62,6 +62,16 @@ export interface Course {
     enable_manual_payment?: boolean;
     enable_shurjopay?: boolean;
     status: 'draft' | 'published' | 'archived';
+    features?: string[] | null;
+    fake_enrollment_count?: number;
+    class_starts_at?: string | null;
+    action_buttons?: {
+        id: string;
+        label: string;
+        type: 'upload' | 'link';
+        url: string;
+        file_name?: string;
+    }[] | null;
     instructors?: User[];
     instructor?: User;
     categories?: Category[];

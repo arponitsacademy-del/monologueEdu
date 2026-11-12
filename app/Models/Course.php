@@ -23,9 +23,13 @@ class Course extends Model
         'slug',
         'short_description',
         'description',
+        'features',
         'thumbnail',
         'price',
         'sale_price',
+        'fake_enrollment_count',
+        'class_starts_at',
+        'action_buttons',
         'is_featured',
         'enable_manual_payment',
         'enable_shurjopay',
@@ -35,6 +39,9 @@ class Course extends Model
     protected $casts = [
         'price' => 'float',
         'sale_price' => 'float',
+        'features' => 'array',
+        'fake_enrollment_count' => 'integer',
+        'action_buttons' => 'array',
         'is_featured' => 'boolean',
         'enable_manual_payment' => 'boolean',
         'enable_shurjopay' => 'boolean',
@@ -42,7 +49,7 @@ class Course extends Model
 
     public static function booted(): void
     {
-        if (Schema::hasTable('courses') && !Schema::hasColumn('courses', 'enable_manual_payment')) {
+        if (Schema::hasTable('courses')) {
             try {
                 Schema::table('courses', function (Blueprint $table) {
                     if (!Schema::hasColumn('courses', 'enable_manual_payment')) {
@@ -50,6 +57,18 @@ class Course extends Model
                     }
                     if (!Schema::hasColumn('courses', 'enable_shurjopay')) {
                         $table->boolean('enable_shurjopay')->default(true)->after('enable_manual_payment');
+                    }
+                    if (!Schema::hasColumn('courses', 'features')) {
+                        $table->json('features')->nullable()->after('description');
+                    }
+                    if (!Schema::hasColumn('courses', 'fake_enrollment_count')) {
+                        $table->integer('fake_enrollment_count')->default(0)->after('price');
+                    }
+                    if (!Schema::hasColumn('courses', 'class_starts_at')) {
+                        $table->string('class_starts_at', 100)->nullable()->after('fake_enrollment_count');
+                    }
+                    if (!Schema::hasColumn('courses', 'action_buttons')) {
+                        $table->json('action_buttons')->nullable()->after('class_starts_at');
                     }
                 });
             } catch (\Throwable $e) {
