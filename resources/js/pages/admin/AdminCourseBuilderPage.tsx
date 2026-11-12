@@ -3150,7 +3150,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Option Tabs: 1) Upload File, 2) Google Drive / Link */}
+                        {/* Option Tabs: 1) File Upload, 2) Link */}
                         <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
                             <button
                                 type="button"
@@ -3162,7 +3162,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                 }`}
                             >
                                 <Upload className="w-4 h-4" />
-                                <span>১. ফাইল আপলোড (Upload)</span>
+                                <span>File Upload</span>
                             </button>
 
                             <button
@@ -3175,7 +3175,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                 }`}
                             >
                                 <Globe className="w-4 h-4" />
-                                <span>২. গুগল ড্রাইভ লিংক (Link)</span>
+                                <span>Link</span>
                             </button>
                         </div>
 
@@ -3214,39 +3214,35 @@ export const AdminCourseBuilderPage: React.FC = () => {
                             </div>
                         )}
 
-                        {/* TAB 2: GOOGLE DRIVE OR WEB LINK */}
+                        {/* TAB 2: LINK */}
                         {materialTab === 'link' && (
                             <form onSubmit={handleSaveMaterialLink} className="space-y-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        ম্যাটেরিয়ালের শিরোনাম / নাম *
+                                        Title / নাম *
                                     </label>
                                     <input
                                         type="text"
                                         required
                                         value={materialLinkTitle}
                                         onChange={(e) => setMaterialLinkTitle(e.target.value)}
-                                        placeholder="যেমন: লেকচার শিট ও হ্যান্ডনোট (Google Drive)"
+                                        placeholder="যেমন: লেকচার শিট (Google Drive বা Web Link)"
                                         className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium focus:border-purple-500 focus:outline-hidden dark:bg-slate-800 dark:text-white"
                                     />
                                 </div>
 
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                        গুগল ড্রাইভ বা ডাউনলোড লিংক (URL) *
+                                        URL / লিংক *
                                     </label>
                                     <input
                                         type="url"
                                         required
                                         value={materialLinkUrl}
                                         onChange={(e) => setMaterialLinkUrl(e.target.value)}
-                                        placeholder="https://drive.google.com/file/d/... বা https://..."
+                                        placeholder="https://drive.google.com/... বা https://..."
                                         className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-mono focus:border-purple-500 focus:outline-hidden dark:bg-slate-800 dark:text-white"
                                     />
-                                </div>
-
-                                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
-                                    💡 <strong>গুগল ড্রাইভ ব্যবহারের নিয়ম:</strong> গুগল ড্রাইভে ফাইলটির উপর রাইট ক্লিক করে <strong>Share &gt; General access</strong> এ <strong>"Anyone with the link"</strong> সিলেক্ট করে <strong>Copy link</strong> করুন এবং সেই লিংকটি এখানে পেস্ট করুন। এতে শিক্ষার্থীরা সরাসরি কোনো অনুমতি ঝামেলা ছাড়াই শিট দেখতে বা ডাউনলোড করতে পারবে।
                                 </div>
 
                                 <button
@@ -3255,7 +3251,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                     className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md shadow-purple-600/20 transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     {submittingLink ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-                                    <span>গুগল ড্রাইভ লিংকটি যুক্ত করুন</span>
+                                    <span>লিংক যুক্ত করুন (Save Link)</span>
                                 </button>
                             </form>
                         )}
