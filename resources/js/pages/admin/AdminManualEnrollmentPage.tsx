@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { apiClient } from '../../api/client';
 import {
     BookOpen,
+    Layers,
     Users,
     Search,
     UserCheck,
@@ -24,22 +25,29 @@ import {
     UserX,
     Filter,
     Clock,
-    Shield
+    Shield,
+    Package,
+    Tag,
+    X
 } from 'lucide-react';
 
-interface CourseOption {
+export interface TargetOption {
     id: number;
+    type: 'course' | 'bundle';
     title: string;
     slug: string;
     thumbnail?: string | null;
     price: number;
-    discount_price?: number | null;
+    regular_price: number;
+    sale_price?: number | null;
     status: string;
     category?: { id: number; name: string } | null;
+    courses_count?: number;
+    courses?: { id: number; title: string }[];
     enrollments_count?: number;
 }
 
-interface UserCandidate {
+export interface UserCandidate {
     id: number;
     name: string;
     phone?: string | null;
@@ -49,7 +57,7 @@ interface UserCandidate {
     is_enrolled?: boolean;
 }
 
-interface EnrollmentHistoryItem {
+export interface EnrollmentHistoryItem {
     id: number;
     order_number: string;
     final_amount: number;
@@ -68,6 +76,12 @@ interface EnrollmentHistoryItem {
         slug: string;
         thumbnail?: string | null;
     } | null;
+    bundle?: {
+        id: number;
+        title: string;
+        slug: string;
+        thumbnail?: string | null;
+    } | null;
 }
 
 export const AdminManualEnrollmentPage: React.FC = () => {
@@ -76,11 +90,12 @@ export const AdminManualEnrollmentPage: React.FC = () => {
     // Step state
     const [currentStep, setCurrentStep] = useState<1 | 2>(1);
 
-    // Courses data
-    const [courses, setCourses] = useState<CourseOption[]>([]);
-    const [loadingCourses, setLoadingCourses] = useState(false);
-    const [selectedCourse, setSelectedCourse] = useState<CourseOption | null>(null);
-    const [courseSearch, setCourseSearch] = useState('');
+    // Targets (courses + bundles)
+    const [targets, setTargets] = useState<TargetOption[]>([]);
+    const [loadingTargets, setLoadingTargets] = useState(false);
+    const [selectedTarget, setSelectedTarget] = useState<TargetOption | null>(null);
+    const [targetTypeFilter, setTargetTypeFilter] = useState<'all' | 'course' | 'bundle'>('all');
+    const [targetSearch, setTargetSearch] = useState('');
 
     // Student Search & Add
     const [addMode, setAddMode] = useState<'search' | 'bulk'>('search');
@@ -105,6 +120,11 @@ export const AdminManualEnrollmentPage: React.FC = () => {
     // Success result modal
     const [enrollResult, setEnrollResult] = useState<{
         message: string;
+        target?: {
+            id: number;
+            type: 'course' | 'bundle';
+            title: string;
+        };
         enrolled_count: number;
         already_enrolled_count: number;
         failed_count: number;
@@ -119,9 +139,9 @@ export const AdminManualEnrollmentPage: React.FC = () => {
     const [historyPage, setHistoryPage] = useState(1);
     const [historyTotal, setHistoryTotal] = useState(0);
 
-    // Fetch courses on mount
+    // Fetch targets on mount
     useEffect(() => {
-        fetchCourses();
+        fetchTargets();
     }, []);
 
     // Fetch history when activeView changes to history
@@ -131,15 +151,16 @@ export const AdminManualEnrollmentPage: React.FC = () => {
         }
     }, [activeView, historyPage]);
 
-    const fetchCourses = async () => {
-        setLoadingCourses(true);
+    const fetchTargets = async () => {
+        setLoadingTargets(true);
         try {
-            const { data } = await apiClient.get('/admin/manual-enrollment/courses');
-            setCourses(data.courses || []);
+            const { data } = await apiClient.get('/admin/manual-enrollment/targets');
+            const list: TargetOption[] = data.targets || data.courses || [];
+            setTargets(list);
         } catch (err: any) {
-            console.error('Failed to load courses', err);
+            console.error('Failed to load courses & bundles', err);
         } finally {
-            setLoadingCourses(false);
+            setLoadingTargets(false);
         }
     };
 
@@ -158,6 +179,31 @@ export const AdminManualEnrollmentPage: React.FC = () => {
         }
     };
 
+    // Instant filter targets
+    const filteredTargets = useMemo(() => {
+        return targets.filter((t) => {
+            if (targetTypeFilter !== 'all' && t.type !== targetTypeFilter) {
+                return false;
+            }
+
+            const q = targetSearch.trim().toLowerCase();
+            if (!q) return true;
+
+            const titleMatch = t.title ? t.title.toLowerCase().includes(q) : false;
+            const catMatch = t.category?.name ? t.category.name.toLowerCase().includes(q) : false;
+            const slugMatch = t.slug ? t.slug.toLowerCase().includes(q) : false;
+            const subCourseMatch =
+                t.type === 'bundle' && t.courses
+                    ? t.courses.some((sc) => sc.title.toLowerCase().includes(q))
+                    : false;
+
+            return titleMatch || catMatch || slugMatch || subCourseMatch;
+        });
+    }, [targets, targetTypeFilter, targetSearch]);
+
+    const coursesCount = useMemo(() => targets.filter((t) => t.type === 'course').length, [targets]);
+    const bundlesCount = useMemo(() => targets.filter((t) => t.type === 'bundle').length, [targets]);
+
     // Live search users
     const handleUserSearchChange = (query: string) => {
         setUserSearchQuery(query);
@@ -174,7 +220,9 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                 const { data } = await apiClient.get('/admin/manual-enrollment/search-users', {
                     params: {
                         q: query.trim(),
-                        course_id: selectedCourse?.id
+                        target_type: selectedTarget?.type || 'course',
+                        target_id: selectedTarget?.id,
+                        course_id: selectedTarget?.id // fallback backwards compatibility
                     }
                 });
                 setUserSearchResults(data.users || []);
@@ -183,16 +231,16 @@ export const AdminManualEnrollmentPage: React.FC = () => {
             } finally {
                 setSearchingUsers(false);
             }
-        }, 300);
+        }, 250);
     };
 
     // Add user from live search results
     const handleAddUserToQueue = (candidate: UserCandidate) => {
-        if (queuedStudents.some(s => s.id === candidate.id)) {
+        if (queuedStudents.some((s) => s.id === candidate.id)) {
             alert(`${candidate.name} ইতিমধ্যে তালিকায় যোগ করা হয়েছে।`);
             return;
         }
-        setQueuedStudents(prev => [...prev, candidate]);
+        setQueuedStudents((prev) => [...prev, candidate]);
         setUserSearchQuery('');
         setUserSearchResults([]);
     };
@@ -210,7 +258,9 @@ export const AdminManualEnrollmentPage: React.FC = () => {
         try {
             const { data } = await apiClient.post('/admin/manual-enrollment/lookup-phones', {
                 phones: bulkPhonesInput,
-                course_id: selectedCourse?.id
+                target_type: selectedTarget?.type || 'course',
+                target_id: selectedTarget?.id,
+                course_id: selectedTarget?.id
             });
 
             const matched: UserCandidate[] = data.matched_users || [];
@@ -219,19 +269,15 @@ export const AdminManualEnrollmentPage: React.FC = () => {
             setUnmatchedPhones(unmatched);
 
             if (matched.length > 0) {
-                // Add unique new students to queue
-                setQueuedStudents(prev => {
-                    const existingIds = new Set(prev.map(p => p.id));
-                    const newStudents = matched.filter(m => !existingIds.has(m.id));
+                setQueuedStudents((prev) => {
+                    const existingIds = new Set(prev.map((p) => p.id));
+                    const newStudents = matched.filter((m) => !existingIds.has(m.id));
                     return [...prev, ...newStudents];
                 });
             }
 
             if (matched.length === 0 && unmatched.length > 0) {
-                alert(`প্রদত্ত নম্বরগুলোর কোনোটির সাথে রেজিস্ট্রার্ড কোনো অ্যাকাউন্ট পাওয়া যায়নি।`);
-            } else if (unmatched.length > 0) {
-                // Alert partial match
-                // Just keeping unmatchedPhones in state is displayed clearly in UI
+                alert('প্রদত্ত নম্বরগুলোর কোনোটির সাথে রেজিস্ট্রার্ড কোনো অ্যাকাউন্ট পাওয়া যায়নি।');
             }
         } catch (err: any) {
             alert(err.response?.data?.message || 'ফোন নম্বর যাচাইয়ে সমস্যা হয়েছে।');
@@ -242,7 +288,7 @@ export const AdminManualEnrollmentPage: React.FC = () => {
 
     // Remove candidate from queue
     const handleRemoveFromQueue = (userId: number) => {
-        setQueuedStudents(prev => prev.filter(s => s.id !== userId));
+        setQueuedStudents((prev) => prev.filter((s) => s.id !== userId));
     };
 
     // Clear entire queue
@@ -256,8 +302,8 @@ export const AdminManualEnrollmentPage: React.FC = () => {
 
     // Perform enrollment
     const handleEnrollSubmit = async () => {
-        if (!selectedCourse) {
-            alert('অনুগ্রহ করে প্রথমে কোর্স নির্বাচন করুন।');
+        if (!selectedTarget) {
+            alert('অনুগ্রহ করে প্রথমে কোর্স বা বান্ডেল নির্বাচন করুন।');
             return;
         }
 
@@ -266,15 +312,23 @@ export const AdminManualEnrollmentPage: React.FC = () => {
             return;
         }
 
-        const readyStudents = queuedStudents.filter(s => !s.is_enrolled);
-        const alreadyEnrolledCount = queuedStudents.filter(s => s.is_enrolled).length;
+        const readyStudents = queuedStudents.filter((s) => !s.is_enrolled);
+        const alreadyEnrolledCount = queuedStudents.filter((s) => s.is_enrolled).length;
 
         if (readyStudents.length === 0) {
-            alert('নির্বাচিত সকল শিক্ষার্থী ইতিমধ্যে এই কোর্সে এনরোল্ড রয়েছেন।');
+            alert(
+                selectedTarget.type === 'bundle'
+                    ? 'নির্বাচিত সকল শিক্ষার্থী ইতিমধ্যে এই বান্ডেলে এনরোল্ড রয়েছেন।'
+                    : 'নির্বাচিত সকল শিক্ষার্থী ইতিমধ্যে এই কোর্সে এনরোল্ড রয়েছেন।'
+            );
             return;
         }
 
-        let confirmMsg = `আপনি কি ${readyStudents.length} জন শিক্ষার্থীকে "${selectedCourse.title}" কোর্সে ম্যানুয়ালি এনরোল করাতে চান?`;
+        const typeLabel = selectedTarget.type === 'bundle' ? 'বান্ডেল' : 'কোর্স';
+        let confirmMsg = `আপনি কি ${readyStudents.length} জন শিক্ষার্থীকে "${selectedTarget.title}" ${typeLabel}-এ ম্যানুয়ালি এনরোল করাতে চান?`;
+        if (selectedTarget.type === 'bundle') {
+            confirmMsg += `\n(শিক্ষার্থীরা এই বান্ডেলের অন্তর্গত সকল ${selectedTarget.courses_count || selectedTarget.courses?.length || ''} টি কোর্সে পূর্ণ অ্যাক্সেস পাবেন)`;
+        }
         if (alreadyEnrolledCount > 0) {
             confirmMsg += `\n(${alreadyEnrolledCount} জন শিক্ষার্থী ইতিমধ্যে এনরোল্ড থাকায় তাদের বাদ রাখা হবে)`;
         }
@@ -284,10 +338,12 @@ export const AdminManualEnrollmentPage: React.FC = () => {
         setEnrolling(true);
         try {
             const { data } = await apiClient.post('/admin/manual-enrollment/enroll', {
-                course_id: selectedCourse.id,
-                user_ids: readyStudents.map(s => s.id),
+                target_type: selectedTarget.type,
+                target_id: selectedTarget.id,
+                course_id: selectedTarget.id, // fallback backwards compatibility
+                user_ids: readyStudents.map((s) => s.id),
                 send_sms: sendSms,
-                notes: enrollmentNotes.trim() || undefined,
+                notes: enrollmentNotes.trim() || undefined
             });
 
             setEnrollResult(data);
@@ -295,19 +351,14 @@ export const AdminManualEnrollmentPage: React.FC = () => {
             setBulkPhonesInput('');
             setUnmatchedPhones([]);
             setEnrollmentNotes('');
-            // refresh course stats
-            fetchCourses();
+            // refresh targets
+            fetchTargets();
         } catch (err: any) {
             alert(err.response?.data?.message || 'এনরোলমেন্ট সম্পন্ন করতে সমস্যা হয়েছে।');
         } finally {
             setEnrolling(false);
         }
     };
-
-    const filteredCourses = courses.filter(c => 
-        c.title.toLowerCase().includes(courseSearch.toLowerCase()) ||
-        (c.category?.name && c.category.name.toLowerCase().includes(courseSearch.toLowerCase()))
-    );
 
     return (
         <div className="max-w-6xl mx-auto space-y-6 pb-20">
@@ -323,7 +374,7 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                 ম্যানুয়াল এনরোলমেন্ট (Manual Enrollment)
                             </h1>
                             <p className="text-xs text-slate-500 dark:text-slate-400">
-                                কোর্স নির্বাচন করে সরাসরি শিক্ষার্থী বা একাধিক ফোন নম্বর দিয়ে নিমেষেই ব্যাচে এনরোল করান
+                                কোর্স বা বান্ডেল নির্বাচন করে শিক্ষার্থী বা একাধিক ফোন নম্বর দিয়ে নিমেষেই ব্যাচে এনরোল করান
                             </p>
                         </div>
                     </div>
@@ -372,39 +423,43 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                     : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300'
                             }`}
                         >
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
-                                selectedCourse
-                                    ? 'bg-emerald-500 text-white'
-                                    : currentStep === 1
+                            <div
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
+                                    selectedTarget
+                                        ? 'bg-emerald-500 text-white'
+                                        : currentStep === 1
                                         ? 'bg-sky-600 text-white'
                                         : 'bg-slate-100 text-slate-500'
-                            }`}>
-                                {selectedCourse ? <Check className="w-4 h-4" /> : '১'}
+                                }`}
+                            >
+                                {selectedTarget ? <Check className="w-4 h-4" /> : '১'}
                             </div>
                             <div className="truncate">
                                 <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">ধাপ ১</div>
                                 <div className="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 truncate">
-                                    {selectedCourse ? selectedCourse.title : 'কোর্স নির্বাচন করুন'}
+                                    {selectedTarget
+                                        ? `${selectedTarget.type === 'bundle' ? '📦 ' : '📚 '}${selectedTarget.title}`
+                                        : 'কোর্স বা বান্ডেল নির্বাচন করুন'}
                                 </div>
                             </div>
                         </div>
 
                         <div
                             onClick={() => {
-                                if (selectedCourse) setCurrentStep(2);
-                                else alert('অনুগ্রহ করে প্রথমে একটি কোর্স নির্বাচন করুন।');
+                                if (selectedTarget) setCurrentStep(2);
+                                else alert('অনুগ্রহ করে প্রথমে একটি কোর্স বা বান্ডেল নির্বাচন করুন।');
                             }}
                             className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 ${
                                 currentStep === 2
                                     ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-300 dark:border-sky-800 ring-2 ring-sky-500/20'
                                     : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800'
-                            } ${!selectedCourse ? 'opacity-50 cursor-not-allowed' : 'hover:border-slate-300'}`}
+                            } ${!selectedTarget ? 'opacity-50 cursor-not-allowed' : 'hover:border-slate-300'}`}
                         >
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
-                                currentStep === 2
-                                    ? 'bg-sky-600 text-white'
-                                    : 'bg-slate-100 text-slate-500'
-                            }`}>
+                            <div
+                                className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
+                                    currentStep === 2 ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-500'
+                                }`}
+                            >
                                 {'২'}
                             </div>
                             <div className="truncate">
@@ -416,88 +471,237 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* STEP 1: SELECT COURSE */}
+                    {/* STEP 1: SELECT COURSE OR BUNDLE */}
                     {currentStep === 1 && (
                         <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 shadow-xs">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
                                 <div>
                                     <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                                         <BookOpen className="w-5 h-5 text-sky-600" />
-                                        <span>কোন কোর্সে শিক্ষার্থী এনরোল করাতে চান?</span>
+                                        <span>কোন কোর্স বা বান্ডেলে শিক্ষার্থী এনরোল করাতে চান?</span>
                                     </h3>
-                                    <p className="text-xs text-slate-500">যে কোর্সে শিক্ষার্থীদের ফ্রি বা সরাসরি অ্যাক্সেস দিতে চান সেটি সিলেক্ট করুন</p>
+                                    <p className="text-xs text-slate-500">
+                                        যেটিতে শিক্ষার্থীদের ফ্রি বা সরাসরি অ্যাক্সেস দিতে চান সেটি সিলেক্ট করুন
+                                    </p>
                                 </div>
 
-                                <div className="relative w-full sm:w-72">
+                                {/* Instant Live Search Box */}
+                                <div className="relative w-full sm:w-80">
                                     <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                                     <input
                                         type="text"
-                                        value={courseSearch}
-                                        onChange={(e) => setCourseSearch(e.target.value)}
-                                        placeholder="কোর্সের নাম দিয়ে খুঁজুন..."
-                                        className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-sky-500"
+                                        value={targetSearch}
+                                        onChange={(e) => setTargetSearch(e.target.value)}
+                                        placeholder="১-২ অক্ষর লিখলেই কোর্স/বান্ডেল চলে আসবে..."
+                                        className="w-full pl-9 pr-8 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-sky-500 placeholder:text-slate-400"
+                                        autoFocus
                                     />
+                                    {targetSearch && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setTargetSearch('')}
+                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                                        >
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
-                            {loadingCourses ? (
+                            {/* Filter Pills: All, Courses, Bundles */}
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setTargetTypeFilter('all')}
+                                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                                            targetTypeFilter === 'all'
+                                                ? 'bg-sky-600 text-white shadow-xs'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                                        }`}
+                                    >
+                                        <span>সব দেখুন</span>
+                                        <span className="text-[10px] px-1.5 py-0.2 bg-white/20 rounded-full font-mono">
+                                            {targets.length}
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setTargetTypeFilter('course')}
+                                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                                            targetTypeFilter === 'course'
+                                                ? 'bg-sky-600 text-white shadow-xs'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                                        }`}
+                                    >
+                                        <BookOpen className="w-3.5 h-3.5" />
+                                        <span>কোর্সসমূহ</span>
+                                        <span className="text-[10px] px-1.5 py-0.2 bg-white/20 rounded-full font-mono">
+                                            {coursesCount}
+                                        </span>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setTargetTypeFilter('bundle')}
+                                        className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                                            targetTypeFilter === 'bundle'
+                                                ? 'bg-purple-600 text-white shadow-xs'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                                        }`}
+                                    >
+                                        <Package className="w-3.5 h-3.5" />
+                                        <span>বান্ডেলসমূহ</span>
+                                        <span className="text-[10px] px-1.5 py-0.2 bg-white/20 rounded-full font-mono">
+                                            {bundlesCount}
+                                        </span>
+                                    </button>
+                                </div>
+
+                                <div className="text-[11px] text-slate-400 font-medium">
+                                    মোট {filteredTargets.length} টি ফলাফল পাওয়া গেছে
+                                </div>
+                            </div>
+
+                            {loadingTargets ? (
                                 <div className="p-12 text-center space-y-3">
                                     <Loader2 className="w-8 h-8 animate-spin text-sky-600 mx-auto" />
-                                    <p className="text-xs text-slate-500 font-semibold">কোর্স লোড হচ্ছে...</p>
+                                    <p className="text-xs text-slate-500 font-semibold">কোর্স ও বান্ডেল লোড হচ্ছে...</p>
                                 </div>
-                            ) : filteredCourses.length === 0 ? (
-                                <div className="p-12 text-center space-y-2 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                            ) : filteredTargets.length === 0 ? (
+                                <div className="p-12 text-center space-y-3 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
                                     <AlertCircle className="w-8 h-8 text-slate-400 mx-auto" />
-                                    <p className="text-sm font-bold text-slate-600 dark:text-slate-300">কোনো কোর্স পাওয়া যায়নি</p>
+                                    <p className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                                        "{targetSearch}" দিয়ে কোনো কোর্স বা বান্ডেল পাওয়া যায়নি
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setTargetSearch('');
+                                            setTargetTypeFilter('all');
+                                        }}
+                                        className="text-xs font-bold text-sky-600 hover:underline cursor-pointer"
+                                    >
+                                        সার্চ রিসেট করুন
+                                    </button>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 max-h-[480px] overflow-y-auto pr-1">
-                                    {filteredCourses.map((c) => {
-                                        const isSelected = selectedCourse?.id === c.id;
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 max-h-[520px] overflow-y-auto pr-1">
+                                    {filteredTargets.map((item) => {
+                                        const isSelected =
+                                            selectedTarget?.id === item.id && selectedTarget?.type === item.type;
+                                        const isBundle = item.type === 'bundle';
+
                                         return (
                                             <div
-                                                key={c.id}
-                                                onClick={() => setSelectedCourse(c)}
-                                                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex gap-3.5 items-start ${
+                                                key={`${item.type}-${item.id}`}
+                                                onClick={() => setSelectedTarget(item)}
+                                                className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
                                                     isSelected
-                                                        ? 'bg-sky-50/70 dark:bg-sky-950/50 border-sky-500 ring-2 ring-sky-500/20 shadow-xs'
+                                                        ? isBundle
+                                                            ? 'bg-purple-50/70 dark:bg-purple-950/50 border-purple-500 ring-2 ring-purple-500/20 shadow-xs'
+                                                            : 'bg-sky-50/70 dark:bg-sky-950/50 border-sky-500 ring-2 ring-sky-500/20 shadow-xs'
                                                         : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-800 hover:border-slate-300 hover:bg-white dark:hover:bg-slate-800'
                                                 }`}
                                             >
-                                                <div className="w-16 h-16 rounded-xl bg-slate-200 dark:bg-slate-700 overflow-hidden shrink-0 flex items-center justify-center">
-                                                    {c.thumbnail ? (
-                                                        <img src={c.thumbnail} alt={c.title} className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <BookOpen className="w-6 h-6 text-slate-400" />
-                                                    )}
-                                                </div>
-
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-1.5 mb-1">
-                                                        {c.category?.name && (
-                                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-white dark:bg-slate-700 text-sky-600 dark:text-sky-300 border border-slate-200 dark:border-slate-600 truncate max-w-[120px]">
-                                                                {c.category.name}
-                                                            </span>
+                                                <div className="flex gap-3.5 items-start">
+                                                    <div className="w-16 h-16 rounded-xl bg-slate-200 dark:bg-slate-700 overflow-hidden shrink-0 flex items-center justify-center relative">
+                                                        {item.thumbnail ? (
+                                                            <img
+                                                                src={item.thumbnail}
+                                                                alt={item.title}
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        ) : isBundle ? (
+                                                            <Package className="w-7 h-7 text-purple-500" />
+                                                        ) : (
+                                                            <BookOpen className="w-7 h-7 text-sky-500" />
                                                         )}
-                                                        <span className="text-[10px] text-slate-400 ml-auto flex items-center gap-1">
-                                                            <Users className="w-3 h-3" />
-                                                            <span>{c.enrollments_count || 0}</span>
-                                                        </span>
                                                     </div>
 
-                                                    <h4 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-2 leading-tight">
-                                                        {c.title}
-                                                    </h4>
-
-                                                    <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-slate-200/60 dark:border-slate-700">
-                                                        <span className="text-xs font-extrabold text-sky-600 dark:text-sky-400">
-                                                            ৳{c.discount_price && c.discount_price > 0 ? c.discount_price : c.price}
-                                                        </span>
-                                                        <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
-                                                            isSelected ? 'bg-sky-600 text-white' : 'border border-slate-300 text-transparent'
-                                                        }`}>
-                                                            {isSelected && <Check className="w-3 h-3" />}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                                                            {isBundle ? (
+                                                                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-md bg-purple-100 dark:bg-purple-900/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800 flex items-center gap-1">
+                                                                    <Package className="w-3 h-3" />
+                                                                    <span>
+                                                                        বান্ডেল ({item.courses_count || item.courses?.length || 0}{' '}
+                                                                        কোর্স)
+                                                                    </span>
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 truncate max-w-[120px]">
+                                                                    {item.category?.name || 'কোর্স'}
+                                                                </span>
+                                                            )}
+                                                            <span className="text-[10px] text-slate-400 ml-auto flex items-center gap-1">
+                                                                <Users className="w-3 h-3" />
+                                                                <span>{item.enrollments_count || 0}</span>
+                                                            </span>
                                                         </div>
+
+                                                        <h4 className="text-xs font-bold text-slate-900 dark:text-white line-clamp-2 leading-tight">
+                                                            {item.title}
+                                                        </h4>
+                                                    </div>
+                                                </div>
+
+                                                {/* Bundle Courses Preview */}
+                                                {isBundle && item.courses && item.courses.length > 0 && (
+                                                    <div className="mt-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+                                                        <div className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold mb-1 flex items-center gap-1">
+                                                            <Layers className="w-3 h-3 text-purple-500" />
+                                                            <span>অন্তর্ভুক্ত কোর্সসমূহ:</span>
+                                                        </div>
+                                                        <div className="flex flex-wrap gap-1">
+                                                            {item.courses.slice(0, 2).map((subC) => (
+                                                                <span
+                                                                    key={subC.id}
+                                                                    className="px-1.5 py-0.5 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-[10px] rounded border border-slate-200 dark:border-slate-600 truncate max-w-[130px]"
+                                                                >
+                                                                    {subC.title}
+                                                                </span>
+                                                            ))}
+                                                            {item.courses.length > 2 && (
+                                                                <span className="px-1.5 py-0.5 bg-purple-50 dark:bg-purple-950 text-purple-600 dark:text-purple-300 text-[10px] rounded font-bold">
+                                                                    +{item.courses.length - 2} আরও
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Card Footer: Price & Selection Tick */}
+                                                <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span
+                                                            className={`text-xs font-black ${
+                                                                isBundle
+                                                                    ? 'text-purple-600 dark:text-purple-400'
+                                                                    : 'text-sky-600 dark:text-sky-400'
+                                                            }`}
+                                                        >
+                                                            ৳{item.price}
+                                                        </span>
+                                                        {item.sale_price !== null &&
+                                                            item.regular_price > item.price && (
+                                                                <span className="text-[10px] text-slate-400 line-through">
+                                                                    ৳{item.regular_price}
+                                                                </span>
+                                                            )}
+                                                    </div>
+
+                                                    <div
+                                                        className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                                                            isSelected
+                                                                ? isBundle
+                                                                    ? 'bg-purple-600 text-white'
+                                                                    : 'bg-sky-600 text-white'
+                                                                : 'border border-slate-300 dark:border-slate-600 text-transparent'
+                                                        }`}
+                                                    >
+                                                        {isSelected && <Check className="w-3 h-3" />}
                                                     </div>
                                                 </div>
                                             </div>
@@ -507,15 +711,23 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                             )}
 
                             {/* Continue to Step 2 Button */}
-                            {selectedCourse && (
-                                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                    <div className="text-xs text-slate-600 dark:text-slate-300">
-                                        নির্বাচিত কোর্স: <strong className="text-slate-900 dark:text-white font-extrabold">{selectedCourse.title}</strong>
+                            {selectedTarget && (
+                                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                        <span>নির্বাচিত {selectedTarget.type === 'bundle' ? 'বান্ডেল' : 'কোর্স'}:</span>
+                                        <strong className="text-slate-900 dark:text-white font-extrabold flex items-center gap-1">
+                                            {selectedTarget.type === 'bundle' ? (
+                                                <Package className="w-4 h-4 text-purple-600" />
+                                            ) : (
+                                                <BookOpen className="w-4 h-4 text-sky-600" />
+                                            )}
+                                            {selectedTarget.title}
+                                        </strong>
                                     </div>
                                     <button
                                         type="button"
                                         onClick={() => setCurrentStep(2)}
-                                        className="inline-flex items-center gap-2 px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-md shadow-sky-600/20 transition cursor-pointer"
+                                        className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl shadow-md shadow-sky-600/20 transition cursor-pointer"
                                     >
                                         <span>পরবর্তী ধাপ (শিক্ষার্থী যোগ করুন)</span>
                                         <ChevronRight className="w-4 h-4" />
@@ -526,23 +738,59 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                     )}
 
                     {/* STEP 2: ADD STUDENTS & ENROLL */}
-                    {currentStep === 2 && selectedCourse && (
+                    {currentStep === 2 && selectedTarget && (
                         <div className="space-y-6">
-                            {/* Selected Course Summary Banner */}
-                            <div className="bg-gradient-to-r from-sky-600 to-indigo-600 text-white rounded-3xl p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            {/* Selected Target Summary Banner */}
+                            <div
+                                className={`text-white rounded-3xl p-5 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                                    selectedTarget.type === 'bundle'
+                                        ? 'bg-gradient-to-r from-purple-700 via-indigo-700 to-sky-700'
+                                        : 'bg-gradient-to-r from-sky-600 to-indigo-600'
+                                }`}
+                            >
                                 <div className="flex items-center gap-3.5">
                                     <div className="w-14 h-14 rounded-2xl bg-white/10 backdrop-blur-md overflow-hidden shrink-0 border border-white/20 flex items-center justify-center">
-                                        {selectedCourse.thumbnail ? (
-                                            <img src={selectedCourse.thumbnail} alt={selectedCourse.title} className="w-full h-full object-cover" />
+                                        {selectedTarget.thumbnail ? (
+                                            <img
+                                                src={selectedTarget.thumbnail}
+                                                alt={selectedTarget.title}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        ) : selectedTarget.type === 'bundle' ? (
+                                            <Package className="w-7 h-7 text-white" />
                                         ) : (
-                                            <BookOpen className="w-6 h-6 text-white" />
+                                            <BookOpen className="w-7 h-7 text-white" />
                                         )}
                                     </div>
                                     <div>
-                                        <div className="text-[11px] font-bold text-sky-200 uppercase tracking-widest">টার্গেট কোর্স</div>
-                                        <h3 className="text-base sm:text-lg font-black leading-tight line-clamp-1">{selectedCourse.title}</h3>
-                                        <div className="text-xs text-white/80 mt-0.5">
-                                            রেগুলার ফি: ৳{selectedCourse.price} | এনরোল্ড শিক্ষার্থী: {selectedCourse.enrollments_count || 0} জন
+                                        <div className="text-[11px] font-bold text-sky-200 uppercase tracking-widest flex items-center gap-1.5">
+                                            {selectedTarget.type === 'bundle' ? (
+                                                <>
+                                                    <Package className="w-3.5 h-3.5 text-amber-300" />
+                                                    <span>টার্গেট বান্ডেল (সকল কোর্সে অ্যাক্সেস পাবেন)</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <BookOpen className="w-3.5 h-3.5 text-sky-300" />
+                                                    <span>টার্গেট কোর্স</span>
+                                                </>
+                                            )}
+                                        </div>
+                                        <h3 className="text-base sm:text-lg font-black leading-tight line-clamp-1">
+                                            {selectedTarget.title}
+                                        </h3>
+                                        <div className="text-xs text-white/85 mt-0.5 flex flex-wrap items-center gap-3">
+                                            <span>রেগুলার ফি: ৳{selectedTarget.price}</span>
+                                            <span>•</span>
+                                            <span>পূর্বে এনরোল্ড: {selectedTarget.enrollments_count || 0} জন</span>
+                                            {selectedTarget.type === 'bundle' && selectedTarget.courses && (
+                                                <>
+                                                    <span>•</span>
+                                                    <span className="text-amber-200 font-bold">
+                                                        {selectedTarget.courses.length} টি কোর্স অন্তর্ভুক্ত
+                                                    </span>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -552,19 +800,21 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                     onClick={() => setCurrentStep(1)}
                                     className="px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/20 text-xs font-bold text-white transition self-start sm:self-auto cursor-pointer"
                                 >
-                                    কোর্স পরিবর্তন করুন
+                                    কোর্স/বান্ডেল পরিবর্তন
                                 </button>
                             </div>
 
                             {/* Dual Mode Student Selector (Search vs Bulk Phones) */}
                             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 space-y-5 shadow-xs">
-                                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
                                     <div>
                                         <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
                                             <Users className="w-5 h-5 text-sky-600" />
                                             <span>শিক্ষার্থী নির্বাচন করুন</span>
                                         </h3>
-                                        <p className="text-xs text-slate-500">নাম বা নম্বর দিয়ে সার্চ করে অথবা একসাথে একাধিক নম্বর দিয়ে যুক্ত করুন</p>
+                                        <p className="text-xs text-slate-500">
+                                            নাম বা নম্বর দিয়ে সার্চ করে অথবা একসাথে একাধিক নম্বর দিয়ে যুক্ত করুন
+                                        </p>
                                     </div>
 
                                     {/* Mode Toggle */}
@@ -617,7 +867,7 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                         {userSearchResults.length > 0 && (
                                             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg divide-y divide-slate-100 dark:divide-slate-800 max-h-64 overflow-y-auto">
                                                 {userSearchResults.map((cand) => {
-                                                    const isAlreadyQueued = queuedStudents.some(s => s.id === cand.id);
+                                                    const isAlreadyQueued = queuedStudents.some((s) => s.id === cand.id);
                                                     return (
                                                         <div
                                                             key={cand.id}
@@ -651,7 +901,7 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                                                 onClick={() => handleAddUserToQueue(cand)}
                                                                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 cursor-pointer ${
                                                                     isAlreadyQueued
-                                                                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                                        ? 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
                                                                         : 'bg-sky-600 hover:bg-sky-700 text-white shadow-xs'
                                                                 }`}
                                                             >
@@ -682,7 +932,7 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                             />
                                         </div>
 
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                             <p className="text-[11px] text-slate-500">
                                                 * সিস্টেম স্বয়ংক্রিয়ভাবে নম্বরগুলোর ফরম্যাট ঠিক করে ডাটাবেজ থেকে স্টুডেন্ট অ্যাকাউন্ট খুঁজে বের করবে
                                             </p>
@@ -690,9 +940,13 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                                 type="button"
                                                 disabled={parsingBulk || !bulkPhonesInput.trim()}
                                                 onClick={handleVerifyBulkPhones}
-                                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition disabled:opacity-50 cursor-pointer"
+                                                className="inline-flex items-center gap-2 px-5 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold shadow-md shadow-sky-600/20 transition disabled:opacity-50 cursor-pointer self-start sm:self-auto"
                                             >
-                                                {parsingBulk ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+                                                {parsingBulk ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <Search className="w-4 h-4" />
+                                                )}
                                                 <span>{parsingBulk ? 'যাচাই করা হচ্ছে...' : 'নম্বরগুলো যাচাই ও যোগ করুন'}</span>
                                             </button>
                                         </div>
@@ -734,7 +988,9 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                             <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                                                 এনরোলমেন্টের জন্য নির্বাচিত শিক্ষার্থী ({queuedStudents.length} জন)
                                             </h4>
-                                            <p className="text-[11px] text-slate-500">কনফার্ম করলে নিচের শিক্ষার্থীদের অ্যাকাউন্টে কোর্সের পূর্ণ অ্যাক্সেস চালু হবে</p>
+                                            <p className="text-[11px] text-slate-500">
+                                                কনফার্ম করলে নিচের শিক্ষার্থীদের অ্যাকাউন্টে কোর্সের পূর্ণ অ্যাক্সেস চালু হবে
+                                            </p>
                                         </div>
                                     </div>
 
@@ -754,7 +1010,9 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                     <div className="p-10 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl space-y-2">
                                         <Users className="w-8 h-8 text-slate-400 mx-auto" />
                                         <p className="text-xs font-bold text-slate-500">এখনো কোনো শিক্ষার্থী যুক্ত করা হয়নি।</p>
-                                        <p className="text-[11px] text-slate-400">উপরের সার্চ বক্স বা একাধিক নম্বরের ইনপুট থেকে শিক্ষার্থী যুক্ত করুন।</p>
+                                        <p className="text-[11px] text-slate-400">
+                                            উপরের সার্চ বক্স বা একাধিক নম্বরের ইনপুট থেকে শিক্ষার্থী যুক্ত করুন।
+                                        </p>
                                     </div>
                                 ) : (
                                     <div className="overflow-x-auto">
@@ -786,9 +1044,7 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                                         <td className="py-3 px-3 font-mono text-slate-700 dark:text-slate-300">
                                                             {cand.phone || '—'}
                                                         </td>
-                                                        <td className="py-3 px-3 text-slate-500">
-                                                            {cand.email || '—'}
-                                                        </td>
+                                                        <td className="py-3 px-3 text-slate-500">{cand.email || '—'}</td>
                                                         <td className="py-3 px-3">
                                                             {cand.is_enrolled ? (
                                                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700">
@@ -806,7 +1062,7 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => handleRemoveFromQueue(cand.id)}
-                                                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+                                                                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
                                                                 title="তালিকা থেকে মুছুন"
                                                             >
                                                                 <Trash2 className="w-3.5 h-3.5" />
@@ -857,19 +1113,34 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                     </div>
 
                                     {/* Action Button */}
-                                    <div className="pt-2 flex items-center justify-between">
-                                        <div className="text-xs text-slate-600">
-                                            মোট এনরোল যোগ্য শিক্ষার্থী: <strong className="text-sky-600 font-extrabold">{queuedStudents.filter(s => !s.is_enrolled).length} জন</strong>
+                                    <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div className="text-xs text-slate-600 dark:text-slate-400">
+                                            মোট এনরোল যোগ্য শিক্ষার্থী:{' '}
+                                            <strong className="text-sky-600 font-extrabold">
+                                                {queuedStudents.filter((s) => !s.is_enrolled).length} জন
+                                            </strong>
                                         </div>
 
                                         <button
                                             type="button"
-                                            disabled={enrolling || queuedStudents.filter(s => !s.is_enrolled).length === 0}
+                                            disabled={enrolling || queuedStudents.filter((s) => !s.is_enrolled).length === 0}
                                             onClick={handleEnrollSubmit}
-                                            className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-sky-600 via-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white rounded-2xl text-xs sm:text-sm font-extrabold shadow-lg shadow-sky-600/25 transition disabled:opacity-50 cursor-pointer"
+                                            className={`inline-flex items-center justify-center gap-2 px-8 py-3 text-white rounded-2xl text-xs sm:text-sm font-extrabold shadow-lg transition disabled:opacity-50 cursor-pointer ${
+                                                selectedTarget.type === 'bundle'
+                                                    ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-sky-600 hover:from-purple-700 hover:to-sky-700 shadow-purple-600/25'
+                                                    : 'bg-gradient-to-r from-sky-600 via-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 shadow-sky-600/25'
+                                            }`}
                                         >
-                                            {enrolling ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
-                                            <span>{enrolling ? 'এনরোল করা হচ্ছে...' : 'এনরোলমেন্ট নিশ্চিত করুন'}</span>
+                                            {enrolling ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <UserCheck className="w-4 h-4" />
+                                            )}
+                                            <span>
+                                                {enrolling
+                                                    ? 'এনরোল করা হচ্ছে...'
+                                                    : `${selectedTarget.type === 'bundle' ? 'বান্ডেল' : 'কোর্স'} এনরোলমেন্ট নিশ্চিত করুন`}
+                                            </span>
                                         </button>
                                     </div>
                                 </div>
@@ -888,12 +1159,14 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                 <History className="w-5 h-5 text-sky-600" />
                                 <span>ম্যানুয়াল এনরোলমেন্ট হিস্ট্রি ({historyTotal})</span>
                             </h3>
-                            <p className="text-xs text-slate-500">অ্যাডমিন প্যানেল থেকে সম্পন্ন হওয়া অতীতের ম্যানুয়াল এনরোলমেন্টের রেকর্ড</p>
+                            <p className="text-xs text-slate-500">
+                                অ্যাডমিন প্যানেল থেকে সম্পন্ন হওয়া অতীতের ম্যানুয়াল এনরোলমেন্টের রেকর্ড
+                            </p>
                         </div>
                         <button
                             type="button"
                             onClick={fetchHistory}
-                            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition cursor-pointer"
                             title="রিফ্রেশ"
                         >
                             <RotateCcw className="w-4 h-4" />
@@ -908,7 +1181,9 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                     ) : historyItems.length === 0 ? (
                         <div className="p-12 text-center space-y-2 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
                             <History className="w-8 h-8 text-slate-400 mx-auto" />
-                            <p className="text-sm font-bold text-slate-600 dark:text-slate-300">কোনো ম্যানুয়াল এনরোলমেন্ট রেকর্ড পাওয়া যায়নি</p>
+                            <p className="text-sm font-bold text-slate-600 dark:text-slate-300">
+                                কোনো ম্যানুয়াল এনরোলমেন্ট রেকর্ড পাওয়া যায়নি
+                            </p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
@@ -917,53 +1192,68 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                     <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 font-bold uppercase tracking-wider text-[10px]">
                                         <th className="py-2.5 px-3">অর্ডার নং</th>
                                         <th className="py-2.5 px-3">শিক্ষার্থী</th>
-                                        <th className="py-2.5 px-3">কোর্স</th>
+                                        <th className="py-2.5 px-3">আইটেম (কোর্স/বান্ডেল)</th>
                                         <th className="py-2.5 px-3">রিমার্কস / নোট</th>
                                         <th className="py-2.5 px-3">তারিখ ও সময়</th>
                                         <th className="py-2.5 px-3">স্ট্যাটাস</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {historyItems.map((item) => (
-                                        <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
-                                            <td className="py-3 px-3 font-mono font-bold text-sky-600">
-                                                {item.order_number}
-                                            </td>
-                                            <td className="py-3 px-3">
-                                                <div>
-                                                    <div className="font-bold text-slate-900 dark:text-white">
-                                                        {item.user?.name || 'Unknown'}
+                                    {historyItems.map((item) => {
+                                        const isBundle = Boolean(item.bundle);
+                                        const title = item.bundle?.title || item.course?.title || 'Course';
+                                        return (
+                                            <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition">
+                                                <td className="py-3 px-3 font-mono font-bold text-sky-600">
+                                                    {item.order_number}
+                                                </td>
+                                                <td className="py-3 px-3">
+                                                    <div>
+                                                        <div className="font-bold text-slate-900 dark:text-white">
+                                                            {item.user?.name || 'Unknown'}
+                                                        </div>
+                                                        <div className="text-[11px] text-slate-500">
+                                                            {item.user?.phone || item.user?.email || '—'}
+                                                        </div>
                                                     </div>
-                                                    <div className="text-[11px] text-slate-500">
-                                                        {item.user?.phone || item.user?.email || '—'}
+                                                </td>
+                                                <td className="py-3 px-3">
+                                                    <div className="flex items-center gap-1.5">
+                                                        {isBundle ? (
+                                                            <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-bold text-[10px] shrink-0">
+                                                                বান্ডেল
+                                                            </span>
+                                                        ) : (
+                                                            <span className="px-1.5 py-0.5 rounded bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300 font-bold text-[10px] shrink-0">
+                                                                কোর্স
+                                                            </span>
+                                                        )}
+                                                        <span className="font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">
+                                                            {title}
+                                                        </span>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td className="py-3 px-3">
-                                                <div className="font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">
-                                                    {item.course?.title || 'Course'}
-                                                </div>
-                                            </td>
-                                            <td className="py-3 px-3 text-slate-600 dark:text-slate-400 text-[11px]">
-                                                {item.notes || 'Manual admin enrollment'}
-                                            </td>
-                                            <td className="py-3 px-3 text-slate-500 text-[11px] whitespace-nowrap">
-                                                {new Date(item.created_at).toLocaleString('bn-BD', {
-                                                    day: 'numeric',
-                                                    month: 'short',
-                                                    year: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}
-                                            </td>
-                                            <td className="py-3 px-3">
-                                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                                    <Check className="w-3 h-3" />
-                                                    <span>Active</span>
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                </td>
+                                                <td className="py-3 px-3 text-slate-600 dark:text-slate-400 text-[11px]">
+                                                    {item.notes || 'Manual admin enrollment'}
+                                                </td>
+                                                <td className="py-3 px-3 text-slate-500 text-[11px] whitespace-nowrap">
+                                                    {new Date(item.created_at).toLocaleString('bn-BD', {
+                                                        day: 'numeric',
+                                                        month: 'short',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </td>
+                                                <td className="py-3 px-3">
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                                        <Check className="w-3 h-3" />
+                                                        <span>Active</span>
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
@@ -982,9 +1272,7 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                             <h3 className="text-lg font-black text-slate-900 dark:text-white">
                                 এনরোলমেন্ট সফল হয়েছে!
                             </h3>
-                            <p className="text-xs text-slate-500">
-                                {enrollResult.message}
-                            </p>
+                            <p className="text-xs text-slate-500">{enrollResult.message}</p>
                         </div>
 
                         {/* Breakdown summary */}
@@ -1004,13 +1292,18 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                         </div>
 
                         {/* Enrolled students chips */}
-                        {enrollResult.enrolled.length > 0 && (
+                        {enrollResult.enrolled && enrollResult.enrolled.length > 0 && (
                             <div className="space-y-1.5">
-                                <div className="text-[11px] font-bold text-slate-600">এনরোল্ড শিক্ষার্থী তালিকা:</div>
+                                <div className="text-[11px] font-bold text-slate-600 dark:text-slate-400">
+                                    এনরোল্ড শিক্ষার্থী তালিকা:
+                                </div>
                                 <div className="max-h-36 overflow-y-auto space-y-1">
                                     {enrollResult.enrolled.map((en, idx) => (
-                                        <div key={idx} className="p-2 rounded-xl bg-emerald-50/60 border border-emerald-200/80 flex items-center justify-between text-xs">
-                                            <span className="font-bold text-slate-800">{en.name}</span>
+                                        <div
+                                            key={idx}
+                                            className="p-2 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 flex items-center justify-between text-xs"
+                                        >
+                                            <span className="font-bold text-slate-800 dark:text-slate-200">{en.name}</span>
                                             <span className="font-mono text-slate-500">{en.phone || en.order_number}</span>
                                         </div>
                                     ))}
@@ -1025,7 +1318,7 @@ export const AdminManualEnrollmentPage: React.FC = () => {
                                     setEnrollResult(null);
                                     setActiveView('history');
                                 }}
-                                className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 text-xs font-bold hover:bg-slate-50 transition cursor-pointer"
+                                className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
                             >
                                 হিস্ট্রি দেখুন
                             </button>
@@ -1046,3 +1339,4 @@ export const AdminManualEnrollmentPage: React.FC = () => {
         </div>
     );
 };
+export default AdminManualEnrollmentPage;

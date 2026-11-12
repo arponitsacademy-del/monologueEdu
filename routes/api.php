@@ -274,6 +274,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Manual Enrollment
         Route::prefix('manual-enrollment')->group(function () {
+            Route::get('targets', [AdminManualEnrollmentController::class, 'targets']);
             Route::get('courses', [AdminManualEnrollmentController::class, 'courses']);
             Route::get('search-users', [AdminManualEnrollmentController::class, 'searchUsers']);
             Route::post('lookup-phones', [AdminManualEnrollmentController::class, 'lookupPhones']);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Course;
+use App\Models\CourseBundle;
 use App\Models\Enrollment;
 use App\Models\Order;
 use App\Models\User;
@@ -18,21 +19,76 @@ use Illuminate\Support\Str;
 class AdminManualEnrollmentController extends Controller
 {
     /**
-     * Get list of all courses for manual enrollment dropdown.
+     * Get list of both courses and bundles for manual enrollment.
      */
     public function courses(): JsonResponse
     {
-        $courses = Course::select('id', 'title', 'slug', 'thumbnail', 'price', 'discount_price', 'status', 'category_id')
-            ->with(['category:id,name'])
+        return $this->targets();
+    }
+
+    /**
+     * Unified list of courses and course bundles.
+     */
+    public function targets(): JsonResponse
+    {
+        // 1. Fetch Courses
+        $courses = Course::with(['categories:id,name'])
             ->withCount(['enrollments' => function ($q) {
                 $q->where('status', Enrollment::STATUS_ACTIVE);
             }])
             ->orderBy('title')
-            ->get();
+            ->get()
+            ->map(function ($c) {
+                $activeCategory = $c->categories->first();
+                return [
+                    'id' => $c->id,
+                    'type' => 'course',
+                    'title' => $c->title,
+                    'slug' => $c->slug,
+                    'thumbnail' => $c->thumbnail,
+                    'price' => (float) ($c->sale_price ?? $c->price),
+                    'regular_price' => (float) $c->price,
+                    'sale_price' => $c->sale_price !== null ? (float) $c->sale_price : null,
+                    'status' => $c->status,
+                    'category' => $activeCategory ? ['id' => $activeCategory->id, 'name' => $activeCategory->name] : null,
+                    'enrollments_count' => $c->enrollments_count ?? 0,
+                ];
+            });
+
+        // 2. Fetch Course Bundles
+        $bundles = CourseBundle::with(['courses:id,title,thumbnail'])
+            ->orderBy('title')
+            ->get()
+            ->map(function ($b) {
+                $enrollmentsCount = Order::where('bundle_id', $b->id)
+                    ->where('payment_status', Order::PAYMENT_PAID)
+                    ->distinct('user_id')
+                    ->count('user_id');
+
+                return [
+                    'id' => $b->id,
+                    'type' => 'bundle',
+                    'title' => $b->title,
+                    'slug' => $b->slug,
+                    'thumbnail' => $b->thumbnail,
+                    'price' => (float) ($b->sale_price ?? $b->regular_price),
+                    'regular_price' => (float) $b->regular_price,
+                    'sale_price' => $b->sale_price !== null ? (float) $b->sale_price : null,
+                    'status' => $b->status,
+                    'courses_count' => $b->courses->count(),
+                    'courses' => $b->courses->map(fn($bc) => ['id' => $bc->id, 'title' => $bc->title]),
+                    'category' => ['id' => 0, 'name' => 'কম্বো বান্ডেল'],
+                    'enrollments_count' => $enrollmentsCount,
+                ];
+            });
+
+        $allTargets = $courses->concat($bundles)->values();
 
         return response()->json([
             'status' => 'success',
+            'targets' => $allTargets,
             'courses' => $courses,
+            'bundles' => $bundles,
         ]);
     }
 
@@ -42,7 +98,8 @@ class AdminManualEnrollmentController extends Controller
     public function searchUsers(Request $request): JsonResponse
     {
         $query = trim($request->input('q', ''));
-        $courseId = $request->input('course_id');
+        $targetType = $request->input('target_type', 'course');
+        $targetId = $request->input('target_id', $request->input('course_id'));
 
         if (empty($query)) {
             return response()->json([
@@ -63,17 +120,25 @@ class AdminManualEnrollmentController extends Controller
                     $q->orWhere('phone', 'like', "%{$digitsOnly}%");
                 }
             })
-            ->limit(20)
+            ->limit(25)
             ->get();
 
-        // Check enrollment status for course
+        // Check enrollment status for target
         $enrolledUserIds = [];
-        if (! empty($courseId) && $users->isNotEmpty()) {
-            $enrolledUserIds = Enrollment::where('course_id', $courseId)
-                ->whereIn('user_id', $users->pluck('id'))
-                ->where('status', Enrollment::STATUS_ACTIVE)
-                ->pluck('user_id')
-                ->toArray();
+        if (! empty($targetId) && $users->isNotEmpty()) {
+            if ($targetType === 'bundle') {
+                $enrolledUserIds = Order::where('bundle_id', $targetId)
+                    ->whereIn('user_id', $users->pluck('id'))
+                    ->where('payment_status', Order::PAYMENT_PAID)
+                    ->pluck('user_id')
+                    ->toArray();
+            } else {
+                $enrolledUserIds = Enrollment::where('course_id', $targetId)
+                    ->whereIn('user_id', $users->pluck('id'))
+                    ->where('status', Enrollment::STATUS_ACTIVE)
+                    ->pluck('user_id')
+                    ->toArray();
+            }
         }
 
         $formatted = $users->map(function ($u) use ($enrolledUserIds) {
@@ -101,11 +166,14 @@ class AdminManualEnrollmentController extends Controller
     {
         $request->validate([
             'phones' => ['required'],
+            'target_type' => ['nullable', 'string', 'in:course,bundle'],
+            'target_id' => ['nullable', 'integer'],
             'course_id' => ['nullable', 'integer'],
         ]);
 
         $rawPhones = $request->input('phones');
-        $courseId = $request->input('course_id');
+        $targetType = $request->input('target_type', 'course');
+        $targetId = $request->input('target_id', $request->input('course_id'));
 
         // Split tokens by comma, semicolon, newline, spaces
         if (is_array($rawPhones)) {
@@ -149,7 +217,6 @@ class AdminManualEnrollmentController extends Controller
         // Find users matching these phone numbers
         $matchedUsers = [];
         $unmatchedPhones = [];
-        $matchedPhoneSet = [];
 
         foreach ($normalizedList as $phone) {
             $user = User::where('phone', $phone)
@@ -161,11 +228,18 @@ class AdminManualEnrollmentController extends Controller
             if ($user) {
                 if (! isset($matchedUsers[$user->id])) {
                     $isEnrolled = false;
-                    if (! empty($courseId)) {
-                        $isEnrolled = Enrollment::where('course_id', $courseId)
-                            ->where('user_id', $user->id)
-                            ->where('status', Enrollment::STATUS_ACTIVE)
-                            ->exists();
+                    if (! empty($targetId)) {
+                        if ($targetType === 'bundle') {
+                            $isEnrolled = Order::where('bundle_id', $targetId)
+                                ->where('user_id', $user->id)
+                                ->where('payment_status', Order::PAYMENT_PAID)
+                                ->exists();
+                        } else {
+                            $isEnrolled = Enrollment::where('course_id', $targetId)
+                                ->where('user_id', $user->id)
+                                ->where('status', Enrollment::STATUS_ACTIVE)
+                                ->exists();
+                        }
                     }
 
                     $matchedUsers[$user->id] = [
@@ -178,7 +252,6 @@ class AdminManualEnrollmentController extends Controller
                         'is_enrolled' => $isEnrolled,
                     ];
                 }
-                $matchedPhoneSet[] = $phone;
             } else {
                 $unmatchedPhones[] = $phone;
             }
@@ -195,19 +268,30 @@ class AdminManualEnrollmentController extends Controller
     }
 
     /**
-     * Perform the manual enrollment for the selected users.
+     * Perform manual enrollment for Course or Bundle.
      */
     public function enroll(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'course_id' => ['required', 'exists:courses,id'],
+            'target_type' => ['nullable', 'string', 'in:course,bundle'],
+            'target_id' => ['nullable', 'integer'],
+            'course_id' => ['nullable', 'integer'],
             'user_ids' => ['required', 'array', 'min:1'],
             'user_ids.*' => ['required', 'exists:users,id'],
             'send_sms' => ['nullable', 'boolean'],
             'notes' => ['nullable', 'string', 'max:500'],
         ]);
 
-        $course = Course::findOrFail($validated['course_id']);
+        $targetType = $validated['target_type'] ?? 'course';
+        $targetId = $validated['target_id'] ?? $validated['course_id'];
+
+        if (empty($targetId)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'কোর্স বা বান্ডেল আইডি প্রদান করা আবশ্যক।',
+            ], 422);
+        }
+
         $userIds = array_unique($validated['user_ids']);
         $sendSms = $request->boolean('send_sms', false);
         $notes = $validated['notes'] ?? 'Manual enrollment by admin';
@@ -215,106 +299,215 @@ class AdminManualEnrollmentController extends Controller
         $enrolled = [];
         $alreadyEnrolled = [];
         $failed = [];
+        $targetTitle = '';
 
-        DB::transaction(function () use (
-            $course,
-            $userIds,
-            $sendSms,
-            $notes,
-            &$enrolled,
-            &$alreadyEnrolled,
-            &$failed
-        ) {
-            foreach ($userIds as $userId) {
-                try {
-                    $user = User::find($userId);
-                    if (! $user) {
-                        $failed[] = ['user_id' => $userId, 'reason' => 'User not found'];
-                        continue;
-                    }
+        if ($targetType === 'bundle') {
+            $bundle = CourseBundle::with('courses')->findOrFail($targetId);
+            $targetTitle = $bundle->title;
 
-                    // Check if already actively enrolled
-                    $existing = Enrollment::where('user_id', $user->id)
-                        ->where('course_id', $course->id)
-                        ->where('status', Enrollment::STATUS_ACTIVE)
-                        ->first();
+            DB::transaction(function () use (
+                $bundle,
+                $userIds,
+                $sendSms,
+                $notes,
+                &$enrolled,
+                &$alreadyEnrolled,
+                &$failed
+            ) {
+                foreach ($userIds as $userId) {
+                    try {
+                        $user = User::find($userId);
+                        if (! $user) {
+                            $failed[] = ['user_id' => $userId, 'reason' => 'User not found'];
+                            continue;
+                        }
 
-                    if ($existing) {
-                        $alreadyEnrolled[] = [
+                        // Check if already has paid bundle order
+                        $existingOrder = Order::where('user_id', $user->id)
+                            ->where('bundle_id', $bundle->id)
+                            ->where('payment_status', Order::PAYMENT_PAID)
+                            ->first();
+
+                        if ($existingOrder) {
+                            $alreadyEnrolled[] = [
+                                'id' => $user->id,
+                                'name' => $user->name,
+                                'phone' => $user->phone,
+                            ];
+                            continue;
+                        }
+
+                        // 1. Create paid Order for Bundle
+                        $orderNumber = 'MAN-' . now()->format('ymd') . '-' . strtoupper(Str::random(5));
+                        $order = Order::create([
+                            'order_number' => $orderNumber,
+                            'user_id' => $user->id,
+                            'course_id' => null,
+                            'bundle_id' => $bundle->id,
+                            'original_price' => $bundle->regular_price ?? 0,
+                            'discount_amount' => 0,
+                            'final_amount' => $bundle->sale_price ?? $bundle->regular_price ?? 0,
+                            'payment_status' => Order::PAYMENT_PAID,
+                            'order_status' => Order::ORDER_COMPLETED,
+                            'payment_method' => 'manual_admin',
+                            'notes' => $notes . ' (Bundle Manual Enrollment by Admin #' . auth()->id() . ')',
+                        ]);
+
+                        // 2. Enroll into ALL courses included in the Bundle
+                        foreach ($bundle->courses as $bundleCourse) {
+                            Enrollment::updateOrCreate(
+                                [
+                                    'user_id' => $user->id,
+                                    'course_id' => $bundleCourse->id,
+                                ],
+                                [
+                                    'order_id' => $order->id,
+                                    'status' => Enrollment::STATUS_ACTIVE,
+                                    'enrolled_at' => now(),
+                                ]
+                            );
+                        }
+
+                        // 3. Log Audit
+                        AuditLog::log('manual_bundle_enrollment', 'Order', $order->id, null, [
+                            'admin_id' => auth()->id(),
+                            'user_id' => $user->id,
+                            'bundle_id' => $bundle->id,
+                            'order_number' => $order->order_number,
+                            'courses_count' => $bundle->courses->count(),
+                        ]);
+
+                        // 4. Send SMS if requested
+                        if ($sendSms) {
+                            try {
+                                app(CoursePurchaseSmsService::class)->sendPurchaseSms($order);
+                            } catch (\Throwable $e) {
+                                Log::warning('Manual bundle enrollment SMS error: ' . $e->getMessage());
+                            }
+                        }
+
+                        $enrolled[] = [
                             'id' => $user->id,
                             'name' => $user->name,
                             'phone' => $user->phone,
+                            'email' => $user->email,
+                            'order_number' => $order->order_number,
                         ];
-                        continue;
+                    } catch (\Throwable $e) {
+                        $failed[] = [
+                            'user_id' => $userId,
+                            'reason' => $e->getMessage(),
+                        ];
                     }
+                }
+            });
+        } else {
+            // Single Course Enrollment
+            $course = Course::findOrFail($targetId);
+            $targetTitle = $course->title;
 
-                    // 1. Create paid Order for audit and accounting
-                    $orderNumber = 'MAN-' . now()->format('ymd') . '-' . strtoupper(Str::random(5));
-                    $order = Order::create([
-                        'order_number' => $orderNumber,
-                        'user_id' => $user->id,
-                        'course_id' => $course->id,
-                        'original_price' => $course->price ?? 0,
-                        'discount_amount' => 0,
-                        'final_amount' => $course->price ?? 0,
-                        'payment_status' => Order::PAYMENT_PAID,
-                        'order_status' => Order::ORDER_COMPLETED,
-                        'payment_method' => 'manual_admin',
-                        'notes' => $notes . ' (Admin #' . auth()->id() . ')',
-                    ]);
+            DB::transaction(function () use (
+                $course,
+                $userIds,
+                $sendSms,
+                $notes,
+                &$enrolled,
+                &$alreadyEnrolled,
+                &$failed
+            ) {
+                foreach ($userIds as $userId) {
+                    try {
+                        $user = User::find($userId);
+                        if (! $user) {
+                            $failed[] = ['user_id' => $userId, 'reason' => 'User not found'];
+                            continue;
+                        }
 
-                    // 2. Create or activate Enrollment
-                    $enrollment = Enrollment::updateOrCreate(
-                        [
+                        // Check if already actively enrolled
+                        $existing = Enrollment::where('user_id', $user->id)
+                            ->where('course_id', $course->id)
+                            ->where('status', Enrollment::STATUS_ACTIVE)
+                            ->first();
+
+                        if ($existing) {
+                            $alreadyEnrolled[] = [
+                                'id' => $user->id,
+                                'name' => $user->name,
+                                'phone' => $user->phone,
+                            ];
+                            continue;
+                        }
+
+                        // 1. Create paid Order
+                        $orderNumber = 'MAN-' . now()->format('ymd') . '-' . strtoupper(Str::random(5));
+                        $order = Order::create([
+                            'order_number' => $orderNumber,
                             'user_id' => $user->id,
                             'course_id' => $course->id,
-                        ],
-                        [
-                            'order_id' => $order->id,
-                            'status' => Enrollment::STATUS_ACTIVE,
-                            'enrolled_at' => now(),
-                        ]
-                    );
+                            'bundle_id' => null,
+                            'original_price' => $course->price ?? 0,
+                            'discount_amount' => 0,
+                            'final_amount' => $course->sale_price ?? $course->price ?? 0,
+                            'payment_status' => Order::PAYMENT_PAID,
+                            'order_status' => Order::ORDER_COMPLETED,
+                            'payment_method' => 'manual_admin',
+                            'notes' => $notes . ' (Course Manual Enrollment by Admin #' . auth()->id() . ')',
+                        ]);
 
-                    // 3. Log Audit
-                    AuditLog::log('manual_enrollment_created', 'Enrollment', $enrollment->id, null, [
-                        'admin_id' => auth()->id(),
-                        'user_id' => $user->id,
-                        'course_id' => $course->id,
-                        'order_number' => $order->order_number,
-                    ]);
+                        // 2. Create or activate Enrollment
+                        $enrollment = Enrollment::updateOrCreate(
+                            [
+                                'user_id' => $user->id,
+                                'course_id' => $course->id,
+                            ],
+                            [
+                                'order_id' => $order->id,
+                                'status' => Enrollment::STATUS_ACTIVE,
+                                'enrolled_at' => now(),
+                            ]
+                        );
 
-                    // 4. Send SMS if requested
-                    if ($sendSms) {
-                        try {
-                            app(CoursePurchaseSmsService::class)->sendPurchaseSms($order);
-                        } catch (\Throwable $e) {
-                            Log::warning('Manual enrollment SMS delivery error: ' . $e->getMessage());
+                        // 3. Log Audit
+                        AuditLog::log('manual_course_enrollment', 'Enrollment', $enrollment->id, null, [
+                            'admin_id' => auth()->id(),
+                            'user_id' => $user->id,
+                            'course_id' => $course->id,
+                            'order_number' => $order->order_number,
+                        ]);
+
+                        // 4. Send SMS if requested
+                        if ($sendSms) {
+                            try {
+                                app(CoursePurchaseSmsService::class)->sendPurchaseSms($order);
+                            } catch (\Throwable $e) {
+                                Log::warning('Manual enrollment SMS delivery error: ' . $e->getMessage());
+                            }
                         }
-                    }
 
-                    $enrolled[] = [
-                        'id' => $user->id,
-                        'name' => $user->name,
-                        'phone' => $user->phone,
-                        'email' => $user->email,
-                        'order_number' => $order->order_number,
-                    ];
-                } catch (\Throwable $e) {
-                    $failed[] = [
-                        'user_id' => $userId,
-                        'reason' => $e->getMessage(),
-                    ];
+                        $enrolled[] = [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'phone' => $user->phone,
+                            'email' => $user->email,
+                            'order_number' => $order->order_number,
+                        ];
+                    } catch (\Throwable $e) {
+                        $failed[] = [
+                            'user_id' => $userId,
+                            'reason' => $e->getMessage(),
+                        ];
+                    }
                 }
-            }
-        });
+            });
+        }
 
         return response()->json([
             'status' => 'success',
-            'message' => count($enrolled) . ' জন শিক্ষার্থী সফলভাবে এনরোল সম্পন্ন হয়েছে।',
-            'course' => [
-                'id' => $course->id,
-                'title' => $course->title,
+            'message' => count($enrolled) . ' জন শিক্ষার্থী সফলভাবে "' . $targetTitle . '"-এ এনরোল সম্পন্ন হয়েছে।',
+            'target' => [
+                'id' => $targetId,
+                'type' => $targetType,
+                'title' => $targetTitle,
             ],
             'enrolled_count' => count($enrolled),
             'already_enrolled_count' => count($alreadyEnrolled),
@@ -336,6 +529,7 @@ class AdminManualEnrollmentController extends Controller
             ->with([
                 'user:id,name,phone,email',
                 'course:id,title,slug,thumbnail',
+                'bundle:id,title,slug,thumbnail',
             ])
             ->latest()
             ->paginate($perPage);
