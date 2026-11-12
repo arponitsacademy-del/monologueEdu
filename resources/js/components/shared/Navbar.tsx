@@ -26,8 +26,72 @@ import {
     BookMarked,
     Shield,
     Bell,
-    CheckCheck
+    CheckCheck,
+    ExternalLink,
+    ChevronRight
 } from 'lucide-react';
+import { HeaderMenuItem } from '../../types';
+
+const DEFAULT_NAV_ITEMS: HeaderMenuItem[] = [
+    {
+        id: '1',
+        label: 'হোম',
+        label_en: 'Home',
+        url: '/',
+        is_external: false,
+        highlight: false,
+    },
+    {
+        id: '2',
+        label: 'কোর্সসমূহ',
+        label_en: 'Courses',
+        url: '/courses',
+        is_external: false,
+        highlight: false,
+        children: [
+            { id: '2-1', label: 'সকল কোর্সসমূহ', label_en: 'All Courses', url: '/courses' },
+            { id: '2-2', label: 'HSC একাডেমিক সাইকেল', label_en: 'HSC Academic Cycle', url: '/courses' },
+            { id: '2-3', label: 'ইঞ্জিনিয়ারিং ও ভার্সিটি ভর্তি', label_en: 'Engineering & Varsity Admission', url: '/courses' },
+            { id: '2-4', label: 'ফ্রি ট্রায়াল ক্লাস', label_en: 'Free Trial Classes', url: '/courses?type=free' },
+        ],
+    },
+    {
+        id: '3',
+        label: 'বইসমূহ ও বান্ডেল',
+        label_en: 'Books & Bundles',
+        url: '/courses',
+        is_external: false,
+        highlight: false,
+        children: [
+            { id: '3-1', label: 'কম্বো কোর্স বান্ডেল', label_en: 'Combo Course Bundles', url: '/courses' },
+            { id: '3-2', label: 'লেকচার শিট ও নোটবুক', label_en: 'Lecture Sheets & Notes', url: '/courses' },
+        ],
+    },
+    {
+        id: '4',
+        label: 'ফ্রি রিসোর্স',
+        label_en: 'Free Resources',
+        url: '/courses?type=free',
+        is_external: false,
+        highlight: false,
+    },
+    {
+        id: '5',
+        label: 'যোগাযোগ',
+        label_en: 'Contact Us',
+        url: '/p/contact',
+        is_external: false,
+        highlight: false,
+    },
+    {
+        id: '6',
+        label: 'ই-বুক ও এক্সাম',
+        label_en: 'E-Books & Exams',
+        url: '/student/exams',
+        is_external: false,
+        highlight: true,
+    },
+];
 
 export const Navbar: React.FC = () => {
     const { user, logout } = useAuth();
@@ -38,8 +102,7 @@ export const Navbar: React.FC = () => {
 
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-    const [coursesDropdownOpen, setCoursesDropdownOpen] = useState(false);
-    const [booksDropdownOpen, setBooksDropdownOpen] = useState(false);
+    const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
     const [searchModalOpen, setSearchModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [logoError, setLogoError] = useState(false);
@@ -65,6 +128,22 @@ export const Navbar: React.FC = () => {
         ? settings.site_name.split(' ').slice(1).join(' ')
         : 'EDU');
 
+    const announcementText = getLocalizedText(
+        headerSettings?.announcement_text,
+        headerSettings?.announcement_text_en,
+        language
+    );
+
+    const ctaButtonText = getLocalizedText(
+        headerSettings?.cta_button_text,
+        headerSettings?.cta_button_text_en,
+        language
+    );
+
+    const menuItems: HeaderMenuItem[] = (headerSettings?.menu_items && headerSettings.menu_items.length > 0)
+        ? headerSettings.menu_items
+        : DEFAULT_NAV_ITEMS;
+
     useEffect(() => {
         setLogoError(false);
     }, [logoUrl]);
@@ -72,8 +151,7 @@ export const Navbar: React.FC = () => {
     // Close dropdowns on route change
     useEffect(() => {
         setMobileMenuOpen(false);
-        setCoursesDropdownOpen(false);
-        setBooksDropdownOpen(false);
+        setOpenDropdownId(null);
         setUserDropdownOpen(false);
         setSearchModalOpen(false);
         setNotifDropdownOpen(false);
@@ -136,9 +214,43 @@ export const Navbar: React.FC = () => {
     const isHome = location.pathname === '/';
 
     return (
-        <header className={`${headerSettings?.sticky !== false ? 'sticky top-0' : 'relative'} z-50 py-2 sm:py-3.5 px-3 sm:px-6 lg:px-8 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md transition-all`}>
-            {/* Bondi Pathshala Style Floating Capsule Navbar */}
-            <div className="max-w-7xl mx-auto bg-white dark:bg-slate-900 rounded-full border border-slate-200/80 dark:border-slate-800 shadow-md shadow-sky-500/5 relative overflow-hidden flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2">
+        <div className={`${headerSettings?.sticky !== false ? 'sticky top-0' : 'relative'} z-50`}>
+            {/* Announcement Top Banner */}
+            {headerSettings?.announcement_enabled && announcementText && (
+                <div
+                    style={{ backgroundColor: headerSettings.announcement_bg || '#0284c7' }}
+                    className="w-full text-white text-xs font-semibold py-1.5 px-4 text-center shadow-xs transition-colors"
+                >
+                    <div className="max-w-7xl mx-auto flex items-center justify-center gap-2">
+                        <span>{announcementText}</span>
+                        {headerSettings.announcement_link && (
+                            headerSettings.announcement_link.startsWith('http') ? (
+                                <a
+                                    href={headerSettings.announcement_link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="underline font-bold text-[11px] opacity-90 hover:opacity-100 inline-flex items-center gap-0.5 ml-1"
+                                >
+                                    <span>বিস্তারিত দেখুন</span>
+                                    <ChevronRight className="w-3 h-3" />
+                                </a>
+                            ) : (
+                                <Link
+                                    to={headerSettings.announcement_link}
+                                    className="underline font-bold text-[11px] opacity-90 hover:opacity-100 inline-flex items-center gap-0.5 ml-1"
+                                >
+                                    <span>বিস্তারিত দেখুন</span>
+                                    <ChevronRight className="w-3 h-3" />
+                                </Link>
+                            )
+                        )}
+                    </div>
+                </div>
+            )}
+
+            <header className="py-2 sm:py-3.5 px-3 sm:px-6 lg:px-8 bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-md transition-all">
+                {/* Bondi Pathshala Style Floating Capsule Navbar */}
+                <div className="max-w-7xl mx-auto bg-white dark:bg-slate-900 rounded-full border border-slate-200/80 dark:border-slate-800 shadow-md shadow-sky-500/5 relative overflow-hidden flex items-center justify-between px-3 sm:px-4 py-1.5 sm:py-2">
                 {/* Left Side Organic Wavy Blue Gradient Accent */}
                 <svg
                     className="absolute left-0 top-0 bottom-0 h-full w-24 sm:w-36 pointer-events-none select-none -z-0 rounded-l-full overflow-hidden"
@@ -227,133 +339,117 @@ export const Navbar: React.FC = () => {
                     </Link>
                 </div>
 
-                {/* Center Navigation Menu Items (Bondi Pathshala Style) */}
+                {/* Center Dynamic Navigation Menu Items (Bondi Pathshala Style) */}
                 <nav className="hidden lg:flex items-center gap-1 sm:gap-1.5 relative z-10 px-2">
-                    {/* হোম (Home) - Active Pill Style */}
-                    <Link
-                        to="/"
-                        className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-xs sm:text-sm transition-all ${
-                            isHome
-                                ? 'bg-sky-100/90 text-sky-700 dark:bg-sky-950/80 dark:text-sky-300 shadow-2xs font-extrabold'
-                                : 'text-slate-700 dark:text-slate-200 hover:text-sky-600 hover:bg-slate-50 dark:hover:bg-slate-800'
-                        }`}
-                    >
-                        <Home className={`w-4 h-4 ${isHome ? 'text-sky-600 fill-sky-600' : 'text-slate-400'}`} />
-                        <span>হোম</span>
-                    </Link>
+                    {menuItems.map((item) => {
+                        const hasChildren = Boolean(item.children && item.children.length > 0);
+                        const isCurrentActive = location.pathname === item.url && !hasChildren;
+                        const isOpen = openDropdownId === item.id;
+                        const itemLabel = getLocalizedText(item.label, item.label_en, language) || item.label;
 
-                    {/* কোর্সসমূহ (Courses) with Dropdown */}
-                    <div
-                        className="relative"
-                        onMouseEnter={() => setCoursesDropdownOpen(true)}
-                        onMouseLeave={() => setCoursesDropdownOpen(false)}
-                    >
-                        <Link
-                            to="/courses"
-                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                        >
-                            <GraduationCap className="w-4 h-4 text-indigo-500" />
-                            <span>কোর্সসমূহ</span>
-                            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${coursesDropdownOpen ? 'rotate-180' : ''}`} />
-                        </Link>
-
-                        {/* Courses Dropdown Menu */}
-                        {coursesDropdownOpen && (
-                            <div className="absolute left-0 mt-1 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                                <Link
-                                    to="/courses"
-                                    className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
+                        if (hasChildren) {
+                            return (
+                                <div
+                                    key={item.id}
+                                    className="relative"
+                                    onMouseEnter={() => setOpenDropdownId(item.id)}
+                                    onMouseLeave={() => setOpenDropdownId(null)}
                                 >
-                                    <Sparkles className="w-4 h-4 text-sky-500" />
-                                    <span>সকল কোর্সসমূহ</span>
-                                </Link>
-                                <Link
-                                    to="/courses"
-                                    className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
-                                >
-                                    <BookOpen className="w-4 h-4 text-indigo-500" />
-                                    <span>HSC একাডেমিক সাইকেল</span>
-                                </Link>
-                                <Link
-                                    to="/courses"
-                                    className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
-                                >
-                                    <GraduationCap className="w-4 h-4 text-purple-500" />
-                                    <span>ইঞ্জিনিয়ারিং ও ভার্সিটি ভর্তি</span>
-                                </Link>
-                                <Link
-                                    to="/courses?type=free"
-                                    className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
-                                >
-                                    <FileText className="w-4 h-4 text-emerald-500" />
-                                    <span>ফ্রি ট্রায়াল ক্লাস</span>
-                                </Link>
-                            </div>
-                        )}
-                    </div>
+                                    <Link
+                                        to={item.url}
+                                        className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full font-bold text-xs sm:text-sm transition-colors ${
+                                            isOpen || (location.pathname.startsWith(item.url) && item.url !== '/')
+                                                ? 'text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-slate-800'
+                                                : 'text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                        }`}
+                                    >
+                                        {item.url.includes('course') ? (
+                                            <GraduationCap className="w-4 h-4 text-indigo-500" />
+                                        ) : item.label.includes('বই') || item.label.toLowerCase().includes('book') ? (
+                                            <BookOpen className="w-4 h-4 text-sky-500" />
+                                        ) : (
+                                            <Sparkles className="w-4 h-4 text-sky-500" />
+                                        )}
+                                        <span>{itemLabel}</span>
+                                        {item.highlight && <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />}
+                                        <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                                    </Link>
 
-                    {/* বইসমূহ / বান্ডেল (Books / Bundles) with Dropdown */}
-                    <div
-                        className="relative"
-                        onMouseEnter={() => setBooksDropdownOpen(true)}
-                        onMouseLeave={() => setBooksDropdownOpen(false)}
-                    >
-                        <Link
-                            to="/courses"
-                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-full font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                        >
-                            <BookOpen className="w-4 h-4 text-sky-500" />
-                            <span>বইসমূহ</span>
-                            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-200 ${booksDropdownOpen ? 'rotate-180' : ''}`} />
-                        </Link>
+                                    {/* Dropdown Menu */}
+                                    {isOpen && (
+                                        <div className="absolute left-0 mt-1 min-w-[220px] w-max max-w-xs bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+                                            {item.children!.map((sub) => {
+                                                const subLabel = getLocalizedText(sub.label, sub.label_en, language) || sub.label;
+                                                return sub.is_external || sub.url.startsWith('http') ? (
+                                                    <a
+                                                        key={sub.id}
+                                                        href={sub.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center justify-between gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
+                                                    >
+                                                        <div className="flex items-center gap-2">
+                                                            <Sparkles className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                                                            <span>{subLabel}</span>
+                                                        </div>
+                                                        <ExternalLink className="w-3 h-3 text-slate-400" />
+                                                    </a>
+                                                ) : (
+                                                    <Link
+                                                        key={sub.id}
+                                                        to={sub.url}
+                                                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
+                                                    >
+                                                        <Sparkles className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                                                        <span>{subLabel}</span>
+                                                    </Link>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            );
+                        }
 
-                        {/* Books / Bundles Dropdown */}
-                        {booksDropdownOpen && (
-                            <div className="absolute left-0 mt-1 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                                <Link
-                                    to="/courses"
-                                    className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
+                        if (item.is_external || item.url.startsWith('http')) {
+                            return (
+                                <a
+                                    key={item.id}
+                                    href={item.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${
+                                        item.highlight ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 font-extrabold' : ''
+                                    }`}
                                 >
-                                    <Boxes className="w-4 h-4 text-amber-500" />
-                                    <span>কম্বো কোর্স বান্ডেল</span>
-                                </Link>
-                                <Link
-                                    to="/courses"
-                                    className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600 transition-colors"
-                                >
-                                    <FileText className="w-4 h-4 text-indigo-500" />
-                                    <span>লেকচার শিট ও নোটবুক</span>
-                                </Link>
-                            </div>
-                        )}
-                    </div>
+                                    <span>{itemLabel}</span>
+                                    {item.highlight && <Sparkles className="w-3 h-3 text-amber-500" />}
+                                    <ExternalLink className="w-3 h-3 text-slate-400" />
+                                </a>
+                            );
+                        }
 
-                    {/* ফ্রি রিসোর্স (Free Resources) */}
-                    <Link
-                        to="/courses?type=free"
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                    >
-                        <FileText className="w-4 h-4 text-emerald-500" />
-                        <span>ফ্রি রিসোর্স</span>
-                    </Link>
-
-                    {/* যোগাযোগ (Contact) */}
-                    <Link
-                        to="/p/contact"
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                    >
-                        <Users className="w-4 h-4 text-purple-500" />
-                        <span>যোগাযোগ</span>
-                    </Link>
-
-                    {/* ই-বুক / মডেল টেস্ট (E-book / Exams) */}
-                    <Link
-                        to="/student/exams"
-                        className="flex items-center gap-1.5 px-3.5 py-2 rounded-full font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                    >
-                        <ClipboardList className="w-4 h-4 text-sky-500" />
-                        <span>ই-বুক</span>
-                    </Link>
+                        return (
+                            <Link
+                                key={item.id}
+                                to={item.url}
+                                className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-bold text-xs sm:text-sm transition-all ${
+                                    isCurrentActive
+                                        ? 'bg-sky-100/90 text-sky-700 dark:bg-sky-950/80 dark:text-sky-300 shadow-2xs font-extrabold'
+                                        : item.highlight
+                                            ? 'bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 hover:bg-amber-100 font-bold'
+                                            : 'text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                                }`}
+                            >
+                                {item.url === '/' && <Home className={`w-4 h-4 ${isCurrentActive ? 'text-sky-600 fill-sky-600' : 'text-slate-400'}`} />}
+                                {item.url.includes('contact') && <Users className="w-4 h-4 text-purple-500" />}
+                                {item.url.includes('free') && <FileText className="w-4 h-4 text-emerald-500" />}
+                                {item.url.includes('exam') && <ClipboardList className="w-4 h-4 text-sky-500" />}
+                                <span>{itemLabel}</span>
+                                {item.highlight && <Sparkles className="w-3 h-3 text-amber-500" />}
+                            </Link>
+                        );
+                    })}
                 </nav>
 
                 {/* Right Side Actions (Search, Login & Enroll CTA Buttons) */}
@@ -373,6 +469,29 @@ export const Navbar: React.FC = () => {
                         <div className="hidden sm:block">
                             <ThemeSwitcher variant="compact" />
                         </div>
+                    )}
+
+                    {/* Optional Custom Header CTA Button */}
+                    {headerSettings?.cta_button_enabled && ctaButtonText && (
+                        headerSettings.cta_button_link?.startsWith('http') ? (
+                            <a
+                                href={headerSettings.cta_button_link}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900 border border-sky-200 dark:border-sky-800 transition-colors shadow-2xs hidden md:inline-flex items-center gap-1"
+                            >
+                                <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+                                <span>{ctaButtonText}</span>
+                            </a>
+                        ) : (
+                            <Link
+                                to={headerSettings.cta_button_link || '/courses'}
+                                className="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900 border border-sky-200 dark:border-sky-800 transition-colors shadow-2xs hidden md:inline-flex items-center gap-1"
+                            >
+                                <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+                                <span>{ctaButtonText}</span>
+                            </Link>
+                        )
                     )}
 
                     {/* Authentication and CTA Buttons */}
@@ -500,59 +619,83 @@ export const Navbar: React.FC = () => {
             {/* Mobile Drawer (Bondi Pathshala Style) */}
             {mobileMenuOpen && (
                 <div className="lg:hidden mt-2 max-w-7xl mx-auto bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-4 shadow-xl space-y-2 animate-in slide-in-from-top-2 duration-200">
-                    <Link
-                        to="/"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
-                    >
-                        <Home className="w-4 h-4 text-sky-600" />
-                        <span>হোম</span>
-                    </Link>
+                    {menuItems.map((item) => {
+                        const itemLabel = getLocalizedText(item.label, item.label_en, language) || item.label;
+                        const hasChildren = Boolean(item.children && item.children.length > 0);
 
-                    <Link
-                        to="/courses"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
-                    >
-                        <GraduationCap className="w-4 h-4 text-indigo-500" />
-                        <span>কোর্সসমূহ</span>
-                    </Link>
+                        return (
+                            <div key={item.id} className="space-y-1">
+                                {item.is_external || item.url.startsWith('http') ? (
+                                    <a
+                                        href={item.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <Sparkles className="w-4 h-4 text-sky-600" />
+                                            <span>{itemLabel}</span>
+                                        </div>
+                                        <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
+                                    </a>
+                                ) : (
+                                    <Link
+                                        to={item.url}
+                                        onClick={() => setMobileMenuOpen(false)}
+                                        className="flex items-center justify-between px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            {item.url === '/' ? (
+                                                <Home className="w-4 h-4 text-sky-600" />
+                                            ) : item.url.includes('course') ? (
+                                                <GraduationCap className="w-4 h-4 text-indigo-500" />
+                                            ) : item.url.includes('contact') ? (
+                                                <Users className="w-4 h-4 text-amber-500" />
+                                            ) : (
+                                                <Sparkles className="w-4 h-4 text-sky-600" />
+                                            )}
+                                            <span>{itemLabel}</span>
+                                        </div>
+                                        {item.highlight && (
+                                            <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-extrabold">NEW</span>
+                                        )}
+                                    </Link>
+                                )}
 
-                    <Link
-                        to="/courses"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
-                    >
-                        <BookOpen className="w-4 h-4 text-sky-500" />
-                        <span>বইসমূহ ও বান্ডেল</span>
-                    </Link>
-
-                    <Link
-                        to="/courses?type=free"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
-                    >
-                        <FileText className="w-4 h-4 text-emerald-500" />
-                        <span>ফ্রি রিসোর্স</span>
-                    </Link>
-
-                    <Link
-                        to="/student/exams"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
-                    >
-                        <ClipboardList className="w-4 h-4 text-purple-500" />
-                        <span>ই-বুক ও অনলাইন এক্সাম</span>
-                    </Link>
-
-                    <Link
-                        to="/p/contact"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 hover:bg-sky-50 dark:hover:bg-slate-800 hover:text-sky-600"
-                    >
-                        <Users className="w-4 h-4 text-amber-500" />
-                        <span>যোগাযোগ</span>
-                    </Link>
+                                {/* Sub-items if any */}
+                                {hasChildren && (
+                                    <div className="pl-6 space-y-1 border-l-2 border-sky-100 dark:border-slate-800 ml-4 my-1">
+                                        {item.children!.map((sub) => {
+                                            const subLabel = getLocalizedText(sub.label, sub.label_en, language) || sub.label;
+                                            return sub.is_external || sub.url.startsWith('http') ? (
+                                                <a
+                                                    key={sub.id}
+                                                    href={sub.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                    className="flex items-center justify-between px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-sky-600"
+                                                >
+                                                    <span>• {subLabel}</span>
+                                                    <ExternalLink className="w-3 h-3 text-slate-400" />
+                                                </a>
+                                            ) : (
+                                                <Link
+                                                    key={sub.id}
+                                                    to={sub.url}
+                                                    onClick={() => setMobileMenuOpen(false)}
+                                                    className="block px-3 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:text-sky-600"
+                                                >
+                                                    • {subLabel}
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
 
                     <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
                         {user ? (
@@ -641,5 +784,6 @@ export const Navbar: React.FC = () => {
                 </div>
             )}
         </header>
+    </div>
     );
 };

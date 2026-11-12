@@ -90,10 +90,26 @@ export const AdminFooterBuilderPage: React.FC = () => {
     }, [settings]);
 
     const handleUpdate = <K extends keyof FooterSettings>(key: K, value: FooterSettings[K]) => {
-        setFooterSettings(prev => ({
-            ...prev,
-            [key]: value
-        }));
+        setFooterSettings(prev => {
+            const next = { ...prev, [key]: value };
+            const syncMap: Record<string, keyof FooterSettings> = {
+                brand_title: 'brand_title_en',
+                brand_subtitle: 'brand_subtitle_en',
+                description: 'description_en',
+                badge_text: 'badge_text_en',
+                column_2_title: 'column_2_title_en',
+                column_3_title: 'column_3_title_en',
+                column_4_title: 'column_4_title_en',
+                phone_hours: 'phone_hours_en',
+                address: 'address_en',
+                copyright_text: 'copyright_text_en',
+                bottom_credit: 'bottom_credit_en',
+            };
+            if (syncMap[key as string] && typeof value === 'string') {
+                (next as any)[syncMap[key as string]] = value;
+            }
+            return next;
+        });
     };
 
     // Column 2 link handlers

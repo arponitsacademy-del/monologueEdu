@@ -27,21 +27,12 @@ export function getLocalizedText(
     enText?: string | null,
     language: 'en' | 'bn' = 'en'
 ): string {
-    if (language === 'en') {
-        if (enText && enText.trim()) {
-            return enText.trim();
-        }
-        if (mainText && mainText.trim()) {
-            const trimmed = mainText.trim();
-            return BN_TO_EN_MAP[trimmed] || trimmed;
-        }
-    } else {
-        if (mainText && mainText.trim()) {
-            return mainText.trim();
-        }
-        if (enText && enText.trim()) {
-            return enText.trim();
-        }
+    // Primary user-configured content always takes precedence
+    if (mainText && mainText.trim()) {
+        return mainText.trim();
+    }
+    if (enText && enText.trim()) {
+        return enText.trim();
     }
     return '';
 }

@@ -155,6 +155,15 @@ export interface Payment {
     notes?: string | null;
 }
 
+export interface HeaderSubMenuItem {
+    id: string;
+    label: string;
+    label_en?: string;
+    url: string;
+    is_external?: boolean;
+    description?: string;
+}
+
 export interface HeaderMenuItem {
     id: string;
     label: string;
@@ -162,6 +171,7 @@ export interface HeaderMenuItem {
     url: string;
     is_external?: boolean;
     highlight?: boolean;
+    children?: HeaderSubMenuItem[];
 }
 
 export interface HeaderSettings {

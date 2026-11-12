@@ -24,7 +24,8 @@ import {
     Layers,
     Bell,
     Check,
-    Palette
+    Palette,
+    ChevronDown
 } from 'lucide-react';
 
 const DEFAULT_HEADER_SETTINGS: HeaderSettings = {
@@ -38,18 +39,74 @@ const DEFAULT_HEADER_SETTINGS: HeaderSettings = {
     brand_subtitle: 'Edu',
     brand_subtitle_en: 'Edu',
     announcement_enabled: false,
-    announcement_text: '🎉 New batch admission open! Enroll now with 20% discount.',
+    announcement_text: '🎉 নতুন ব্যাচে ভর্তি চলছে! ২০% ছাড়ে এখনই এনরোল করুন।',
     announcement_text_en: '🎉 New batch admission open! Enroll now with 20% discount.',
     announcement_link: '/courses',
     announcement_bg: '#0284c7',
     cta_button_enabled: false,
-    cta_button_text: 'Free Classes',
+    cta_button_text: 'ফ্রি ক্লাস',
     cta_button_text_en: 'Free Classes',
-    cta_button_link: '/courses',
+    cta_button_link: '/courses?type=free',
     menu_items: [
-        { id: '1', label: 'Home', label_en: 'Home', url: '/', is_external: false, highlight: false },
-        { id: '2', label: 'All Courses', label_en: 'All Courses', url: '/courses', is_external: false, highlight: true },
-    ]
+        {
+            id: '1',
+            label: 'হোম',
+            label_en: 'Home',
+            url: '/',
+            is_external: false,
+            highlight: false,
+        },
+        {
+            id: '2',
+            label: 'কোর্সসমূহ',
+            label_en: 'Courses',
+            url: '/courses',
+            is_external: false,
+            highlight: false,
+            children: [
+                { id: '2-1', label: 'সকল কোর্সসমূহ', label_en: 'All Courses', url: '/courses' },
+                { id: '2-2', label: 'HSC একাডেমিক সাইকেল', label_en: 'HSC Academic Cycle', url: '/courses' },
+                { id: '2-3', label: 'ইঞ্জিনিয়ারিং ও ভার্সিটি ভর্তি', label_en: 'Engineering & Varsity Admission', url: '/courses' },
+                { id: '2-4', label: 'ফ্রি ট্রায়াল ক্লাস', label_en: 'Free Trial Classes', url: '/courses?type=free' },
+            ],
+        },
+        {
+            id: '3',
+            label: 'বইসমূহ ও বান্ডেল',
+            label_en: 'Books & Bundles',
+            url: '/courses',
+            is_external: false,
+            highlight: false,
+            children: [
+                { id: '3-1', label: 'কম্বো কোর্স বান্ডেল', label_en: 'Combo Course Bundles', url: '/courses' },
+                { id: '3-2', label: 'লেকচার শিট ও নোটবুক', label_en: 'Lecture Sheets & Notes', url: '/courses' },
+            ],
+        },
+        {
+            id: '4',
+            label: 'ফ্রি রিসোর্স',
+            label_en: 'Free Resources',
+            url: '/courses?type=free',
+            is_external: false,
+            highlight: false,
+        },
+        {
+            id: '5',
+            label: 'যোগাযোগ',
+            label_en: 'Contact Us',
+            url: '/p/contact',
+            is_external: false,
+            highlight: false,
+        },
+        {
+            id: '6',
+            label: 'ই-বুক ও এক্সাম',
+            label_en: 'E-Books & Exams',
+            url: '/student/exams',
+            is_external: false,
+            highlight: true,
+        },
+    ],
 };
 
 export const AdminHeaderBuilderPage: React.FC = () => {
@@ -68,10 +125,15 @@ export const AdminHeaderBuilderPage: React.FC = () => {
 
     useEffect(() => {
         if (settings?.header_settings) {
+            let items = settings.header_settings.menu_items;
+            if (!items || items.length === 0 || (items.length === 2 && items[0]?.label === 'Home' && items[1]?.label === 'All Courses')) {
+                items = DEFAULT_HEADER_SETTINGS.menu_items;
+            }
             setHeaderSettings({
                 ...DEFAULT_HEADER_SETTINGS,
                 ...settings.header_settings,
                 logo_url: settings.header_settings.logo_url ?? settings.logo_url ?? null,
+                menu_items: items,
             });
         } else if (settings?.logo_url) {
             setHeaderSettings(prev => ({ ...prev, logo_url: settings.logo_url }));
@@ -79,10 +141,19 @@ export const AdminHeaderBuilderPage: React.FC = () => {
     }, [settings]);
 
     const handleUpdate = <K extends keyof HeaderSettings>(key: K, value: HeaderSettings[K]) => {
-        setHeaderSettings(prev => ({
-            ...prev,
-            [key]: value
-        }));
+        setHeaderSettings(prev => {
+            const next = { ...prev, [key]: value };
+            const syncMap: Record<string, keyof HeaderSettings> = {
+                brand_title: 'brand_title_en',
+                brand_subtitle: 'brand_subtitle_en',
+                announcement_text: 'announcement_text_en',
+                cta_button_text: 'cta_button_text_en',
+            };
+            if (syncMap[key as string] && typeof value === 'string') {
+                (next as any)[syncMap[key as string]] = value;
+            }
+            return next;
+        });
     };
 
     const handleLogoUpload = async (file: File) => {
@@ -108,11 +179,12 @@ export const AdminHeaderBuilderPage: React.FC = () => {
     const handleAddMenuItem = () => {
         const newItem: HeaderMenuItem = {
             id: Date.now().toString(),
-            label: 'New Menu',
+            label: 'নতুন মেনু',
             label_en: 'New Menu',
             url: '/',
             is_external: false,
-            highlight: false
+            highlight: false,
+            children: []
         };
         const updated = [...(headerSettings.menu_items || []), newItem];
         handleUpdate('menu_items', updated);
@@ -139,6 +211,52 @@ export const AdminHeaderBuilderPage: React.FC = () => {
         const temp = current[index];
         current[index] = current[targetIndex];
         current[targetIndex] = temp;
+        handleUpdate('menu_items', current);
+    };
+
+    // Sub-item Helpers
+    const handleAddSubMenuItem = (parentIndex: number) => {
+        const current = [...(headerSettings.menu_items || [])];
+        const parent = current[parentIndex];
+        if (!parent) return;
+
+        const newSub = {
+            id: Date.now().toString(),
+            label: 'নতুন সাব-মেনু',
+            label_en: 'New Sub Menu',
+            url: parent.url || '/courses',
+            is_external: false,
+        };
+
+        const existingChildren = parent.children || [];
+        current[parentIndex] = {
+            ...parent,
+            children: [...existingChildren, newSub],
+        };
+        handleUpdate('menu_items', current);
+    };
+
+    const handleUpdateSubMenuItem = (parentIndex: number, subIndex: number, updates: any) => {
+        const current = [...(headerSettings.menu_items || [])];
+        const parent = current[parentIndex];
+        if (!parent || !parent.children) return;
+
+        const children = [...parent.children];
+        if (children[subIndex]) {
+            children[subIndex] = { ...children[subIndex], ...updates };
+            current[parentIndex] = { ...parent, children };
+            handleUpdate('menu_items', current);
+        }
+    };
+
+    const handleDeleteSubMenuItem = (parentIndex: number, subIndex: number) => {
+        const current = [...(headerSettings.menu_items || [])];
+        const parent = current[parentIndex];
+        if (!parent || !parent.children) return;
+
+        const children = [...parent.children];
+        children.splice(subIndex, 1);
+        current[parentIndex] = { ...parent, children };
         handleUpdate('menu_items', current);
     };
 
@@ -304,6 +422,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                             <div className="hidden md:flex items-center gap-6">
                                 {(headerSettings.menu_items || []).map((item) => {
                                     const localizedLabel = getLocalizedText(item.label, item.label_en, previewLang) || item.label;
+                                    const hasSubs = item.children && item.children.length > 0;
                                     return (
                                         <span
                                             key={item.id}
@@ -311,6 +430,7 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                         >
                                             {item.highlight && <Sparkles className="w-3.5 h-3.5 text-sky-500" />}
                                             <span>{localizedLabel}</span>
+                                            {hasSubs && <ChevronDown className="w-3 h-3 text-slate-400" />}
                                         </span>
                                     );
                                 })}
@@ -569,81 +689,147 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                                 {(headerSettings.menu_items || []).map((item, idx) => (
                                     <div
                                         key={item.id || idx}
-                                        className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row items-start sm:items-center gap-3 transition-all hover:border-slate-300"
+                                        className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-3 transition-all hover:border-slate-300"
                                     >
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                type="button"
-                                                disabled={idx === 0}
-                                                onClick={() => handleMoveMenuItem(idx, 'up')}
-                                                className="p-1.5 text-slate-400 hover:text-slate-800 disabled:opacity-30 cursor-pointer"
-                                                title="Move Up"
-                                            >
-                                                <MoveUp className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                type="button"
-                                                disabled={idx === (headerSettings.menu_items?.length || 0) - 1}
-                                                onClick={() => handleMoveMenuItem(idx, 'down')}
-                                                className="p-1.5 text-slate-400 hover:text-slate-800 disabled:opacity-30 cursor-pointer"
-                                                title="Move Down"
-                                            >
-                                                <MoveDown className="w-4 h-4" />
-                                            </button>
+                                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    disabled={idx === 0}
+                                                    onClick={() => handleMoveMenuItem(idx, 'up')}
+                                                    className="p-1.5 text-slate-400 hover:text-slate-800 disabled:opacity-30 cursor-pointer"
+                                                    title="Move Up"
+                                                >
+                                                    <MoveUp className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    disabled={idx === (headerSettings.menu_items?.length || 0) - 1}
+                                                    onClick={() => handleMoveMenuItem(idx, 'down')}
+                                                    className="p-1.5 text-slate-400 hover:text-slate-800 disabled:opacity-30 cursor-pointer"
+                                                    title="Move Down"
+                                                >
+                                                    <MoveDown className="w-4 h-4" />
+                                                </button>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 w-full">
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">মেনু লেবেল (Menu Label)</label>
+                                                    <input
+                                                        type="text"
+                                                        value={item.label}
+                                                        onChange={(e) => handleUpdateMenuItem(idx, { label: e.target.value, label_en: e.target.value })}
+                                                        placeholder="যেমন: কোর্সসমূহ"
+                                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-sky-500"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-bold text-slate-500 mb-1">লিংক URL (Link URL)</label>
+                                                    <input
+                                                        type="text"
+                                                        value={item.url}
+                                                        onChange={(e) => handleUpdateMenuItem(idx, { url: e.target.value })}
+                                                        placeholder="যেমন: /courses"
+                                                        className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-sky-500"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start pt-2 sm:pt-0 shrink-0">
+                                                <label className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={Boolean(item.highlight)}
+                                                        onChange={(e) => handleUpdateMenuItem(idx, { highlight: e.target.checked })}
+                                                        className="w-4 h-4 text-sky-600 rounded"
+                                                    />
+                                                    <span>✨ হাইলাইট</span>
+                                                </label>
+
+                                                <label className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold cursor-pointer">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={Boolean(item.is_external)}
+                                                        onChange={(e) => handleUpdateMenuItem(idx, { is_external: e.target.checked })}
+                                                        className="w-4 h-4 text-sky-600 rounded"
+                                                    />
+                                                    <span>এক্সটার্নাল</span>
+                                                </label>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteMenuItem(idx)}
+                                                    className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition cursor-pointer"
+                                                    title="মুছুন"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1 w-full">
-                                            <div>
-                                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Menu Label</label>
-                                                <input
-                                                    type="text"
-                                                    value={item.label}
-                                                    onChange={(e) => handleUpdateMenuItem(idx, { label: e.target.value, label_en: e.target.value })}
-                                                    placeholder="e.g. All Courses"
-                                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold focus:ring-2 focus:ring-sky-500"
-                                                />
+                                        {/* Submenu Dropdown Items Section */}
+                                        <div className="mt-2 pt-3 border-t border-slate-200/80 space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1.5">
+                                                    <Layers className="w-3.5 h-3.5 text-sky-600" />
+                                                    <span>ড্রপডাউন সাব-মেনু লিঙ্ক ({item.children?.length || 0})</span>
+                                                </span>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleAddSubMenuItem(idx)}
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-bold text-sky-700 bg-white hover:bg-sky-50 border border-sky-200 rounded-lg cursor-pointer transition shadow-2xs"
+                                                >
+                                                    <Plus className="w-3 h-3" />
+                                                    <span>সাব-মেনু যোগ করুন</span>
+                                                </button>
                                             </div>
-                                            <div>
-                                                <label className="block text-[10px] font-bold text-slate-500 mb-1">Link URL</label>
-                                                <input
-                                                    type="text"
-                                                    value={item.url}
-                                                    onChange={(e) => handleUpdateMenuItem(idx, { url: e.target.value })}
-                                                    placeholder="e.g. /courses"
-                                                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-sky-500"
-                                                />
-                                            </div>
-                                        </div>
 
-                                        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start pt-2 sm:pt-0">
-                                            <label className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={Boolean(item.highlight)}
-                                                    onChange={(e) => handleUpdateMenuItem(idx, { highlight: e.target.checked })}
-                                                    className="w-4 h-4 text-sky-600 rounded"
-                                                />
-                                                <span>✨ Highlight</span>
-                                            </label>
-
-                                            <label className="flex items-center gap-1.5 text-xs text-slate-600 font-semibold cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={Boolean(item.is_external)}
-                                                    onChange={(e) => handleUpdateMenuItem(idx, { is_external: e.target.checked })}
-                                                    className="w-4 h-4 text-sky-600 rounded"
-                                                />
-                                                <span>External</span>
-                                            </label>
-
-                                            <button
-                                                type="button"
-                                                onClick={() => handleDeleteMenuItem(idx)}
-                                                className="p-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-xl transition cursor-pointer"
-                                                title="Delete"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            {item.children && item.children.length > 0 && (
+                                                <div className="space-y-2 pl-3 border-l-2 border-sky-300">
+                                                    {item.children.map((sub, sIdx) => (
+                                                        <div key={sub.id || sIdx} className="grid grid-cols-1 sm:grid-cols-12 gap-2 p-2.5 bg-white rounded-xl border border-slate-200 items-center">
+                                                            <div className="sm:col-span-5">
+                                                                <input
+                                                                    type="text"
+                                                                    value={sub.label}
+                                                                    onChange={(e) => handleUpdateSubMenuItem(idx, sIdx, { label: e.target.value, label_en: e.target.value })}
+                                                                    placeholder="সাব-মেনু লেবেল (যেমন: HSC সাইকেল)"
+                                                                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-sky-500"
+                                                                />
+                                                            </div>
+                                                            <div className="sm:col-span-5">
+                                                                <input
+                                                                    type="text"
+                                                                    value={sub.url}
+                                                                    onChange={(e) => handleUpdateSubMenuItem(idx, sIdx, { url: e.target.value })}
+                                                                    placeholder="URL (যেমন: /courses)"
+                                                                    className="w-full px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono focus:ring-1 focus:ring-sky-500"
+                                                                />
+                                                            </div>
+                                                            <div className="sm:col-span-2 flex items-center justify-end gap-2">
+                                                                <label className="flex items-center gap-1 text-[10px] text-slate-500 font-semibold cursor-pointer" title="External link">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={Boolean(sub.is_external)}
+                                                                        onChange={(e) => handleUpdateSubMenuItem(idx, sIdx, { is_external: e.target.checked })}
+                                                                        className="w-3.5 h-3.5 text-sky-600 rounded"
+                                                                    />
+                                                                    <span>Ext</span>
+                                                                </label>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleDeleteSubMenuItem(idx, sIdx)}
+                                                                    className="p-1 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded cursor-pointer"
+                                                                    title="মুছুন"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}
