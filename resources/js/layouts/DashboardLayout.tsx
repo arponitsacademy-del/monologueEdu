@@ -50,6 +50,7 @@ export const DashboardLayout: React.FC = () => {
     const [unreadCount, setUnreadCount] = useState(0);
     const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
     const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
+        '/admin/users': true,
         '/admin/sms': true,
         '/admin/appearance': true,
         '/admin/payments': true,
@@ -130,124 +131,178 @@ export const DashboardLayout: React.FC = () => {
         return <Navigate to="/login" replace state={{ from: location }} />;
     }
 
+    const isStaffOrAdmin = user.role === 'admin' || Boolean(user.custom_role_id || user.custom_role);
+
     // Role-based protection: if student or teacher attempts to access /admin, redirect safely
-    if (location.pathname.startsWith('/admin') && user.role !== 'admin') {
+    if (location.pathname.startsWith('/admin') && !isStaffOrAdmin) {
         if (user.role === 'teacher') return <Navigate to="/teacher" replace />;
         return <Navigate to="/student" replace />;
     }
 
+    const userHasPermission = (permissionKey?: string): boolean => {
+        if (!permissionKey) return true;
+        if (user.role === 'admin') return true;
+        const permissions: string[] = user.custom_role?.permissions || [];
+        if (permissions.includes('*')) return true;
+        if (permissions.includes(permissionKey)) return true;
+        const prefix = permissionKey.split('.')[0];
+        if (permissions.includes(`${prefix}.*`)) return true;
+        return false;
+    };
+
     // Navigation links per role
     const getNavLinks = () => {
-        if (user.role === 'admin') {
-            return [
+        if (isStaffOrAdmin) {
+            const adminRawLinks = [
                 { title: t.sidebar.dashboard, path: '/admin', icon: LayoutDashboard },
-                { title: t.sidebar.media, path: '/admin/media', icon: ImageIcon },
+                { title: t.sidebar.media, path: '/admin/media', icon: ImageIcon, permission: 'media.manage' },
                 { 
                     title: t.sidebar.courses, 
                     path: '/admin/courses', 
                     icon: BookOpen,
+                    permission: 'courses.view',
                     children: [
-                        { title: t.sidebar.createCourse, path: '/admin/courses/create' },
-                        { title: t.sidebar.courseManagement, path: '/admin/courses' },
-                        { title: t.sidebar.courseCategories, path: '/admin/courses/categories' },
+                        { title: t.sidebar.createCourse, path: '/admin/courses/create', permission: 'courses.create' },
+                        { title: t.sidebar.courseManagement, path: '/admin/courses', permission: 'courses.view' },
+                        { title: t.sidebar.courseCategories, path: '/admin/courses/categories', permission: 'courses.categories' },
                     ]
                 },
                 { 
                     title: 'Course Bundles', 
                     path: '/admin/bundles', 
                     icon: Boxes,
+                    permission: 'bundles.view',
                     children: [
-                        { title: 'Add New Bundle', path: '/admin/bundles/create' },
-                        { title: 'All Bundles', path: '/admin/bundles' },
+                        { title: 'Add New Bundle', path: '/admin/bundles/create', permission: 'bundles.manage' },
+                        { title: 'All Bundles', path: '/admin/bundles', permission: 'bundles.view' },
                     ]
                 },
                 { 
                     title: 'NexPilot', 
                     path: '/admin/nexpilot', 
                     icon: Bot,
+                    permission: 'nexpilot.manage',
                     children: [
-                        { title: 'New Pilot', path: '/admin/nexpilot/new' },
-                        { title: 'All Pilots', path: '/admin/nexpilot' },
+                        { title: 'New Pilot', path: '/admin/nexpilot/new', permission: 'nexpilot.manage' },
+                        { title: 'All Pilots', path: '/admin/nexpilot', permission: 'nexpilot.manage' },
                     ]
                 },
                 { 
                     title: 'AI', 
                     path: '/admin/ai', 
                     icon: Sparkles,
+                    permission: 'ai.manage',
                     children: [
-                        { title: 'AI Configuration', path: '/admin/ai/configuration' },
+                        { title: 'AI Configuration', path: '/admin/ai/configuration', permission: 'ai.manage' },
                     ]
                 },
                 { 
                     title: t.sidebar.examManagement || 'Exam Management', 
                     path: '/admin/exams', 
                     icon: ClipboardList,
+                    permission: 'exams.view',
                     children: [
-                        { title: t.sidebar.createExam || 'Create New Exam', path: '/admin/exams/create' },
-                        { title: t.sidebar.allExams || 'All Exams', path: '/admin/exams' },
+                        { title: t.sidebar.createExam || 'Create New Exam', path: '/admin/exams/create', permission: 'exams.create' },
+                        { title: t.sidebar.allExams || 'All Exams', path: '/admin/exams', permission: 'exams.view' },
                     ]
                 },
-                { title: t.sidebar.pages || 'Pages', path: '/admin/pages', icon: Layers },
+                { title: t.sidebar.pages || 'Pages', path: '/admin/pages', icon: Layers, permission: 'pages.manage' },
                 { 
                     title: t.sidebar.appearance, 
                     path: '/admin/appearance', 
                     icon: Palette,
+                    permission: 'appearance.manage',
                     children: [
-                        { title: t.sidebar.appearanceGeneral || 'General', path: '/admin/appearance/general' },
-                        { title: t.sidebar.headerBuilder, path: '/admin/appearance/header' },
-                        { title: t.sidebar.footerBuilder, path: '/admin/appearance/footer' },
+                        { title: t.sidebar.appearanceGeneral || 'General', path: '/admin/appearance/general', permission: 'appearance.manage' },
+                        { title: t.sidebar.headerBuilder, path: '/admin/appearance/header', permission: 'appearance.manage' },
+                        { title: t.sidebar.footerBuilder, path: '/admin/appearance/footer', permission: 'appearance.manage' },
                     ]
                 },
-                { title: t.sidebar.orders, path: '/admin/orders', icon: ShoppingCart },
+                { title: t.sidebar.orders, path: '/admin/orders', icon: ShoppingCart, permission: 'orders.view' },
                 { 
                     title: 'Marketing', 
                     path: '/admin/marketing', 
                     icon: TicketPercent,
+                    permission: 'marketing.coupons',
                     children: [
-                        { title: 'Coupon Generator', path: '/admin/marketing/coupons/create' },
-                        { title: 'All Coupons', path: '/admin/marketing/coupons' },
+                        { title: 'Coupon Generator', path: '/admin/marketing/coupons/create', permission: 'marketing.coupons' },
+                        { title: 'All Coupons', path: '/admin/marketing/coupons', permission: 'marketing.coupons' },
                     ]
                 },
                 { 
                     title: 'Announcement', 
                     path: '/admin/announcements', 
                     icon: Megaphone,
+                    permission: 'announcements.manage',
                     children: [
-                        { title: 'Notify Student', path: '/admin/announcements/notify' },
+                        { title: 'Notify Student', path: '/admin/announcements/notify', permission: 'announcements.manage' },
                     ]
                 },
                 { 
                     title: 'Affiliate', 
                     path: '/admin/affiliate', 
                     icon: Share2,
+                    permission: 'marketing.affiliates',
                     children: [
-                        { title: 'General Settings', path: '/admin/affiliate/settings' },
-                        { title: 'Course Commissions', path: '/admin/affiliate/courses' },
-                        { title: 'Affiliates & Payouts', path: '/admin/affiliate/members' },
+                        { title: 'General Settings', path: '/admin/affiliate/settings', permission: 'marketing.affiliates' },
+                        { title: 'Course Commissions', path: '/admin/affiliate/courses', permission: 'marketing.affiliates' },
+                        { title: 'Affiliates & Payouts', path: '/admin/affiliate/members', permission: 'marketing.affiliates' },
                     ]
                 },
                 { 
                     title: t.sidebar.payments, 
                     path: '/admin/payments', 
                     icon: CreditCard,
+                    permission: 'payments.manual',
                     children: [
-                        { title: t.sidebar.manualPayment, path: '/admin/payments/manual' },
-                        { title: (t.sidebar as any).shurjopayIntegration || 'shurjoPay Integration', path: '/admin/payments/shurjopay' },
+                        { title: t.sidebar.manualPayment, path: '/admin/payments/manual', permission: 'payments.manual' },
+                        { title: (t.sidebar as any).shurjopayIntegration || 'shurjoPay Integration', path: '/admin/payments/shurjopay', permission: 'payments.shurjopay' },
                     ]
                 },
-                { title: t.sidebar.analytics, path: '/admin/analytics', icon: BarChart3 },
+                { title: t.sidebar.analytics, path: '/admin/analytics', icon: BarChart3, permission: 'analytics.view' },
                 { 
                     title: t.sidebar.sms, 
                     path: '/admin/sms', 
                     icon: MessageSquareText,
+                    permission: 'sms.settings',
                     children: [
-                        { title: t.sidebar.smsConfig, path: '/admin/sms' },
-                        { title: 'Auto SMS Push', path: '/admin/sms/auto-push' },
+                        { title: t.sidebar.smsConfig, path: '/admin/sms', permission: 'sms.settings' },
+                        { title: 'Auto SMS Push', path: '/admin/sms/auto-push', permission: 'sms.send' },
                     ]
                 },
-                { title: t.sidebar.users, path: '/admin/users', icon: Users },
-                { title: t.sidebar.settings, path: '/admin/settings', icon: Settings },
+                { 
+                    title: t.sidebar.users || 'Users', 
+                    path: '/admin/users', 
+                    icon: Users,
+                    permission: 'users.view',
+                    children: [
+                        { title: 'Create New User', path: '/admin/users/create', permission: 'users.create' },
+                        { title: 'All Users', path: '/admin/users', permission: 'users.view' },
+                        { title: 'Custom Roles', path: '/admin/users/roles', permission: 'roles.manage' },
+                    ]
+                },
+                { title: t.sidebar.settings, path: '/admin/settings', icon: Settings, permission: 'settings.manage' },
             ];
+
+            if (user.role === 'admin') {
+                return adminRawLinks;
+            }
+
+            // Custom Role user: filter based on permissions
+            return adminRawLinks
+                .map(item => {
+                    if (item.children) {
+                        const filteredChildren = item.children.filter(child => userHasPermission((child as any).permission));
+                        const canAccess = userHasPermission((item as any).permission) || filteredChildren.length > 0;
+                        if (!canAccess) return null;
+                        return {
+                            ...item,
+                            children: filteredChildren,
+                        };
+                    }
+                    return userHasPermission((item as any).permission) ? item : null;
+                })
+                .filter(Boolean) as typeof adminRawLinks;
         }
         if (user.role === 'teacher') {
             return [
@@ -294,20 +349,20 @@ export const DashboardLayout: React.FC = () => {
                         {settings?.logo_url ? (
                             <img
                                 src={settings.logo_url}
-                                alt={settings.site_name || 'Novonex Academy'}
+                                alt={settings.site_name || 'Monologue Edu'}
                                 className="h-9 w-auto max-w-[170px] object-contain"
                             />
                         ) : (
                             <>
-                                <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+                                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
                                     <BookOpen className="w-5 h-5" />
                                 </div>
                                 <div>
                                     <span className="text-xl font-black text-white tracking-tight">
-                                        {settings?.site_name ? settings.site_name.split(' ')[0] : 'Novonex'}
+                                        {settings?.site_name ? settings.site_name.split(' ')[0] : 'Monologue'}
                                     </span>
                                     <span className="block text-[10px] font-bold text-sky-400 uppercase tracking-widest -mt-1">
-                                        {user.role === 'admin' ? t.nav.adminPanel : user.role === 'teacher' ? t.nav.instructorPortal : t.nav.studentHub}
+                                        {user.custom_role ? user.custom_role.name : user.role === 'admin' ? t.nav.adminPanel : user.role === 'teacher' ? t.nav.instructorPortal : t.nav.studentHub}
                                     </span>
                                 </div>
                             </>
@@ -407,8 +462,22 @@ export const DashboardLayout: React.FC = () => {
                             <div className="truncate">
                                 <div className="text-sm font-bold text-white truncate">{user.name}</div>
                                 <div className="text-xs text-slate-400 capitalize flex items-center gap-1">
-                                    {user.role === 'admin' ? <Shield className="w-3 h-3 text-amber-400" /> : <GraduationCap className="w-3 h-3 text-sky-400" />}
-                                    {user.role}
+                                    {user.custom_role ? (
+                                        <>
+                                            <Shield className="w-3 h-3 text-purple-400" />
+                                            <span>{user.custom_role.name}</span>
+                                        </>
+                                    ) : user.role === 'admin' ? (
+                                        <>
+                                            <Shield className="w-3 h-3 text-amber-400" />
+                                            <span>Admin</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <GraduationCap className="w-3 h-3 text-sky-400" />
+                                            <span>{user.role}</span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -435,7 +504,7 @@ export const DashboardLayout: React.FC = () => {
                             <Menu className="w-6 h-6" />
                         </button>
                         <h1 className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-                            {user.role === 'admin' ? 'Admin Control Center' : user.role === 'teacher' ? 'Instructor Dashboard' : 'Student Dashboard'}
+                            {user.custom_role ? `${user.custom_role.name} Control Panel` : user.role === 'admin' ? 'Admin Control Center' : user.role === 'teacher' ? 'Instructor Dashboard' : 'Student Dashboard'}
                         </h1>
                     </div>
 
@@ -551,7 +620,7 @@ export const DashboardLayout: React.FC = () => {
                     />
                     <div className="relative w-72 max-w-[80%] bg-slate-900 text-slate-300 flex flex-col h-full shadow-2xl animate-in slide-in-from-left duration-200">
                         <div className="h-20 px-6 flex items-center justify-between border-b border-slate-800">
-                            <span className="text-xl font-black text-white">Novonex</span>
+                            <span className="text-xl font-black text-white">{settings?.site_name || 'Monologue Edu'}</span>
                             <div className="flex items-center gap-2">
                                 <ThemeSwitcher variant="compact" />
                                 <button

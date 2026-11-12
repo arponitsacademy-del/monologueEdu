@@ -1,5 +1,27 @@
-export type UserRole = 'admin' | 'teacher' | 'student';
+export type UserRole = 'admin' | 'teacher' | 'student' | 'custom' | string;
 export type UserStatus = 'active' | 'inactive';
+
+export interface Role {
+    id: number;
+    name: string;
+    slug: string;
+    description?: string | null;
+    permissions: string[];
+    is_system?: boolean;
+    users_count?: number;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface PermissionCatalogModule {
+    module: string;
+    name: string;
+    icon: string;
+    permissions: {
+        key: string;
+        label: string;
+    }[];
+}
 
 export interface User {
     id: number;
@@ -7,6 +29,8 @@ export interface User {
     phone: string;
     email: string;
     role: UserRole;
+    custom_role_id?: number | null;
+    custom_role?: Role | null;
     status: UserStatus;
     enrolled_courses_count?: number;
     unread_notifications_count?: number;

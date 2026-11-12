@@ -36,6 +36,7 @@ use App\Http\Controllers\Api\AnnouncementController;
 use App\Http\Controllers\Api\RoutineController;
 use App\Http\Controllers\Api\LiveClassController;
 use App\Http\Controllers\Api\ShurjopayController;
+use App\Http\Controllers\Api\AdminRoleController;
 use App\Models\Course;
 use App\Models\LessonComment;
 use Illuminate\Http\Request;
@@ -278,6 +279,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('users/{user}/status', [AdminUserController::class, 'toggleStatus']);
         Route::put('users/{user}/teacher-profile', [AdminUserController::class, 'updateTeacherProfile']);
         Route::delete('users/{user}', [AdminUserController::class, 'destroy']);
+
+        // Custom Roles & Permissions (RBAC)
+        Route::get('roles', [AdminRoleController::class, 'index']);
+        Route::get('roles/permissions-catalog', [AdminRoleController::class, 'permissionCatalog']);
+        Route::post('roles', [AdminRoleController::class, 'store']);
+        Route::get('roles/{role}', [AdminRoleController::class, 'show']);
+        Route::put('roles/{role}', [AdminRoleController::class, 'update']);
+        Route::delete('roles/{role}', [AdminRoleController::class, 'destroy']);
 
         // Order Management
         Route::get('orders', [OrderController::class, 'index']);

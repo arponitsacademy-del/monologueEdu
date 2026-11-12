@@ -28,6 +28,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'custom_role_id',
         'status',
     ];
 
@@ -57,6 +58,38 @@ class User extends Authenticatable
     public function isStudent(): bool
     {
         return $this->role === self::ROLE_STUDENT;
+    }
+
+    public function customRole(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Role::class, 'custom_role_id');
+    }
+
+    public function canAccessAdminDashboard(): bool
+    {
+        if ($this->role === self::ROLE_ADMIN) {
+            return true;
+        }
+
+        if ($this->custom_role_id && $this->status === self::STATUS_ACTIVE) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        if ($this->role === self::ROLE_ADMIN) {
+            return true;
+        }
+
+        if ($this->custom_role_id && $this->relationLoaded('customRole') ? $this->customRole : $this->customRole()->first()) {
+            $role = $this->relationLoaded('customRole') ? $this->customRole : $this->customRole()->first();
+            return $role ? $role->hasPermission($permission) : false;
+        }
+
+        return false;
     }
 
     public static function normalizePhone(?string $phone): ?string

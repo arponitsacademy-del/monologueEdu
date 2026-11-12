@@ -144,6 +144,8 @@ class AuthController extends Controller
                 'phone' => $user->phone,
                 'email' => $user->email,
                 'role' => $user->role,
+                'custom_role_id' => $user->custom_role_id,
+                'custom_role' => $user->customRole,
                 'status' => $user->status,
             ],
         ]);
@@ -243,6 +245,8 @@ class AuthController extends Controller
                 'phone' => $user->phone,
                 'email' => $user->email,
                 'role' => $user->role,
+                'custom_role_id' => $user->custom_role_id,
+                'custom_role' => $user->customRole,
                 'status' => $user->status,
                 'enrolled_courses_count' => $user->enrolledCourses()->count(),
                 'unread_notifications_count' => $user->unreadNotifications()->count(),

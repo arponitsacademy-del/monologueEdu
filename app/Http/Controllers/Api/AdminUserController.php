@@ -40,7 +40,7 @@ class AdminUserController extends Controller
             });
         }
 
-        $users = $query->with(['teacherProfile'])
+        $users = $query->with(['teacherProfile', 'customRole'])
             ->withCount(['enrollments', 'instructedCourses'])
             ->latest()
             ->paginate($request->integer('per_page', 15));
@@ -79,13 +79,30 @@ class AdminUserController extends Controller
     public function changeRole(Request $request, User $user): JsonResponse
     {
         $validated = $request->validate([
-            'role' => ['required', 'in:admin,teacher,student'],
+            'role' => ['required', 'string'],
+            'custom_role_id' => ['nullable'],
         ]);
 
         $newRole = $validated['role'];
         $oldRole = $user->role;
+        $customRoleId = $request->input('custom_role_id');
 
-        if ($oldRole === $newRole) {
+        // If custom role is selected
+        if ($newRole === 'custom' || (! empty($customRoleId) && $newRole !== 'admin' && $newRole !== 'teacher' && $newRole !== 'student')) {
+            $user->update([
+                'role' => 'custom',
+                'custom_role_id' => $customRoleId,
+            ]);
+            $roleObj = \App\Models\Role::find($customRoleId);
+            $roleTitle = $roleObj ? $roleObj->name : 'কাস্টম রোল';
+            AuditLog::log('user_role_changed', 'User', $user->id, ['role' => $oldRole], ['role' => 'custom', 'custom_role_id' => $customRoleId]);
+            return response()->json([
+                'message' => "ইউজারের রোল সফলভাবে '{$roleTitle}' এ পরিবর্তন করা হয়েছে।",
+                'user' => $user->fresh(['teacherProfile', 'customRole']),
+            ]);
+        }
+
+        if ($oldRole === $newRole && ! $customRoleId) {
             return response()->json(['message' => 'রোল অপরিবর্তিত রয়েছে।']);
         }
 
@@ -103,7 +120,10 @@ class AdminUserController extends Controller
             }
         }
 
-        $user->update(['role' => $newRole]);
+        $user->update([
+            'role' => $newRole,
+            'custom_role_id' => null,
+        ]);
 
         if ($newRole === User::ROLE_TEACHER) {
             TeacherProfile::firstOrCreate(['user_id' => $user->id]);
@@ -113,7 +133,7 @@ class AdminUserController extends Controller
 
         return response()->json([
             'message' => "ইউজারের রোল সফলভাবে {$newRole} এ পরিবর্তন করা হয়েছে।",
-            'user' => $user->fresh(['teacherProfile']),
+            'user' => $user->fresh(['teacherProfile', 'customRole']),
         ]);
     }
 
@@ -158,7 +178,8 @@ class AdminUserController extends Controller
             'phone' => ['required', 'string'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:6'],
-            'role' => ['required', 'in:student,teacher,admin'],
+            'role' => ['required', 'string'],
+            'custom_role_id' => ['nullable'],
             'status' => ['nullable', 'in:active,inactive'],
         ], [
             'name.required' => 'ব্যবহারকারীর পুরো নাম আবশ্যক।',
@@ -190,6 +211,7 @@ class AdminUserController extends Controller
             'email' => strtolower(trim($validated['email'])),
             'password' => Hash::make($validated['password']),
             'role' => $validated['role'],
+            'custom_role_id' => $validated['custom_role_id'] ?? null,
             'status' => $validated['status'] ?? User::STATUS_ACTIVE,
         ]);
 

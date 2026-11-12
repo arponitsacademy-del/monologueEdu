@@ -54,7 +54,6 @@ export const AdminShurjopayPage: React.FC = () => {
     } | null>(null);
 
     const [showLivePassword, setShowLivePassword] = useState(false);
-    const [showSandboxPassword, setShowSandboxPassword] = useState(false);
     const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
     useEffect(() => {
@@ -66,7 +65,7 @@ export const AdminShurjopayPage: React.FC = () => {
             setLoading(true);
             const { data } = await apiClient.get('/admin/payments/shurjopay');
             if (data && typeof data === 'object') {
-                setSettings({ ...DEFAULT_SHURJOPAY, ...data });
+                setSettings({ ...DEFAULT_SHURJOPAY, ...data, environment: 'live' });
             }
         } catch (err: any) {
             console.error('Failed to load shurjoPay settings', err);
@@ -157,12 +156,8 @@ export const AdminShurjopayPage: React.FC = () => {
                                 }`}>
                                     {settings.enabled ? (isBn ? 'সক্রিয়' : 'Active') : (isBn ? 'নিষ্ক্রিয়' : 'Disabled')}
                                 </span>
-                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${
-                                    settings.environment === 'live'
-                                        ? 'bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300'
-                                        : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
-                                }`}>
-                                    {settings.environment === 'live' ? 'Live Production' : 'Sandbox (Test)'}
+                                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-sky-100 text-sky-800 dark:bg-sky-950/60 dark:text-sky-300">
+                                    Live Production
                                 </span>
                             </div>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -236,67 +231,32 @@ export const AdminShurjopayPage: React.FC = () => {
                 </div>
             )}
 
-            {/* Section 1: Activation & Environment */}
+            {/* Section 1: Activation & Display Settings */}
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-slate-200 dark:border-slate-800 shadow-xs space-y-6">
                 <div className="flex items-center gap-2.5 text-slate-900 dark:text-white font-bold text-base pb-3 border-b border-slate-100 dark:border-slate-800">
                     <Zap className="w-5 h-5 text-sky-500" />
-                    <span>{isBn ? 'গেটওয়ে স্ট্যাটাস ও মোড নির্বাচন' : 'Gateway Status & Mode'}</span>
+                    <span>{isBn ? 'গেটওয়ে স্ট্যাটাস ও তথ্য' : 'Gateway Status & Information'}</span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Enable Toggle */}
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
-                        <div>
-                            <span className="block text-sm font-bold text-slate-800 dark:text-slate-100">
-                                {isBn ? 'shurjoPay অনলাইন পেমেন্ট চালু রাখুন' : 'Enable shurjoPay Checkout'}
-                            </span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400">
-                                {isBn ? 'সক্রিয় থাকলে চেকআউটে অনলাইন পেমেন্ট অপশনটি প্রদর্শিত হবে' : 'Allow students to pay via bKash, Nagad, Cards at checkout'}
-                            </span>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={settings.enabled}
-                                onChange={(e) => setSettings({ ...settings, enabled: e.target.checked })}
-                                className="sr-only peer"
-                            />
-                            <div className="w-11 h-6 bg-slate-300 peer-focus:outline-hidden rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-500"></div>
-                        </label>
-                    </div>
-
-                    {/* Environment Selector */}
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
-                        <span className="block text-xs font-bold text-slate-700 dark:text-slate-200">
-                            {isBn ? 'সক্রিয় পরিবেশ (Environment)' : 'Active Environment'}
+                {/* Enable Toggle */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between">
+                    <div>
+                        <span className="block text-sm font-bold text-slate-800 dark:text-slate-100">
+                            {isBn ? 'shurjoPay অনলাইন পেমেন্ট চালু রাখুন' : 'Enable shurjoPay Checkout'}
                         </span>
-                        <div className="grid grid-cols-2 gap-2">
-                            <button
-                                type="button"
-                                onClick={() => setSettings({ ...settings, environment: 'live' })}
-                                className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer ${
-                                    settings.environment === 'live'
-                                        ? 'bg-sky-600 text-white shadow-sm shadow-sky-600/30'
-                                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                }`}
-                            >
-                                <ShieldCheck className="w-4 h-4" />
-                                <span>Live (Production)</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setSettings({ ...settings, environment: 'sandbox' })}
-                                className={`px-4 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition cursor-pointer ${
-                                    settings.environment === 'sandbox'
-                                        ? 'bg-amber-600 text-white shadow-sm shadow-amber-600/30'
-                                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                                }`}
-                            >
-                                <Activity className="w-4 h-4" />
-                                <span>Sandbox (Test)</span>
-                            </button>
-                        </div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                            {isBn ? 'সক্রিয় থাকলে চেকআউটে অনলাইন পেমেন্ট অপশনটি প্রদর্শিত হবে (বিকাশ, নগদ, রকেট, কার্ড ইত্যাদি)' : 'Allow students to pay dynamically via bKash, Nagad, Rocket, Cards at checkout'}
+                        </span>
                     </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={settings.enabled}
+                            onChange={(e) => setSettings({ ...settings, enabled: e.target.checked })}
+                            className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-slate-300 peer-focus:outline-hidden rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-emerald-500"></div>
+                    </label>
                 </div>
 
                 {/* Display Name & Description */}
@@ -309,7 +269,7 @@ export const AdminShurjopayPage: React.FC = () => {
                             type="text"
                             value={settings.display_name || ''}
                             onChange={(e) => setSettings({ ...settings, display_name: e.target.value })}
-                            placeholder="অনলাইন পেমেন্ট (বিকাশ, নগদ, রকেট, কার্ড)"
+                            placeholder="অনলাইন পেমেন্ট"
                             className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500 focus:outline-hidden"
                         />
                     </div>
@@ -321,19 +281,15 @@ export const AdminShurjopayPage: React.FC = () => {
                             type="text"
                             value={settings.description || ''}
                             onChange={(e) => setSettings({ ...settings, description: e.target.value })}
-                            placeholder="বিকাশ, নগদ, রকেট বা কার্ডের মাধ্যমে পেমেন্ট সম্পন্ন করুন"
+                            placeholder="bKash, Nagad, Rocket, Cards বা Net Banking দিয়ে সাথে সাথে পেমেন্ট করুন"
                             className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500 focus:outline-hidden"
                         />
                     </div>
                 </div>
             </div>
 
-            {/* Section 2: Live Credentials */}
-            <div className={`bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border shadow-xs space-y-5 transition-all ${
-                settings.environment === 'live'
-                    ? 'border-sky-300 dark:border-sky-800/80 ring-2 ring-sky-500/20'
-                    : 'border-slate-200 dark:border-slate-800 opacity-90'
-            }`}>
+            {/* Section 2: Live Production Credentials */}
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border border-sky-300 dark:border-sky-800/80 ring-2 ring-sky-500/20 shadow-xs space-y-5">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                     <div className="flex items-center gap-2.5">
                         <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center">
@@ -344,14 +300,12 @@ export const AdminShurjopayPage: React.FC = () => {
                                 <span className="font-bold text-slate-900 dark:text-white text-base">
                                     {isBn ? 'লাইভ ক্রিডেনশিয়ালস (Live Production API)' : 'Live Credentials (Production API)'}
                                 </span>
-                                {settings.environment === 'live' && (
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-sky-100 dark:bg-sky-900/50 text-sky-800 dark:text-sky-300 uppercase">
-                                        Currently Active
-                                    </span>
-                                )}
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-sky-100 dark:bg-sky-900/50 text-sky-800 dark:text-sky-300 uppercase">
+                                    Live Mode
+                                </span>
                             </div>
                             <span className="text-[11px] text-slate-500">
-                                {isBn ? 'প্রোডাকশন পেমেন্ট গ্রহণের জন্য আপনার লাইভ একাউন্টের তথ্য' : 'Real payments and settlements processed with these credentials'}
+                                {isBn ? 'প্রোডাকশন পেমেন্ট গ্রহণের জন্য আপনার একাউন্টের লাইভ তথ্য' : 'Real payments and settlements processed with these credentials'}
                             </span>
                         </div>
                     </div>
@@ -425,109 +379,6 @@ export const AdminShurjopayPage: React.FC = () => {
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                             >
                                 {showLivePassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Section 3: Sandbox Credentials */}
-            <div className={`bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-7 border shadow-xs space-y-5 transition-all ${
-                settings.environment === 'sandbox'
-                    ? 'border-amber-300 dark:border-amber-800/80 ring-2 ring-amber-500/20'
-                    : 'border-slate-200 dark:border-slate-800 opacity-90'
-            }`}>
-                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                            <Activity className="w-4 h-4" />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <span className="font-bold text-slate-900 dark:text-white text-base">
-                                    {isBn ? 'স্যান্ডবক্স ক্রিডেনশিয়ালস (Sandbox Test API)' : 'Sandbox Credentials (Test Mode API)'}
-                                </span>
-                                {settings.environment === 'sandbox' && (
-                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 uppercase">
-                                        Currently Active
-                                    </span>
-                                )}
-                            </div>
-                            <span className="text-[11px] text-slate-500">
-                                {isBn ? 'টেস্টিং করার জন্য স্যান্ডবক্স পরিবেশের তথ্য' : 'Use this environment for development and dummy transactions'}
-                            </span>
-                        </div>
-                    </div>
-
-                    <a
-                        href="https://sandbox.admin.shurjopayment.com"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400 hover:underline font-semibold"
-                    >
-                        <span>Sandbox Merchant Panel</span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            Sandbox API URL
-                        </label>
-                        <input
-                            type="text"
-                            value={settings.sandbox_api_url}
-                            onChange={(e) => setSettings({ ...settings, sandbox_api_url: e.target.value })}
-                            placeholder="https://sandbox.shurjopayment.com"
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono text-slate-800 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            Sandbox API Order Prefix
-                        </label>
-                        <input
-                            type="text"
-                            value={settings.sandbox_prefix}
-                            onChange={(e) => setSettings({ ...settings, sandbox_prefix: e.target.value })}
-                            placeholder="sp"
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono uppercase text-slate-800 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            Sandbox API Username
-                        </label>
-                        <input
-                            type="text"
-                            value={settings.sandbox_username}
-                            onChange={(e) => setSettings({ ...settings, sandbox_username: e.target.value })}
-                            placeholder="sp_sandbox"
-                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono text-slate-800 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                            Sandbox API Password
-                        </label>
-                        <div className="relative">
-                            <input
-                                type={showSandboxPassword ? 'text' : 'password'}
-                                value={settings.sandbox_password || ''}
-                                onChange={(e) => setSettings({ ...settings, sandbox_password: e.target.value })}
-                                placeholder="••••••••••••"
-                                className="w-full pl-4 pr-10 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono text-slate-800 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowSandboxPassword(!showSandboxPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
-                            >
-                                {showSandboxPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                             </button>
                         </div>
                     </div>

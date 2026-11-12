@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { apiClient } from '../../api/client';
-import { User, UserRole } from '../../types';
+import { User, UserRole, Role } from '../../types';
 import { 
     Users, 
     Search, 
@@ -62,6 +62,8 @@ export const AdminUsersPage: React.FC = () => {
     const [roleModalOpen, setRoleModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [newRole, setNewRole] = useState<UserRole>('student');
+    const [selectedCustomRoleId, setSelectedCustomRoleId] = useState<number | string>('');
+    const [customRoles, setCustomRoles] = useState<Role[]>([]);
     const [updatingRole, setUpdatingRole] = useState(false);
 
     // Current logged in admin
@@ -106,7 +108,15 @@ export const AdminUsersPage: React.FC = () => {
         setSearch(searchParams.get('search') || '');
         setRoleFilter(searchParams.get('role') || '');
         setStatusFilter(searchParams.get('status') || '');
+        fetchCustomRoles();
     }, [searchParams]);
+
+    const fetchCustomRoles = async () => {
+        try {
+            const { data } = await apiClient.get('/admin/roles');
+            setCustomRoles(data.roles || []);
+        } catch {}
+    };
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -204,6 +214,7 @@ export const AdminUsersPage: React.FC = () => {
     const openRoleModal = (u: User) => {
         setSelectedUser(u);
         setNewRole(u.role);
+        setSelectedCustomRoleId(u.custom_role_id || (u.custom_role?.id ?? ''));
         setRoleModalOpen(true);
     };
 
@@ -213,8 +224,10 @@ export const AdminUsersPage: React.FC = () => {
 
         setUpdatingRole(true);
         try {
+            const isCustom = newRole === 'custom' || (!['student', 'teacher', 'admin'].includes(newRole));
             const { data } = await apiClient.post(`/admin/users/${selectedUser.id}/role`, {
-                role: newRole,
+                role: isCustom ? 'custom' : newRole,
+                custom_role_id: isCustom ? selectedCustomRoleId : null,
             });
             setUsers(prev => prev.map(u => u.id === selectedUser.id ? data.user : u));
             setRoleModalOpen(false);
@@ -361,16 +374,20 @@ export const AdminUsersPage: React.FC = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-2 self-start sm:self-auto">
-                    <button
-                        onClick={() => {
-                            setCreateError(null);
-                            setCreateModalOpen(true);
-                        }}
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-xs font-bold text-white shadow-md shadow-sky-600/20 transition-all cursor-pointer"
+                    <Link
+                        to="/admin/users/roles"
+                        className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-2xs"
+                    >
+                        <Shield className="w-4 h-4 text-purple-600" />
+                        <span>Custom Roles</span>
+                    </Link>
+                    <Link
+                        to="/admin/users/create"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-xs font-bold text-white shadow-md shadow-sky-600/20 transition-all"
                     >
                         <UserPlus className="w-4 h-4" />
                         <span>Create New User</span>
-                    </button>
+                    </Link>
                     <button
                         onClick={() => fetchUsers()}
                         disabled={loading}
@@ -584,13 +601,18 @@ export const AdminUsersPage: React.FC = () => {
                                             <td className="py-4 px-4 text-slate-600 dark:text-slate-400">{u.email || '-'}</td>
 
                                             <td className="py-4 px-4">
-                                                {u.role === 'admin' ? (
+                                                {u.custom_role ? (
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60">
+                                                        <Shield className="w-3 h-3 text-purple-600" />
+                                                        {u.custom_role.name}
+                                                    </span>
+                                                ) : u.role === 'admin' ? (
                                                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
                                                         <Shield className="w-3 h-3" />
                                                         Admin
                                                     </span>
                                                 ) : u.role === 'teacher' ? (
-                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-purple-100 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-200/60 dark:border-purple-800/60">
+                                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800/60">
                                                         <GraduationCap className="w-3 h-3" />
                                                         Instructor
                                                     </span>
@@ -726,13 +748,33 @@ export const AdminUsersPage: React.FC = () => {
                                 Select New Role:
                             </label>
                             <select
-                                value={newRole}
-                                onChange={(e) => setNewRole(e.target.value as UserRole)}
+                                value={newRole === 'custom' || (!['student', 'teacher', 'admin'].includes(newRole)) ? `custom:${selectedCustomRoleId}` : newRole}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val.startsWith('custom:')) {
+                                        setNewRole('custom');
+                                        setSelectedCustomRoleId(val.split(':')[1]);
+                                    } else {
+                                        setNewRole(val as UserRole);
+                                        setSelectedCustomRoleId('');
+                                    }
+                                }}
                                 className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold text-slate-800 dark:text-slate-100"
                             >
-                                <option value="student">Student (Can enroll and learn in courses)</option>
-                                <option value="teacher">Instructor (Can manage assigned courses, exams & question banks)</option>
-                                <option value="admin">Admin (Full administrative access)</option>
+                                <optgroup label="System Roles">
+                                    <option value="student">Student (Can enroll and learn in courses)</option>
+                                    <option value="teacher">Instructor (Can manage assigned courses, exams & questions)</option>
+                                    <option value="admin">Super Admin (Full administrative access)</option>
+                                </optgroup>
+                                {customRoles.length > 0 && (
+                                    <optgroup label="Custom Roles (Staff)">
+                                        {customRoles.map((cr) => (
+                                            <option key={cr.id} value={`custom:${cr.id}`}>
+                                                {cr.name} ({cr.permissions?.length || 0} Permissions)
+                                            </option>
+                                        ))}
+                                    </optgroup>
+                                )}
                             </select>
                         </div>
 

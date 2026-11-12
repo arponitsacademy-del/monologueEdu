@@ -119,7 +119,7 @@ export const Navbar: React.FC = () => {
 
     const getDashboardPath = () => {
         if (!user) return '/login';
-        if (user.role === 'admin') return '/admin';
+        if (user.role === 'admin' || Boolean(user.custom_role_id || user.custom_role)) return '/admin';
         if (user.role === 'teacher') return '/teacher';
         return '/student';
     };

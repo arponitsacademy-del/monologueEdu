@@ -21,6 +21,8 @@ import { AdminCoursesPage } from '../pages/admin/AdminCoursesPage';
 import { AdminCourseEditPage } from '../pages/admin/AdminCourseEditPage';
 import { AdminCourseBuilderPage } from '../pages/admin/AdminCourseBuilderPage';
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
+import { AdminUserCreatePage } from '../pages/admin/AdminUserCreatePage';
+import { AdminRolesPage } from '../pages/admin/roles/AdminRolesPage';
 import { AdminOrdersPage } from '../pages/admin/AdminOrdersPage';
 import { AdminAnalyticsPage } from '../pages/admin/AdminAnalyticsPage';
 import { AdminSmsPage } from '../pages/admin/AdminSmsPage';
@@ -135,7 +137,10 @@ export const AppRoutes: React.FC = () => {
                 <Route path="appearance/general" element={<AdminAppearanceGeneralPage />} />
                 <Route path="appearance/header" element={<AdminHeaderBuilderPage />} />
                 <Route path="appearance/footer" element={<AdminFooterBuilderPage />} />
+                {/* User & Role Management */}
                 <Route path="users" element={<AdminUsersPage />} />
+                <Route path="users/create" element={<AdminUserCreatePage />} />
+                <Route path="users/roles" element={<AdminRolesPage />} />
                 <Route path="orders" element={<AdminOrdersPage />} />
                 {/* Marketing & Coupons */}
                 <Route path="marketing" element={<Navigate to="/admin/marketing/coupons" replace />} />

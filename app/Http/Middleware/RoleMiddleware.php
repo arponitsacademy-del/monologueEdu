@@ -15,7 +15,13 @@ class RoleMiddleware
             abort(401, 'Authentication required.');
         }
 
-        $userRole = Auth::user()->role;
+        $user = Auth::user();
+        $userRole = $user->role;
+
+        // If admin is accepted, allow users with full admin role OR active custom roles
+        if (in_array('admin', $roles, true) && method_exists($user, 'canAccessAdminDashboard') && $user->canAccessAdminDashboard()) {
+            return $next($request);
+        }
 
         if ($roles !== [] && ! in_array($userRole, $roles, true)) {
             abort(403, 'You do not have permission to access this resource.');

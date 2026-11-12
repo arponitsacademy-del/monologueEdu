@@ -389,12 +389,12 @@ export const CheckoutPage: React.FC = () => {
                                                     <span className="font-extrabold text-base text-slate-900">
                                                         অনলাইন পেমেন্ট
                                                     </span>
-                                                    <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
-                                                        অটোমেটিক
+                                                    <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full shadow-2xs">
+                                                        অটোমেটিক এক্সপ্রেস
                                                     </span>
                                                 </div>
                                                 <span className="text-xs text-slate-500 font-medium block mt-0.5">
-                                                    ইন্সট্যান্ট কোর্স অ্যাক্টিভেশন
+                                                    bKash, Nagad, Rocket, Cards বা Net Banking দিয়ে সাথে সাথে পেমেন্ট করুন
                                                 </span>
                                             </div>
                                         </div>
