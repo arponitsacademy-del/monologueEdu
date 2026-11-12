@@ -300,14 +300,18 @@ export const LessonPlayerPage: React.FC = () => {
                                     {lesson.attachments.map((att) => {
                                         const isLink = att.file_path?.startsWith('http') || att.file_type === 'link' || att.file_type === 'google_drive';
                                         const isDrive = att.file_type === 'google_drive' || att.file_path?.includes('drive.google.com') || att.file_path?.includes('docs.google.com');
+                                        const token = localStorage.getItem('auth_token') || '';
+                                        const targetUrl = isLink
+                                            ? att.file_path
+                                            : `/api/learning/attachments/${att.id}/download${token ? `?token=${encodeURIComponent(token)}` : ''}`;
 
                                         return (
                                             <a
                                                 key={att.id}
-                                                href={`/api/learning/attachments/${att.id}/download`}
+                                                href={targetUrl}
                                                 target="_blank"
-                                                rel="noreferrer"
-                                                className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 flex items-center justify-between transition-colors group"
+                                                rel="noopener noreferrer"
+                                                className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 flex items-center justify-between transition-colors group cursor-pointer"
                                             >
                                                 <div className="truncate mr-3">
                                                     <div className="flex items-center gap-1.5">

@@ -2983,9 +2983,9 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                                 </div>
                                                 <div className="flex items-center gap-1 shrink-0">
                                                     <a
-                                                        href={isLink ? att.file_path : `/api/learning/attachments/${att.id}/download`}
+                                                        href={isLink ? att.file_path : `/api/learning/attachments/${att.id}/download${localStorage.getItem('auth_token') ? `?token=${encodeURIComponent(localStorage.getItem('auth_token') || '')}` : ''}`}
                                                         target="_blank"
-                                                        rel="noreferrer"
+                                                        rel="noopener noreferrer"
                                                         className="text-slate-400 hover:text-sky-600 p-1"
                                                         title="ভিউ / প্রিভিউ"
                                                     >
@@ -3312,9 +3312,9 @@ export const AdminCourseBuilderPage: React.FC = () => {
 
                                                 <div className="flex items-center gap-1.5 shrink-0">
                                                     <a
-                                                        href={isLink ? att.file_path : `/api/learning/attachments/${att.id}/download`}
+                                                        href={isLink ? att.file_path : `/api/learning/attachments/${att.id}/download${localStorage.getItem('auth_token') ? `?token=${encodeURIComponent(localStorage.getItem('auth_token') || '')}` : ''}`}
                                                         target="_blank"
-                                                        rel="noreferrer"
+                                                        rel="noopener noreferrer"
                                                         className="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition"
                                                         title="ওপেন বা টেস্ট করুন"
                                                     >

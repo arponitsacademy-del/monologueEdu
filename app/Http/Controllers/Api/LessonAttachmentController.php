@@ -122,31 +122,42 @@ class LessonAttachmentController extends Controller
     /**
      * Download or redirect to attachment.
      */
-    public function download(LessonAttachment $attachment): StreamedResponse|BinaryFileResponse|RedirectResponse
+    public function download(Request $request, LessonAttachment $attachment): StreamedResponse|BinaryFileResponse|RedirectResponse
     {
+        // 1. If it is an external link or Google Drive link, redirect directly to the URL
+        if (str_starts_with($attachment->file_path, 'http://') || str_starts_with($attachment->file_path, 'https://')) {
+            return redirect()->away($attachment->file_path);
+        }
+
+        // 2. Resolve authenticated user from Bearer header or query token
         $user = auth()->user();
+        if (! $user && $request->filled('token')) {
+            $personalToken = \Laravel\Sanctum\PersonalAccessToken::findToken($request->query('token'));
+            if ($personalToken && $personalToken->tokenable) {
+                $user = $personalToken->tokenable;
+            }
+        }
+
         $lesson = $attachment->lesson;
         $course = $lesson->course;
 
         // Verify authorization
         $canAccess = false;
-        if ($user->isAdmin()) {
-            $canAccess = true;
-        } elseif ($user->isTeacher() && $course->isAssignedTeacher($user->id)) {
-            $canAccess = true;
-        } elseif ($lesson->is_preview) {
-            $canAccess = true;
-        } elseif ($user->isEnrolledIn($course->id)) {
+        if ($user) {
+            if ($user->isAdmin()) {
+                $canAccess = true;
+            } elseif ($user->isTeacher() && $course->isAssignedTeacher($user->id)) {
+                $canAccess = true;
+            } elseif ($user->isEnrolledIn($course->id)) {
+                $canAccess = true;
+            }
+        }
+        if ($lesson->is_preview) {
             $canAccess = true;
         }
 
         if (! $canAccess) {
             abort(403, 'এই স্টাডি ম্যাটেরিয়াল ডাউনলোড করার জন্য আপনাকে কোর্সে এনরোল থাকতে হবে।');
-        }
-
-        // If it is an external link or Google Drive link, redirect to it
-        if (str_starts_with($attachment->file_path, 'http://') || str_starts_with($attachment->file_path, 'https://')) {
-            return redirect()->away($attachment->file_path);
         }
 
         if (! Storage::exists($attachment->file_path)) {

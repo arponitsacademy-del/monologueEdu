@@ -71,6 +71,9 @@ Route::get('instructors/{id}', [TeacherPublicController::class, 'getTeacherProfi
 Route::match(['get', 'post'], 'payment/shurjopay/callback', [ShurjopayController::class, 'callback']);
 Route::match(['get', 'post'], 'payment/shurjopay/cancel', [ShurjopayController::class, 'cancel']);
 
+// Public/Token-aware Attachment Download & Redirect
+Route::get('learning/attachments/{attachment}/download', [LessonAttachmentController::class, 'download']);
+
 /*
 |--------------------------------------------------------------------------
 | Protected Routes (Authenticated via Sanctum)
@@ -97,7 +100,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('student/my-courses', [EnrollmentController::class, 'myCourses']);
     Route::get('learning/{course}/lessons/{lesson}', [EnrollmentController::class, 'getLesson']);
     Route::post('learning/lessons/{lesson}/progress', [EnrollmentController::class, 'toggleProgress']);
-    Route::get('learning/attachments/{attachment}/download', [LessonAttachmentController::class, 'download']);
 
     // Lesson Discussion & Comments
     Route::get('learning/lessons/{lesson}/comments', [LessonCommentController::class, 'index']);
