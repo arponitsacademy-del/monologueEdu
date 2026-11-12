@@ -20,7 +20,11 @@ import {
     Calendar,
     GraduationCap,
     Users,
-    Upload
+    Upload,
+    Tag,
+    Clock,
+    Sparkles,
+    PlayCircle
 } from 'lucide-react';
 
 const DEFAULT_FEATURES = [
@@ -63,6 +67,12 @@ export const AdminCourseEditPage: React.FC = () => {
         { id: 'btn-outline', label: 'কোর্স আউটলাইন', type: 'link', url: '' }
     ]);
     const [uploadingButtonFileId, setUploadingButtonFileId] = useState<string | null>(null);
+
+    // Coupon, Countdown & How-to-Buy
+    const [couponCode, setCouponCode] = useState<string>('');
+    const [couponDiscountText, setCouponDiscountText] = useState<string>('');
+    const [discountDeadline, setDiscountDeadline] = useState<string>('');
+    const [howToBuyUrl, setHowToBuyUrl] = useState<string>('');
 
     const [allCategories, setAllCategories] = useState<Category[]>([]);
     const [allTeachers, setAllTeachers] = useState<User[]>([]);
@@ -199,6 +209,10 @@ export const AdminCourseEditPage: React.FC = () => {
             if (c.action_buttons && Array.isArray(c.action_buttons) && c.action_buttons.length > 0) {
                 setActionButtons(c.action_buttons);
             }
+            setCouponCode(c.coupon_code || '');
+            setCouponDiscountText(c.coupon_discount_text || '');
+            setDiscountDeadline(c.discount_deadline ? c.discount_deadline.substring(0, 16) : '');
+            setHowToBuyUrl(c.how_to_buy_url || '');
         } catch {
             navigate('/admin/courses');
         } finally {
@@ -235,6 +249,10 @@ export const AdminCourseEditPage: React.FC = () => {
                 fake_enrollment_count: parseInt(fakeEnrollmentCount, 10) || 0,
                 class_starts_at: classStartsAt.trim() || null,
                 action_buttons: actionButtons.filter((b) => b.label.trim().length > 0 && b.url.trim().length > 0),
+                coupon_code: couponCode.trim() ? couponCode.trim().toUpperCase() : null,
+                coupon_discount_text: couponDiscountText.trim() || null,
+                discount_deadline: discountDeadline.trim() || null,
+                how_to_buy_url: howToBuyUrl.trim() || null,
             };
 
             let targetId = savedCourseId;
@@ -568,6 +586,89 @@ export const AdminCourseEditPage: React.FC = () => {
                                 />
                                 <p className="text-[11px] text-slate-400 mt-1">
                                     ক্যালেন্ডার ব্যাজে ক্লাস শুরুর তারিখ বা স্ট্যাটাস প্রদর্শিত হবে।
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Coupon, Countdown & How to Buy Video (Matches user reference card) */}
+                    <div className="p-5 rounded-2xl bg-indigo-50/50 border border-indigo-200/80 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Tag className="w-5 h-5 text-indigo-600" />
+                                <h3 className="text-sm font-bold text-slate-800">
+                                    কুপন অফার ও কাউন্টডাউন টাইমার (কোর্স কার্ড প্রমোশন)
+                                </h3>
+                            </div>
+                            <span className="text-[11px] font-semibold text-indigo-700 bg-indigo-100/70 px-2.5 py-0.5 rounded-full">
+                                কোর্স সাইডবার প্রমোশন
+                            </span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <Tag className="w-3.5 h-3.5 text-indigo-600" />
+                                    <span>কুপন কোড (Coupon Code)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={couponCode}
+                                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                    placeholder="যেমন: ACPPOWERPLAY500"
+                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-mono font-bold uppercase focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <p className="text-[11px] text-slate-400 mt-1">
+                                    শিক্ষার্থীরা সাইডবার থেকে এই কোডে 'প্রয়োগ করো' ক্লিক করে সরাসরি ডিসকাউন্ট নিতে পারবে।
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                                    <span>ছাড়ের লেখা (Discount Text)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={couponDiscountText}
+                                    onChange={(e) => setCouponDiscountText(e.target.value)}
+                                    placeholder="যেমন: ৳500 ছাড় (খালি রাখলে ছাড়ের পরিমাণ অটো দেখাবে)"
+                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <p className="text-[11px] text-slate-400 mt-1">
+                                    কুপন কোডের পাশে ছাড়ের বিবরণ দেখাবে।
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <Clock className="w-3.5 h-3.5 text-indigo-600" />
+                                    <span>অফার শেষের তারিখ ও সময় (কাউন্টডাউন টাইমার)</span>
+                                </label>
+                                <input
+                                    type="datetime-local"
+                                    value={discountDeadline}
+                                    onChange={(e) => setDiscountDeadline(e.target.value)}
+                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <p className="text-[11px] text-slate-400 mt-1">
+                                    দিন, ঘণ্টা, মিনিট ও সেকেন্ড এর লাইভ কাউন্টডাউন চলার জন্য শেষ সময় দিন।
+                                </p>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
+                                    <PlayCircle className="w-3.5 h-3.5 text-indigo-600" />
+                                    <span>'কোর্সটি কীভাবে কিনবেন' ভিডিও লিংক</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={howToBuyUrl}
+                                    onChange={(e) => setHowToBuyUrl(e.target.value)}
+                                    placeholder="যেমন: https://www.youtube.com/watch?v=..."
+                                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <p className="text-[11px] text-slate-400 mt-1">
+                                    বাটনে ক্লিক করলে ভিডিওটি পপআপে প্লে হবে।
                                 </p>
                             </div>
                         </div>

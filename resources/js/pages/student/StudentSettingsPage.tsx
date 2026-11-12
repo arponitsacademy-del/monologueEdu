@@ -229,9 +229,15 @@ export const StudentSettingsPage: React.FC<StudentSettingsPageProps> = ({ defaul
                             <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                                 {user?.name || 'শিক্ষার্থীর নাম'}
                             </h1>
-                            <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-                                ফোন: <span className="font-semibold text-slate-700">{user?.phone}</span> • রোল: <span className="text-sky-600 font-bold uppercase">{user?.role || 'student'}</span>
-                            </p>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                                <span>ফোন: <span className="font-semibold text-slate-700">{user?.phone}</span></span>
+                                <span>•</span>
+                                <span>
+                                    রেজিস্ট্রেশন নং: <span className="font-extrabold text-indigo-700 font-mono bg-indigo-50 border border-indigo-200/80 px-2 py-0.5 rounded-md">{user?.registration_number || 'লোড হচ্ছে...'}</span>
+                                </span>
+                                <span>•</span>
+                                <span>রোল: <span className="text-sky-600 font-bold uppercase">{user?.role || 'student'}</span></span>
+                            </div>
                         </div>
                     </div>
 
@@ -465,6 +471,30 @@ export const StudentSettingsPage: React.FC<StudentSettingsPageProps> = ({ defaul
                                 className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 focus:outline-hidden transition-all"
                                 placeholder="আপনার নাম লিখুন"
                             />
+                        </div>
+
+                        {/* Auto-Generated Registration Number */}
+                        <div>
+                            <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
+                                <span>রেজিস্ট্রেশন নম্বর (স্টুডেন্ট আইডি)</span>
+                                <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-200">
+                                    অটো-জেনারেটেড
+                                </span>
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    disabled
+                                    value={user?.registration_number || 'লোড হচ্ছে...'}
+                                    className="w-full px-4 py-2.5 rounded-xl border border-indigo-200 bg-indigo-50/40 text-indigo-900 font-mono font-bold text-sm cursor-not-allowed select-all"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-indigo-700 bg-indigo-100 px-2.5 py-0.5 rounded-md">
+                                    স্থায়ী আইডি
+                                </span>
+                            </div>
+                            <p className="text-[11px] text-slate-400 mt-1">
+                                এই ইউনিক রেজিস্ট্রেশন নম্বরটি আপনার প্রতিটি কোর্স, লাইভ ক্লাস, পরীক্ষা ও সার্টিফিকেটের জন্য স্থায়ী স্টুডেন্ট আইডি হিসেবে ব্যবহৃত হবে।
+                            </p>
                         </div>
 
                         <div>

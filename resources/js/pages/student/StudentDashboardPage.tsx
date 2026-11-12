@@ -105,9 +105,16 @@ export const StudentDashboardPage: React.FC = () => {
                     <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                         {getBengaliGreeting()}, {user?.name || 'শিক্ষার্থী'}
                     </h1>
-                    <p className="text-xs sm:text-sm font-bold text-slate-500 mt-1">
-                        আজকে পড়া শুরু করো
-                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                        <p className="text-xs sm:text-sm font-bold text-slate-500">
+                            আজকে পড়া শুরু করো
+                        </p>
+                        {user?.registration_number && (
+                            <span className="text-[11px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-200/80 px-2 py-0.5 rounded-full font-mono">
+                                আইডি: {user.registration_number}
+                            </span>
+                        )}
+                    </div>
                 </div>
 
                 {/* Profile Completion / Reward Points Badge */}

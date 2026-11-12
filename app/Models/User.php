@@ -6,8 +6,10 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -25,6 +27,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'phone',
+        'registration_number',
         'email',
         'password',
         'role',
@@ -43,6 +46,69 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public static function booted(): void
+    {
+        if (Schema::hasTable('users')) {
+            try {
+                if (! Schema::hasColumn('users', 'registration_number')) {
+                    Schema::table('users', function (Blueprint $table) {
+                        $table->string('registration_number', 50)->nullable()->unique()->after('phone');
+                    });
+                }
+            } catch (\Throwable $e) {
+                // Column exists or lacked DDL privileges
+            }
+        }
+
+        static::creating(function (User $user) {
+            if (empty($user->registration_number)) {
+                $user->registration_number = self::generateUniqueRegistrationNumber();
+            }
+        });
+    }
+
+    public static function generateUniqueRegistrationNumber(): string
+    {
+        $year = date('Y');
+        $prefix = "ME-{$year}-";
+
+        // Find the latest user with this prefix
+        $latest = static::where('registration_number', 'like', "{$prefix}%")
+            ->orderBy('id', 'desc')
+            ->value('registration_number');
+
+        if ($latest && preg_match('/' . preg_quote($prefix, '/') . '(\d+)/', $latest, $matches)) {
+            $nextSeq = (int) $matches[1] + 1;
+        } else {
+            $count = static::count();
+            $nextSeq = max(1, $count + 1);
+        }
+
+        $regNo = $prefix . str_pad((string) $nextSeq, 4, '0', STR_PAD_LEFT);
+
+        while (static::where('registration_number', $regNo)->exists()) {
+            $nextSeq++;
+            $regNo = $prefix . str_pad((string) $nextSeq, 4, '0', STR_PAD_LEFT);
+        }
+
+        return $regNo;
+    }
+
+    public function getRegistrationNumberAttribute($value): ?string
+    {
+        if (! empty($value)) {
+            return $value;
+        }
+
+        if ($this->exists && empty($value)) {
+            $newRegNo = self::generateUniqueRegistrationNumber();
+            $this->forceFill(['registration_number' => $newRegNo])->saveQuietly();
+            return $newRegNo;
+        }
+
+        return null;
     }
 
     public function isAdmin(): bool

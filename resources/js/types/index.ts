@@ -28,6 +28,7 @@ export interface User {
     name: string;
     phone: string;
     email: string;
+    registration_number?: string | null;
     role: UserRole;
     custom_role_id?: number | null;
     custom_role?: Role | null;
@@ -72,6 +73,10 @@ export interface Course {
         url: string;
         file_name?: string;
     }[] | null;
+    coupon_code?: string | null;
+    coupon_discount_text?: string | null;
+    discount_deadline?: string | null;
+    how_to_buy_url?: string | null;
     instructors?: User[];
     instructor?: User;
     categories?: Category[];

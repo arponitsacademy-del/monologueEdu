@@ -590,6 +590,12 @@ export const AdminUsersPage: React.FC = () => {
                                                         </h4>
                                                         <span className="text-[11px] text-slate-400 flex items-center gap-1">
                                                             <span>ID: #{u.id}</span>
+                                                            {u.registration_number && (
+                                                                <>
+                                                                    <span>•</span>
+                                                                    <span className="text-indigo-600 dark:text-indigo-400 font-mono font-bold">{u.registration_number}</span>
+                                                                </>
+                                                            )}
                                                             <span>•</span>
                                                             <span className="text-sky-500 font-medium">View Profile</span>
                                                         </span>
@@ -1053,6 +1059,11 @@ export const AdminUsersPage: React.FC = () => {
                                             <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-slate-200/70 dark:bg-slate-700 text-slate-700 dark:text-slate-300">
                                                 ID: #{userDetails.id}
                                             </span>
+                                            {userDetails.registration_number && (
+                                                <span className="text-xs px-2 py-0.5 rounded-md font-mono bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-200/60">
+                                                    Reg: {userDetails.registration_number}
+                                                </span>
+                                            )}
                                         </div>
                                         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                                             {userDetails.role === 'admin' ? (

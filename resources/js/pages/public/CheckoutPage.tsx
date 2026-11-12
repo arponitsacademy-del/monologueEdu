@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useSettings } from '../../context/SettingsContext';
@@ -53,6 +53,7 @@ const DEFAULT_MANUAL_SETTINGS: ManualPaymentSettings = {
 
 export const CheckoutPage: React.FC = () => {
     const { slug } = useParams<{ slug: string }>();
+    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { user } = useAuth();
     const { language } = useLanguage();
@@ -162,6 +163,11 @@ export const CheckoutPage: React.FC = () => {
                     return;
                 }
                 setCourse(data.course);
+                const couponFromUrl = searchParams.get('coupon');
+                if (couponFromUrl && data.course?.id) {
+                    setCouponInput(couponFromUrl.toUpperCase());
+                    validateCouponCode(couponFromUrl.toUpperCase(), data.course.id);
+                }
             } catch {
                 navigate('/courses');
             } finally {

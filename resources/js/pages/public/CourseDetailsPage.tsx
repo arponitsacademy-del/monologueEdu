@@ -19,7 +19,10 @@ import {
     Calendar,
     GraduationCap,
     FileText,
-    ExternalLink
+    ExternalLink,
+    X,
+    Copy,
+    Check
 } from 'lucide-react';
 
 const DEFAULT_FEATURES = [
@@ -40,6 +43,47 @@ export const CourseDetailsPage: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [openSections, setOpenSections] = useState<Record<number, boolean>>({});
     const [enrollingFree, setEnrollingFree] = useState(false);
+    const [copiedCoupon, setCopiedCoupon] = useState(false);
+    const [showHowToBuyModal, setShowHowToBuyModal] = useState(false);
+
+    // Live countdown timer state (Matches user screenshot)
+    const [timeLeft, setTimeLeft] = useState({
+        days: 18,
+        hours: 20,
+        minutes: 10,
+        seconds: 28,
+    });
+
+    useEffect(() => {
+        const updateTimer = () => {
+            if (course?.discount_deadline) {
+                const diff = new Date(course.discount_deadline).getTime() - new Date().getTime();
+                if (diff > 0) {
+                    setTimeLeft({
+                        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+                        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+                        minutes: Math.floor((diff / 1000 / 60) % 60),
+                        seconds: Math.floor((diff / 1000) % 60),
+                    });
+                    return;
+                }
+            }
+            // Rolling live countdown based on day/month target
+            const now = new Date();
+            const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 18, 23, 59, 59);
+            const diff = Math.max(0, target.getTime() - now.getTime());
+            setTimeLeft({
+                days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+                minutes: Math.floor((diff / 1000 / 60) % 60),
+                seconds: Math.floor((diff / 1000) % 60),
+            });
+        };
+
+        updateTimer();
+        const interval = setInterval(updateTimer, 1000);
+        return () => clearInterval(interval);
+    }, [course?.discount_deadline]);
 
     useEffect(() => {
         const fetchCourse = async () => {
@@ -110,6 +154,23 @@ export const CourseDetailsPage: React.FC = () => {
     const firstLessonId = course.sections?.[0]?.lessons?.[0]?.id;
     const totalEnrolled = (course.fake_enrollment_count || 0) + (course.enrollments_count || 0);
     const courseFeatures = (course.features && course.features.length > 0) ? course.features : DEFAULT_FEATURES;
+
+    const effectivePrice = course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price)
+        ? Number(course.sale_price)
+        : (course.effective_price ?? Number(course.price));
+    const hasDiscount = course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price);
+    const promoCoupon = course.coupon_code || 'ACPPOWERPLAY500';
+    const discountAmount = hasDiscount ? Math.round(Number(course.price) - Number(course.sale_price)) : 500;
+    const discountText = course.coupon_discount_text || `৳${discountAmount} ছাড়`;
+
+    const handleApplyCoupon = () => {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(promoCoupon);
+        }
+        setCopiedCoupon(true);
+        setTimeout(() => setCopiedCoupon(false), 2500);
+        navigate(`/checkout/${course.slug}?coupon=${promoCoupon}`);
+    };
 
     return (
         <div className="bg-slate-50 min-h-screen pb-20">
@@ -285,67 +346,123 @@ export const CourseDetailsPage: React.FC = () => {
                             </div>
 
                             {/* Admission Count & Class Start Badges (Matches User Image) */}
-                            <div className="grid grid-cols-2 gap-2.5">
+                            <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                                 {/* Admission Count Badge */}
-                                <div className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl p-3 flex items-center gap-2.5 shadow-2xs">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
-                                        <GraduationCap className="w-5 h-5 text-indigo-600" />
+                                <div className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl p-3 sm:p-3.5 flex items-center gap-3 shadow-2xs">
+                                    <div className="w-10 h-10 flex items-center justify-center shrink-0 text-[#3B49DF]">
+                                        <svg viewBox="0 0 48 48" className="w-9 h-9" fill="currentColor">
+                                            {/* Graduation cap */}
+                                            <path d="M24 6L6 15l18 9 14-7V30h3V16.5L42 15 24 6z" />
+                                            {/* Center student bust */}
+                                            <circle cx="24" cy="27" r="3.5" />
+                                            <path d="M19 36c0-2.8 2.2-5 5-5s5 2.2 5 5v1H19v-1z" />
+                                            {/* Left student bust */}
+                                            <circle cx="15" cy="29" r="2.8" />
+                                            <path d="M11 37c0-2.2 1.8-4 4-4 1.2 0 2.3.5 3 1.4-.4.8-.6 1.8-.6 2.6H11v0z" />
+                                            {/* Right student bust */}
+                                            <circle cx="33" cy="29" r="2.8" />
+                                            <path d="M37 37c0-2.2-1.8-4-4-4-1.2 0-2.3.5-3 1.4.4.8.6 1.8.6 2.6H37v0z" />
+                                        </svg>
                                     </div>
                                     <div className="min-w-0">
-                                        <span className="text-[11px] font-bold text-slate-700 block truncate">
+                                        <span className="text-xs sm:text-sm font-bold text-slate-700 block truncate">
                                             ভর্তি সংখ্যা
                                         </span>
-                                        <span className="text-xl font-black text-indigo-700 leading-tight">
+                                        <span className="text-2xl sm:text-3xl font-black text-[#3B49DF] leading-tight block">
                                             {totalEnrolled}
                                         </span>
                                     </div>
                                 </div>
 
                                 {/* Class Start Badge */}
-                                <div className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl p-3 flex items-center gap-2.5 shadow-2xs">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center shrink-0">
-                                        <Calendar className="w-5 h-5 text-indigo-600" />
+                                <div className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl p-3 sm:p-3.5 flex items-center gap-3 shadow-2xs">
+                                    <div className="w-10 h-10 flex items-center justify-center shrink-0 text-[#3B49DF]">
+                                        <svg viewBox="0 0 48 48" className="w-9 h-9" fill="currentColor">
+                                            {/* Calendar body */}
+                                            <rect x="7" y="11" width="34" height="28" rx="5" fill="none" stroke="currentColor" strokeWidth="3" />
+                                            <path d="M7 19h34" stroke="currentColor" strokeWidth="3" />
+                                            {/* Rings */}
+                                            <circle cx="15" cy="8" r="2" />
+                                            <circle cx="24" cy="8" r="2" />
+                                            <circle cx="33" cy="8" r="2" />
+                                            {/* Dots */}
+                                            <circle cx="14" cy="24" r="1.5" />
+                                            <circle cx="20" cy="24" r="1.5" />
+                                            <circle cx="14" cy="29" r="1.5" />
+                                            <circle cx="20" cy="29" r="1.5" />
+                                            {/* Clock badge */}
+                                            <circle cx="32" cy="31" r="7" fill="currentColor" />
+                                            <circle cx="32" cy="31" r="5" fill="#EEF2FF" />
+                                            <path d="M32 28v3.5l2.5 1.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                                        </svg>
                                     </div>
                                     <div className="min-w-0">
-                                        <span className="text-[11px] font-bold text-slate-700 block truncate">
+                                        <span className="text-xs sm:text-sm font-bold text-slate-700 block truncate">
                                             ক্লাস শুরু
                                         </span>
-                                        <span className="text-xs sm:text-sm font-extrabold text-indigo-700 truncate block leading-tight">
-                                            {course.class_starts_at || 'ভর্তি চলছে'}
+                                        <span className="text-xs sm:text-sm font-extrabold text-[#3B49DF] truncate block leading-tight">
+                                            {course.class_starts_at || 'Nov 09, 2026'}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Price */}
-                            <div className="flex items-baseline justify-between pt-2">
-                                <div>
-                                    <span className="text-xs font-semibold text-slate-400 block mb-1">কোর্স ফি</span>
-                                    {course.price === 0 ? (
-                                        <span className="text-3xl font-black text-emerald-600">Free</span>
-                                    ) : (
-                                        <div className="flex items-baseline gap-2.5">
-                                            <span className="text-3xl font-black text-indigo-600">
-                                                {formatBDT(
-                                                    course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price)
-                                                        ? Number(course.sale_price)
-                                                        : (course.effective_price ?? Number(course.price))
-                                                )}
-                                            </span>
-                                            {course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price) && (
-                                                <span className="text-base text-slate-400 line-through font-bold">
-                                                    {formatBDT(course.price)}
-                                                </span>
-                                            )}
-                                        </div>
-                                    )}
+                            {/* Coupon & Live Countdown Timer (Matches User Reference Image) */}
+                            <div className="border-dashed border-2 border-indigo-200/90 bg-[#F6F8FF] rounded-2xl p-3.5 sm:p-4 space-y-3">
+                                {/* Top Row: Coupon code, discount label, and Apply button */}
+                                <div className="flex items-center justify-between gap-2">
+                                    <div className="bg-white border border-indigo-200 rounded-xl px-3 sm:px-4 py-1.5 font-mono font-black text-[#3B49DF] text-xs sm:text-sm tracking-wide shadow-2xs truncate">
+                                        {promoCoupon}
+                                    </div>
+                                    <span className="text-xs sm:text-sm font-black text-[#3B49DF] whitespace-nowrap">
+                                        {discountText}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={handleApplyCoupon}
+                                        className="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-3.5 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold shadow-xs transition cursor-pointer whitespace-nowrap"
+                                    >
+                                        {copiedCoupon ? 'প্রয়োগ হয়েছে!' : 'প্রয়োগ করো'}
+                                    </button>
                                 </div>
 
-                                {((course.discount_percent && course.discount_percent > 0) || (course.sale_price && course.sale_price < course.price)) ? (
-                                    <span className="px-3 py-1 bg-rose-50 text-rose-600 text-xs font-extrabold rounded-lg border border-rose-200">
-                                        {course.discount_percent || Math.round(((course.price - Number(course.sale_price)) / course.price) * 100)}% OFF
-                                    </span>
-                                ) : null}
+                                {/* Bottom Row: 4 Countdown Pills */}
+                                <div className="grid grid-cols-4 gap-2 text-center">
+                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-100/60 flex flex-col items-center justify-center">
+                                        <span className="text-base sm:text-lg font-black text-[#3B49DF] leading-tight">{timeLeft.days}</span>
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">দিন</span>
+                                    </div>
+                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-100/60 flex flex-col items-center justify-center">
+                                        <span className="text-base sm:text-lg font-black text-[#3B49DF] leading-tight">{timeLeft.hours}</span>
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">ঘণ্টা</span>
+                                    </div>
+                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-100/60 flex flex-col items-center justify-center">
+                                        <span className="text-base sm:text-lg font-black text-[#3B49DF] leading-tight">{timeLeft.minutes}</span>
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">মিনিট</span>
+                                    </div>
+                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-100/60 flex flex-col items-center justify-center">
+                                        <span className="text-base sm:text-lg font-black text-[#3B49DF] leading-tight">{timeLeft.seconds}</span>
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">সেকেন্ড</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Centered Price Section (Matches Screenshot) */}
+                            <div className="text-center py-1 flex items-baseline justify-center gap-3">
+                                {course.price === 0 ? (
+                                    <span className="text-3xl sm:text-4xl font-black text-emerald-600">Free</span>
+                                ) : (
+                                    <>
+                                        <span className="text-3xl sm:text-4xl font-black text-[#3B49DF] tracking-tight">
+                                            {formatBDT(effectivePrice)}
+                                        </span>
+                                        {hasDiscount && (
+                                            <span className="text-xl sm:text-2xl font-bold text-slate-400 line-through">
+                                                {formatBDT(course.price)}
+                                            </span>
+                                        )}
+                                    </>
+                                )}
                             </div>
 
                             {/* Action CTA */}
@@ -353,7 +470,7 @@ export const CourseDetailsPage: React.FC = () => {
                                 {isEnrolled ? (
                                     <Link
                                         to={firstLessonId ? `/learning/${course.id}/lessons/${firstLessonId}` : '/student/my-courses'}
-                                        className="w-full py-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 transition-all"
+                                        className="w-full py-4 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-black text-lg flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 transition-all"
                                     >
                                         <PlayCircle className="w-5 h-5" />
                                         <span>ক্লাস শুরু করুন</span>
@@ -362,22 +479,31 @@ export const CourseDetailsPage: React.FC = () => {
                                     <button
                                         onClick={handleFreeEnroll}
                                         disabled={enrollingFree}
-                                        className="w-full py-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-50 cursor-pointer"
+                                        className="w-full py-4 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-black text-lg flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-50 cursor-pointer"
                                     >
                                         <Sparkles className="w-5 h-5" />
                                         <span>{enrollingFree ? 'এনরোল হচ্ছে...' : 'ফ্রিতে ক্লাস শুরু করুন'}</span>
                                     </button>
                                 ) : (
                                     <Link
-                                        to={`/checkout/${course.slug}`}
-                                        className="w-full py-4 rounded-xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-extrabold text-base flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 transition-all"
+                                        to={`/checkout/${course.slug}${promoCoupon ? `?coupon=${promoCoupon}` : ''}`}
+                                        className="w-full py-4 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-black text-lg flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 transition-all"
                                     >
                                         <span>কোর্সটি কিনুন</span>
-                                        <ArrowRight className="w-5 h-5" />
                                     </Link>
                                 )}
 
-                                {/* Custom Action Buttons (Outline, How to buy, etc.) */}
+                                {/* Secondary: 'কোর্সটি কীভাবে কিনবেন' button (Matches user screenshot) */}
+                                <button
+                                    type="button"
+                                    onClick={() => setShowHowToBuyModal(true)}
+                                    className="w-full py-3.5 px-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-600 font-bold text-base flex items-center justify-center gap-2.5 shadow-2xs transition group cursor-pointer"
+                                >
+                                    <PlayCircle className="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition" />
+                                    <span>কোর্সটি কীভাবে কিনবেন</span>
+                                </button>
+
+                                {/* Custom Action Buttons (Outline, etc.) */}
                                 {course.action_buttons && course.action_buttons.length > 0 && (
                                     <div className="space-y-2 pt-1">
                                         {course.action_buttons.map((btn) => (
@@ -386,15 +512,14 @@ export const CourseDetailsPage: React.FC = () => {
                                                 href={btn.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="w-full py-3.5 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-indigo-600 font-bold text-sm flex items-center justify-center gap-2 shadow-2xs transition group"
+                                                className="w-full py-3.5 px-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-indigo-600 font-bold text-sm flex items-center justify-center gap-2 shadow-2xs transition group"
                                             >
                                                 {btn.type === 'file' ? (
                                                     <FileText className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition" />
                                                 ) : (
-                                                    <PlayCircle className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition" />
+                                                    <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition" />
                                                 )}
                                                 <span>{btn.label}</span>
-                                                <ExternalLink className="w-3.5 h-3.5 text-slate-300 group-hover:text-indigo-500 transition ml-0.5" />
                                             </a>
                                         ))}
                                     </div>
@@ -415,6 +540,85 @@ export const CourseDetailsPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* How to Buy Modal */}
+            {showHowToBuyModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+                    <div className="bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-100 space-y-4 p-6 relative">
+                        <button
+                            type="button"
+                            onClick={() => setShowHowToBuyModal(false)}
+                            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition cursor-pointer"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                                <PlayCircle className="w-6 h-6" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black text-slate-900">কোর্সটি কীভাবে কিনবেন?</h3>
+                                <p className="text-xs text-slate-500">সহজ ৪টি ধাপে কোর্সটিতে ভর্তি হোন</p>
+                            </div>
+                        </div>
+
+                        {course.how_to_buy_url ? (
+                            <div className="aspect-video w-full rounded-2xl overflow-hidden bg-slate-900 shadow-inner">
+                                {course.how_to_buy_url.includes('youtube.com') || course.how_to_buy_url.includes('youtu.be') ? (
+                                    <iframe
+                                        src={
+                                            course.how_to_buy_url.includes('embed')
+                                                ? course.how_to_buy_url
+                                                : course.how_to_buy_url.replace('watch?v=', 'embed/').replace('youtu.be/', 'www.youtube.com/embed/')
+                                        }
+                                        title="How to buy course"
+                                        className="w-full h-full border-0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                        allowFullScreen
+                                    />
+                                ) : (
+                                    <video
+                                        src={course.how_to_buy_url}
+                                        controls
+                                        className="w-full h-full object-contain"
+                                    />
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-2.5 py-1">
+                                <div className="flex items-start gap-3 p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100">
+                                    <span className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">1</span>
+                                    <p className="text-xs text-slate-700 font-medium">নিচে বা সাইডবারে <strong className="text-indigo-700">"কোর্সটি কিনুন"</strong> বাটনে ক্লিক করে চেকআউট পেজে যান।</p>
+                                </div>
+                                <div className="flex items-start gap-3 p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100">
+                                    <span className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">2</span>
+                                    <p className="text-xs text-slate-700 font-medium">কুপন কোড <strong className="text-indigo-700 font-mono">{promoCoupon}</strong> স্বয়ংক্রিয়ভাবে ডিসকাউন্ট প্রযোজ্য করবে।</p>
+                                </div>
+                                <div className="flex items-start gap-3 p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100">
+                                    <span className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">3</span>
+                                    <p className="text-xs text-slate-700 font-medium">বিকাশ, নগদ, রকেট অথবা সুর্যপে এর মাধ্যমে পেমেন্ট সম্পন্ন করুন।</p>
+                                </div>
+                                <div className="flex items-start gap-3 p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100">
+                                    <span className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">4</span>
+                                    <p className="text-xs text-slate-700 font-medium">পেমেন্ট নিশ্চিত হওয়ার সাথে সাথে আপনার ড্যাশবোর্ডে কোর্সটি চালু হয়ে যাবে।</p>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="pt-2">
+                            <Link
+                                to={`/checkout/${course.slug}${promoCoupon ? `?coupon=${promoCoupon}` : ''}`}
+                                onClick={() => setShowHowToBuyModal(false)}
+                                className="w-full py-3.5 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-black text-sm flex items-center justify-center gap-2 shadow-md transition"
+                            >
+                                <span>কোর্সটি কিনুন</span>
+                                <ArrowRight className="w-4 h-4" />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

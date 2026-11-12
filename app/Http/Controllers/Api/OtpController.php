@@ -98,6 +98,7 @@ class OtpController extends Controller
                     'id' => $user->id,
                     'name' => $user->name,
                     'phone' => $user->phone,
+                    'registration_number' => $user->registration_number,
                     'email' => $user->email,
                     'role' => $user->role,
                     'status' => $user->status,
