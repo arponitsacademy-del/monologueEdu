@@ -18,7 +18,8 @@ import {
     Send, 
     Sparkles, 
     ArrowLeft,
-    Check
+    Check,
+    ExternalLink
 } from 'lucide-react';
 import { useLanguage } from '../../context/LanguageContext';
 import { PlyrVideoPlayer } from '../../components/shared/PlyrVideoPlayer';
@@ -293,28 +294,45 @@ export const LessonPlayerPage: React.FC = () => {
                             <div className="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
                                 <h3 className="text-base font-bold text-white flex items-center gap-2">
                                     <Paperclip className="w-4 h-4 text-sky-400" />
-                                    <span>Downloadable Study Materials ({lesson.attachments.length})</span>
+                                    <span>স্টাডি ম্যাটেরিয়াল ও রিসোর্স ({lesson.attachments.length})</span>
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {lesson.attachments.map((att) => (
-                                        <a
-                                            key={att.id}
-                                            href={`/api/learning/attachments/${att.id}/download`}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 flex items-center justify-between transition-colors group"
-                                        >
-                                            <div className="truncate mr-3">
-                                                <h4 className="text-xs font-bold text-white truncate group-hover:text-sky-400">
-                                                    {att.file_name}
-                                                </h4>
-                                                <span className="text-[10px] text-slate-400 uppercase font-mono">
-                                                    {att.file_type} • {att.formatted_size || `${Math.round(att.file_size / 1024)} KB`}
-                                                </span>
-                                            </div>
-                                            <Download className="w-4 h-4 text-slate-400 group-hover:text-sky-400 shrink-0" />
-                                        </a>
-                                    ))}
+                                    {lesson.attachments.map((att) => {
+                                        const isLink = att.file_path?.startsWith('http') || att.file_type === 'link' || att.file_type === 'google_drive';
+                                        const isDrive = att.file_type === 'google_drive' || att.file_path?.includes('drive.google.com') || att.file_path?.includes('docs.google.com');
+
+                                        return (
+                                            <a
+                                                key={att.id}
+                                                href={`/api/learning/attachments/${att.id}/download`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="p-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 border border-slate-700/60 flex items-center justify-between transition-colors group"
+                                            >
+                                                <div className="truncate mr-3">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <h4 className="text-xs font-bold text-white truncate group-hover:text-sky-400">
+                                                            {att.file_name}
+                                                        </h4>
+                                                    </div>
+                                                    <span className="text-[10px] text-slate-400 font-mono mt-0.5 flex items-center gap-1">
+                                                        {isDrive ? (
+                                                            <span className="text-amber-400 font-semibold">Google Drive লিংক</span>
+                                                        ) : isLink ? (
+                                                            <span className="text-sky-400 font-semibold">ওয়েব লিংক</span>
+                                                        ) : (
+                                                            <span>{att.file_type.toUpperCase()} • {att.formatted_size || `${Math.round(att.file_size / 1024)} KB`}</span>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                {isLink ? (
+                                                    <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-amber-400 shrink-0" />
+                                                ) : (
+                                                    <Download className="w-4 h-4 text-slate-400 group-hover:text-sky-400 shrink-0" />
+                                                )}
+                                            </a>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}

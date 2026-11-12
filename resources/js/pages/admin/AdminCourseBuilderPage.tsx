@@ -721,6 +721,55 @@ export const AdminCourseBuilderPage: React.FC = () => {
     };
 
     /* Attachment Actions */
+    // Study Material Modal States
+    const [materialModalOpen, setMaterialModalOpen] = useState(false);
+    const [materialLesson, setMaterialLesson] = useState<Lesson | null>(null);
+    const [materialTab, setMaterialTab] = useState<'upload' | 'link'>('upload');
+    const [materialLinkTitle, setMaterialLinkTitle] = useState('');
+    const [materialLinkUrl, setMaterialLinkUrl] = useState('');
+    const [submittingLink, setSubmittingLink] = useState(false);
+
+    const openMaterialModal = (lesson: Lesson) => {
+        setMaterialLesson(lesson);
+        setMaterialTab('upload');
+        setMaterialLinkTitle('');
+        setMaterialLinkUrl('');
+        setMaterialModalOpen(true);
+    };
+
+    const handleSaveMaterialLink = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!materialLesson) return;
+        if (!materialLinkTitle.trim() || !materialLinkUrl.trim()) {
+            alert('অনুগ্রহ করে শিরোনাম এবং লিংক দুটিই প্রদান করুন।');
+            return;
+        }
+
+        setSubmittingLink(true);
+        try {
+            await apiClient.post(`/builder/lessons/${materialLesson.id}/attachments/link`, {
+                title: materialLinkTitle.trim(),
+                url: materialLinkUrl.trim(),
+            });
+            setMaterialLinkTitle('');
+            setMaterialLinkUrl('');
+            await fetchCurriculum();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'লিংক যুক্ত করতে সমস্যা হয়েছে।');
+        } finally {
+            setSubmittingLink(false);
+        }
+    };
+
+    const activeMaterialLesson = React.useMemo(() => {
+        if (!materialLesson) return null;
+        for (const sec of sections) {
+            const found = sec.lessons?.find((l) => l.id === materialLesson.id);
+            if (found) return found;
+        }
+        return materialLesson;
+    }, [sections, materialLesson]);
+
     const handleUploadAttachment = async (e: React.ChangeEvent<HTMLInputElement>, lessonId: number) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -734,6 +783,8 @@ export const AdminCourseBuilderPage: React.FC = () => {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             fetchCurriculum();
+            // Reset the file input value so same file can be selected again if needed
+            e.target.value = '';
         } catch (err: any) {
             alert(err.response?.data?.message || 'Failed to upload file.');
         } finally {
@@ -1056,10 +1107,15 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                                     <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
                                                         <span>Duration: {lesson.duration_minutes} mins</span>
                                                         {lesson.attachments && lesson.attachments.length > 0 && (
-                                                            <span className="flex items-center gap-1 text-sky-600 font-semibold">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openMaterialModal(lesson)}
+                                                                className="flex items-center gap-1 text-sky-600 hover:text-sky-700 font-semibold cursor-pointer"
+                                                                title="স্টাডি ম্যাটেরিয়াল দেখুন বা নতুন যোগ করুন"
+                                                            >
                                                                 <Paperclip className="w-3 h-3" />
-                                                                {lesson.attachments.length} files
-                                                            </span>
+                                                                <span>{lesson.attachments.length} টি ম্যাটেরিয়াল</span>
+                                                            </button>
                                                         )}
                                                     </div>
                                                 </div>
@@ -1083,15 +1139,20 @@ export const AdminCourseBuilderPage: React.FC = () => {
                                                     <ChevronDown className="w-4 h-4" />
                                                 </button>
 
-                                                {/* Upload Study Material */}
-                                                <label className="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-slate-100 rounded-lg cursor-pointer" title="Upload study material">
-                                                    <Upload className="w-4 h-4" />
-                                                    <input
-                                                        type="file"
-                                                        className="hidden"
-                                                        onChange={(e) => handleUploadAttachment(e, lesson.id)}
-                                                    />
-                                                </label>
+                                                {/* Manage Study Material (Upload File or Google Drive Link) */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => openMaterialModal(lesson)}
+                                                    className="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-slate-800 rounded-lg relative transition-colors cursor-pointer"
+                                                    title="স্টাডি ম্যাটেরিয়াল (আপলোড বা গুগল ড্রাইভ লিংক)"
+                                                >
+                                                    <Paperclip className="w-4 h-4" />
+                                                    {lesson.attachments && lesson.attachments.length > 0 && (
+                                                        <span className="absolute -top-1 -right-1 min-w-3.5 h-3.5 px-0.5 bg-sky-600 text-white rounded-full text-[9px] font-black flex items-center justify-center">
+                                                            {lesson.attachments.length}
+                                                        </span>
+                                                    )}
+                                                </button>
 
                                                 {/* Duplicate */}
                                                 <button
@@ -2885,27 +2946,65 @@ export const AdminCourseBuilderPage: React.FC = () => {
                     </div>
 
                     {/* Uploaded Attachments in Edit mode */}
-                    {editingLesson && editingLesson.attachments && editingLesson.attachments.length > 0 && (
-                        <div className="space-y-2 border-t border-slate-100 pt-3">
-                            <label className="block text-xs font-bold text-slate-700">Attached Study Materials</label>
-                            <div className="space-y-1.5">
-                                {editingLesson.attachments.map((att) => (
-                                    <div key={att.id} className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
-                                        <div className="flex items-center gap-2 truncate mr-2">
-                                            <Paperclip className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-                                            <span className="font-semibold truncate">{att.file_name}</span>
-                                            <span className="text-slate-400 text-[10px]">({att.file_type.toUpperCase()})</span>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeleteAttachment(att.id)}
-                                            className="text-rose-500 hover:text-rose-700 p-1"
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                    </div>
-                                ))}
+                    {editingLesson && (
+                        <div className="space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3">
+                            <div className="flex items-center justify-between">
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                                    সংযুক্ত স্টাডি ম্যাটেরিয়াল ({editingLesson.attachments?.length || 0})
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => openMaterialModal(editingLesson)}
+                                    className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1 cursor-pointer"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>ম্যাটেরিয়াল যুক্ত করুন (আপলোড / ড্রাইভ লিংক)</span>
+                                </button>
                             </div>
+                            {editingLesson.attachments && editingLesson.attachments.length > 0 && (
+                                <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
+                                    {editingLesson.attachments.map((att) => {
+                                        const isLink = att.file_path?.startsWith('http') || att.file_type === 'link' || att.file_type === 'google_drive';
+                                        const isDrive = att.file_type === 'google_drive' || att.file_path?.includes('drive.google.com') || att.file_path?.includes('docs.google.com');
+                                        return (
+                                            <div key={att.id} className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
+                                                <div className="flex items-center gap-2 truncate mr-2">
+                                                    {isDrive ? (
+                                                        <Globe className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                                    ) : isLink ? (
+                                                        <ExternalLink className="w-3.5 h-3.5 text-purple-500 shrink-0" />
+                                                    ) : (
+                                                        <Paperclip className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                                                    )}
+                                                    <span className="font-semibold truncate">{att.file_name}</span>
+                                                    <span className="text-slate-400 text-[10px]">
+                                                        {isDrive ? '(Google Drive)' : isLink ? '(Web Link)' : `(${att.file_type.toUpperCase()})`}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-1 shrink-0">
+                                                    <a
+                                                        href={isLink ? att.file_path : `/api/learning/attachments/${att.id}/download`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="text-slate-400 hover:text-sky-600 p-1"
+                                                        title="ভিউ / প্রিভিউ"
+                                                    >
+                                                        <ExternalLink className="w-3.5 h-3.5" />
+                                                    </a>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteAttachment(att.id)}
+                                                        className="text-rose-500 hover:text-rose-700 p-1 cursor-pointer"
+                                                        title="মুছুন"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -3023,6 +3122,225 @@ export const AdminCourseBuilderPage: React.FC = () => {
                         </button>
                     </div>
                 </form>
+            </Modal>
+
+            {/* Study Material Modal (Upload File or Google Drive / External Link) */}
+            <Modal
+                isOpen={materialModalOpen}
+                onClose={() => {
+                    setMaterialModalOpen(false);
+                    setMaterialLesson(null);
+                }}
+                title="স্টাডি ম্যাটেরিয়াল ও রিসোর্স (Study Materials)"
+            >
+                {activeMaterialLesson && (
+                    <div className="space-y-5">
+                        {/* Target Lesson Info */}
+                        <div className="p-3.5 rounded-2xl bg-sky-50/80 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-900/60 flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center shrink-0">
+                                <FileText className="w-5 h-5" />
+                            </div>
+                            <div className="min-w-0">
+                                <div className="text-[10px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider">
+                                    লেসনের নাম
+                                </div>
+                                <div className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white truncate">
+                                    {activeMaterialLesson.title}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Option Tabs: 1) Upload File, 2) Google Drive / Link */}
+                        <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl">
+                            <button
+                                type="button"
+                                onClick={() => setMaterialTab('upload')}
+                                className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+                                    materialTab === 'upload'
+                                        ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'
+                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                                }`}
+                            >
+                                <Upload className="w-4 h-4" />
+                                <span>১. ফাইল আপলোড (Upload)</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                onClick={() => setMaterialTab('link')}
+                                className={`py-2 px-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer ${
+                                    materialTab === 'link'
+                                        ? 'bg-white dark:bg-slate-900 text-purple-600 dark:text-purple-400 shadow-xs'
+                                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                                }`}
+                            >
+                                <Globe className="w-4 h-4" />
+                                <span>২. গুগল ড্রাইভ লিংক (Link)</span>
+                            </button>
+                        </div>
+
+                        {/* TAB 1: FILE UPLOAD */}
+                        {materialTab === 'upload' && (
+                            <div className="space-y-4">
+                                <div className="border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-sky-500 dark:hover:border-sky-500 rounded-2xl p-6 text-center transition-colors">
+                                    <input
+                                        type="file"
+                                        id="modal-attachment-file"
+                                        className="hidden"
+                                        disabled={uploadingAttachment}
+                                        onChange={(e) => handleUploadAttachment(e, activeMaterialLesson.id)}
+                                    />
+                                    <label
+                                        htmlFor="modal-attachment-file"
+                                        className="cursor-pointer block space-y-2"
+                                    >
+                                        <div className="w-12 h-12 rounded-2xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 mx-auto flex items-center justify-center">
+                                            {uploadingAttachment ? (
+                                                <Loader2 className="w-6 h-6 animate-spin" />
+                                            ) : (
+                                                <Upload className="w-6 h-6" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <span className="text-xs font-bold text-sky-600 hover:underline">
+                                                কম্পিউটার থেকে ফাইল সিলেক্ট করুন
+                                            </span>
+                                            <p className="text-[11px] text-slate-400 mt-1">
+                                                PDF, DOC, DOCX, PPT, PPTX, ZIP ইত্যাদি (সর্বোচ্চ ৫০ মেগাবাইট)
+                                            </p>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB 2: GOOGLE DRIVE OR WEB LINK */}
+                        {materialTab === 'link' && (
+                            <form onSubmit={handleSaveMaterialLink} className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        ম্যাটেরিয়ালের শিরোনাম / নাম *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={materialLinkTitle}
+                                        onChange={(e) => setMaterialLinkTitle(e.target.value)}
+                                        placeholder="যেমন: লেকচার শিট ও হ্যান্ডনোট (Google Drive)"
+                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-medium focus:border-purple-500 focus:outline-hidden dark:bg-slate-800 dark:text-white"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                        গুগল ড্রাইভ বা ডাউনলোড লিংক (URL) *
+                                    </label>
+                                    <input
+                                        type="url"
+                                        required
+                                        value={materialLinkUrl}
+                                        onChange={(e) => setMaterialLinkUrl(e.target.value)}
+                                        placeholder="https://drive.google.com/file/d/... বা https://..."
+                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-mono focus:border-purple-500 focus:outline-hidden dark:bg-slate-800 dark:text-white"
+                                    />
+                                </div>
+
+                                <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl text-[11px] text-amber-800 dark:text-amber-300 leading-relaxed">
+                                    💡 <strong>গুগল ড্রাইভ ব্যবহারের নিয়ম:</strong> গুগল ড্রাইভে ফাইলটির উপর রাইট ক্লিক করে <strong>Share &gt; General access</strong> এ <strong>"Anyone with the link"</strong> সিলেক্ট করে <strong>Copy link</strong> করুন এবং সেই লিংকটি এখানে পেস্ট করুন। এতে শিক্ষার্থীরা সরাসরি কোনো অনুমতি ঝামেলা ছাড়াই শিট দেখতে বা ডাউনলোড করতে পারবে।
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={submittingLink || !materialLinkTitle.trim() || !materialLinkUrl.trim()}
+                                    className="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md shadow-purple-600/20 transition disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+                                >
+                                    {submittingLink ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                                    <span>গুগল ড্রাইভ লিংকটি যুক্ত করুন</span>
+                                </button>
+                            </form>
+                        )}
+
+                        {/* List of currently attached study materials */}
+                        <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                            <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                                <span>সংযুক্ত ম্যাটেরিয়ালসমূহ ({activeMaterialLesson.attachments?.length || 0})</span>
+                            </div>
+
+                            {(!activeMaterialLesson.attachments || activeMaterialLesson.attachments.length === 0) ? (
+                                <div className="p-6 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl space-y-1">
+                                    <Paperclip className="w-6 h-6 text-slate-400 mx-auto" />
+                                    <p className="text-xs text-slate-500">এখনো কোনো স্টাডি ম্যাটেরিয়াল যুক্ত করা হয়নি।</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                                    {activeMaterialLesson.attachments.map((att) => {
+                                        const isLink = att.file_path?.startsWith('http') || att.file_type === 'link' || att.file_type === 'google_drive';
+                                        const isDrive = att.file_type === 'google_drive' || att.file_path?.includes('drive.google.com') || att.file_path?.includes('docs.google.com');
+
+                                        return (
+                                            <div
+                                                key={att.id}
+                                                className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3 text-xs"
+                                            >
+                                                <div className="flex items-center gap-2.5 min-w-0">
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                                        isDrive
+                                                            ? 'bg-amber-100 dark:bg-amber-950 text-amber-600'
+                                                            : isLink
+                                                            ? 'bg-purple-100 dark:bg-purple-950 text-purple-600'
+                                                            : 'bg-sky-100 dark:bg-sky-950 text-sky-600'
+                                                    }`}>
+                                                        {isDrive ? (
+                                                            <Globe className="w-4 h-4" />
+                                                        ) : isLink ? (
+                                                            <ExternalLink className="w-4 h-4" />
+                                                        ) : (
+                                                            <FileText className="w-4 h-4" />
+                                                        )}
+                                                    </div>
+                                                    <div className="min-w-0">
+                                                        <div className="font-bold text-slate-900 dark:text-white truncate">
+                                                            {att.file_name}
+                                                        </div>
+                                                        <div className="text-[10px] text-slate-400 font-mono">
+                                                            {isDrive ? (
+                                                                <span className="text-amber-600 font-semibold">Google Drive লিংক</span>
+                                                            ) : isLink ? (
+                                                                <span className="text-purple-600 font-semibold">ওয়েব লিংক</span>
+                                                            ) : (
+                                                                <span>{att.file_type?.toUpperCase()} • {att.formatted_size || `${Math.round((att.file_size || 0) / 1024)} KB`}</span>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-1.5 shrink-0">
+                                                    <a
+                                                        href={isLink ? att.file_path : `/api/learning/attachments/${att.id}/download`}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="p-1.5 text-slate-500 hover:text-sky-600 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition"
+                                                        title="ওপেন বা টেস্ট করুন"
+                                                    >
+                                                        <ExternalLink className="w-4 h-4" />
+                                                    </a>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDeleteAttachment(att.id)}
+                                                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-lg transition cursor-pointer"
+                                                        title="মুছে ফেলুন"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </Modal>
         </div>
     );

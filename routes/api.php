@@ -198,6 +198,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('lessons/{lesson}/duplicate', [CourseBuilderController::class, 'duplicateLesson']);
 
         Route::post('lessons/{lesson}/attachments', [LessonAttachmentController::class, 'upload']);
+        Route::post('lessons/{lesson}/attachments/link', [LessonAttachmentController::class, 'storeLink']);
         Route::delete('attachments/{attachment}', [LessonAttachmentController::class, 'delete']);
 
         // Course Attached Exams
