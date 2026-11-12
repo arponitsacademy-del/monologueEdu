@@ -326,9 +326,13 @@ export const CourseDetailsPage: React.FC = () => {
                                     ) : (
                                         <div className="flex items-baseline gap-2.5">
                                             <span className="text-3xl font-black text-indigo-600">
-                                                {formatBDT(course.effective_price || (course.sale_price && course.sale_price < course.price ? course.sale_price : course.price))}
+                                                {formatBDT(
+                                                    course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price)
+                                                        ? Number(course.sale_price)
+                                                        : (course.effective_price ?? Number(course.price))
+                                                )}
                                             </span>
-                                            {course.sale_price && course.sale_price < course.price && (
+                                            {course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price) && (
                                                 <span className="text-base text-slate-400 line-through font-bold">
                                                     {formatBDT(course.price)}
                                                 </span>
@@ -337,9 +341,9 @@ export const CourseDetailsPage: React.FC = () => {
                                     )}
                                 </div>
 
-                                {course.discount_percent && course.discount_percent > 0 ? (
+                                {((course.discount_percent && course.discount_percent > 0) || (course.sale_price && course.sale_price < course.price)) ? (
                                     <span className="px-3 py-1 bg-rose-50 text-rose-600 text-xs font-extrabold rounded-lg border border-rose-200">
-                                        {course.discount_percent}% OFF
+                                        {course.discount_percent || Math.round(((course.price - Number(course.sale_price)) / course.price) * 100)}% OFF
                                     </span>
                                 ) : null}
                             </div>

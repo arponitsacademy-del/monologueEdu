@@ -711,9 +711,13 @@ export const HomePage: React.FC = () => {
                                                 ) : (
                                                     <div className="flex items-baseline gap-1.5">
                                                         <span className="text-xl font-black text-indigo-700 dark:text-indigo-400">
-                                                            {formatBDT(course.effective_price || course.price)}
+                                                            {formatBDT(
+                                                                course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price)
+                                                                    ? Number(course.sale_price)
+                                                                    : (course.effective_price ?? Number(course.price))
+                                                            )}
                                                         </span>
-                                                        {course.sale_price && course.sale_price < course.price && (
+                                                        {course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price) && (
                                                             <span className="text-xs text-slate-400 line-through">
                                                                 {formatBDT(course.price)}
                                                             </span>

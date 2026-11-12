@@ -178,7 +178,11 @@ export const CheckoutPage: React.FC = () => {
     const nexpilot = course?.nexpilot;
     const hasActivePilot = Boolean(nexpilot && (nexpilot.is_active === true || nexpilot.is_active === 1 || nexpilot.is_active === '1'));
     const pilotPrice = hasActivePilot && includeNexPilot ? Number(nexpilot.price || 0) : 0;
-    const courseBasePrice = course ? Number(course.effective_price || course.price || 0) : 0;
+    const courseBasePrice = course
+        ? (course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price)
+            ? Number(course.sale_price)
+            : Number(course.effective_price ?? course.price ?? 0))
+        : 0;
     const referralDiscount = appliedReferral ? Number(appliedReferral.discount_amount || 0) : 0;
     const couponDiscount = appliedCoupon ? Number(appliedCoupon.calculated_discount || 0) : 0;
     const totalPayable = Math.max(0, courseBasePrice + pilotPrice - referralDiscount - couponDiscount);
@@ -824,7 +828,7 @@ export const CheckoutPage: React.FC = () => {
 
                             {course.sale_price && course.sale_price < course.price && (
                                 <div className="flex justify-between text-emerald-600 font-medium">
-                                    <span>Special Discount ({course.discount_percent}%)</span>
+                                    <span>Special Discount ({course.discount_percent || Math.round(((course.price - Number(course.sale_price)) / course.price) * 100)}%)</span>
                                     <span>- {formatBDT(course.price - course.sale_price)}</span>
                                 </div>
                             )}

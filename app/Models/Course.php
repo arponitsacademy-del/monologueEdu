@@ -47,6 +47,11 @@ class Course extends Model
         'enable_shurjopay' => 'boolean',
     ];
 
+    protected $appends = [
+        'effective_price',
+        'discount_percent',
+    ];
+
     public static function booted(): void
     {
         if (Schema::hasTable('courses')) {
@@ -175,7 +180,7 @@ class Course extends Model
 
     public function getEffectivePriceAttribute(): float
     {
-        if ($this->sale_price !== null && $this->sale_price > 0 && $this->sale_price < $this->price) {
+        if ($this->sale_price !== null && $this->sale_price >= 0 && $this->sale_price < $this->price) {
             return (float) $this->sale_price;
         }
 
@@ -184,7 +189,7 @@ class Course extends Model
 
     public function getDiscountPercentAttribute(): int
     {
-        if (! $this->price || ! $this->sale_price || $this->price <= $this->sale_price) {
+        if (! $this->price || $this->sale_price === null || $this->price <= $this->sale_price) {
             return 0;
         }
 
