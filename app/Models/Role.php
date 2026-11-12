@@ -101,6 +101,7 @@ class Role extends Model
                     ['key' => 'courses.edit', 'label' => 'কোর্স এডিট ও লেকচার ম্যানেজ (Edit Courses & Content)'],
                     ['key' => 'courses.delete', 'label' => 'কোর্স মুছে ফেলা (Delete Courses)'],
                     ['key' => 'courses.categories', 'label' => 'কোর্স ক্যাটাগরি ম্যানেজমেন্ট (Course Categories)'],
+                    ['key' => 'courses.enroll', 'label' => 'ম্যানুয়াল এনরোলমেন্ট (Manual Enrollment)'],
                 ],
             ],
             [

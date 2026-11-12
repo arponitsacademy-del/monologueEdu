@@ -37,6 +37,7 @@ use App\Http\Controllers\Api\RoutineController;
 use App\Http\Controllers\Api\LiveClassController;
 use App\Http\Controllers\Api\ShurjopayController;
 use App\Http\Controllers\Api\AdminRoleController;
+use App\Http\Controllers\Api\AdminManualEnrollmentController;
 use App\Models\Course;
 use App\Models\LessonComment;
 use Illuminate\Http\Request;
@@ -270,6 +271,15 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('categories', [AdminCategoryController::class, 'store']);
         Route::put('categories/{category}', [AdminCategoryController::class, 'update']);
         Route::delete('categories/{category}', [AdminCategoryController::class, 'destroy']);
+
+        // Manual Enrollment
+        Route::prefix('manual-enrollment')->group(function () {
+            Route::get('courses', [AdminManualEnrollmentController::class, 'courses']);
+            Route::get('search-users', [AdminManualEnrollmentController::class, 'searchUsers']);
+            Route::post('lookup-phones', [AdminManualEnrollmentController::class, 'lookupPhones']);
+            Route::post('enroll', [AdminManualEnrollmentController::class, 'enroll']);
+            Route::get('history', [AdminManualEnrollmentController::class, 'history']);
+        });
 
         // User Management
         Route::get('users', [AdminUserController::class, 'index']);
