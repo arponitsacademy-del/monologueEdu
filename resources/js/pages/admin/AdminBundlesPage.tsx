@@ -37,9 +37,11 @@ export const AdminBundlesPage: React.FC = () => {
                 params: {
                     search: search || undefined,
                     status: statusFilter !== 'all' ? statusFilter : undefined,
+                    per_page: 50,
                 }
             });
-            setBundles(data.data || []);
+            const bundleList = Array.isArray(data?.data) ? data.data : Array.isArray(data) ? data : (data?.bundles || []);
+            setBundles(bundleList);
         } catch (err) {
             console.error('Failed to fetch course bundles:', err);
         } finally {

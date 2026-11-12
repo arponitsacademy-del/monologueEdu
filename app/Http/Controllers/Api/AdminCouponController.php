@@ -326,7 +326,7 @@ class AdminCouponController extends Controller
      */
     public function getCoursesAndCategories(): JsonResponse
     {
-        $courses = Course::select(['id', 'title', 'price', 'effective_price', 'category_id'])
+        $courses = Course::select(['id', 'title', 'price', 'sale_price'])
             ->where('status', Course::STATUS_PUBLISHED)
             ->latest()
             ->get();

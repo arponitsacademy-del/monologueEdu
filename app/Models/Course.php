@@ -101,6 +101,11 @@ class Course extends Model
         return $this->belongsToMany(Category::class);
     }
 
+    public function getCategoryAttribute(): ?Category
+    {
+        return $this->relationLoaded('categories') ? $this->categories->first() : $this->categories()->first();
+    }
+
     public function sections(): HasMany
     {
         return $this->hasMany(CourseSection::class)->orderBy('sort_order');

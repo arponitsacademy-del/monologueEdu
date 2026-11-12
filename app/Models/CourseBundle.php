@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class CourseBundle extends Model
@@ -34,6 +36,37 @@ class CourseBundle extends Model
     {
         parent::boot();
 
+        try {
+            if (! Schema::hasTable('course_bundles')) {
+                Schema::create('course_bundles', function (Blueprint $table) {
+                    $table->id();
+                    $table->string('title');
+                    $table->string('slug')->unique();
+                    $table->string('thumbnail', 1000)->nullable();
+                    $table->text('short_description')->nullable();
+                    $table->longText('description')->nullable();
+                    $table->decimal('regular_price', 10, 2)->default(0);
+                    $table->decimal('sale_price', 10, 2)->default(0);
+                    $table->enum('status', ['draft', 'published'])->default('published');
+                    $table->timestamps();
+                });
+            }
+
+            if (! Schema::hasTable('bundle_courses')) {
+                Schema::create('bundle_courses', function (Blueprint $table) {
+                    $table->id();
+                    $table->unsignedBigInteger('bundle_id');
+                    $table->unsignedBigInteger('course_id');
+                    $table->integer('sort_order')->default(0);
+                    $table->timestamps();
+
+                    $table->unique(['bundle_id', 'course_id']);
+                });
+            }
+        } catch (\Throwable $e) {
+            // Self-healing schema already exists or permission issues
+        }
+
         static::creating(function ($bundle) {
             if (empty($bundle->slug)) {
                 $baseSlug = Str::slug($bundle->title) ?: 'bundle';
@@ -57,12 +90,14 @@ class CourseBundle extends Model
 
     public function getCoursesCountAttribute(): int
     {
-        return $this->courses()->count();
+        return $this->relationLoaded('courses') ? $this->courses->count() : $this->courses()->count();
     }
 
     public function getTotalRegularValueAttribute(): float
     {
-        return (float) $this->courses()->sum('price');
+        return (float) ($this->relationLoaded('courses')
+            ? $this->courses->sum('price')
+            : $this->courses()->sum('price'));
     }
 
     public function getDiscountPercentageAttribute(): int

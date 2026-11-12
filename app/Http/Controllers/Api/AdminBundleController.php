@@ -13,7 +13,7 @@ class AdminBundleController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $query = CourseBundle::with(['courses:id,title,price,sale_price,thumbnail,category_id', 'courses.category:id,name']);
+        $query = CourseBundle::with(['courses:id,title,price,sale_price,thumbnail', 'courses.categories:id,name']);
 
         if ($request->filled('search')) {
             $search = $request->search;
@@ -25,7 +25,7 @@ class AdminBundleController extends Controller
             $query->where('status', $request->status);
         }
 
-        $bundles = $query->latest()->paginate($request->integer('per_page', 12));
+        $bundles = $query->latest()->paginate($request->integer('per_page', 50));
 
         return response()->json($bundles);
     }
@@ -74,7 +74,7 @@ class AdminBundleController extends Controller
             $bundle->courses()->sync($syncData);
         }
 
-        $bundle->load(['courses:id,title,price,sale_price,thumbnail,category_id', 'courses.category:id,name']);
+        $bundle->load(['courses:id,title,price,sale_price,thumbnail', 'courses.categories:id,name']);
 
         return response()->json([
             'message' => 'Course bundle created successfully.',
@@ -84,7 +84,7 @@ class AdminBundleController extends Controller
 
     public function show(CourseBundle $bundle): JsonResponse
     {
-        $bundle->load(['courses:id,title,price,sale_price,thumbnail,category_id', 'courses.category:id,name']);
+        $bundle->load(['courses:id,title,price,sale_price,thumbnail', 'courses.categories:id,name']);
 
         return response()->json($bundle);
     }
@@ -123,7 +123,7 @@ class AdminBundleController extends Controller
             $bundle->courses()->sync($syncData);
         }
 
-        $bundle->load(['courses:id,title,price,sale_price,thumbnail,category_id', 'courses.category:id,name']);
+        $bundle->load(['courses:id,title,price,sale_price,thumbnail', 'courses.categories:id,name']);
 
         return response()->json([
             'message' => 'Course bundle updated successfully.',
@@ -155,7 +155,7 @@ class AdminBundleController extends Controller
             $bundle->courses()->attach($courseId, ['sort_order' => $maxOrder + 1]);
         }
 
-        $bundle->load(['courses:id,title,price,sale_price,thumbnail,category_id', 'courses.category:id,name']);
+        $bundle->load(['courses:id,title,price,sale_price,thumbnail', 'courses.categories:id,name']);
 
         return response()->json([
             'message' => 'Course added to bundle successfully.',
@@ -169,7 +169,7 @@ class AdminBundleController extends Controller
     public function removeCourse(CourseBundle $bundle, Course $course): JsonResponse
     {
         $bundle->courses()->detach($course->id);
-        $bundle->load(['courses:id,title,price,sale_price,thumbnail,category_id', 'courses.category:id,name']);
+        $bundle->load(['courses:id,title,price,sale_price,thumbnail', 'courses.categories:id,name']);
 
         return response()->json([
             'message' => 'Course removed from bundle.',
@@ -191,7 +191,7 @@ class AdminBundleController extends Controller
             $bundle->courses()->updateExistingPivot($courseId, ['sort_order' => $index + 1]);
         }
 
-        $bundle->load(['courses:id,title,price,sale_price,thumbnail,category_id', 'courses.category:id,name']);
+        $bundle->load(['courses:id,title,price,sale_price,thumbnail', 'courses.categories:id,name']);
 
         return response()->json([
             'message' => 'Bundle courses reordered successfully.',
@@ -208,13 +208,13 @@ class AdminBundleController extends Controller
 
         $query = Course::query()
             ->whereNotIn('id', $existingCourseIds)
-            ->with('category:id,name');
+            ->with('categories:id,name');
 
         if ($request->filled('search')) {
             $query->where('title', 'like', "%{$request->search}%");
         }
 
-        $courses = $query->select('id', 'title', 'price', 'sale_price', 'thumbnail', 'category_id', 'status')
+        $courses = $query->select('id', 'title', 'price', 'sale_price', 'thumbnail', 'status')
             ->orderBy('title')
             ->limit(30)
             ->get();

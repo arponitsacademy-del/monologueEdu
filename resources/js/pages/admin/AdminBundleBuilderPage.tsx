@@ -241,9 +241,9 @@ export const AdminBundleBuilderPage: React.FC = () => {
                                                 <span className="text-[11px] font-semibold text-slate-500">
                                                     Individual: {formatBDT(course.price)}
                                                 </span>
-                                                {course.category && (
+                                                {(course.category || (course.categories && course.categories[0])) && (
                                                     <span className="text-[10px] px-2 py-0.2 bg-slate-200/80 text-slate-700 rounded-md">
-                                                        {course.category.name}
+                                                        {course.category?.name || course.categories?.[0]?.name}
                                                     </span>
                                                 )}
                                             </div>
