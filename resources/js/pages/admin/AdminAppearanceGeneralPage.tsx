@@ -23,7 +23,8 @@ import {
     X,
     Plus,
     RefreshCw,
-    ShieldCheck
+    ShieldCheck,
+    BookOpen
 } from 'lucide-react';
 
 export const AdminAppearanceGeneralPage: React.FC = () => {
@@ -31,6 +32,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
     const { settings, refreshSettings, updateSettingsLocally } = useSettings();
 
     // Form state
+    const [logoUrl, setLogoUrl] = useState<string>('');
     const [faviconUrl, setFaviconUrl] = useState<string>('');
     const [siteName, setSiteName] = useState<string>('');
     const [siteTagline, setSiteTagline] = useState<string>('');
@@ -39,16 +41,20 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
 
     // UI state
     const [saving, setSaving] = useState(false);
+    const [uploadingLogo, setUploadingLogo] = useState(false);
     const [uploadingFavicon, setUploadingFavicon] = useState(false);
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
+    const [isLogoMediaModalOpen, setIsLogoMediaModalOpen] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const [browserStyle, setBrowserStyle] = useState<'mac' | 'windows'>('mac');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const logoFileInputRef = useRef<HTMLInputElement>(null);
 
     // Populate from settings on mount or settings load
     useEffect(() => {
         if (settings) {
+            setLogoUrl(settings.logo_url || (settings as any).header_settings?.logo_url || '');
             setFaviconUrl(settings.favicon_url || '');
             setSiteName(settings.site_name || 'Monologue Edu');
             setSiteTagline(settings.site_tagline || 'Premier Online Learning & EdTech Platform');
@@ -56,6 +62,33 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
             setSecondaryColor(settings.secondary_color || '#0f172a');
         }
     }, [settings]);
+
+    // Handle direct logo file upload
+    const handleLogoUpload = async (file: File) => {
+        if (!file) return;
+        if (file.size > 15 * 1024 * 1024) {
+            alert('File size must be under 15 MB.');
+            return;
+        }
+
+        setUploadingLogo(true);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await apiClient.post('/admin/media', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            if (res.data?.media?.url) {
+                setLogoUrl(res.data.media.url);
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to upload logo file.');
+        } finally {
+            setUploadingLogo(false);
+            if (logoFileInputRef.current) logoFileInputRef.current.value = '';
+        }
+    };
 
     // Handle direct file upload
     const handleFaviconUpload = async (file: File) => {
@@ -95,6 +128,7 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
 
         try {
             const payload = {
+                logo_url: logoUrl.trim() || null,
                 favicon_url: faviconUrl.trim() || null,
                 site_name: siteName.trim() || 'Monologue Edu',
                 site_tagline: siteTagline.trim() || '',
@@ -129,7 +163,8 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
 
     // Reset to defaults
     const handleResetDefaults = () => {
-        if (confirm('Are you sure you want to reset favicon and site settings to defaults?')) {
+        if (confirm('Are you sure you want to reset logo, favicon and site settings to defaults?')) {
+            setLogoUrl('');
             setFaviconUrl('');
             setSiteName('Monologue Edu');
             setSiteTagline("Premier Online Learning Platform");
@@ -321,6 +356,178 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                         <p className="text-xs text-slate-400 max-w-md mx-auto">
                             {siteTagline || "Empowering Education Across Bangladesh"}
                         </p>
+                    </div>
+                </div>
+            </div>
+
+            {/* ============================================================ */}
+            {/* WEBSITE & DASHBOARD LOGO CARD */}
+            {/* ============================================================ */}
+            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                            <ImageIcon className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold text-slate-900">
+                                Website & Dashboard Logo (ওয়েবসাইট ও মেনু লোগো)
+                            </h3>
+                            <p className="text-xs text-slate-500">
+                                Upload or set the site logo used across header navbar, mobile drawer, and admin menu sidebar.
+                            </p>
+                        </div>
+                    </div>
+
+                    {logoUrl ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 self-start sm:self-auto">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Logo Active</span>
+                        </span>
+                    ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 self-start sm:self-auto">
+                            <Info className="w-3.5 h-3.5" />
+                            <span>Default Text</span>
+                        </span>
+                    )}
+                </div>
+
+                {/* Hidden file input for Logo */}
+                <input
+                    ref={logoFileInputRef}
+                    type="file"
+                    accept="image/png,image/svg+xml,image/webp,image/jpeg,.png,.svg,.webp,.jpg"
+                    className="hidden"
+                    onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                            handleLogoUpload(e.target.files[0]);
+                        }
+                    }}
+                />
+
+                {/* Logo Previews & Action Controls */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    {/* Left: Previews (Light & Dark) */}
+                    <div className="lg:col-span-5 space-y-3">
+                        <div className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                            <span>Live Logo Previews:</span>
+                            <span className="text-[10px] text-slate-400">Header & Menu</span>
+                        </div>
+
+                        {/* Light preview (Header) */}
+                        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 flex flex-col items-center justify-center min-h-[90px] relative overflow-hidden">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider absolute top-2 left-3">Header (Light)</span>
+                            {logoUrl ? (
+                                <img
+                                    src={logoUrl}
+                                    alt="Logo preview light"
+                                    className="max-h-12 max-w-[200px] object-contain pt-3"
+                                    onError={(e) => {
+                                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                    }}
+                                />
+                            ) : (
+                                <div className="flex items-center gap-2 pt-3 text-slate-700">
+                                    <BookOpen className="w-6 h-6 text-indigo-600" />
+                                    <span className="font-black text-base">{siteName || 'Monologue Edu'}</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Dark preview (Admin Sidebar) */}
+                        <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col items-center justify-center min-h-[90px] relative overflow-hidden">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider absolute top-2 left-3">Admin Sidebar (Dark)</span>
+                            {logoUrl ? (
+                                <img
+                                    src={logoUrl}
+                                    alt="Logo preview dark"
+                                    className="max-h-12 max-w-[200px] object-contain pt-3"
+                                    onError={(e) => {
+                                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                                    }}
+                                />
+                            ) : (
+                                <div className="flex items-center gap-2 pt-3 text-white">
+                                    <BookOpen className="w-6 h-6 text-sky-400" />
+                                    <span className="font-black text-white text-base">{siteName || 'Monologue Edu'}</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right: Actions, Upload, and URL input */}
+                    <div className="lg:col-span-7 space-y-4">
+                        <div className="space-y-3">
+                            <label className="block text-xs font-bold text-slate-700">
+                                Upload or Pick Logo Image:
+                            </label>
+
+                            <div className="flex flex-wrap gap-2.5">
+                                <button
+                                    type="button"
+                                    disabled={uploadingLogo}
+                                    onClick={() => logoFileInputRef.current?.click()}
+                                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition disabled:opacity-50 cursor-pointer"
+                                >
+                                    {uploadingLogo ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <span>Uploading...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <UploadCloud className="w-4 h-4" />
+                                            <span>Upload Logo</span>
+                                        </>
+                                    )}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setIsLogoMediaModalOpen(true)}
+                                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold border border-slate-200 transition cursor-pointer"
+                                >
+                                    <ImageIcon className="w-4 h-4 text-slate-600" />
+                                    <span>Choose from Media</span>
+                                </button>
+
+                                {logoUrl && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setLogoUrl('')}
+                                        className="inline-flex items-center gap-1.5 px-3 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold border border-rose-200 transition cursor-pointer"
+                                        title="Remove Logo"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        <span>Remove Logo</span>
+                                    </button>
+                                )}
+                            </div>
+
+                            <div className="pt-1">
+                                <label className="block text-[11px] font-semibold text-slate-500 mb-1">
+                                    Or paste logo image URL directly:
+                                </label>
+                                <input
+                                    type="text"
+                                    value={logoUrl}
+                                    onChange={(e) => setLogoUrl(e.target.value.trim())}
+                                    placeholder="https://example.com/logo.png"
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Recommendation box */}
+                        <div className="p-4 rounded-2xl bg-indigo-50/70 border border-indigo-100 flex items-start gap-3 text-indigo-900 text-xs leading-relaxed">
+                            <Info className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                            <div>
+                                <span className="font-bold block text-indigo-950 mb-0.5">
+                                    Logo Sync Notice
+                                </span>
+                                <span>Recommended: Transparent PNG or SVG (aspect ratio around 3:1 to 5:1). Automatically synchronizes with Header Builder and Admin/Teacher menu.</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -656,7 +863,19 @@ export const AdminAppearanceGeneralPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Media Picker Modal */}
+            {/* Media Picker Modal for Logo */}
+            <MediaPickerModal
+                isOpen={isLogoMediaModalOpen}
+                onClose={() => setIsLogoMediaModalOpen(false)}
+                filterType="image"
+                title="Select Logo Image"
+                onSelect={(url) => {
+                    setLogoUrl(url);
+                    setIsLogoMediaModalOpen(false);
+                }}
+            />
+
+            {/* Media Picker Modal for Favicon */}
             <MediaPickerModal
                 isOpen={isMediaModalOpen}
                 onClose={() => setIsMediaModalOpen(false)}

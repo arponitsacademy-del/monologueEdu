@@ -35,6 +35,13 @@ class WebsiteSettingsController extends Controller
         ]);
 
         $settings = WebsiteSetting::current();
+
+        if (array_key_exists('logo_url', $validated)) {
+            $header = $settings->header_settings ?? [];
+            $header['logo_url'] = $validated['logo_url'];
+            $validated['header_settings'] = $header;
+        }
+
         $settings->update($validated);
 
         AuditLog::log('website_settings_updated', 'WebsiteSetting', $settings->id, null, $validated);
@@ -52,9 +59,15 @@ class WebsiteSettingsController extends Controller
         ]);
 
         $settings = WebsiteSetting::current();
-        $settings->update([
+        $updates = [
             'header_settings' => $validated['header_settings'],
-        ]);
+        ];
+
+        if (array_key_exists('logo_url', $validated['header_settings'])) {
+            $updates['logo_url'] = $validated['header_settings']['logo_url'];
+        }
+
+        $settings->update($updates);
 
         AuditLog::log('header_settings_updated', 'WebsiteSetting', $settings->id, null, $validated);
 

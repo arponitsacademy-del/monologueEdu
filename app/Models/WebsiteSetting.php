@@ -34,6 +34,15 @@ class WebsiteSetting extends Model
         'openai_settings' => 'array',
     ];
 
+    public function getLogoUrlAttribute($value): ?string
+    {
+        if (!empty($value)) {
+            return $value;
+        }
+
+        return $this->header_settings['logo_url'] ?? null;
+    }
+
     public static function defaultHeaderSettings(): array
     {
         return [

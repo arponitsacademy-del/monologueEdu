@@ -46,6 +46,8 @@ export const DashboardLayout: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [logoError, setLogoError] = useState(false);
+    const logoUrl = settings?.logo_url || settings?.header_settings?.logo_url;
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
@@ -347,11 +349,12 @@ export const DashboardLayout: React.FC = () => {
             <aside className="hidden lg:flex flex-col w-72 bg-slate-900 border-r border-slate-800 text-slate-300 select-none shrink-0">
                 <div className="h-20 px-6 flex items-center justify-between border-b border-slate-800/80">
                     <Link to={user.role === 'admin' ? '/admin' : user.role === 'teacher' ? '/teacher' : '/student'} className="flex items-center gap-3">
-                        {settings?.logo_url ? (
+                        {logoUrl && !logoError ? (
                             <img
-                                src={settings.logo_url}
-                                alt={settings.site_name || 'Monologue Edu'}
-                                className="h-9 w-auto max-w-[170px] object-contain"
+                                src={logoUrl}
+                                alt={settings?.site_name || 'Monologue Edu'}
+                                className="h-10 w-auto max-w-[190px] object-contain"
+                                onError={() => setLogoError(true)}
                             />
                         ) : (
                             <>
@@ -622,7 +625,18 @@ export const DashboardLayout: React.FC = () => {
                     />
                     <div className="relative w-72 max-w-[80%] bg-slate-900 text-slate-300 flex flex-col h-full shadow-2xl animate-in slide-in-from-left duration-200">
                         <div className="h-20 px-6 flex items-center justify-between border-b border-slate-800">
-                            <span className="text-xl font-black text-white">{settings?.site_name || 'Monologue Edu'}</span>
+                            <Link to={user.role === 'admin' ? '/admin' : user.role === 'teacher' ? '/teacher' : '/student'} className="flex items-center gap-3">
+                                {logoUrl && !logoError ? (
+                                    <img
+                                        src={logoUrl}
+                                        alt={settings?.site_name || 'Monologue Edu'}
+                                        className="h-9 w-auto max-w-[150px] object-contain"
+                                        onError={() => setLogoError(true)}
+                                    />
+                                ) : (
+                                    <span className="text-xl font-black text-white">{settings?.site_name || 'Monologue Edu'}</span>
+                                )}
+                            </Link>
                             <div className="flex items-center gap-2">
                                 <ThemeSwitcher variant="compact" />
                                 <button

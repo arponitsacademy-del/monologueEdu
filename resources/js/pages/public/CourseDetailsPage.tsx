@@ -353,7 +353,7 @@ export const CourseDetailsPage: React.FC = () => {
                             {/* Admission Count & Class Start Badges (Matches User Image) */}
                             <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                                 {/* Admission Count Badge */}
-                                <div className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl p-3 sm:p-3.5 flex items-center gap-3 shadow-2xs">
+                                <div className="bg-[#EEF0FD] border border-[#CCD2FA] rounded-2xl p-3 sm:p-3.5 flex items-center gap-3 shadow-2xs">
                                     <div className="w-10 h-10 flex items-center justify-center shrink-0 text-[#3B49DF]">
                                         <svg viewBox="0 0 48 48" className="w-9 h-9" fill="currentColor">
                                             {/* Graduation cap */}
@@ -380,7 +380,7 @@ export const CourseDetailsPage: React.FC = () => {
                                 </div>
 
                                 {/* Class Start Badge */}
-                                <div className="bg-[#EEF2FF] border border-[#C7D2FE] rounded-2xl p-3 sm:p-3.5 flex items-center gap-3 shadow-2xs">
+                                <div className="bg-[#EEF0FD] border border-[#CCD2FA] rounded-2xl p-3 sm:p-3.5 flex items-center gap-3 shadow-2xs">
                                     <div className="w-10 h-10 flex items-center justify-center shrink-0 text-[#3B49DF]">
                                         <svg viewBox="0 0 48 48" className="w-9 h-9" fill="currentColor">
                                             {/* Calendar body */}
@@ -397,7 +397,7 @@ export const CourseDetailsPage: React.FC = () => {
                                             <circle cx="20" cy="29" r="1.5" />
                                             {/* Clock badge */}
                                             <circle cx="32" cy="31" r="7" fill="currentColor" />
-                                            <circle cx="32" cy="31" r="5" fill="#EEF2FF" />
+                                            <circle cx="32" cy="31" r="5" fill="#EEF0FD" />
                                             <path d="M32 28v3.5l2.5 1.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                                         </svg>
                                     </div>
@@ -405,7 +405,7 @@ export const CourseDetailsPage: React.FC = () => {
                                         <span className="text-xs sm:text-sm font-bold text-slate-700 block truncate">
                                             ক্লাস শুরু
                                         </span>
-                                        <span className="text-xs sm:text-sm font-extrabold text-[#3B49DF] truncate block leading-tight">
+                                        <span className="text-base sm:text-lg font-black text-[#3B49DF] truncate block leading-tight">
                                             {course.class_starts_at || 'Nov 09, 2026'}
                                         </span>
                                     </div>
@@ -413,10 +413,10 @@ export const CourseDetailsPage: React.FC = () => {
                             </div>
 
                             {/* Coupon & Live Countdown Timer (Matches User Reference Image) */}
-                            <div className="border-dashed border-2 border-indigo-200/90 bg-[#F6F8FF] rounded-2xl p-3.5 sm:p-4 space-y-3">
+                            <div className="border-[1.5px] border-dashed border-[#A5B4FC] bg-[#F7F8FF] rounded-2xl p-3 sm:p-4 space-y-3">
                                 {/* Top Row: Coupon code, discount label, and Apply button */}
                                 <div className="flex items-center justify-between gap-2">
-                                    <div className="bg-white border border-indigo-200 rounded-xl px-3 sm:px-4 py-1.5 font-mono font-black text-[#3B49DF] text-xs sm:text-sm tracking-wide shadow-2xs truncate">
+                                    <div className="bg-white border border-[#A5B4FC] rounded-xl px-3 sm:px-4 py-1.5 font-mono font-black text-[#3B49DF] text-xs sm:text-sm tracking-wide shadow-2xs truncate">
                                         {promoCoupon}
                                     </div>
                                     <span className="text-xs sm:text-sm font-black text-[#3B49DF] whitespace-nowrap">
@@ -425,7 +425,7 @@ export const CourseDetailsPage: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={handleApplyCoupon}
-                                        className="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-3.5 sm:px-4 py-1.5 rounded-xl text-xs sm:text-sm font-bold shadow-xs transition cursor-pointer whitespace-nowrap"
+                                        className="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-black shadow-xs transition cursor-pointer whitespace-nowrap"
                                     >
                                         {copiedCoupon ? 'প্রয়োগ হয়েছে!' : 'প্রয়োগ করো'}
                                     </button>
@@ -433,21 +433,21 @@ export const CourseDetailsPage: React.FC = () => {
 
                                 {/* Bottom Row: 4 Countdown Pills */}
                                 <div className="grid grid-cols-4 gap-2 text-center">
-                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-100/60 flex flex-col items-center justify-center">
+                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-50 flex flex-col items-center justify-center">
                                         <span className="text-base sm:text-lg font-black text-[#3B49DF] leading-tight">{timeLeft.days}</span>
-                                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">দিন</span>
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-[#6366F1]">দিন</span>
                                     </div>
-                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-100/60 flex flex-col items-center justify-center">
+                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-50 flex flex-col items-center justify-center">
                                         <span className="text-base sm:text-lg font-black text-[#3B49DF] leading-tight">{timeLeft.hours}</span>
-                                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">ঘণ্টা</span>
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-[#6366F1]">ঘণ্টা</span>
                                     </div>
-                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-100/60 flex flex-col items-center justify-center">
+                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-50 flex flex-col items-center justify-center">
                                         <span className="text-base sm:text-lg font-black text-[#3B49DF] leading-tight">{timeLeft.minutes}</span>
-                                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">মিনিট</span>
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-[#6366F1]">মিনিট</span>
                                     </div>
-                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-100/60 flex flex-col items-center justify-center">
+                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-50 flex flex-col items-center justify-center">
                                         <span className="text-base sm:text-lg font-black text-[#3B49DF] leading-tight">{timeLeft.seconds}</span>
-                                        <span className="text-[10px] sm:text-[11px] font-bold text-slate-400">সেকেন্ড</span>
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-[#6366F1]">সেকেন্ড</span>
                                     </div>
                                 </div>
                             </div>
@@ -462,7 +462,7 @@ export const CourseDetailsPage: React.FC = () => {
                                             {formatBDT(effectivePrice)}
                                         </span>
                                         {hasDiscount && (
-                                            <span className="text-xl sm:text-2xl font-bold text-slate-400 line-through">
+                                            <span className="text-xl sm:text-2xl font-bold text-slate-500 line-through">
                                                 {formatBDT(course.price)}
                                             </span>
                                         )}
@@ -502,7 +502,7 @@ export const CourseDetailsPage: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() => setShowHowToBuyModal(true)}
-                                    className="w-full py-3.5 px-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-indigo-600 font-bold text-base flex items-center justify-center gap-2.5 shadow-2xs transition group cursor-pointer"
+                                    className="w-full py-3.5 px-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-indigo-600 font-bold text-base flex items-center justify-center gap-2.5 shadow-2xs transition group cursor-pointer"
                                 >
                                     <PlayCircle className="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition" />
                                     <span>কোর্সটি কীভাবে কিনবেন</span>
