@@ -400,12 +400,12 @@ export const TeacherProfilePage: React.FC = () => {
                             >
                                 <div>
                                     {/* Thumbnail */}
-                                    <div className="relative aspect-video w-full bg-slate-950 overflow-hidden">
+                                    <Link to={`/courses/${course.slug}`} className="block relative aspect-video w-full bg-slate-950 overflow-hidden cursor-pointer group/thumb">
                                         {course.thumbnail ? (
                                             <img
                                                 src={course.thumbnail}
                                                 alt={course.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                className="w-full h-full object-cover group-hover:scale-105 group-hover/thumb:scale-105 transition-transform duration-500"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-800 to-indigo-950 text-white">
@@ -423,7 +423,7 @@ export const TeacherProfilePage: React.FC = () => {
                                                 ফ্রি কোর্স
                                             </span>
                                         ) : null}
-                                    </div>
+                                    </Link>
 
                                     {/* Details */}
                                     <div className="p-5 sm:p-6 space-y-3">
@@ -439,8 +439,13 @@ export const TeacherProfilePage: React.FC = () => {
                                             </span>
                                         </div>
 
-                                        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2">
-                                            {course.title}
+                                        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 transition-colors line-clamp-2">
+                                            <Link
+                                                to={`/courses/${course.slug}`}
+                                                className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors cursor-pointer"
+                                            >
+                                                {course.title}
+                                            </Link>
                                         </h3>
 
                                         {/* Course feature checklist */}

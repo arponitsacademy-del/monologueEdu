@@ -41,9 +41,15 @@ export const TeacherCoursesPage: React.FC = () => {
                 ) : (
                     courses.map((course) => (
                         <div key={course.id} className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col justify-between">
-                            <div className="aspect-video bg-slate-900 relative">
+                            <a
+                                href={`/courses/${course.slug}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="aspect-video bg-slate-900 relative block group/thumb cursor-pointer overflow-hidden"
+                                title="View public course details"
+                            >
                                 {course.thumbnail ? (
-                                    <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
+                                    <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform duration-300" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-white">
                                         <BookOpen className="w-8 h-8 text-sky-400 opacity-60" />
@@ -54,11 +60,21 @@ export const TeacherCoursesPage: React.FC = () => {
                                 }`}>
                                     {course.status}
                                 </span>
-                            </div>
+                            </a>
 
                             <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                                 <div>
-                                    <h3 className="font-bold text-slate-900 text-base line-clamp-2">{course.title}</h3>
+                                    <h3 className="font-bold text-slate-900 text-base line-clamp-2">
+                                        <a
+                                            href={`/courses/${course.slug}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="hover:text-sky-600 transition-colors"
+                                            title="View public course details"
+                                        >
+                                            {course.title}
+                                        </a>
+                                    </h3>
                                     <p className="text-xs text-slate-500 mt-1">
                                         Total {course.lessons_count || 0} Lessons • {course.enrollments_count || 0} Students
                                     </p>

@@ -420,12 +420,12 @@ const CourseTabsBlock: React.FC<{ block: PageBlock; isBuilder?: boolean }> = ({ 
                                     key={course.id}
                                     className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-xl hover:border-sky-300 dark:hover:border-sky-500 transition-all flex flex-col overflow-hidden"
                                 >
-                                    <div className="relative aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                    <Link to={`/courses/${course.slug}`} className="block relative aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden cursor-pointer group/thumb">
                                         {course.thumbnail_url ? (
                                             <img
                                                 src={course.thumbnail_url}
                                                 alt={course.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                                className="w-full h-full object-cover group-hover:scale-105 group-hover/thumb:scale-105 transition-transform duration-300"
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500">
@@ -445,11 +445,16 @@ const CourseTabsBlock: React.FC<{ block: PageBlock; isBuilder?: boolean }> = ({ 
                                                 </span>
                                             )}
                                         </div>
-                                    </div>
+                                    </Link>
 
                                     <div className="p-6 flex-1 flex flex-col">
-                                        <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors line-clamp-2 mb-2">
-                                            {course.title}
+                                        <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 transition-colors line-clamp-2 mb-2">
+                                            <Link
+                                                to={`/courses/${course.slug}`}
+                                                className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors cursor-pointer"
+                                            >
+                                                {course.title}
+                                            </Link>
                                         </h3>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">
                                             {course.subtitle || course.description}

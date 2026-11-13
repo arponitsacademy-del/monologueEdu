@@ -145,9 +145,9 @@ export const StudentCoursesPage: React.FC = () => {
                         const { course, total_lessons, completed_lessons, progress_percentage, last_lesson_id } = item;
                         return (
                             <div key={course.id} className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col justify-between">
-                                <div className="aspect-video bg-slate-900 relative">
+                                <Link to={`/courses/${course.slug}`} className="block aspect-video bg-slate-900 relative group/thumb cursor-pointer">
                                     {course.thumbnail ? (
-                                        <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
+                                        <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform duration-300" />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-white">
                                             <BookOpen className="w-8 h-8 text-sky-400 opacity-60" />
@@ -156,12 +156,19 @@ export const StudentCoursesPage: React.FC = () => {
                                     <span className="absolute bottom-3 right-3 px-2 py-0.5 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold rounded">
                                         {total_lessons} Classes
                                     </span>
-                                </div>
+                                </Link>
 
                                 <div className="p-6 space-y-4 flex-1 flex flex-col justify-between">
                                     <div>
                                         <div className="flex items-start justify-between gap-2">
-                                            <h3 className="font-bold text-slate-900 text-base line-clamp-2 flex-1">{course.title}</h3>
+                                            <h3 className="font-bold text-slate-900 text-base line-clamp-2 flex-1">
+                                                <Link
+                                                    to={`/courses/${course.slug}`}
+                                                    className="hover:text-indigo-600 transition-colors cursor-pointer"
+                                                >
+                                                    {course.title}
+                                                </Link>
+                                            </h3>
                                             
                                             {item.has_nexpilot ? (
                                                 <Link

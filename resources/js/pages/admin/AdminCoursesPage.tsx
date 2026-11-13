@@ -129,17 +129,31 @@ export const AdminCoursesPage: React.FC = () => {
                                         {/* Course Info */}
                                         <td className="py-4 px-6">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-14 h-10 rounded-lg bg-slate-900 overflow-hidden shrink-0">
+                                                <a
+                                                    href={`/courses/${course.slug}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="w-14 h-10 rounded-lg bg-slate-900 overflow-hidden shrink-0 block cursor-pointer group"
+                                                    title="View course details"
+                                                >
                                                     {course.thumbnail ? (
-                                                        <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
+                                                        <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-white">
                                                             <BookOpen className="w-4 h-4 text-sky-400" />
                                                         </div>
                                                     )}
-                                                </div>
+                                                </a>
                                                 <div className="max-w-xs">
-                                                    <h4 className="font-bold text-slate-900 text-sm truncate">{course.title}</h4>
+                                                    <a
+                                                        href={`/courses/${course.slug}`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="font-bold text-slate-900 hover:text-sky-600 text-sm truncate block transition-colors"
+                                                        title="View course details"
+                                                    >
+                                                        {course.title}
+                                                    </a>
                                                     <span className="text-[11px] text-slate-400 font-mono">/{course.slug}</span>
                                                 </div>
                                             </div>

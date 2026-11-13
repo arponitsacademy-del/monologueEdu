@@ -626,12 +626,12 @@ export const HomePage: React.FC = () => {
                                 className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-2xl hover:border-indigo-400 dark:hover:border-indigo-500 transition-all flex flex-col overflow-hidden relative"
                             >
                                 {/* Thumbnail Header */}
-                                <div className="relative aspect-video bg-slate-900 overflow-hidden">
+                                <Link to={`/courses/${course.slug}`} className="block relative aspect-video bg-slate-900 overflow-hidden cursor-pointer group/thumb">
                                     {course.thumbnail ? (
                                         <img
                                             src={course.thumbnail}
                                             alt={course.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            className="w-full h-full object-cover group-hover:scale-105 group-hover/thumb:scale-105 transition-transform duration-500"
                                         />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-800 to-indigo-950 text-white">
@@ -656,7 +656,7 @@ export const HomePage: React.FC = () => {
                                             {course.categories[0].name}
                                         </span>
                                     )}
-                                </div>
+                                </Link>
 
                                 {/* Content Body */}
                                 <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
@@ -673,8 +673,13 @@ export const HomePage: React.FC = () => {
                                             </span>
                                         </div>
 
-                                        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors line-clamp-2">
-                                            {course.title}
+                                        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 transition-colors line-clamp-2">
+                                            <Link
+                                                to={`/courses/${course.slug}`}
+                                                className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                                            >
+                                                {course.title}
+                                            </Link>
                                         </h3>
 
                                         {/* Course feature checklist */}
