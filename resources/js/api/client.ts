@@ -39,6 +39,14 @@ export function formatBDT(amount: number): string {
     return '৳' + Number(amount || 0).toLocaleString('en-US');
 }
 
+export function getImageUrl(path?: string | null): string {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:')) {
+        return path;
+    }
+    return path.startsWith('/') ? path : '/' + path;
+}
+
 export function formatDate(dateString?: string): string {
     if (!dateString) return '';
     try {

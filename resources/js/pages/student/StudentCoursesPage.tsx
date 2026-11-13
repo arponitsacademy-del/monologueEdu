@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { apiClient, formatBDT } from '../../api/client';
+import { apiClient, formatBDT, getImageUrl } from '../../api/client';
 import { useSettings } from '../../context/SettingsContext';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -145,14 +145,22 @@ export const StudentCoursesPage: React.FC = () => {
                         const { course, total_lessons, completed_lessons, progress_percentage, last_lesson_id } = item;
                         return (
                             <div key={course.id} className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden flex flex-col justify-between">
-                                <Link to={`/courses/${course.slug}`} className="block aspect-video bg-slate-900 relative group/thumb cursor-pointer">
-                                    {course.thumbnail ? (
-                                        <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform duration-300" />
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center text-white">
-                                            <BookOpen className="w-8 h-8 text-sky-400 opacity-60" />
-                                        </div>
-                                    )}
+                                <Link to={`/courses/${course.slug}`} className="block aspect-video bg-slate-900 relative group/thumb cursor-pointer overflow-hidden">
+                                    {(course.thumbnail || (course as any).thumbnail_url) ? (
+                                        <img
+                                            src={getImageUrl(course.thumbnail || (course as any).thumbnail_url)}
+                                            alt={course.title}
+                                            className="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform duration-300"
+                                            onError={(e) => {
+                                                (e.currentTarget as HTMLElement).style.display = 'none';
+                                                const fallback = (e.currentTarget.parentElement?.querySelector('.fallback-thumb') as HTMLElement);
+                                                if (fallback) fallback.style.display = 'flex';
+                                            }}
+                                        />
+                                    ) : null}
+                                    <div className={`fallback-thumb w-full h-full ${(course.thumbnail || (course as any).thumbnail_url) ? 'hidden' : 'flex'} items-center justify-center text-white bg-slate-900`}>
+                                        <BookOpen className="w-8 h-8 text-sky-400 opacity-60" />
+                                    </div>
                                     <span className="absolute bottom-3 right-3 px-2 py-0.5 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold rounded">
                                         {total_lessons} Classes
                                     </span>

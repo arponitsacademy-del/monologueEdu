@@ -28,7 +28,8 @@ import {
     Smartphone,
     KeyRound,
     User as UserIcon,
-    Radio
+    Radio,
+    PlusCircle
 } from 'lucide-react';
 
 export const StudentDashboardLayout: React.FC = () => {
@@ -138,6 +139,11 @@ export const StudentDashboardLayout: React.FC = () => {
             path: '/student',
             icon: Home,
             exact: true
+        },
+        {
+            title: 'নতুন কোর্স অ্যাড করুন',
+            path: '/courses',
+            icon: PlusCircle
         },
         {
             title: 'আমার কোর্স',

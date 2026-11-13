@@ -4,12 +4,12 @@ import { apiClient } from '../../api/client';
 import { Category, User } from '../../types';
 import { MediaPickerModal } from '../../components/shared/MediaPickerModal';
 import { WordMathEditor } from '../../components/exam/WordMathEditor';
-import { 
-    ArrowLeft, 
-    Save, 
-    Layers, 
-    AlertCircle, 
-    CheckCircle2, 
+import {
+    ArrowLeft,
+    Save,
+    Layers,
+    AlertCircle,
+    CheckCircle2,
     BookOpen,
     UploadCloud,
     Image as ImageIcon,
@@ -181,7 +181,7 @@ export const AdminCourseEditPage: React.FC = () => {
             ]);
             setAllCategories(catsRes.data || []);
             setAllTeachers(teachersRes.data || []);
-        } catch {}
+        } catch { }
     };
 
     const fetchCourse = async () => {
@@ -279,13 +279,13 @@ export const AdminCourseEditPage: React.FC = () => {
     };
 
     const toggleTeacher = (teacherId: number) => {
-        setSelectedTeacherIds(prev => 
+        setSelectedTeacherIds(prev =>
             prev.includes(teacherId) ? prev.filter(t => t !== teacherId) : [...prev, teacherId]
         );
     };
 
     const toggleCategory = (catId: number) => {
-        setSelectedCategoryIds(prev => 
+        setSelectedCategoryIds(prev =>
             prev.includes(catId) ? prev.filter(c => c !== catId) : [...prev, catId]
         );
     };
@@ -729,22 +729,20 @@ export const AdminCourseEditPage: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleUpdateButton(btn.id, { type: 'file' })}
-                                                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition cursor-pointer ${
-                                                        btn.type === 'file'
+                                                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition cursor-pointer ${btn.type === 'file'
                                                             ? 'bg-white text-sky-700 shadow-2xs'
                                                             : 'text-slate-600 hover:text-slate-900'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     File Upload
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => handleUpdateButton(btn.id, { type: 'link' })}
-                                                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition cursor-pointer ${
-                                                        btn.type === 'link'
+                                                    className={`flex-1 py-1.5 text-xs font-bold rounded-md transition cursor-pointer ${btn.type === 'link'
                                                             ? 'bg-white text-sky-700 shadow-2xs'
                                                             : 'text-slate-600 hover:text-slate-900'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     Link
                                                 </button>
@@ -907,11 +905,10 @@ export const AdminCourseEditPage: React.FC = () => {
                                     <div
                                         key={teacher.id}
                                         onClick={() => toggleTeacher(teacher.id)}
-                                        className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-                                            isSelected 
-                                                ? 'bg-sky-50 border-sky-400 text-sky-900 font-bold' 
+                                        className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${isSelected
+                                                ? 'bg-sky-50 border-sky-400 text-sky-900 font-bold'
                                                 : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
-                                        }`}
+                                            }`}
                                     >
                                         <div className="text-xs truncate mr-2">
                                             <div>{teacher.name}</div>
@@ -930,8 +927,8 @@ export const AdminCourseEditPage: React.FC = () => {
                             <label className="block text-xs font-bold text-slate-700">
                                 Select Course Categories (Select one or more categories)
                             </label>
-                            <Link 
-                                to="/admin/courses/categories" 
+                            <Link
+                                to="/admin/courses/categories"
                                 target="_blank"
                                 className="text-xs font-semibold text-sky-600 hover:text-sky-700 hover:underline"
                             >
@@ -955,11 +952,10 @@ export const AdminCourseEditPage: React.FC = () => {
                                             type="button"
                                             key={cat.id}
                                             onClick={() => toggleCategory(cat.id)}
-                                            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                                                isSelected
+                                            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${isSelected
                                                     ? 'bg-sky-600 text-white shadow-sm ring-2 ring-sky-600/30'
                                                     : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
-                                            }`}
+                                                }`}
                                         >
                                             {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                                             <span>{cat.name}</span>

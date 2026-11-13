@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { apiClient, formatBDT } from '../../api/client';
+import { apiClient, formatBDT, getImageUrl } from '../../api/client';
 import { Course, Category, CustomPage } from '../../types';
 import { PageBlockRenderer } from '../../components/builder/PageBlockRenderer';
 import { useLanguage } from '../../context/LanguageContext';
-import { Search, BookOpen, Layers, Sparkles, X, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Search, BookOpen, Layers, Sparkles, X, ChevronRight, CheckCircle2, Video, Users } from 'lucide-react';
 
 export const CoursesPage: React.FC = () => {
     const { t, language } = useLanguage();
@@ -244,109 +244,146 @@ export const CoursesPage: React.FC = () => {
                     )}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {courses.map((course) => (
-                        <div
-                            key={course.id}
-                            className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-xl hover:border-sky-300 dark:hover:border-sky-500 transition-all flex flex-col overflow-hidden"
-                        >
-                            <Link to={`/courses/${course.slug}`} className="block relative aspect-video bg-slate-900 overflow-hidden cursor-pointer group/thumb">
-                                {course.thumbnail ? (
-                                    <img
-                                        src={course.thumbnail}
-                                        alt={course.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 group-hover/thumb:scale-105 transition-transform duration-300"
-                                    />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-800 to-slate-950 text-white">
-                                        <BookOpen className="w-12 h-12 text-sky-400 opacity-60" />
-                                    </div>
-                                )}
-                                {course.discount_percent && course.discount_percent > 0 ? (
-                                    <span className="absolute top-3 right-3 px-2.5 py-1 text-xs font-black bg-rose-500 text-white rounded-lg shadow-md">
-                                        {course.discount_percent}{t.courses.off}
-                                    </span>
-                                ) : course.price === 0 ? (
-                                    <span className="absolute top-3 right-3 px-2.5 py-1 text-xs font-black bg-emerald-500 text-white rounded-lg shadow-md">
-                                        {t.courses.free}
-                                    </span>
-                                ) : null}
-                            </Link>
-
-                            <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
-                                        <span>{course.lessons_count || 0} {t.courses.lessonsCount}</span>
-                                        <span>•</span>
-                                        <span>{course.enrollments_count || 0} {t.courses.studentsCount}</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                    {courses.map((course) => {
+                        const thumbUrl = getImageUrl(course.thumbnail || (course as any).thumbnail_url);
+                        return (
+                            <div
+                                key={course.id}
+                                className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-2xl hover:border-indigo-400 dark:hover:border-indigo-500 transition-all flex flex-col overflow-hidden relative"
+                            >
+                                {/* Thumbnail Header */}
+                                <Link to={`/courses/${course.slug}`} className="block relative aspect-video bg-slate-900 overflow-hidden cursor-pointer group/thumb">
+                                    {thumbUrl ? (
+                                        <img
+                                            src={thumbUrl}
+                                            alt={course.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 group-hover/thumb:scale-105 transition-transform duration-500"
+                                            onError={(e) => {
+                                                (e.currentTarget as HTMLElement).style.display = 'none';
+                                                const fallback = (e.currentTarget.parentElement?.querySelector('.fallback-thumb') as HTMLElement);
+                                                if (fallback) fallback.style.display = 'flex';
+                                            }}
+                                        />
+                                    ) : null}
+                                    <div className={`fallback-thumb w-full h-full ${thumbUrl ? 'hidden' : 'flex'} items-center justify-center bg-gradient-to-tr from-slate-800 to-indigo-950 text-white`}>
+                                        <BookOpen className="w-12 h-12 text-indigo-400 opacity-60" />
                                     </div>
 
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 transition-colors line-clamp-2">
-                                        <Link
-                                            to={`/courses/${course.slug}`}
-                                            className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors cursor-pointer"
-                                        >
-                                            {course.title}
-                                        </Link>
-                                    </h3>
+                                    {/* Discount Badge */}
+                                    {course.discount_percent && course.discount_percent > 0 ? (
+                                        <span className="absolute top-3 right-3 px-3 py-1 text-xs font-black bg-rose-600 text-white rounded-xl shadow-md">
+                                            {course.discount_percent}% ছাড়
+                                        </span>
+                                    ) : course.price === 0 ? (
+                                        <span className="absolute top-3 right-3 px-3 py-1 text-xs font-black bg-emerald-600 text-white rounded-xl shadow-md">
+                                            ফ্রি কোর্স
+                                        </span>
+                                    ) : null}
 
-                                    {course.features && Array.isArray(course.features) && course.features.length > 0 ? (
+                                    {/* Category Pill on image */}
+                                    {course.categories && course.categories.length > 0 && (
+                                        <span className="absolute bottom-3 left-3 px-2.5 py-1 text-[11px] font-bold bg-black/70 backdrop-blur-xs text-white rounded-lg">
+                                            {course.categories[0].name}
+                                        </span>
+                                    )}
+                                </Link>
+
+                                {/* Content Body */}
+                                <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+                                            <span className="flex items-center gap-1">
+                                                <Video className="w-3.5 h-3.5 text-indigo-500" />
+                                                <span>{course.lessons_count || 0} টি ক্লাস</span>
+                                            </span>
+                                            <span>•</span>
+                                            <span className="flex items-center gap-1">
+                                                <Users className="w-3.5 h-3.5 text-sky-500" />
+                                                <span>{course.enrollments_count || 0} জন শিক্ষার্থী</span>
+                                            </span>
+                                        </div>
+
+                                        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 transition-colors line-clamp-2">
+                                            <Link
+                                                to={`/courses/${course.slug}`}
+                                                className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                                            >
+                                                {course.title}
+                                            </Link>
+                                        </h3>
+
+                                        {/* Course feature checklist */}
                                         <div className="space-y-1.5 pt-1 text-xs text-slate-600 dark:text-slate-300">
-                                            {course.features.filter((f: any) => typeof f === 'string' && f.trim().length > 0).slice(0, 3).map((feat: string, fIdx: number) => (
+                                            {((course.features && Array.isArray(course.features) && course.features.length > 0)
+                                                ? course.features.filter((f: any) => typeof f === 'string' && f.trim().length > 0)
+                                                : [
+                                                    'লাইভ ও ফুল HD রেকর্ডেড ক্লাস আর্কাইভ',
+                                                    'চ্যাপ্টারভিত্তিক লেকচার শিট ও প্রশ্নব্যাংক',
+                                                    'NexPilot AI ২৪/৭ ইনস্ট্যান্ট ডাউট সলভার',
+                                                ]
+                                            ).slice(0, 4).map((feat: string, fIdx: number) => (
                                                 <div key={fIdx} className="flex items-start gap-1.5">
                                                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
                                                     <span className="line-clamp-1 leading-tight">{feat}</span>
                                                 </div>
                                             ))}
                                         </div>
-                                    ) : (
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                                            {course.short_description || 'Specialized course prepared according to the complete syllabus.'}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                    <div className="text-xs font-medium text-slate-600 dark:text-slate-400 truncate mr-2">
-                                        Instructor:{' '}
-                                        <span className="font-bold text-slate-800 dark:text-slate-200">
-                                            {course.instructors && course.instructors.length > 0 
-                                                ? course.instructors.map(i => i.name).join(', ') 
-                                                : (course.instructor?.name || 'Expert Mentor')}
-                                        </span>
                                     </div>
 
-                                    <div className="text-right shrink-0">
-                                        {course.price === 0 ? (
-                                            <span className="text-base font-extrabold text-emerald-600 dark:text-emerald-400">{t.courses.free}</span>
-                                        ) : (
-                                            <div className="flex items-baseline gap-1.5">
-                                                <span className="text-lg font-black text-slate-900 dark:text-white">
-                                                    {formatBDT(
-                                                        course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price)
-                                                            ? Number(course.sale_price)
-                                                            : (course.effective_price ?? Number(course.price))
-                                                    )}
+                                    {/* Pricing & Instructor Row */}
+                                    <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="text-xs font-medium text-slate-500 truncate mr-2">
+                                                ইন্সট্রাক্টর: <span className="font-bold text-slate-800 dark:text-slate-200">
+                                                    {course.instructors && course.instructors.length > 0 
+                                                        ? course.instructors.map(i => i.name).join(', ') 
+                                                        : (course.instructor?.name || 'অভিজ্ঞ মেন্টর')}
                                                 </span>
-                                                {course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price) && (
-                                                    <span className="text-xs text-slate-400 line-through">
-                                                        {formatBDT(course.price)}
-                                                    </span>
+                                            </div>
+
+                                            <div className="text-right shrink-0">
+                                                {course.price === 0 ? (
+                                                    <span className="text-lg font-black text-emerald-600">ফ্রি</span>
+                                                ) : (
+                                                    <div className="flex items-baseline gap-1.5">
+                                                        <span className="text-xl font-black text-indigo-700 dark:text-indigo-400">
+                                                            {formatBDT(
+                                                                course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price)
+                                                                    ? Number(course.sale_price)
+                                                                    : (course.effective_price ?? Number(course.price))
+                                                            )}
+                                                        </span>
+                                                        {course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price) && (
+                                                            <span className="text-xs text-slate-400 line-through">
+                                                                {formatBDT(course.price)}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
-                                        )}
+                                        </div>
+
+                                        {/* Action buttons */}
+                                        <div className="grid grid-cols-2 gap-2 pt-1">
+                                            <Link
+                                                to={`/courses/${course.slug}`}
+                                                className="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs text-slate-700 dark:text-slate-200 text-center transition-all cursor-pointer"
+                                            >
+                                                বিস্তারিত দেখুন
+                                            </Link>
+                                            <Link
+                                                to={`/checkout/${course.slug}`}
+                                                className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold text-xs text-white text-center transition-all shadow-sm cursor-pointer"
+                                            >
+                                                কোর্সটি কিনুন
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <Link
-                                    to={`/courses/${course.slug}`}
-                                    className="w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 group-hover:bg-sky-600 group-hover:text-white font-bold text-sm text-slate-700 dark:text-slate-200 text-center transition-all shadow-xs cursor-pointer"
-                                >
-                                    {t.courses.viewDetails}
-                                </Link>
                             </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             )}
         </div>

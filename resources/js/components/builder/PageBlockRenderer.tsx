@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { PageBlock, Course, Category, CourseTabItem } from '../../types';
-import { apiClient, formatBDT } from '../../api/client';
+import { apiClient, formatBDT, getImageUrl } from '../../api/client';
 import { useLanguage } from '../../context/LanguageContext';
 import { getLocalizedText } from '../../utils/localization';
 import { PlyrVideoPlayer } from '../shared/PlyrVideoPlayer';
@@ -20,7 +20,8 @@ import {
     Zap,
     Heart,
     FileText,
-    Code
+    Code,
+    Video
 } from 'lucide-react';
 
 interface PageBlockRendererProps {
@@ -414,82 +415,146 @@ const CourseTabsBlock: React.FC<{ block: PageBlock; isBuilder?: boolean }> = ({ 
                             <p className="font-semibold">{t.courses.emptyCourses}</p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {courses.map((course) => (
-                                <div
-                                    key={course.id}
-                                    className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-xl hover:border-sky-300 dark:hover:border-sky-500 transition-all flex flex-col overflow-hidden"
-                                >
-                                    <Link to={`/courses/${course.slug}`} className="block relative aspect-video bg-slate-100 dark:bg-slate-800 overflow-hidden cursor-pointer group/thumb">
-                                        {course.thumbnail_url ? (
-                                            <img
-                                                src={course.thumbnail_url}
-                                                alt={course.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 group-hover/thumb:scale-105 transition-transform duration-300"
-                                            />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500">
-                                                <BookOpen className="w-12 h-12" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                            {courses.map((course) => {
+                                const thumbUrl = getImageUrl((course as any).thumbnail || course.thumbnail_url);
+                                return (
+                                    <div
+                                        key={course.id}
+                                        className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-2xl hover:border-indigo-400 dark:hover:border-indigo-500 transition-all flex flex-col overflow-hidden relative"
+                                    >
+                                        {/* Thumbnail Header */}
+                                        <Link to={`/courses/${course.slug}`} className="block relative aspect-video bg-slate-900 overflow-hidden cursor-pointer group/thumb">
+                                            {thumbUrl ? (
+                                                <img
+                                                    src={thumbUrl}
+                                                    alt={course.title}
+                                                    className="w-full h-full object-cover group-hover:scale-105 group-hover/thumb:scale-105 transition-transform duration-500"
+                                                    onError={(e) => {
+                                                        (e.currentTarget as HTMLElement).style.display = 'none';
+                                                        const fallback = (e.currentTarget.parentElement?.querySelector('.fallback-thumb') as HTMLElement);
+                                                        if (fallback) fallback.style.display = 'flex';
+                                                    }}
+                                                />
+                                            ) : null}
+                                            <div className={`fallback-thumb w-full h-full ${thumbUrl ? 'hidden' : 'flex'} items-center justify-center bg-gradient-to-tr from-slate-800 to-indigo-950 text-white`}>
+                                                <BookOpen className="w-12 h-12 text-indigo-400 opacity-60" />
                                             </div>
-                                        )}
-                                        <div className="absolute top-3 left-3 flex flex-wrap gap-1">
-                                            {course.categories && course.categories.length > 0 ? (
-                                                course.categories.slice(0, 2).map((cat) => (
-                                                    <span key={cat.id} className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-sky-600/90 text-white backdrop-blur-xs">
-                                                        {cat.name}
-                                                    </span>
-                                                ))
-                                            ) : (
-                                                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-900/80 text-white backdrop-blur-xs">
-                                                    General
+
+                                            {/* Discount Badge */}
+                                            {course.discount_percent && course.discount_percent > 0 ? (
+                                                <span className="absolute top-3 right-3 px-3 py-1 text-xs font-black bg-rose-600 text-white rounded-xl shadow-md">
+                                                    {course.discount_percent}% ছাড়
+                                                </span>
+                                            ) : course.price === 0 ? (
+                                                <span className="absolute top-3 right-3 px-3 py-1 text-xs font-black bg-emerald-600 text-white rounded-xl shadow-md">
+                                                    ফ্রি কোর্স
+                                                </span>
+                                            ) : null}
+
+                                            {/* Category Pill on image */}
+                                            {course.categories && course.categories.length > 0 && (
+                                                <span className="absolute bottom-3 left-3 px-2.5 py-1 text-[11px] font-bold bg-black/70 backdrop-blur-xs text-white rounded-lg">
+                                                    {course.categories[0].name}
                                                 </span>
                                             )}
-                                        </div>
-                                    </Link>
+                                        </Link>
 
-                                    <div className="p-6 flex-1 flex flex-col">
-                                        <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 transition-colors line-clamp-2 mb-2">
-                                            <Link
-                                                to={`/courses/${course.slug}`}
-                                                className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors cursor-pointer"
-                                            >
-                                                {course.title}
-                                            </Link>
-                                        </h3>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-4 leading-relaxed">
-                                            {course.subtitle || course.description}
-                                        </p>
-
-                                        <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                            <div>
-                                                {course.is_free ? (
-                                                    <span className="text-base font-black text-emerald-600 dark:text-emerald-400">
-                                                        {t.courses.free}
+                                        {/* Content Body */}
+                                        <div className="p-5 sm:p-6 flex-1 flex flex-col justify-between space-y-4">
+                                            <div className="space-y-3">
+                                                <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+                                                    <span className="flex items-center gap-1">
+                                                        <Video className="w-3.5 h-3.5 text-indigo-500" />
+                                                        <span>{course.lessons_count || 0} টি ক্লাস</span>
                                                     </span>
-                                                ) : (
-                                                    <div className="flex items-baseline gap-2">
-                                                        <span className="text-lg font-black text-slate-900 dark:text-white">
-                                                            {formatBDT(course.price)}
-                                                        </span>
-                                                        {course.strike_price && (
-                                                            <span className="text-xs text-slate-400 line-through">
-                                                                {formatBDT(course.strike_price)}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                )}
+                                                    <span>•</span>
+                                                    <span className="flex items-center gap-1">
+                                                        <Users className="w-3.5 h-3.5 text-sky-500" />
+                                                        <span>{course.enrollments_count || 0} জন শিক্ষার্থী</span>
+                                                    </span>
+                                                </div>
+
+                                                <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 transition-colors line-clamp-2">
+                                                    <Link
+                                                        to={`/courses/${course.slug}`}
+                                                        className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                                                    >
+                                                        {course.title}
+                                                    </Link>
+                                                </h3>
+
+                                                {/* Course feature checklist */}
+                                                <div className="space-y-1.5 pt-1 text-xs text-slate-600 dark:text-slate-300">
+                                                    {((course.features && Array.isArray(course.features) && course.features.length > 0)
+                                                        ? course.features.filter((f: any) => typeof f === 'string' && f.trim().length > 0)
+                                                        : [
+                                                            'লাইভ ও ফুল HD রেকর্ডেড ক্লাস আর্কাইভ',
+                                                            'চ্যাপ্টারভিত্তিক লেকচার শিট ও প্রশ্নব্যাংক',
+                                                            'NexPilot AI ২৪/৭ ইনস্ট্যান্ট ডাউট সলভার',
+                                                        ]
+                                                    ).slice(0, 4).map((feat: string, fIdx: number) => (
+                                                        <div key={fIdx} className="flex items-start gap-1.5">
+                                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                                                            <span className="line-clamp-1 leading-tight">{feat}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
 
-                                            <Link
-                                                to={`/courses/${course.slug}`}
-                                                className="px-4 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 font-bold text-xs hover:bg-sky-600 hover:text-white transition-all cursor-pointer"
-                                            >
-                                                {t.courses.viewDetails}
-                                            </Link>
+                                            {/* Pricing & Instructor Row */}
+                                            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="text-xs font-medium text-slate-500 truncate mr-2">
+                                                        ইন্সট্রাক্টর: <span className="font-bold text-slate-800 dark:text-slate-200">
+                                                            {course.instructors && course.instructors.length > 0 
+                                                                ? course.instructors[0].name 
+                                                                : (course.instructor?.name || 'অভিজ্ঞ মেন্টর')}
+                                                        </span>
+                                                    </div>
+
+                                                    <div className="text-right shrink-0">
+                                                        {course.price === 0 ? (
+                                                            <span className="text-lg font-black text-emerald-600">ফ্রি</span>
+                                                        ) : (
+                                                            <div className="flex items-baseline gap-1.5">
+                                                                <span className="text-xl font-black text-indigo-700 dark:text-indigo-400">
+                                                                    {formatBDT(
+                                                                        course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price)
+                                                                            ? Number(course.sale_price)
+                                                                            : (course.effective_price ?? Number(course.price))
+                                                                    )}
+                                                                </span>
+                                                                {course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price) && (
+                                                                    <span className="text-xs text-slate-400 line-through">
+                                                                        {formatBDT(course.price)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Action buttons */}
+                                                <div className="grid grid-cols-2 gap-2 pt-1">
+                                                    <Link
+                                                        to={`/courses/${course.slug}`}
+                                                        className="py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold text-xs text-slate-700 dark:text-slate-200 text-center transition-all cursor-pointer"
+                                                    >
+                                                        বিস্তারিত দেখুন
+                                                    </Link>
+                                                    <Link
+                                                        to={`/checkout/${course.slug}`}
+                                                        className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold text-xs text-white text-center transition-all shadow-sm cursor-pointer"
+                                                    >
+                                                        কোর্সটি কিনুন
+                                                    </Link>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>

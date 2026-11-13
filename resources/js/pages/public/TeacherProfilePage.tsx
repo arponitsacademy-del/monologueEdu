@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { apiClient, formatBDT } from '../../api/client';
+import { apiClient, formatBDT, getImageUrl } from '../../api/client';
 import { Course } from '../../types';
 import {
     GraduationCap,
@@ -401,17 +401,21 @@ export const TeacherProfilePage: React.FC = () => {
                                 <div>
                                     {/* Thumbnail */}
                                     <Link to={`/courses/${course.slug}`} className="block relative aspect-video w-full bg-slate-950 overflow-hidden cursor-pointer group/thumb">
-                                        {course.thumbnail ? (
+                                        {(course.thumbnail || (course as any).thumbnail_url) ? (
                                             <img
-                                                src={course.thumbnail}
+                                                src={getImageUrl(course.thumbnail || (course as any).thumbnail_url)}
                                                 alt={course.title}
                                                 className="w-full h-full object-cover group-hover:scale-105 group-hover/thumb:scale-105 transition-transform duration-500"
+                                                onError={(e) => {
+                                                    (e.currentTarget as HTMLElement).style.display = 'none';
+                                                    const fallback = (e.currentTarget.parentElement?.querySelector('.fallback-thumb') as HTMLElement);
+                                                    if (fallback) fallback.style.display = 'flex';
+                                                }}
                                             />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-tr from-slate-800 to-indigo-950 text-white">
-                                                <BookOpen className="w-12 h-12 text-sky-400 opacity-60" />
-                                            </div>
-                                        )}
+                                        ) : null}
+                                        <div className={`fallback-thumb w-full h-full ${(course.thumbnail || (course as any).thumbnail_url) ? 'hidden' : 'flex'} items-center justify-center bg-gradient-to-tr from-slate-800 to-indigo-950 text-white`}>
+                                            <BookOpen className="w-12 h-12 text-sky-400 opacity-60" />
+                                        </div>
 
                                         {/* Discount Badge */}
                                         {course.discount_percent && course.discount_percent > 0 ? (

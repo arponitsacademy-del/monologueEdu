@@ -55,6 +55,7 @@ class Course extends Model
     protected $appends = [
         'effective_price',
         'discount_percent',
+        'thumbnail_url',
     ];
 
     public static function booted(): void
@@ -193,6 +194,22 @@ class Course extends Model
     public function scopePaid($query)
     {
         return $query->where('price', '>', 0)->published();
+    }
+
+    public function getThumbnailAttribute($value): ?string
+    {
+        if (!$value) {
+            return null;
+        }
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://') || str_starts_with($value, 'data:')) {
+            return $value;
+        }
+        return str_starts_with($value, '/') ? $value : '/' . $value;
+    }
+
+    public function getThumbnailUrlAttribute(): ?string
+    {
+        return $this->thumbnail;
     }
 
     public function getEffectivePriceAttribute(): float
