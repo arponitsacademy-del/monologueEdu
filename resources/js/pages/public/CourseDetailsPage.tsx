@@ -180,68 +180,73 @@ export const CourseDetailsPage: React.FC = () => {
     return (
         <div className="bg-slate-50 min-h-screen pb-20">
             {/* Header Hero */}
-            <div className="bg-slate-900 text-white py-16 border-b border-slate-800">
+            <div className="bg-slate-900 text-white pt-8 pb-14 sm:pt-10 sm:pb-20 lg:pt-10 lg:pb-28 border-b border-slate-800">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="max-w-3xl space-y-4">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 text-sky-400 text-xs font-bold border border-sky-500/30">
-                            <Sparkles className="w-3.5 h-3.5" />
-                            <span>Online Batch</span>
-                        </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+                        <div className="lg:col-span-8 space-y-3.5 sm:space-y-4">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 text-sky-400 text-xs font-bold border border-sky-500/30">
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>Online Batch</span>
+                            </div>
 
-                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-                            {course.title}
-                        </h1>
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight leading-tight">
+                                {course.title}
+                            </h1>
 
-                        <p className="text-base text-slate-300 leading-relaxed">
-                            {course.short_description || 'Special course prepared according to the complete syllabus.'}
-                        </p>
+                            <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+                                {course.short_description || 'Special course prepared according to the complete syllabus.'}
+                            </p>
 
-                        <div className="flex flex-wrap items-center gap-5 sm:gap-6 pt-2 text-xs sm:text-sm text-slate-400">
-                            <span className="flex items-center gap-1.5">
-                                <BookOpen className="w-4 h-4 text-sky-400" />
-                                {course.lessons_count || 0} Lessons
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                                <Users className="w-4 h-4 text-sky-400" />
-                                {totalEnrolled} Students
-                            </span>
-                            {allInstructors.length > 0 && (
-                                <div className="flex items-center gap-2 border-l border-slate-700/80 pl-5">
-                                    <div className="flex -space-x-2 overflow-hidden">
-                                        {allInstructors.slice(0, 3).map((inst: any) => {
-                                            const p = inst.photo_url || inst.teacher_profile?.photo_url || inst.teacherProfile?.photo_url;
-                                            return p ? (
-                                                <img
-                                                    key={inst.id}
-                                                    src={getImageUrl(p)}
-                                                    alt={inst.name}
-                                                    className="inline-block h-6 w-6 rounded-full ring-2 ring-slate-900 object-cover object-top"
-                                                />
-                                            ) : (
-                                                <div
-                                                    key={inst.id}
-                                                    className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-600 text-[10px] font-bold text-white ring-2 ring-slate-900"
-                                                >
-                                                    {inst.name.charAt(0).toUpperCase()}
-                                                </div>
-                                            );
-                                        })}
+                            <div className="flex flex-wrap items-center gap-4 sm:gap-6 pt-1 text-xs sm:text-sm text-slate-400">
+                                <span className="flex items-center gap-1.5">
+                                    <BookOpen className="w-4 h-4 text-sky-400" />
+                                    {course.lessons_count || 0} Lessons
+                                </span>
+                                <span className="flex items-center gap-1.5">
+                                    <Users className="w-4 h-4 text-sky-400" />
+                                    {totalEnrolled} Students
+                                </span>
+                                {allInstructors.length > 0 && (
+                                    <div className="flex items-center gap-2 border-l border-slate-700/80 pl-4 sm:pl-5">
+                                        <div className="flex -space-x-2 overflow-hidden">
+                                            {allInstructors.slice(0, 3).map((inst: any) => {
+                                                const p = inst.photo_url || inst.teacher_profile?.photo_url || inst.teacherProfile?.photo_url;
+                                                return p ? (
+                                                    <img
+                                                        key={inst.id}
+                                                        src={getImageUrl(p)}
+                                                        alt={inst.name}
+                                                        className="inline-block h-6 w-6 rounded-full ring-2 ring-slate-900 object-cover object-top"
+                                                    />
+                                                ) : (
+                                                    <div
+                                                        key={inst.id}
+                                                        className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-600 text-[10px] font-bold text-white ring-2 ring-slate-900"
+                                                    >
+                                                        {inst.name.charAt(0).toUpperCase()}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <span className="text-xs text-slate-300 font-medium">
+                                            ইন্সট্রাক্টর: <strong className="text-white font-bold">{allInstructors.map((i: any) => i.name).join(', ')}</strong>
+                                        </span>
                                     </div>
-                                    <span className="text-xs text-slate-300 font-medium">
-                                        ইন্সট্রাক্টর: <strong className="text-white font-bold">{allInstructors.map((i: any) => i.name).join(', ')}</strong>
-                                    </span>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
+
+                        {/* Spacer column on desktop so hero right side accommodates the floating thumbnail card */}
+                        <div className="hidden lg:block lg:col-span-4" />
                     </div>
                 </div>
             </div>
 
             {/* Main Content Layout */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
                     {/* Left: Description & Curriculum */}
-                    <div className="lg:col-span-8 space-y-10">
+                    <div className="order-2 lg:order-1 lg:col-span-8 space-y-10 pt-8 sm:pt-10">
                         {/* Course Overview */}
                         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
                             <h2 className="text-xl font-bold text-slate-900">Course Details & Overview</h2>
@@ -423,8 +428,8 @@ export const CourseDetailsPage: React.FC = () => {
                     </div>
 
                     {/* Right: Sticky Enrollment Card */}
-                    <div className="lg:col-span-4">
-                        <div className="sticky top-28 bg-white rounded-2xl border border-slate-200/80 shadow-xl overflow-hidden space-y-6 p-6">
+                    <div className="order-1 lg:order-2 lg:col-span-4 -mt-8 sm:-mt-10 lg:-mt-48 xl:-mt-52 relative z-20">
+                        <div className="sticky top-24 bg-white rounded-2xl border border-slate-200/90 shadow-2xl overflow-hidden space-y-6 p-5 sm:p-6 ring-1 ring-black/5">
                             {/* Course Image */}
                             <div className="aspect-video bg-slate-900 rounded-xl overflow-hidden -mx-2 -mt-2">
                                 {(course.thumbnail || (course as any).thumbnail_url) ? (

@@ -730,8 +730,8 @@ export const AdminCourseEditPage: React.FC = () => {
                                                     type="button"
                                                     onClick={() => handleUpdateButton(btn.id, { type: 'file' })}
                                                     className={`flex-1 py-1.5 text-xs font-bold rounded-md transition cursor-pointer ${btn.type === 'file'
-                                                            ? 'bg-white text-sky-700 shadow-2xs'
-                                                            : 'text-slate-600 hover:text-slate-900'
+                                                        ? 'bg-white text-sky-700 shadow-2xs'
+                                                        : 'text-slate-600 hover:text-slate-900'
                                                         }`}
                                                 >
                                                     File Upload
@@ -740,8 +740,8 @@ export const AdminCourseEditPage: React.FC = () => {
                                                     type="button"
                                                     onClick={() => handleUpdateButton(btn.id, { type: 'link' })}
                                                     className={`flex-1 py-1.5 text-xs font-bold rounded-md transition cursor-pointer ${btn.type === 'link'
-                                                            ? 'bg-white text-sky-700 shadow-2xs'
-                                                            : 'text-slate-600 hover:text-slate-900'
+                                                        ? 'bg-white text-sky-700 shadow-2xs'
+                                                        : 'text-slate-600 hover:text-slate-900'
                                                         }`}
                                                 >
                                                     Link
@@ -906,8 +906,8 @@ export const AdminCourseEditPage: React.FC = () => {
                                         key={teacher.id}
                                         onClick={() => toggleTeacher(teacher.id)}
                                         className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${isSelected
-                                                ? 'bg-sky-50 border-sky-400 text-sky-900 font-bold'
-                                                : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
+                                            ? 'bg-sky-50 border-sky-400 text-sky-900 font-bold'
+                                            : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
                                             }`}
                                     >
                                         <div className="text-xs truncate mr-2">
@@ -953,8 +953,8 @@ export const AdminCourseEditPage: React.FC = () => {
                                             key={cat.id}
                                             onClick={() => toggleCategory(cat.id)}
                                             className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${isSelected
-                                                    ? 'bg-sky-600 text-white shadow-sm ring-2 ring-sky-600/30'
-                                                    : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
+                                                ? 'bg-sky-600 text-white shadow-sm ring-2 ring-sky-600/30'
+                                                : 'bg-white text-slate-700 border border-slate-200 hover:border-slate-300'
                                                 }`}
                                         >
                                             {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
