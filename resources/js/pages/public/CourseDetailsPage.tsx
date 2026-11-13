@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { apiClient, formatBDT } from '../../api/client';
 import { Course } from '../../types';
+import { MathView } from '../../components/shared/MathView';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { 
@@ -213,10 +214,14 @@ export const CourseDetailsPage: React.FC = () => {
                         {/* Course Overview */}
                         <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
                             <h2 className="text-xl font-bold text-slate-900">Course Details & Overview</h2>
-                            <div 
-                                className="text-sm text-slate-600 leading-relaxed prose prose-slate max-w-none"
-                                dangerouslySetInnerHTML={{ __html: course.description || '<p>Course details will be published soon.</p>' }}
-                            />
+                            {course.description ? (
+                                <MathView
+                                    content={course.description}
+                                    className="text-sm text-slate-700 leading-relaxed"
+                                />
+                            ) : (
+                                <p className="text-sm text-slate-400 italic">Course details will be published soon.</p>
+                            )}
                         </div>
 
                         {/* Curriculum Preview */}

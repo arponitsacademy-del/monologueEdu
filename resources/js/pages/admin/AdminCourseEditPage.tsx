@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { apiClient } from '../../api/client';
 import { Category, User } from '../../types';
 import { MediaPickerModal } from '../../components/shared/MediaPickerModal';
+import { WordMathEditor } from '../../components/exam/WordMathEditor';
 import { 
     ArrowLeft, 
     Save, 
@@ -376,18 +377,18 @@ export const AdminCourseEditPage: React.FC = () => {
                         />
                     </div>
 
-                    {/* Description */}
+                    {/* Full Description with Microsoft Word Math Style Editor */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                            Full Description
-                        </label>
-                        <textarea
-                            rows={5}
+                        <WordMathEditor
                             value={description}
-                            onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Enter detailed course information..."
-                            className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
+                            onChange={setDescription}
+                            label="Course Full Description (Microsoft Word Style Editor)"
+                            placeholder="কোর্সের বিস্তারিত বিবরণ, ওভারভিউ, ফরম্যাটেড টেক্সট বা সূত্র এখানে লিখুন..."
+                            minHeight="220px"
                         />
+                        <p className="text-[11px] text-slate-400 mt-1">
+                            মাইক্রোসফট ওয়ার্ড এর মতো বোল্ড, ইতালিক, আন্ডারলাইন, হেডিং, লিস্ট, টেবিল ও ম্যাথ সূত্র ব্যবহার করতে পারেন।
+                        </p>
                     </div>
 
                     {/* Thumbnail URL with Direct Upload & Media Library */}

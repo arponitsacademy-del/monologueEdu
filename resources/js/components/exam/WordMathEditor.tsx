@@ -16,7 +16,12 @@ import {
     Check,
     HelpCircle,
     Maximize2,
-    Minimize2
+    Minimize2,
+    Heading2,
+    Heading3,
+    Highlighter,
+    Quote,
+    Table
 } from 'lucide-react';
 import { MathView } from '../shared/MathView';
 import katex from 'katex';
@@ -162,6 +167,13 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
     const handleItalic = () => insertAtCursor('<i>', '</i>');
     const handleUnderline = () => insertAtCursor('<u>', '</u>');
     const handleStrike = () => insertAtCursor('<s>', '</s>');
+    const handleH2 = () => insertAtCursor('<h2>', '</h2>');
+    const handleH3 = () => insertAtCursor('<h3>', '</h3>');
+    const handleHighlight = () => insertAtCursor('<mark>', '</mark>');
+    const handleQuote = () => insertAtCursor('<blockquote>', '</blockquote>');
+    const handleTable = () => insertAtCursor(
+        '\n<table border="1" cellpadding="6">\n  <thead>\n    <tr>\n      <th>কলাম ১</th>\n      <th>কলাম ২</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>বিবরণ ১</td>\n      <td>বিবরণ ২</td>\n    </tr>\n  </tbody>\n</table>\n'
+    );
     const handleSuperscript = () => insertAtCursor('<sup>', '</sup>');
     const handleSubscript = () => insertAtCursor('<sub>', '</sub>');
     const handleBullet = () => insertAtCursor('\n• ');
@@ -324,6 +336,50 @@ export const WordMathEditor: React.FC<WordMathEditorProps> = ({
                                 title="Strikethrough"
                             >
                                 <Strikethrough className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* Headings & Document Structure */}
+                        <div className="flex items-center gap-0.5 bg-white dark:bg-slate-900 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+                            <button
+                                type="button"
+                                onClick={handleH2}
+                                className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                                title="Heading 2 (বড় শিরোনাম)"
+                            >
+                                <Heading2 className="w-4 h-4" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleH3}
+                                className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                                title="Heading 3 (উপ-শিরোনাম)"
+                            >
+                                <Heading3 className="w-4 h-4" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleHighlight}
+                                className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-amber-600 dark:text-amber-400"
+                                title="Highlight (হাইলাইট)"
+                            >
+                                <Highlighter className="w-4 h-4" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleQuote}
+                                className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                                title="Blockquote (উদ্ধৃতি বা বিশেষ তথ্য)"
+                            >
+                                <Quote className="w-4 h-4" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleTable}
+                                className="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300"
+                                title="Table (টেবিল যুক্ত করুন)"
+                            >
+                                <Table className="w-4 h-4" />
                             </button>
                         </div>
 

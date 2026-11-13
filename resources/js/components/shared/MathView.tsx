@@ -62,7 +62,7 @@ export const renderMathAndHtml = (text?: string | null): string => {
     });
 
     // 5. Convert simple newlines to <br/> if not wrapped in major block HTML tags
-    if (!/<(p|div|ul|ol|li|table|h[1-6])\b[^>]*>/i.test(processed)) {
+    if (!/<(p|div|ul|ol|li|table|thead|tbody|tr|th|td|h[1-6]|blockquote|hr)\b[^>]*>/i.test(processed)) {
         processed = processed.replace(/\n/g, '<br/>');
     }
 
