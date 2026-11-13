@@ -4,7 +4,7 @@ import { apiClient, formatBDT } from '../../api/client';
 import { Course, Category, CustomPage } from '../../types';
 import { PageBlockRenderer } from '../../components/builder/PageBlockRenderer';
 import { useLanguage } from '../../context/LanguageContext';
-import { Search, BookOpen, Layers, Sparkles, X, ChevronRight } from 'lucide-react';
+import { Search, BookOpen, Layers, Sparkles, X, ChevronRight, CheckCircle2 } from 'lucide-react';
 
 export const CoursesPage: React.FC = () => {
     const { t, language } = useLanguage();
@@ -285,9 +285,20 @@ export const CoursesPage: React.FC = () => {
                                         {course.title}
                                     </h3>
 
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
-                                        {course.short_description || 'Specialized course prepared according to the complete syllabus.'}
-                                    </p>
+                                    {course.features && Array.isArray(course.features) && course.features.length > 0 ? (
+                                        <div className="space-y-1.5 pt-1 text-xs text-slate-600 dark:text-slate-300">
+                                            {course.features.filter((f: any) => typeof f === 'string' && f.trim().length > 0).slice(0, 3).map((feat: string, fIdx: number) => (
+                                                <div key={fIdx} className="flex items-start gap-1.5">
+                                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                                                    <span className="line-clamp-1 leading-tight">{feat}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                                            {course.short_description || 'Specialized course prepared according to the complete syllabus.'}
+                                        </p>
+                                    )}
                                 </div>
 
                                 <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">

@@ -677,20 +677,21 @@ export const HomePage: React.FC = () => {
                                             {course.title}
                                         </h3>
 
-                                        {/* Bondi Pathshala style feature checklist */}
+                                        {/* Course feature checklist */}
                                         <div className="space-y-1.5 pt-1 text-xs text-slate-600 dark:text-slate-300">
-                                            <div className="flex items-center gap-1.5">
-                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                                <span>লাইভ ও ফুল HD রেকর্ডেড ক্লাস আর্কাইভ</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                                <span>চ্যাপ্টারভিত্তিক লেকচার শিট ও প্রশ্নব্যাংক</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5">
-                                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                                                <span>NexPilot AI ২৪/৭ ইনস্ট্যান্ট ডাউট সলভার</span>
-                                            </div>
+                                            {((course.features && Array.isArray(course.features) && course.features.length > 0)
+                                                ? course.features.filter((f: any) => typeof f === 'string' && f.trim().length > 0)
+                                                : [
+                                                    'লাইভ ও ফুল HD রেকর্ডেড ক্লাস আর্কাইভ',
+                                                    'চ্যাপ্টারভিত্তিক লেকচার শিট ও প্রশ্নব্যাংক',
+                                                    'NexPilot AI ২৪/৭ ইনস্ট্যান্ট ডাউট সলভার',
+                                                ]
+                                            ).slice(0, 4).map((feat: string, fIdx: number) => (
+                                                <div key={fIdx} className="flex items-start gap-1.5">
+                                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                                                    <span className="line-clamp-1 leading-tight">{feat}</span>
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
 
