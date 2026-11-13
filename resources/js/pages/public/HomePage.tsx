@@ -304,13 +304,13 @@ export const HomePage: React.FC = () => {
     return (
         <div className="space-y-16 sm:space-y-24 pb-20 overflow-hidden font-sans">
             {/* Top Live Campaign Ribbon (Bondi Pathshala Style) */}
-            <div className="bg-gradient-to-r from-indigo-700 via-indigo-600 to-sky-600 text-white text-xs sm:text-sm py-2.5 px-4 font-semibold text-center flex items-center justify-center gap-2 shadow-inner">
+            <div className="bg-gradient-to-r from-sky-700 via-sky-600 to-amber-500 text-white text-xs sm:text-sm py-2.5 px-4 font-semibold text-center flex items-center justify-center gap-2 shadow-inner">
                 <span className="flex h-2 w-2 relative">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
                 </span>
                 <span>🔥 HSC একাডেমিক সাইকেল ও অ্যাডমিশন মাস্টার ব্যাচে স্পেশাল ছাড়ে ভর্তি চলছে!</span>
-                <Link to="/courses" className="underline font-bold text-amber-300 hover:text-white transition-colors ml-1 hidden sm:inline">
+                <Link to="/courses" className="underline font-bold text-amber-200 hover:text-white transition-colors ml-1 hidden sm:inline">
                     সকল কোর্স দেখুন →
                 </Link>
             </div>
@@ -318,15 +318,15 @@ export const HomePage: React.FC = () => {
             {/* 1. HERO SECTION (Bondi Pathshala Inspired Dynamic Layout) */}
             <section className="relative overflow-hidden bg-gradient-to-b from-sky-50/70 via-white to-slate-50/50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-950 pt-8 sm:pt-14 pb-16 sm:pb-24 border-b border-slate-100 dark:border-slate-800 transition-colors">
                 {/* Decorative background blurs */}
-                <div className="absolute top-0 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl -z-10 pointer-events-none" />
-                <div className="absolute bottom-0 left-10 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl -z-10 pointer-events-none" />
+                <div className="absolute top-0 right-1/4 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl -z-10 pointer-events-none" />
+                <div className="absolute bottom-0 left-10 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl -z-10 pointer-events-none" />
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
                         {/* Left Content Column */}
                         <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
                             {/* Trust Badge */}
-                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-indigo-50 to-sky-50 dark:from-slate-800 dark:to-slate-800 text-indigo-700 dark:text-sky-300 border border-indigo-200/80 dark:border-slate-700 text-xs sm:text-sm font-extrabold tracking-wide shadow-2xs">
+                            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-sky-50 to-amber-50 dark:from-slate-800 dark:to-slate-800 text-sky-700 dark:text-sky-300 border border-sky-200/80 dark:border-slate-700 text-xs sm:text-sm font-extrabold tracking-wide shadow-2xs">
                                 <span className="flex h-2.5 w-2.5 relative">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-500 opacity-75"></span>
                                     <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-600"></span>
@@ -337,7 +337,7 @@ export const HomePage: React.FC = () => {
                             {/* Headline */}
                             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white leading-[1.2] tracking-tight">
                                 স্বপ্ন যেখানে বাস্তব হয়, <br />
-                                <span className="bg-gradient-to-r from-indigo-600 via-sky-600 to-emerald-600 bg-clip-text text-transparent">
+                                <span className="bg-gradient-to-r from-sky-600 via-sky-500 to-amber-500 bg-clip-text text-transparent">
                                     কনসেপ্ট ক্লিয়ারিং থেকে
                                 </span> <br />
                                 অ্যাডমিশন জয়!
@@ -345,14 +345,14 @@ export const HomePage: React.FC = () => {
 
                             {/* Subtitle */}
                             <p className="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal">
-                                অভিজ্ঞ মেন্টরদের লাইভ ও ফুল HD রেকর্ডেড ক্লাস, অধ্যায়ভিত্তিক লেকচার শিট, <strong className="text-indigo-600 dark:text-indigo-400 font-bold">24/7 NexPilot AI ডাউট সলভিং</strong> এবং রিয়েল টাইম মডেল টেস্টের মাধ্যমে প্রস্তুতি নাও ১০০% আত্মবিশ্বাসে।
+                                অভিজ্ঞ মেন্টরদের লাইভ ও ফুল HD রেকর্ডেড ক্লাস, অধ্যায়ভিত্তিক লেকচার শিট, <strong className="text-sky-600 dark:text-sky-400 font-bold">24/7 NexPilot AI ডাউট সলভিং</strong> এবং রিয়েল টাইম মডেল টেস্টের মাধ্যমে প্রস্তুতি নাও ১০০% আত্মবিশ্বাসে।
                             </p>
 
                             {/* Dual CTAs */}
                             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3.5 pt-2">
                                 <Link
                                     to="/courses"
-                                    className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-indigo-600/30 hover:shadow-xl hover:shadow-indigo-600/40 transition-all flex items-center justify-center gap-2 group cursor-pointer"
+                                    className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 text-white font-extrabold text-sm sm:text-base shadow-lg shadow-sky-600/30 hover:shadow-xl hover:shadow-sky-600/40 transition-all flex items-center justify-center gap-2 group cursor-pointer"
                                 >
                                     <span>কোর্সগুলো ঘুরে দেখুন</span>
                                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform" />
@@ -360,9 +360,9 @@ export const HomePage: React.FC = () => {
 
                                 <Link
                                     to="/student/exams"
-                                    className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-sm sm:text-base hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
+                                    className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-sm sm:text-base hover:bg-slate-50 dark:hover:bg-slate-800 hover:border-sky-300 dark:hover:border-sky-600 hover:text-sky-600 transition-all flex items-center justify-center gap-2 shadow-xs cursor-pointer"
                                 >
-                                    <ClipboardList className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                    <ClipboardList className="w-5 h-5 text-sky-600 dark:text-sky-400" />
                                     <span>অনলাইন এক্সাম দিন</span>
                                 </Link>
                             </div>
@@ -370,11 +370,11 @@ export const HomePage: React.FC = () => {
                             {/* Metrics Counter Bar */}
                             <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-slate-200/80 dark:border-slate-800 text-left">
                                 <div className="space-y-0.5">
-                                    <div className="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400">৫০,০০০+</div>
+                                    <div className="text-2xl sm:text-3xl font-black text-sky-600 dark:text-sky-400">৫০,০০০+</div>
                                     <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">সক্রিয় শিক্ষার্থী</div>
                                 </div>
                                 <div className="space-y-0.5">
-                                    <div className="text-2xl sm:text-3xl font-black text-sky-600 dark:text-sky-400">১০০+</div>
+                                    <div className="text-2xl sm:text-3xl font-black text-amber-500 dark:text-amber-400">১০০+</div>
                                     <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">ফ্ল্যাগশিপ কোর্স</div>
                                 </div>
                                 <div className="space-y-0.5">
@@ -382,7 +382,7 @@ export const HomePage: React.FC = () => {
                                     <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">পরীক্ষায় সাফল্য</div>
                                 </div>
                                 <div className="space-y-0.5">
-                                    <div className="text-2xl sm:text-3xl font-black text-purple-600 dark:text-purple-400">২৪/৭</div>
+                                    <div className="text-2xl sm:text-3xl font-black text-sky-500 dark:text-sky-400">২৪/৭</div>
                                     <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">এআই ডাউট সলভার</div>
                                 </div>
                             </div>
@@ -390,7 +390,7 @@ export const HomePage: React.FC = () => {
 
                         {/* Right Bondi Pathshala Style Interactive Visual Card */}
                         <div className="lg:col-span-5 relative">
-                            <div className="relative mx-auto max-w-md lg:max-w-none bg-gradient-to-tr from-indigo-600 via-sky-600 to-indigo-800 p-1 rounded-3xl shadow-2xl shadow-indigo-500/25">
+                            <div className="relative mx-auto max-w-md lg:max-w-none bg-gradient-to-tr from-sky-500 via-sky-600 to-amber-500 p-1 rounded-3xl shadow-2xl shadow-sky-500/25">
                                 <div className="bg-slate-900 rounded-[22px] p-6 text-white space-y-5">
                                     {/* Card Header */}
                                     <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -403,7 +403,7 @@ export const HomePage: React.FC = () => {
                                                 লাইভ ফ্ল্যাগশিপ প্রোগ্রাম
                                             </span>
                                         </div>
-                                        <span className="text-[11px] font-bold px-2 py-0.5 bg-indigo-500/30 text-indigo-300 rounded-md">
+                                        <span className="text-[11px] font-bold px-2 py-0.5 bg-sky-500/30 text-sky-200 rounded-md">
                                             Academic Cycle 2026-27
                                         </span>
                                     </div>
@@ -441,7 +441,7 @@ export const HomePage: React.FC = () => {
                                         </div>
 
                                         <div className="bg-slate-800/90 p-3 rounded-xl border border-slate-700/60 flex items-center gap-3">
-                                            <div className="w-9 h-9 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+                                            <div className="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
                                                 <ClipboardList className="w-5 h-5" />
                                             </div>
                                             <div>
@@ -455,7 +455,7 @@ export const HomePage: React.FC = () => {
                                     <div className="pt-2">
                                         <Link
                                             to="/courses"
-                                            className="block w-full py-3.5 bg-gradient-to-r from-indigo-500 via-sky-500 to-indigo-600 hover:opacity-95 text-white font-extrabold rounded-xl text-center text-sm shadow-md transition-all cursor-pointer"
+                                            className="block w-full py-3.5 bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 text-white font-extrabold rounded-xl text-center text-sm shadow-md shadow-sky-500/25 transition-all cursor-pointer"
                                         >
                                             এখনই ব্যাচে ভর্তি হোন
                                         </Link>
@@ -470,7 +470,7 @@ export const HomePage: React.FC = () => {
             {/* 2. BONDI PATHSHALA STYLE ACADEMIC SEGMENTS (Quick Jump Cards) */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center max-w-2xl mx-auto mb-10 space-y-2">
-                    <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-950/60 px-3 py-1 rounded-full">
+                    <span className="text-xs font-bold text-sky-600 uppercase tracking-widest bg-sky-50 dark:bg-sky-950/60 px-3 py-1 rounded-full">
                         একাডেমিক সেগমেন্টস
                     </span>
                     <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -497,9 +497,9 @@ export const HomePage: React.FC = () => {
                     {/* Engineering Admission */}
                     <div 
                         onClick={() => handleCategoryClick('all')}
-                        className="bg-gradient-to-b from-indigo-50 to-white dark:from-slate-900 dark:to-slate-950 p-4 sm:p-5 rounded-2xl border border-indigo-100 dark:border-slate-800 text-center hover:border-indigo-400 dark:hover:border-indigo-500 hover:shadow-lg transition-all cursor-pointer group flex flex-col items-center"
+                        className="bg-gradient-to-b from-sky-50 to-white dark:from-slate-900 dark:to-slate-950 p-4 sm:p-5 rounded-2xl border border-sky-100 dark:border-slate-800 text-center hover:border-sky-400 dark:hover:border-sky-500 hover:shadow-lg transition-all cursor-pointer group flex flex-col items-center"
                     >
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 text-indigo-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                             <Zap className="w-6 h-6" />
                         </div>
                         <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">ইঞ্জিনিয়ারিং ভর্তি</h3>
@@ -548,7 +548,7 @@ export const HomePage: React.FC = () => {
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
                     <div>
-                        <div className="flex items-center gap-2 text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1.5">
+                        <div className="flex items-center gap-2 text-xs font-bold text-sky-600 uppercase tracking-widest mb-1.5">
                             <Flame className="w-4 h-4 text-rose-500" />
                             <span>জনপ্রিয় ও চলমান কোর্সসমূহ</span>
                         </div>
@@ -558,7 +558,7 @@ export const HomePage: React.FC = () => {
                     </div>
                     <Link
                         to="/courses"
-                        className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                        className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300"
                     >
                         <span>সকল কোর্স দেখুন</span>
                         <ArrowRight className="w-4 h-4" />
@@ -571,7 +571,7 @@ export const HomePage: React.FC = () => {
                         onClick={() => handleCategoryClick('all')}
                         className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shrink-0 cursor-pointer ${
                             activeCategory === 'all'
-                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
                                 : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800'
                         }`}
                     >
@@ -585,7 +585,7 @@ export const HomePage: React.FC = () => {
                                 onClick={() => handleCategoryClick(cat.slug)}
                                 className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 ${
                                     isSelected
-                                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                                        ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
                                         : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-800'
                                 }`}
                             >
@@ -623,7 +623,7 @@ export const HomePage: React.FC = () => {
                         {courses.map((course) => (
                             <div
                                 key={course.id}
-                                className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-2xl hover:border-indigo-400 dark:hover:border-indigo-500 transition-all flex flex-col overflow-hidden relative"
+                                className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-2xl hover:border-sky-400 dark:hover:border-sky-500 transition-all flex flex-col overflow-hidden relative"
                             >
                                 {/* Thumbnail Header */}
                                 <Link to={`/courses/${course.slug}`} className="block relative aspect-video bg-slate-900 overflow-hidden cursor-pointer group/thumb">
@@ -639,8 +639,8 @@ export const HomePage: React.FC = () => {
                                             }}
                                         />
                                     ) : null}
-                                    <div className={`fallback-thumb w-full h-full ${(course.thumbnail || (course as any).thumbnail_url) ? 'hidden' : 'flex'} items-center justify-center bg-gradient-to-tr from-slate-800 to-indigo-950 text-white`}>
-                                        <BookOpen className="w-12 h-12 text-indigo-400 opacity-60" />
+                                    <div className={`fallback-thumb w-full h-full ${(course.thumbnail || (course as any).thumbnail_url) ? 'hidden' : 'flex'} items-center justify-center bg-gradient-to-tr from-slate-800 to-sky-950 text-white`}>
+                                        <BookOpen className="w-12 h-12 text-sky-400 opacity-60" />
                                     </div>
 
                                     {/* Discount Badge */}
@@ -667,7 +667,7 @@ export const HomePage: React.FC = () => {
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                                             <span className="flex items-center gap-1">
-                                                <Video className="w-3.5 h-3.5 text-indigo-500" />
+                                                <Video className="w-3.5 h-3.5 text-sky-500" />
                                                 <span>{course.lessons_count || 0} টি ক্লাস</span>
                                             </span>
                                             <span>•</span>
@@ -680,7 +680,7 @@ export const HomePage: React.FC = () => {
                                         <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 transition-colors line-clamp-2">
                                             <Link
                                                 to={`/courses/${course.slug}`}
-                                                className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                                                className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors cursor-pointer"
                                             >
                                                 {course.title}
                                             </Link>
@@ -720,7 +720,7 @@ export const HomePage: React.FC = () => {
                                                     <span className="text-lg font-black text-emerald-600">ফ্রি</span>
                                                 ) : (
                                                     <div className="flex items-baseline gap-1.5">
-                                                        <span className="text-xl font-black text-indigo-700 dark:text-indigo-400">
+                                                        <span className="text-xl font-black text-sky-600 dark:text-sky-400">
                                                             {formatBDT(
                                                                 course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price)
                                                                     ? Number(course.sale_price)
@@ -747,7 +747,7 @@ export const HomePage: React.FC = () => {
                                             </Link>
                                             <Link
                                                 to={`/checkout/${course.slug}`}
-                                                className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold text-xs text-white text-center transition-all shadow-sm cursor-pointer"
+                                                className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 font-bold text-xs text-white text-center transition-all shadow-md shadow-sky-500/20 cursor-pointer"
                                             >
                                                 কোর্সটি কিনুন
                                             </Link>
@@ -763,7 +763,7 @@ export const HomePage: React.FC = () => {
             {/* 4. COURSE BUNDLES SHOWCASE SECTION (Special High-Converting Bundles) */}
             {bundles.length > 0 && (
                 <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="bg-gradient-to-tr from-indigo-900 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden shadow-2xl border border-indigo-800/60">
+                    <div className="bg-gradient-to-tr from-slate-900 via-sky-950 to-slate-900 rounded-3xl p-6 sm:p-10 text-white relative overflow-hidden shadow-2xl border border-sky-800/60">
                         {/* Glow accent */}
                         <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -793,11 +793,11 @@ export const HomePage: React.FC = () => {
                             {bundles.map((bundle) => (
                                 <div
                                     key={bundle.id}
-                                    className="bg-slate-800/80 rounded-2xl border border-indigo-700/40 p-5 flex flex-col justify-between hover:border-amber-400 transition-all group"
+                                    className="bg-slate-800/80 rounded-2xl border border-sky-700/40 p-5 flex flex-col justify-between hover:border-amber-400 transition-all group"
                                 >
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-500/30 text-indigo-300 border border-indigo-400/30">
+                                            <span className="text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-sky-500/30 text-sky-200 border border-sky-400/30">
                                                 {bundle.courses_count || bundle.courses?.length || 0} টি কোর্স একসাথে
                                             </span>
                                             <span className="text-xs font-bold text-emerald-400">
@@ -865,7 +865,7 @@ export const HomePage: React.FC = () => {
 
             {/* 5. BONDI PATHSHALA STYLE ROUTINE & MODEL TEST CTA BANNER */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="bg-gradient-to-r from-sky-600 via-indigo-600 to-indigo-800 rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden shadow-xl">
+                <div className="bg-gradient-to-r from-sky-600 via-sky-700 to-amber-600 rounded-3xl p-8 sm:p-12 text-white relative overflow-hidden shadow-xl">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                         <div className="lg:col-span-8 space-y-4 text-center lg:text-left">
                             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-bold tracking-wide">
@@ -884,13 +884,13 @@ export const HomePage: React.FC = () => {
                         <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-center">
                             <Link
                                 to="/student/exams"
-                                className="px-6 py-3.5 bg-white hover:bg-slate-100 text-indigo-700 font-black rounded-2xl text-center text-sm shadow-md transition-all cursor-pointer"
+                                className="px-6 py-3.5 bg-white hover:bg-slate-100 text-sky-700 font-black rounded-2xl text-center text-sm shadow-md transition-all cursor-pointer"
                             >
                                 অনলাইন মডেল টেস্ট দিন
                             </Link>
                             <Link
                                 to="/courses?type=free"
-                                className="px-6 py-3.5 bg-indigo-900/60 hover:bg-indigo-900 text-white border border-white/20 font-bold rounded-2xl text-center text-sm transition-all cursor-pointer"
+                                className="px-6 py-3.5 bg-sky-900/60 hover:bg-sky-900 text-white border border-white/20 font-bold rounded-2xl text-center text-sm transition-all cursor-pointer"
                             >
                                 ফ্রি রিসোর্স ও ডেমো ক্লাস
                             </Link>
@@ -1020,7 +1020,7 @@ export const HomePage: React.FC = () => {
                                     className="w-[220px] sm:w-[245px] shrink-0 bg-white dark:bg-slate-900 rounded-[26px] border border-slate-200/90 dark:border-slate-800 p-2.5 sm:p-3 shadow-md hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col justify-between group cursor-pointer relative"
                                 >
                                     {/* Arched Photo / Portrait Container */}
-                                    <div className="relative aspect-[3/3.8] rounded-2xl overflow-hidden bg-gradient-to-b from-sky-400 via-indigo-600 to-indigo-950 dark:from-sky-500 dark:via-indigo-900 dark:to-slate-950 flex items-end justify-center">
+                                    <div className="relative aspect-[3/3.8] rounded-2xl overflow-hidden bg-gradient-to-b from-sky-400 via-sky-600 to-slate-950 dark:from-sky-500 dark:via-sky-800 dark:to-slate-950 flex items-end justify-center">
                                         {/* Radial soft lighting */}
                                         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent pointer-events-none" />
 
@@ -1131,8 +1131,8 @@ export const HomePage: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700/60 space-y-3 hover:border-indigo-500 transition-colors">
-                            <div className="w-12 h-12 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                        <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700/60 space-y-3 hover:border-sky-500 transition-colors">
+                            <div className="w-12 h-12 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center">
                                 <Video className="w-6 h-6" />
                             </div>
                             <h3 className="text-base font-bold text-white">কনসেপ্ট-ফার্স্ট শিখন</h3>
@@ -1141,7 +1141,7 @@ export const HomePage: React.FC = () => {
                             </p>
                         </div>
 
-                        <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700/60 space-y-3 hover:border-indigo-500 transition-colors">
+                        <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700/60 space-y-3 hover:border-sky-500 transition-colors">
                             <div className="w-12 h-12 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center">
                                 <Bot className="w-6 h-6" />
                             </div>
@@ -1151,7 +1151,7 @@ export const HomePage: React.FC = () => {
                             </p>
                         </div>
 
-                        <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700/60 space-y-3 hover:border-indigo-500 transition-colors">
+                        <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700/60 space-y-3 hover:border-emerald-500 transition-colors">
                             <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
                                 <ClipboardList className="w-6 h-6" />
                             </div>
@@ -1161,7 +1161,7 @@ export const HomePage: React.FC = () => {
                             </p>
                         </div>
 
-                        <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700/60 space-y-3 hover:border-indigo-500 transition-colors">
+                        <div className="bg-slate-800/80 p-6 rounded-2xl border border-slate-700/60 space-y-3 hover:border-amber-500 transition-colors">
                             <div className="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center">
                                 <FileText className="w-6 h-6" />
                             </div>
@@ -1177,7 +1177,7 @@ export const HomePage: React.FC = () => {
             {/* 8. FREQUENTLY ASKED QUESTIONS (FAQ Accordion) */}
             <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-10 space-y-2">
-                    <span className="text-xs font-bold text-indigo-600 uppercase tracking-widest bg-indigo-50 dark:bg-indigo-950/60 px-3 py-1 rounded-full">
+                    <span className="text-xs font-bold text-sky-600 uppercase tracking-widest bg-sky-50 dark:bg-sky-950/60 px-3 py-1 rounded-full">
                         সাধারণ জিজ্ঞাসা
                     </span>
                     <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
@@ -1199,12 +1199,12 @@ export const HomePage: React.FC = () => {
                                 <button
                                     type="button"
                                     onClick={() => setOpenFaq(isOpen ? null : idx)}
-                                    className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-bold text-sm sm:text-base text-slate-900 dark:text-white hover:text-indigo-600 transition-colors cursor-pointer"
+                                    className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-bold text-sm sm:text-base text-slate-900 dark:text-white hover:text-sky-600 transition-colors cursor-pointer"
                                 >
                                     <span>{faq.q}</span>
                                     <ChevronDown
                                         className={`w-5 h-5 text-slate-400 transition-transform duration-200 shrink-0 ${
-                                            isOpen ? 'rotate-180 text-indigo-600' : ''
+                                            isOpen ? 'rotate-180 text-sky-600' : ''
                                         }`}
                                     />
                                 </button>
@@ -1222,7 +1222,7 @@ export const HomePage: React.FC = () => {
             {/* 9. COMMUNITY & ADMISSION CONSULTANCY BANNER */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="bg-slate-900 text-white rounded-3xl p-8 sm:p-12 text-center space-y-6 relative overflow-hidden border border-slate-800">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-bold tracking-wide">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/20 text-sky-300 text-xs font-bold tracking-wide">
                         <Users className="w-3.5 h-3.5" />
                         <span>লার্নার্স কমিউনিটি</span>
                     </div>
@@ -1238,7 +1238,7 @@ export const HomePage: React.FC = () => {
                     <div className="flex flex-wrap justify-center gap-4 pt-2">
                         <Link
                             to="/courses"
-                            className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-2xl text-sm transition-all shadow-lg shadow-indigo-600/30 cursor-pointer"
+                            className="px-8 py-3.5 bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 text-white font-extrabold rounded-2xl text-sm transition-all shadow-lg shadow-sky-600/30 cursor-pointer"
                         >
                             কোর্সসমূহ দেখুন
                         </Link>

@@ -323,7 +323,7 @@ export const Navbar: React.FC = () => {
                             <div style={{ height: `${logoHeight}px`, width: '120px' }} className="shrink-0" />
                         ) : (
                             <div className="flex items-center gap-2">
-                                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white text-indigo-700 shadow-md flex items-center justify-center font-black group-hover:rotate-6 transition-transform">
+                                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white text-sky-700 shadow-md flex items-center justify-center font-black group-hover:rotate-6 transition-transform">
                                     <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6 text-sky-600" />
                                 </div>
                                 <div className="flex flex-col leading-none">
@@ -364,9 +364,9 @@ export const Navbar: React.FC = () => {
                                         }`}
                                     >
                                         {item.url.includes('course') ? (
-                                            <GraduationCap className="w-4 h-4 text-indigo-500" />
+                                            <GraduationCap className="w-4 h-4 text-sky-500" />
                                         ) : item.label.includes('বই') || item.label.toLowerCase().includes('book') ? (
-                                            <BookOpen className="w-4 h-4 text-sky-500" />
+                                            <BookOpen className="w-4 h-4 text-amber-500" />
                                         ) : (
                                             <Sparkles className="w-4 h-4 text-sky-500" />
                                         )}
@@ -567,7 +567,7 @@ export const Navbar: React.FC = () => {
                                 className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full bg-white/90 dark:bg-slate-800/90 text-slate-800 dark:text-white border border-slate-200/90 dark:border-slate-700 shadow-xs hover:border-sky-400 hover:text-sky-600 transition-all cursor-pointer group"
                                 title={user.role === 'admin' ? 'অ্যাডমিন প্যানেলে যান' : 'ড্যাশবোর্ডে যান'}
                             >
-                                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center">
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-amber-500 text-white font-bold text-xs flex items-center justify-center">
                                     {user.name.charAt(0).toUpperCase()}
                                 </div>
                                 <span className="font-extrabold text-xs sm:text-sm hidden sm:inline max-w-[100px] truncate">
@@ -649,7 +649,7 @@ export const Navbar: React.FC = () => {
                                             {item.url === '/' ? (
                                                 <Home className="w-4 h-4 text-sky-600" />
                                             ) : item.url.includes('course') ? (
-                                                <GraduationCap className="w-4 h-4 text-indigo-500" />
+                                                <GraduationCap className="w-4 h-4 text-sky-500" />
                                             ) : item.url.includes('contact') ? (
                                                 <Users className="w-4 h-4 text-amber-500" />
                                             ) : (
@@ -703,7 +703,7 @@ export const Navbar: React.FC = () => {
                                 <Link
                                     to={getDashboardPath()}
                                     onClick={() => setMobileMenuOpen(false)}
-                                    className="flex-1 py-2.5 text-center font-bold text-white bg-indigo-600 hover:bg-indigo-700 rounded-full text-xs shadow-sm flex items-center justify-center gap-1.5 transition-colors"
+                                    className="flex-1 py-2.5 text-center font-bold text-white bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 rounded-full text-xs shadow-md shadow-sky-500/25 flex items-center justify-center gap-1.5 transition-colors"
                                 >
                                     <Shield className="w-4 h-4" />
                                     <span>{user.role === 'admin' ? 'অ্যাডমিন প্যানেল' : `ড্যাশবোর্ড (${user.name.split(' ')[0]})`}</span>

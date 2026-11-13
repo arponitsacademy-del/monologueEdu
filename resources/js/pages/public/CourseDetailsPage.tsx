@@ -350,11 +350,11 @@ export const CourseDetailsPage: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* Admission Count & Class Start Badges (Matches User Image) */}
+                            {/* Admission Count & Class Start Badges (Sky Blue & Amber/Yellow Theme) */}
                             <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                                {/* Admission Count Badge */}
-                                <div className="bg-[#EEF0FD] border border-[#CCD2FA] rounded-2xl p-3 sm:p-3.5 flex items-center gap-3 shadow-2xs">
-                                    <div className="w-10 h-10 flex items-center justify-center shrink-0 text-[#3B49DF]">
+                                {/* Admission Count Badge (Sky Blue) */}
+                                <div className="bg-sky-50/80 border border-sky-200/90 rounded-2xl p-3 sm:p-3.5 flex items-center gap-3 shadow-2xs">
+                                    <div className="w-10 h-10 flex items-center justify-center shrink-0 text-sky-600">
                                         <svg viewBox="0 0 48 48" className="w-9 h-9" fill="currentColor">
                                             {/* Graduation cap */}
                                             <path d="M24 6L6 15l18 9 14-7V30h3V16.5L42 15 24 6z" />
@@ -373,15 +373,15 @@ export const CourseDetailsPage: React.FC = () => {
                                         <span className="text-xs sm:text-sm font-bold text-slate-700 block truncate">
                                             ভর্তি সংখ্যা
                                         </span>
-                                        <span className="text-2xl sm:text-3xl font-black text-[#3B49DF] leading-tight block">
+                                        <span className="text-2xl sm:text-3xl font-black text-sky-600 leading-tight block">
                                             {totalEnrolled}
                                         </span>
                                     </div>
                                 </div>
 
-                                {/* Class Start Badge */}
-                                <div className="bg-[#EEF0FD] border border-[#CCD2FA] rounded-2xl p-3 sm:p-3.5 flex items-center gap-3 shadow-2xs">
-                                    <div className="w-10 h-10 flex items-center justify-center shrink-0 text-[#3B49DF]">
+                                {/* Class Start Badge (Amber / Yellow) */}
+                                <div className="bg-amber-50/80 border border-amber-200/90 rounded-2xl p-3 sm:p-3.5 flex items-center gap-3 shadow-2xs">
+                                    <div className="w-10 h-10 flex items-center justify-center shrink-0 text-amber-500">
                                         <svg viewBox="0 0 48 48" className="w-9 h-9" fill="currentColor">
                                             {/* Calendar body */}
                                             <rect x="7" y="11" width="34" height="28" rx="5" fill="none" stroke="currentColor" strokeWidth="3" />
@@ -397,7 +397,7 @@ export const CourseDetailsPage: React.FC = () => {
                                             <circle cx="20" cy="29" r="1.5" />
                                             {/* Clock badge */}
                                             <circle cx="32" cy="31" r="7" fill="currentColor" />
-                                            <circle cx="32" cy="31" r="5" fill="#EEF0FD" />
+                                            <circle cx="32" cy="31" r="5" fill="#FEF3C7" />
                                             <path d="M32 28v3.5l2.5 1.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
                                         </svg>
                                     </div>
@@ -405,27 +405,27 @@ export const CourseDetailsPage: React.FC = () => {
                                         <span className="text-xs sm:text-sm font-bold text-slate-700 block truncate">
                                             ক্লাস শুরু
                                         </span>
-                                        <span className="text-base sm:text-lg font-black text-[#3B49DF] truncate block leading-tight">
+                                        <span className="text-base sm:text-lg font-black text-amber-600 truncate block leading-tight">
                                             {course.class_starts_at || 'Nov 09, 2026'}
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Coupon & Live Countdown Timer (Matches User Reference Image) */}
-                            <div className="border-[1.5px] border-dashed border-[#A5B4FC] bg-[#F7F8FF] rounded-2xl p-3 sm:p-4 space-y-3">
+                            {/* Coupon & Live Countdown Timer (Sky Blue & Amber Theme) */}
+                            <div className="border-[1.5px] border-dashed border-sky-300 bg-gradient-to-br from-sky-50/70 via-white to-amber-50/40 rounded-2xl p-3 sm:p-4 space-y-3">
                                 {/* Top Row: Coupon code, discount label, and Apply button */}
                                 <div className="flex items-center justify-between gap-2">
-                                    <div className="bg-white border border-[#A5B4FC] rounded-xl px-3 sm:px-4 py-1.5 font-mono font-black text-[#3B49DF] text-xs sm:text-sm tracking-wide shadow-2xs truncate">
+                                    <div className="bg-white border border-sky-300 rounded-xl px-3 sm:px-4 py-1.5 font-mono font-black text-sky-600 text-xs sm:text-sm tracking-wide shadow-2xs truncate">
                                         {promoCoupon}
                                     </div>
-                                    <span className="text-xs sm:text-sm font-black text-[#3B49DF] whitespace-nowrap">
+                                    <span className="text-xs sm:text-sm font-black text-amber-600 whitespace-nowrap">
                                         {discountText}
                                     </span>
                                     <button
                                         type="button"
                                         onClick={handleApplyCoupon}
-                                        className="bg-[#4F46E5] hover:bg-[#4338CA] text-white px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-black shadow-xs transition cursor-pointer whitespace-nowrap"
+                                        className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-black shadow-xs transition cursor-pointer whitespace-nowrap"
                                     >
                                         {copiedCoupon ? 'প্রয়োগ হয়েছে!' : 'প্রয়োগ করো'}
                                     </button>
@@ -433,36 +433,36 @@ export const CourseDetailsPage: React.FC = () => {
 
                                 {/* Bottom Row: 4 Countdown Pills */}
                                 <div className="grid grid-cols-4 gap-2 text-center">
-                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-50 flex flex-col items-center justify-center">
-                                        <span className="text-base sm:text-lg font-black text-[#3B49DF] leading-tight">{timeLeft.days}</span>
-                                        <span className="text-[10px] sm:text-[11px] font-bold text-[#6366F1]">দিন</span>
+                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-sky-100 flex flex-col items-center justify-center">
+                                        <span className="text-base sm:text-lg font-black text-sky-600 leading-tight">{timeLeft.days}</span>
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-amber-600">দিন</span>
                                     </div>
-                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-50 flex flex-col items-center justify-center">
-                                        <span className="text-base sm:text-lg font-black text-[#3B49DF] leading-tight">{timeLeft.hours}</span>
-                                        <span className="text-[10px] sm:text-[11px] font-bold text-[#6366F1]">ঘণ্টা</span>
+                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-sky-100 flex flex-col items-center justify-center">
+                                        <span className="text-base sm:text-lg font-black text-sky-600 leading-tight">{timeLeft.hours}</span>
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-amber-600">ঘণ্টা</span>
                                     </div>
-                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-50 flex flex-col items-center justify-center">
-                                        <span className="text-base sm:text-lg font-black text-[#3B49DF] leading-tight">{timeLeft.minutes}</span>
-                                        <span className="text-[10px] sm:text-[11px] font-bold text-[#6366F1]">মিনিট</span>
+                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-sky-100 flex flex-col items-center justify-center">
+                                        <span className="text-base sm:text-lg font-black text-sky-600 leading-tight">{timeLeft.minutes}</span>
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-amber-600">মিনিট</span>
                                     </div>
-                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-indigo-50 flex flex-col items-center justify-center">
-                                        <span className="text-base sm:text-lg font-black text-[#3B49DF] leading-tight">{timeLeft.seconds}</span>
-                                        <span className="text-[10px] sm:text-[11px] font-bold text-[#6366F1]">সেকেন্ড</span>
+                                    <div className="bg-white rounded-xl shadow-2xs py-2 px-1 border border-sky-100 flex flex-col items-center justify-center">
+                                        <span className="text-base sm:text-lg font-black text-sky-600 leading-tight">{timeLeft.seconds}</span>
+                                        <span className="text-[10px] sm:text-[11px] font-bold text-amber-600">সেকেন্ড</span>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Centered Price Section (Matches Screenshot) */}
+                            {/* Centered Price Section (Sky Blue) */}
                             <div className="text-center py-1 flex items-baseline justify-center gap-3">
                                 {course.price === 0 ? (
                                     <span className="text-3xl sm:text-4xl font-black text-emerald-600">Free</span>
                                 ) : (
                                     <>
-                                        <span className="text-3xl sm:text-4xl font-black text-[#3B49DF] tracking-tight">
+                                        <span className="text-3xl sm:text-4xl font-black text-sky-600 tracking-tight">
                                             {formatBDT(effectivePrice)}
                                         </span>
                                         {hasDiscount && (
-                                            <span className="text-xl sm:text-2xl font-bold text-slate-500 line-through">
+                                            <span className="text-xl sm:text-2xl font-bold text-slate-400 line-through">
                                                 {formatBDT(course.price)}
                                             </span>
                                         )}
@@ -470,12 +470,12 @@ export const CourseDetailsPage: React.FC = () => {
                                 )}
                             </div>
 
-                            {/* Action CTA */}
+                            {/* Action CTA (Sky Blue & Amber Theme) */}
                             <div className="space-y-2.5">
                                 {isEnrolled ? (
                                     <Link
                                         to={firstLessonId ? `/learning/${course.id}/lessons/${firstLessonId}` : '/student/my-courses'}
-                                        className="w-full py-4 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-black text-lg flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 transition-all"
+                                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-black text-lg flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 transition-all"
                                     >
                                         <PlayCircle className="w-5 h-5" />
                                         <span>ক্লাস শুরু করুন</span>
@@ -484,7 +484,7 @@ export const CourseDetailsPage: React.FC = () => {
                                     <button
                                         onClick={handleFreeEnroll}
                                         disabled={enrollingFree}
-                                        className="w-full py-4 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-black text-lg flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 transition-all disabled:opacity-50 cursor-pointer"
+                                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 text-white font-black text-lg flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25 transition-all disabled:opacity-50 cursor-pointer"
                                     >
                                         <Sparkles className="w-5 h-5" />
                                         <span>{enrollingFree ? 'এনরোল হচ্ছে...' : 'ফ্রিতে ক্লাস শুরু করুন'}</span>
@@ -492,19 +492,19 @@ export const CourseDetailsPage: React.FC = () => {
                                 ) : (
                                     <Link
                                         to={`/checkout/${course.slug}${promoCoupon ? `?coupon=${promoCoupon}` : ''}`}
-                                        className="w-full py-4 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-black text-lg flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/25 transition-all"
+                                        className="w-full py-4 rounded-2xl bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 text-white font-black text-lg flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25 hover:shadow-xl hover:shadow-sky-500/35 transition-all"
                                     >
                                         <span>কোর্সটি কিনুন</span>
                                     </Link>
                                 )}
 
-                                {/* Secondary: 'কোর্সটি কীভাবে কিনবেন' button (Matches user screenshot) */}
+                                {/* Secondary: 'কোর্সটি কীভাবে কিনবেন' button */}
                                 <button
                                     type="button"
                                     onClick={() => setShowHowToBuyModal(true)}
-                                    className="w-full py-3.5 px-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-indigo-600 font-bold text-base flex items-center justify-center gap-2.5 shadow-2xs transition group cursor-pointer"
+                                    className="w-full py-3.5 px-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-sky-600 font-bold text-base flex items-center justify-center gap-2.5 shadow-2xs transition group cursor-pointer"
                                 >
-                                    <PlayCircle className="w-5 h-5 text-slate-400 group-hover:text-indigo-600 transition" />
+                                    <PlayCircle className="w-5 h-5 text-slate-400 group-hover:text-sky-600 transition" />
                                     <span>কোর্সটি কীভাবে কিনবেন</span>
                                 </button>
 
@@ -517,12 +517,12 @@ export const CourseDetailsPage: React.FC = () => {
                                                 href={btn.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="w-full py-3.5 px-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-indigo-600 font-bold text-sm flex items-center justify-center gap-2 shadow-2xs transition group"
+                                                className="w-full py-3.5 px-4 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 hover:text-sky-600 font-bold text-sm flex items-center justify-center gap-2 shadow-2xs transition group"
                                             >
                                                 {btn.type === 'file' ? (
-                                                    <FileText className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition" />
+                                                    <FileText className="w-4 h-4 text-slate-400 group-hover:text-sky-600 transition" />
                                                 ) : (
-                                                    <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 transition" />
+                                                    <ExternalLink className="w-4 h-4 text-slate-400 group-hover:text-sky-600 transition" />
                                                 )}
                                                 <span>{btn.label}</span>
                                             </a>
@@ -559,7 +559,7 @@ export const CourseDetailsPage: React.FC = () => {
                         </button>
 
                         <div className="flex items-center gap-2.5">
-                            <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
+                            <div className="w-10 h-10 rounded-xl bg-sky-100 flex items-center justify-center text-sky-600 shrink-0">
                                 <PlayCircle className="w-6 h-6" />
                             </div>
                             <div>
@@ -592,20 +592,20 @@ export const CourseDetailsPage: React.FC = () => {
                             </div>
                         ) : (
                             <div className="space-y-2.5 py-1">
-                                <div className="flex items-start gap-3 p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100">
-                                    <span className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">1</span>
-                                    <p className="text-xs text-slate-700 font-medium">নিচে বা সাইডবারে <strong className="text-indigo-700">"কোর্সটি কিনুন"</strong> বাটনে ক্লিক করে চেকআউট পেজে যান।</p>
+                                <div className="flex items-start gap-3 p-3 rounded-2xl bg-sky-50/70 border border-sky-100">
+                                    <span className="w-6 h-6 rounded-full bg-sky-600 text-white font-bold text-xs flex items-center justify-center shrink-0">1</span>
+                                    <p className="text-xs text-slate-700 font-medium">নিচে বা সাইডবারে <strong className="text-sky-700">"কোর্সটি কিনুন"</strong> বাটনে ক্লিক করে চেকআউট পেজে যান।</p>
                                 </div>
-                                <div className="flex items-start gap-3 p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100">
-                                    <span className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">2</span>
-                                    <p className="text-xs text-slate-700 font-medium">কুপন কোড <strong className="text-indigo-700 font-mono">{promoCoupon}</strong> স্বয়ংক্রিয়ভাবে ডিসকাউন্ট প্রযোজ্য করবে।</p>
+                                <div className="flex items-start gap-3 p-3 rounded-2xl bg-sky-50/70 border border-sky-100">
+                                    <span className="w-6 h-6 rounded-full bg-sky-600 text-white font-bold text-xs flex items-center justify-center shrink-0">2</span>
+                                    <p className="text-xs text-slate-700 font-medium">কুপন কোড <strong className="text-sky-700 font-mono">{promoCoupon}</strong> স্বয়ংক্রিয়ভাবে ডিসকাউন্ট প্রযোজ্য করবে।</p>
                                 </div>
-                                <div className="flex items-start gap-3 p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100">
-                                    <span className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">3</span>
+                                <div className="flex items-start gap-3 p-3 rounded-2xl bg-sky-50/70 border border-sky-100">
+                                    <span className="w-6 h-6 rounded-full bg-sky-600 text-white font-bold text-xs flex items-center justify-center shrink-0">3</span>
                                     <p className="text-xs text-slate-700 font-medium">বিকাশ, নগদ, রকেট অথবা সুর্যপে এর মাধ্যমে পেমেন্ট সম্পন্ন করুন।</p>
                                 </div>
-                                <div className="flex items-start gap-3 p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100">
-                                    <span className="w-6 h-6 rounded-full bg-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0">4</span>
+                                <div className="flex items-start gap-3 p-3 rounded-2xl bg-sky-50/70 border border-sky-100">
+                                    <span className="w-6 h-6 rounded-full bg-sky-600 text-white font-bold text-xs flex items-center justify-center shrink-0">4</span>
                                     <p className="text-xs text-slate-700 font-medium">পেমেন্ট নিশ্চিত হওয়ার সাথে সাথে আপনার ড্যাশবোর্ডে কোর্সটি চালু হয়ে যাবে।</p>
                                 </div>
                             </div>
@@ -615,7 +615,7 @@ export const CourseDetailsPage: React.FC = () => {
                             <Link
                                 to={`/checkout/${course.slug}${promoCoupon ? `?coupon=${promoCoupon}` : ''}`}
                                 onClick={() => setShowHowToBuyModal(false)}
-                                className="w-full py-3.5 rounded-2xl bg-[#4F46E5] hover:bg-[#4338CA] text-white font-black text-sm flex items-center justify-center gap-2 shadow-md transition"
+                                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 text-white font-black text-sm flex items-center justify-center gap-2 shadow-md transition"
                             >
                                 <span>কোর্সটি কিনুন</span>
                                 <ArrowRight className="w-4 h-4" />

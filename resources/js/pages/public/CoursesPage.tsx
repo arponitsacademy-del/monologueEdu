@@ -250,7 +250,7 @@ export const CoursesPage: React.FC = () => {
                         return (
                             <div
                                 key={course.id}
-                                className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-2xl hover:border-indigo-400 dark:hover:border-indigo-500 transition-all flex flex-col overflow-hidden relative"
+                                className="group bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-2xl hover:border-sky-400 dark:hover:border-sky-500 transition-all flex flex-col overflow-hidden relative"
                             >
                                 {/* Thumbnail Header */}
                                 <Link to={`/courses/${course.slug}`} className="block relative aspect-video bg-slate-900 overflow-hidden cursor-pointer group/thumb">
@@ -266,8 +266,8 @@ export const CoursesPage: React.FC = () => {
                                             }}
                                         />
                                     ) : null}
-                                    <div className={`fallback-thumb w-full h-full ${thumbUrl ? 'hidden' : 'flex'} items-center justify-center bg-gradient-to-tr from-slate-800 to-indigo-950 text-white`}>
-                                        <BookOpen className="w-12 h-12 text-indigo-400 opacity-60" />
+                                    <div className={`fallback-thumb w-full h-full ${thumbUrl ? 'hidden' : 'flex'} items-center justify-center bg-gradient-to-tr from-slate-800 to-sky-950 text-white`}>
+                                        <BookOpen className="w-12 h-12 text-sky-400 opacity-60" />
                                     </div>
 
                                     {/* Discount Badge */}
@@ -294,7 +294,7 @@ export const CoursesPage: React.FC = () => {
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-2 text-xs font-semibold text-slate-400">
                                             <span className="flex items-center gap-1">
-                                                <Video className="w-3.5 h-3.5 text-indigo-500" />
+                                                <Video className="w-3.5 h-3.5 text-sky-500" />
                                                 <span>{course.lessons_count || 0} টি ক্লাস</span>
                                             </span>
                                             <span>•</span>
@@ -307,7 +307,7 @@ export const CoursesPage: React.FC = () => {
                                         <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 transition-colors line-clamp-2">
                                             <Link
                                                 to={`/courses/${course.slug}`}
-                                                className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
+                                                className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors cursor-pointer"
                                             >
                                                 {course.title}
                                             </Link>
@@ -347,12 +347,12 @@ export const CoursesPage: React.FC = () => {
                                                     <span className="text-lg font-black text-emerald-600">ফ্রি</span>
                                                 ) : (
                                                     <div className="flex items-baseline gap-1.5">
-                                                        <span className="text-xl font-black text-indigo-700 dark:text-indigo-400">
+                                                        <span className="text-xl font-black text-sky-600 dark:text-sky-400">
                                                             {formatBDT(
                                                                 course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price)
                                                                     ? Number(course.sale_price)
                                                                     : (course.effective_price ?? Number(course.price))
-                                                            )}
+                                                             )}
                                                         </span>
                                                         {course.sale_price !== null && course.sale_price !== undefined && Number(course.sale_price) < Number(course.price) && (
                                                             <span className="text-xs text-slate-400 line-through">
@@ -374,7 +374,7 @@ export const CoursesPage: React.FC = () => {
                                             </Link>
                                             <Link
                                                 to={`/checkout/${course.slug}`}
-                                                className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 font-bold text-xs text-white text-center transition-all shadow-sm cursor-pointer"
+                                                className="py-2.5 px-3 rounded-xl bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 font-bold text-xs text-white text-center transition-all shadow-md shadow-sky-500/20 cursor-pointer"
                                             >
                                                 কোর্সটি কিনুন
                                             </Link>

@@ -251,7 +251,7 @@ export const TeacherProfilePage: React.FC = () => {
                     <div className="bg-white dark:bg-slate-900 rounded-[28px] p-6 sm:p-10 border border-slate-200/90 dark:border-slate-800 shadow-xl shadow-slate-200/40 dark:shadow-none flex flex-col md:flex-row items-center md:items-start gap-8 lg:gap-10">
                         {/* Arched Portrait Box */}
                         <div className="relative shrink-0 w-52 sm:w-60">
-                            <div className="relative aspect-[3/3.8] rounded-3xl overflow-hidden bg-gradient-to-b from-sky-400 via-indigo-600 to-indigo-950 dark:from-sky-500 dark:via-indigo-900 dark:to-slate-950 flex items-end justify-center shadow-lg">
+                            <div className="relative aspect-[3/3.8] rounded-3xl overflow-hidden bg-gradient-to-b from-sky-400 via-sky-600 to-slate-950 dark:from-sky-500 dark:via-sky-800 dark:to-slate-950 flex items-end justify-center shadow-lg">
                                 {/* Soft radial glow */}
                                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/20 via-transparent to-transparent pointer-events-none" />
 
@@ -334,7 +334,7 @@ export const TeacherProfilePage: React.FC = () => {
                             {/* Quick Stats Bar */}
                             <div className="pt-2 flex flex-wrap items-center justify-center md:justify-start gap-3 text-xs font-semibold">
                                 <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
-                                    <BookOpen className="w-4 h-4 text-indigo-500" />
+                                    <BookOpen className="w-4 h-4 text-sky-500" />
                                     <span>কোর্স: <strong className="text-slate-900 dark:text-slate-100 font-bold">{teacher.courses_count || courses.length} টি</strong></span>
                                 </div>
 
@@ -413,7 +413,7 @@ export const TeacherProfilePage: React.FC = () => {
                                                 }}
                                             />
                                         ) : null}
-                                        <div className={`fallback-thumb w-full h-full ${(course.thumbnail || (course as any).thumbnail_url) ? 'hidden' : 'flex'} items-center justify-center bg-gradient-to-tr from-slate-800 to-indigo-950 text-white`}>
+                                        <div className={`fallback-thumb w-full h-full ${(course.thumbnail || (course as any).thumbnail_url) ? 'hidden' : 'flex'} items-center justify-center bg-gradient-to-tr from-slate-800 to-sky-950 text-white`}>
                                             <BookOpen className="w-12 h-12 text-sky-400 opacity-60" />
                                         </div>
 

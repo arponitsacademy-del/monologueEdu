@@ -110,7 +110,7 @@ export const StudentDashboardPage: React.FC = () => {
                             আজকে পড়া শুরু করো
                         </p>
                         {user?.registration_number && (
-                            <span className="text-[11px] font-extrabold text-indigo-700 bg-indigo-50 border border-indigo-200/80 px-2 py-0.5 rounded-full font-mono">
+                            <span className="text-[11px] font-extrabold text-sky-700 bg-sky-50 border border-sky-200/80 px-2 py-0.5 rounded-full font-mono">
                                 আইডি: {user.registration_number}
                             </span>
                         )}
@@ -138,7 +138,7 @@ export const StudentDashboardPage: React.FC = () => {
                     {/* Video Thumbnail */}
                     <Link
                         to={continueUrl}
-                        className="w-full sm:w-56 h-36 bg-gradient-to-tr from-slate-950 via-slate-900 to-indigo-950 rounded-2xl relative overflow-hidden flex items-center justify-center shrink-0 shadow-inner group cursor-pointer"
+                        className="w-full sm:w-56 h-36 bg-gradient-to-tr from-slate-950 via-slate-900 to-sky-950 rounded-2xl relative overflow-hidden flex items-center justify-center shrink-0 shadow-inner group cursor-pointer"
                     >
                         {recentCourse?.course?.thumbnail ? (
                             <img
@@ -147,7 +147,7 @@ export const StudentDashboardPage: React.FC = () => {
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                             />
                         ) : (
-                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-600/40 via-slate-900 to-indigo-950 flex flex-col items-center justify-center p-3 text-center">
+                            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-600/40 via-slate-900 to-sky-950 flex flex-col items-center justify-center p-3 text-center">
                                 <span className="text-[10px] font-bold text-sky-400 uppercase tracking-widest">
                                     বাংলা ব্যাকরণ
                                 </span>
@@ -158,7 +158,7 @@ export const StudentDashboardPage: React.FC = () => {
 
                         {/* Centered Play Button */}
                         <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-sky-600/30 group-hover:scale-110 transition-transform pl-0.5">
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-sky-500 to-amber-500 text-white flex items-center justify-center shadow-lg shadow-sky-600/30 group-hover:scale-110 transition-transform pl-0.5">
                                 <Play className="w-5 h-5 fill-white text-white" />
                             </div>
                         </div>
@@ -183,7 +183,7 @@ export const StudentDashboardPage: React.FC = () => {
                             </div>
                             <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-gradient-to-r from-sky-500 to-indigo-600 rounded-full transition-all duration-500"
+                                    className="h-full bg-gradient-to-r from-sky-500 to-amber-500 rounded-full transition-all duration-500"
                                     style={{ width: `${progressPercent}%` }}
                                 />
                             </div>
@@ -193,7 +193,7 @@ export const StudentDashboardPage: React.FC = () => {
                         <div className="pt-2">
                             <Link
                                 to={continueUrl}
-                                className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold text-xs rounded-full transition-all shadow-md shadow-sky-600/20"
+                                className="inline-flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 text-white font-bold text-xs rounded-full transition-all shadow-md shadow-sky-600/20"
                             >
                                 <span>শুরু করো</span>
                                 <ArrowRight className="w-3.5 h-3.5" />
@@ -289,7 +289,7 @@ export const StudentDashboardPage: React.FC = () => {
                         ) : upcomingLiveClass ? (
                             <Link
                                 to={`/student/live-classes/${upcomingLiveClass.id}`}
-                                className="w-full py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-bold text-xs rounded-full transition-all shadow-md shadow-sky-600/20 text-center block"
+                                className="w-full py-2.5 bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 text-white font-bold text-xs rounded-full transition-all shadow-md shadow-sky-600/20 text-center block"
                             >
                                 বিস্তারিত ও রুম লিংক
                             </Link>
@@ -328,14 +328,14 @@ export const StudentDashboardPage: React.FC = () => {
                 {/* 2. পরীক্ষা */}
                 <Link
                     to="/student/exams"
-                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:border-indigo-300 hover:shadow-sm transition-all group flex items-center justify-between relative"
+                    className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:border-amber-300 hover:shadow-sm transition-all group flex items-center justify-between relative"
                 >
                     <div className="flex items-center gap-3.5">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                             <FileText className="w-6 h-6" />
                         </div>
                         <div>
-                            <div className="font-extrabold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors">
+                            <div className="font-extrabold text-slate-800 text-sm group-hover:text-amber-600 transition-colors">
                                 পরীক্ষা
                             </div>
                             <div className="text-[11px] font-bold text-slate-400 mt-0.5">

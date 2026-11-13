@@ -232,7 +232,7 @@ export const AiMarkdownMessage: React.FC<AiMarkdownMessageProps> = ({ content, c
                 return (
                     <span
                         key={index}
-                        className="px-1 py-0.2 mx-0.5 font-serif italic text-indigo-700 dark:text-indigo-300 bg-indigo-50/70 dark:bg-indigo-950/40 rounded border border-indigo-200/50 dark:border-indigo-800/50"
+                        className="px-1 py-0.2 mx-0.5 font-serif italic text-sky-700 dark:text-sky-300 bg-sky-50/70 dark:bg-sky-950/40 rounded border border-sky-200/50 dark:border-sky-800/50"
                     >
                         {part.slice(1, -1)}
                     </span>

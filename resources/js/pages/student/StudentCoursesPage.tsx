@@ -172,7 +172,7 @@ export const StudentCoursesPage: React.FC = () => {
                                             <h3 className="font-bold text-slate-900 text-base line-clamp-2 flex-1">
                                                 <Link
                                                     to={`/courses/${course.slug}`}
-                                                    className="hover:text-indigo-600 transition-colors cursor-pointer"
+                                                    className="hover:text-sky-600 transition-colors cursor-pointer"
                                                 >
                                                     {course.title}
                                                 </Link>
@@ -181,7 +181,7 @@ export const StudentCoursesPage: React.FC = () => {
                                             {item.has_nexpilot ? (
                                                 <Link
                                                     to={`/student/courses/${course.id}/nexpilot`}
-                                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-sky-600 to-indigo-600 text-white text-[11px] font-bold rounded-lg shadow-xs hover:from-sky-700 hover:to-indigo-700 shrink-0 transition-all hover:scale-105"
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 text-white text-[11px] font-bold rounded-lg shadow-xs hover:from-sky-600 hover:to-sky-800 shrink-0 transition-all hover:scale-105"
                                                     title="NexPilot AI Tutor"
                                                 >
                                                     <Sparkles className="w-3 h-3 text-amber-300" />
@@ -252,10 +252,10 @@ export const StudentCoursesPage: React.FC = () => {
                                             <button
                                                 type="button"
                                                 onClick={() => handleOpenUnlock(item)}
-                                                className="px-3 py-2.5 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-700 hover:to-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
+                                                className="px-3 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
                                                 title="Unlock NexPilot AI Tutor for this course"
                                             >
-                                                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                                <Sparkles className="w-3.5 h-3.5 text-white" />
                                                 <span>{item.pilot_price > 0 ? 'Get Pilot' : 'Enable Free'}</span>
                                             </button>
                                         </div>
@@ -286,8 +286,8 @@ export const StudentCoursesPage: React.FC = () => {
                 {selectedCourseForUnlock && (
                     <div className="space-y-4">
                         {/* Course & Pilot Overview Card */}
-                        <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-sky-50/50 to-white border border-indigo-100 flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <div className="p-4 rounded-2xl bg-gradient-to-br from-sky-50/70 via-amber-50/40 to-white border border-sky-100 flex items-start gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
                                 <Bot className="w-5 h-5" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -295,7 +295,7 @@ export const StudentCoursesPage: React.FC = () => {
                                     <h4 className="font-bold text-sm text-slate-900 truncate">
                                         {selectedCourseForUnlock.course?.title}
                                     </h4>
-                                    <span className="font-black text-sm text-indigo-600 shrink-0">
+                                    <span className="font-black text-sm text-sky-600 shrink-0">
                                         {formatBDT(selectedCourseForUnlock.pilot_price)}
                                     </span>
                                 </div>

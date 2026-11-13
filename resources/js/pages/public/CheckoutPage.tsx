@@ -391,7 +391,7 @@ export const CheckoutPage: React.FC = () => {
                                 >
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-sky-500/20">
+                                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-500 to-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-sky-500/20">
                                                 <Zap className="w-5 h-5" />
                                             </div>
                                             <div>
@@ -505,7 +505,7 @@ export const CheckoutPage: React.FC = () => {
                                     type="button"
                                     onClick={handleShurjopayCheckout}
                                     disabled={submitting}
-                                    className="w-full py-4 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 text-white font-black text-base rounded-2xl shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-4 cursor-pointer"
+                                    className="w-full py-4 bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 text-white font-black text-base rounded-2xl shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-4 cursor-pointer"
                                 >
                                     {submitting ? (
                                         <>
@@ -663,7 +663,7 @@ export const CheckoutPage: React.FC = () => {
                                 onClick={() => setIncludeNexPilot(!includeNexPilot)}
                                 className={`p-4 rounded-2xl border-2 transition-all cursor-pointer select-none ${
                                     includeNexPilot 
-                                        ? 'bg-linear-to-br from-indigo-50/80 via-sky-50/50 to-white border-indigo-400 shadow-xs' 
+                                        ? 'bg-linear-to-br from-amber-50/80 via-sky-50/50 to-white border-sky-400 shadow-xs' 
                                         : 'bg-slate-50 border-slate-200 hover:border-slate-300 opacity-80'
                                 }`}
                             >
@@ -673,7 +673,7 @@ export const CheckoutPage: React.FC = () => {
                                         checked={includeNexPilot}
                                         onChange={(e) => setIncludeNexPilot(e.target.checked)}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="mt-1 w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                        className="mt-1 w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
                                     />
                                     <div className="flex-1">
                                         <div className="flex items-center justify-between gap-2">
@@ -681,7 +681,7 @@ export const CheckoutPage: React.FC = () => {
                                                 <Sparkles className="w-4 h-4 text-amber-500" />
                                                 <span>NexPilot AI Tutor</span>
                                             </span>
-                                            <span className="font-black text-sm text-indigo-600">
+                                            <span className="font-black text-sm text-amber-600">
                                                 +{formatBDT(nexpilot.price)}
                                             </span>
                                         </div>
@@ -689,7 +689,7 @@ export const CheckoutPage: React.FC = () => {
                                             {nexpilot.short_description || 'Comprehensive 24/7 personalized AI tutor assistance across all theory and practice.'}
                                         </p>
                                         <div className="mt-2.5 flex items-center gap-2">
-                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-700">
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-700">
                                                 Theory + Practice
                                             </span>
                                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-700">
@@ -733,7 +733,7 @@ export const CheckoutPage: React.FC = () => {
                             ) : (
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                                        <Tag className="w-3.5 h-3.5 text-indigo-500" />
+                                        <Tag className="w-3.5 h-3.5 text-sky-500" />
                                         <span>Have a Referral or Promo Code?</span>
                                     </label>
                                     <div className="flex gap-2">
@@ -766,19 +766,19 @@ export const CheckoutPage: React.FC = () => {
                         {/* Coupon Code Box */}
                         <div className="pt-2 border-t border-slate-100">
                             {appliedCoupon ? (
-                                <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-2xl flex items-center justify-between">
+                                <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-2xl flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <div className="p-1.5 bg-indigo-100 rounded-lg text-indigo-700">
+                                        <div className="p-1.5 bg-amber-100 rounded-lg text-amber-700">
                                             <TicketPercent className="w-4 h-4" />
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-1.5">
-                                                <span className="font-mono font-bold text-xs text-indigo-900">{appliedCoupon.code}</span>
-                                                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-indigo-200/80 text-indigo-800 rounded">
+                                                <span className="font-mono font-bold text-xs text-amber-900">{appliedCoupon.code}</span>
+                                                <span className="text-[10px] font-bold px-1.5 py-0.5 bg-amber-200/80 text-amber-800 rounded">
                                                     -৳{appliedCoupon.calculated_discount} OFF
                                                 </span>
                                             </div>
-                                            <p className="text-[11px] text-indigo-700 mt-0.5">
+                                            <p className="text-[11px] text-amber-700 mt-0.5">
                                                 {appliedCoupon.title}
                                             </p>
                                         </div>
@@ -795,7 +795,7 @@ export const CheckoutPage: React.FC = () => {
                             ) : (
                                 <div className="space-y-1.5">
                                     <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
-                                        <TicketPercent className="w-3.5 h-3.5 text-indigo-600" />
+                                        <TicketPercent className="w-3.5 h-3.5 text-amber-600" />
                                         <span>Have a Discount Coupon?</span>
                                     </label>
                                     <div className="flex gap-2">
@@ -804,13 +804,13 @@ export const CheckoutPage: React.FC = () => {
                                             value={couponInput}
                                             onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
                                             placeholder="Enter coupon code..."
-                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono uppercase focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono uppercase focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                                         />
                                         <button
                                             type="button"
                                             disabled={checkingCoupon || !couponInput.trim()}
                                             onClick={() => validateCouponCode(couponInput, course.id)}
-                                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors disabled:opacity-50 shrink-0 flex items-center gap-1 cursor-pointer"
+                                            className="px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white rounded-xl text-xs font-bold transition-colors disabled:opacity-50 shrink-0 flex items-center gap-1 cursor-pointer shadow-xs"
                                         >
                                             {checkingCoupon && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                                             <span>Apply</span>
@@ -850,9 +850,9 @@ export const CheckoutPage: React.FC = () => {
                             )}
 
                             {couponDiscount > 0 && (
-                                <div className="flex justify-between text-indigo-600 font-medium">
+                                <div className="flex justify-between text-amber-600 font-medium">
                                     <span className="flex items-center gap-1.5">
-                                        <TicketPercent className="w-3.5 h-3.5 text-indigo-600" />
+                                        <TicketPercent className="w-3.5 h-3.5 text-amber-600" />
                                         <span>Coupon Discount ({appliedCoupon?.code})</span>
                                     </span>
                                     <span className="font-semibold">- {formatBDT(couponDiscount)}</span>
@@ -860,7 +860,7 @@ export const CheckoutPage: React.FC = () => {
                             )}
 
                             {hasActivePilot && includeNexPilot && (
-                                <div className="flex justify-between text-indigo-600 font-medium">
+                                <div className="flex justify-between text-sky-600 font-medium">
                                     <span className="flex items-center gap-1.5">
                                         <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                                         <span>NexPilot AI Learning Assistant</span>

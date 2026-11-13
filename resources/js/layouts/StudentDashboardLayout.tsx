@@ -248,7 +248,7 @@ export const StudentDashboardLayout: React.FC = () => {
                                     />
                                 ) : (
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-black shadow-xs">
+                                        <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-amber-500 text-white flex items-center justify-center font-black shadow-xs">
                                             <GraduationCap className="w-5 h-5" />
                                         </div>
                                         <span className="font-extrabold text-base tracking-tight text-slate-900">
@@ -311,7 +311,7 @@ export const StudentDashboardLayout: React.FC = () => {
                                                                 onClick={() => setSidebarOpen(false)}
                                                                 className={`flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold text-xs transition-all ${
                                                                     isChildActive
-                                                                        ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-xs'
+                                                                        ? 'bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 text-white shadow-xs'
                                                                         : 'text-slate-500 hover:text-sky-600 hover:bg-sky-50/70'
                                                                 }`}
                                                             >
@@ -339,7 +339,7 @@ export const StudentDashboardLayout: React.FC = () => {
                                             }}
                                             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all text-left cursor-pointer ${
                                                 active
-                                                    ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/25'
+                                                    ? 'bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 text-white shadow-md shadow-sky-600/25'
                                                     : 'text-slate-600 hover:text-sky-600 hover:bg-sky-50/80'
                                             }`}
                                         >
@@ -355,7 +355,7 @@ export const StudentDashboardLayout: React.FC = () => {
                                         to={item.path}
                                         className={`flex items-center gap-3 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all ${
                                             active
-                                                ? 'bg-gradient-to-r from-sky-600 to-indigo-600 text-white shadow-md shadow-sky-600/25'
+                                                ? 'bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 text-white shadow-md shadow-sky-600/25'
                                                 : 'text-slate-600 hover:text-sky-600 hover:bg-sky-50/80'
                                         }`}
                                     >
@@ -392,7 +392,7 @@ export const StudentDashboardLayout: React.FC = () => {
                                 className="flex items-center gap-2 truncate hover:opacity-80 transition-opacity group"
                                 title="প্রোফাইল তথ্য ও সেটিংস"
                             >
-                                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                                <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-sky-500 to-amber-500 text-white font-bold text-xs flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                                     {user.name.charAt(0).toUpperCase()}
                                 </div>
                                 <span className="text-xs font-bold text-slate-700 truncate max-w-[120px] group-hover:text-sky-600">
@@ -520,7 +520,7 @@ export const StudentDashboardLayout: React.FC = () => {
                             title="প্রোফাইল তথ্য ও সেটিংস"
                             className="flex items-center gap-2 group cursor-pointer"
                         >
-                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-sky-500 via-indigo-600 to-sky-600 p-0.5 shadow-2xs group-hover:scale-105 transition-transform">
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gradient-to-tr from-sky-500 via-sky-600 to-amber-500 p-0.5 shadow-2xs group-hover:scale-105 transition-transform">
                                 <div className="w-full h-full rounded-full bg-white flex items-center justify-center font-black text-xs sm:text-sm text-sky-700">
                                     {user.name.charAt(0).toUpperCase()}
                                 </div>

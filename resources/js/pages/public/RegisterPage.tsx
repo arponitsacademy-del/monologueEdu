@@ -113,7 +113,7 @@ export const RegisterPage: React.FC = () => {
         <div className="min-h-[85vh] flex items-center justify-center px-4 py-12">
             <div className="max-w-md w-full space-y-8 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl">
                 <div className="text-center space-y-2">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white mx-auto shadow-md shadow-sky-500/20">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-amber-500 flex items-center justify-center text-white mx-auto shadow-md shadow-sky-500/20">
                         <BookOpen className="w-6 h-6" />
                     </div>
                     <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
