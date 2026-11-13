@@ -32,5 +32,20 @@ class TeacherProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function getPhotoUrlAttribute(?string $value): ?string
+    {
+        if (! $value) {
+            return null;
+        }
+        if (str_starts_with($value, 'http://') || str_starts_with($value, 'https://') || str_starts_with($value, 'data:')) {
+            return $value;
+        }
+        $path = ltrim($value, '/');
+        if (! str_starts_with($path, 'storage/') && ! str_starts_with($path, 'images/')) {
+            $path = 'storage/' . $path;
+        }
+        return asset($path);
+    }
 }
 

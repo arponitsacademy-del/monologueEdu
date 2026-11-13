@@ -40,6 +40,12 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = [
+        'photo_url',
+        'designation',
+        'institution',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -252,6 +258,21 @@ class User extends Authenticatable
     public function teacherProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
     {
         return $this->hasOne(TeacherProfile::class);
+    }
+
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return $this->teacherProfile?->photo_url;
+    }
+
+    public function getDesignationAttribute(): ?string
+    {
+        return $this->teacherProfile?->designation;
+    }
+
+    public function getInstitutionAttribute(): ?string
+    {
+        return $this->teacherProfile?->institution;
     }
 
     public function affiliateProfile(): \Illuminate\Database\Eloquent\Relations\HasOne

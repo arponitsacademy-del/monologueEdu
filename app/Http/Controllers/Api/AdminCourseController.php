@@ -112,7 +112,7 @@ class AdminCourseController extends Controller
     public function show(Course $course): JsonResponse
     {
         return response()->json([
-            'course' => $course->load(['instructors:id,name,email', 'categories:id,name', 'sections.lessons.attachments']),
+            'course' => $course->load(['instructors.teacherProfile', 'instructor.teacherProfile', 'categories:id,name', 'sections.lessons.attachments']),
         ]);
     }
 

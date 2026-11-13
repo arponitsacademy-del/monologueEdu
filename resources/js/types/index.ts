@@ -37,6 +37,15 @@ export interface User {
     unread_notifications_count?: number;
     enrolled_courses?: Course[];
     instructed_courses?: Course[];
+    photo_url?: string | null;
+    designation?: string | null;
+    institution?: string | null;
+    teacher_profile?: {
+        photo_url?: string | null;
+        designation?: string | null;
+        institution?: string | null;
+        bio?: string | null;
+    } | null;
     created_at?: string;
 }
 

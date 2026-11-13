@@ -13,7 +13,7 @@ class PublicCourseController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Course::query()
-            ->with(['instructors:id,name,email,role', 'instructor:id,name,email', 'categories:id,name,slug'])
+            ->with(['instructors.teacherProfile', 'instructor.teacherProfile', 'categories:id,name,slug'])
             ->withCount(['lessons', 'enrollments'])
             ->published();
 
@@ -56,8 +56,8 @@ class PublicCourseController extends Controller
     {
         $course = Course::where('slug', $slug)
             ->with([
-                'instructors:id,name,email,role',
-                'instructor:id,name,email',
+                'instructors.teacherProfile',
+                'instructor.teacherProfile',
                 'categories:id,name,slug',
                 'nexpilot' => function ($q) {
                     $q->select('id', 'course_id', 'title', 'price', 'short_description', 'is_active')

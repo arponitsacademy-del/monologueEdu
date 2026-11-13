@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { apiClient, formatBDT } from '../../api/client';
+import { apiClient, formatBDT, getImageUrl } from '../../api/client';
 import { Course } from '../../types';
 import { MathView } from '../../components/shared/MathView';
 import { useAuth } from '../../context/AuthContext';
@@ -152,6 +152,10 @@ export const CourseDetailsPage: React.FC = () => {
 
     if (!course) return null;
 
+    const allInstructors: any[] = (course.instructors && course.instructors.length > 0)
+        ? course.instructors
+        : (course.instructor ? [course.instructor] : []);
+
     const firstLessonId = course.sections?.[0]?.lessons?.[0]?.id;
     const totalEnrolled = (course.fake_enrollment_count || 0) + (course.enrollments_count || 0);
     const courseFeatures = (course.features && course.features.length > 0) ? course.features : DEFAULT_FEATURES;
@@ -192,7 +196,7 @@ export const CourseDetailsPage: React.FC = () => {
                             {course.short_description || 'Special course prepared according to the complete syllabus.'}
                         </p>
 
-                        <div className="flex flex-wrap items-center gap-6 pt-2 text-xs sm:text-sm text-slate-400">
+                        <div className="flex flex-wrap items-center gap-5 sm:gap-6 pt-2 text-xs sm:text-sm text-slate-400">
                             <span className="flex items-center gap-1.5">
                                 <BookOpen className="w-4 h-4 text-sky-400" />
                                 {course.lessons_count || 0} Lessons
@@ -201,6 +205,33 @@ export const CourseDetailsPage: React.FC = () => {
                                 <Users className="w-4 h-4 text-sky-400" />
                                 {totalEnrolled} Students
                             </span>
+                            {allInstructors.length > 0 && (
+                                <div className="flex items-center gap-2 border-l border-slate-700/80 pl-5">
+                                    <div className="flex -space-x-2 overflow-hidden">
+                                        {allInstructors.slice(0, 3).map((inst: any) => {
+                                            const p = inst.photo_url || inst.teacher_profile?.photo_url || inst.teacherProfile?.photo_url;
+                                            return p ? (
+                                                <img
+                                                    key={inst.id}
+                                                    src={getImageUrl(p)}
+                                                    alt={inst.name}
+                                                    className="inline-block h-6 w-6 rounded-full ring-2 ring-slate-900 object-cover object-top"
+                                                />
+                                            ) : (
+                                                <div
+                                                    key={inst.id}
+                                                    className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-sky-600 text-[10px] font-bold text-white ring-2 ring-slate-900"
+                                                >
+                                                    {inst.name.charAt(0).toUpperCase()}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <span className="text-xs text-slate-300 font-medium">
+                                        ইন্সট্রাক্টর: <strong className="text-white font-bold">{allInstructors.map((i: any) => i.name).join(', ')}</strong>
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -306,29 +337,84 @@ export const CourseDetailsPage: React.FC = () => {
                         </div>
 
                         {/* Instructors */}
-                        <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200/80 shadow-2xs space-y-4">
-                            <h2 className="text-xl font-bold text-slate-900">Course Instructors</h2>
+                        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-5">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                                    <GraduationCap className="w-5 h-5" />
+                                </div>
+                                <h2 className="text-xl font-black text-slate-900 tracking-tight">কোর্স ইন্সট্রাক্টরবৃন্দ</h2>
+                            </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                {course.instructors && course.instructors.length > 0 ? (
-                                    course.instructors.map((teacher) => (
-                                        <div key={teacher.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-xl bg-sky-600 text-white font-bold flex items-center justify-center text-lg">
-                                                {teacher.name.charAt(0)}
+                                {allInstructors.length > 0 ? (
+                                    allInstructors.map((teacher: any) => {
+                                        const rawPhoto = teacher.photo_url 
+                                            || teacher.teacher_profile?.photo_url 
+                                            || teacher.teacherProfile?.photo_url 
+                                            || teacher.photo 
+                                            || teacher.avatar;
+                                        const photoSrc = rawPhoto ? getImageUrl(rawPhoto) : '';
+                                        const designation = teacher.designation 
+                                            || teacher.teacher_profile?.designation 
+                                            || teacher.teacherProfile?.designation 
+                                            || 'অনলাইন শিক্ষক ও মেন্টর';
+                                        const institution = teacher.institution 
+                                            || teacher.teacher_profile?.institution 
+                                            || teacher.teacherProfile?.institution;
+
+                                        return (
+                                            <div 
+                                                key={teacher.id} 
+                                                className="p-4 sm:p-5 rounded-2xl border border-slate-100 bg-slate-50/70 hover:bg-white hover:border-sky-300 hover:shadow-md transition-all flex items-center gap-4 group"
+                                            >
+                                                {/* Teacher Photo / Avatar with rounded frame and fallback */}
+                                                <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shrink-0 bg-gradient-to-tr from-sky-500 to-amber-500 p-0.5 shadow-md shadow-sky-500/15 group-hover:scale-105 transition-transform">
+                                                    {photoSrc ? (
+                                                        <img
+                                                            src={photoSrc}
+                                                            alt={teacher.name}
+                                                            className="w-full h-full object-cover object-top rounded-[14px] bg-slate-200"
+                                                            onError={(e) => {
+                                                                (e.currentTarget as HTMLElement).style.display = 'none';
+                                                                const fallback = e.currentTarget.parentElement?.querySelector('.teacher-fallback-avatar') as HTMLElement;
+                                                                if (fallback) fallback.style.display = 'flex';
+                                                            }}
+                                                        />
+                                                    ) : null}
+                                                    <div className={`teacher-fallback-avatar w-full h-full ${photoSrc ? 'hidden' : 'flex'} items-center justify-center rounded-[14px] bg-gradient-to-tr from-sky-600 to-slate-900 text-white font-black text-2xl`}>
+                                                        {teacher.name ? teacher.name.charAt(0).toUpperCase() : 'T'}
+                                                    </div>
+                                                </div>
+
+                                                {/* Teacher Details */}
+                                                <div className="min-w-0 flex-1">
+                                                    <Link 
+                                                        to={`/instructors/${teacher.id}`}
+                                                        className="font-black text-slate-900 text-base sm:text-lg hover:text-sky-600 transition-colors line-clamp-1 block cursor-pointer"
+                                                    >
+                                                        {teacher.name}
+                                                    </Link>
+                                                    <p className="text-xs text-sky-600 font-bold mt-0.5 line-clamp-1">
+                                                        {designation}
+                                                    </p>
+                                                    {institution && (
+                                                        <p className="text-[11px] text-slate-500 font-medium mt-0.5 line-clamp-1">
+                                                            {institution}
+                                                        </p>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h4 className="font-bold text-slate-900 text-sm">{teacher.name}</h4>
-                                                <p className="text-xs text-slate-500">Online Teacher & Mentor</p>
-                                            </div>
-                                        </div>
-                                    ))
+                                        );
+                                    })
                                 ) : (
-                                    <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50 flex items-center gap-3">
-                                        <div className="w-12 h-12 rounded-xl bg-sky-600 text-white font-bold flex items-center justify-center text-lg">
-                                            M
+                                    <div className="p-4 sm:p-5 rounded-2xl border border-slate-100 bg-slate-50/70 flex items-center gap-4">
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-sky-500 to-amber-500 p-0.5 shadow-md shrink-0 flex items-center justify-center">
+                                            <div className="w-full h-full rounded-[14px] bg-slate-900 text-white flex items-center justify-center font-black text-2xl">
+                                                M
+                                            </div>
                                         </div>
                                         <div>
-                                            <h4 className="font-bold text-slate-900 text-sm">Monologue Edu Expert Faculty</h4>
-                                            <p className="text-xs text-slate-500">Experienced Academic Mentor</p>
+                                            <h4 className="font-bold text-slate-900 text-base">মনোলগ এডু বিশেষজ্ঞ ফ্যাকাল্টি</h4>
+                                            <p className="text-xs text-slate-500 font-medium mt-0.5">অভিজ্ঞ একাডেমিক ও ভর্তি মেন্টরবৃন্দ</p>
                                         </div>
                                     </div>
                                 )}
@@ -341,13 +427,21 @@ export const CourseDetailsPage: React.FC = () => {
                         <div className="sticky top-28 bg-white rounded-2xl border border-slate-200/80 shadow-xl overflow-hidden space-y-6 p-6">
                             {/* Course Image */}
                             <div className="aspect-video bg-slate-900 rounded-xl overflow-hidden -mx-2 -mt-2">
-                                {course.thumbnail ? (
-                                    <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-white">
-                                        <BookOpen className="w-12 h-12 text-sky-400 opacity-60" />
-                                    </div>
-                                )}
+                                {(course.thumbnail || (course as any).thumbnail_url) ? (
+                                    <img 
+                                        src={getImageUrl(course.thumbnail || (course as any).thumbnail_url)} 
+                                        alt={course.title} 
+                                        className="w-full h-full object-cover" 
+                                        onError={(e) => {
+                                            (e.currentTarget as HTMLElement).style.display = 'none';
+                                            const fallback = e.currentTarget.parentElement?.querySelector('.course-fallback-img') as HTMLElement;
+                                            if (fallback) fallback.style.display = 'flex';
+                                        }}
+                                    />
+                                ) : null}
+                                <div className={`course-fallback-img w-full h-full ${(course.thumbnail || (course as any).thumbnail_url) ? 'hidden' : 'flex'} items-center justify-center text-white bg-slate-900`}>
+                                    <BookOpen className="w-12 h-12 text-sky-400 opacity-60" />
+                                </div>
                             </div>
 
                             {/* Admission Count & Class Start Badges (Sky Blue & Amber/Yellow Theme) */}
