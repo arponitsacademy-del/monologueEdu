@@ -118,9 +118,40 @@ class AuthController extends Controller
             ], 422);
         }
 
-        $user = User::where('phone', $normalizedPhone)->first();
+        $user = null;
+        if (! $normalizedPhone) {
+            if (filter_var($validated['phone'], FILTER_VALIDATE_EMAIL)) {
+                $user = User::where('email', strtolower(trim($validated['phone'])))->first();
+            } else {
+                return response()->json([
+                    'message' => 'সঠিক বাংলাদেশি মোবাইল নম্বর প্রদান করুন (যেমন: 017xxxxxxxx)।',
+                    'errors' => ['phone' => ['সঠিক বাংলাদেশি মোবাইল নম্বর দিন।']],
+                ], 422);
+            }
+        } else {
+            $user = User::where('phone', $normalizedPhone)->first();
+        }
 
-        if (! $user || ! Hash::check($validated['password'], $user->password)) {
+        if (! $user) {
+            return response()->json([
+                'message' => 'মোবাইল নম্বর অথবা পাসওয়ার্ড সঠিক নয়।',
+                'errors' => ['phone' => ['মোবাইল নম্বর অথবা পাসওয়ার্ড সঠিক নয়।']],
+            ], 401);
+        }
+
+        $passwordMatches = false;
+        if (str_starts_with($user->password, '$wp$') || str_starts_with($user->password, '$P$') || str_starts_with($user->password, '$H$')) {
+            $wpHasher = new \App\Services\WordPressHasher();
+            if ($wpHasher->checkPassword($validated['password'], $user->password)) {
+                $passwordMatches = true;
+                $user->password = Hash::make($validated['password']);
+                $user->save();
+            }
+        } else {
+            $passwordMatches = Hash::check($validated['password'], $user->password);
+        }
+
+        if (! $passwordMatches) {
             return response()->json([
                 'message' => 'মোবাইল নম্বর অথবা পাসওয়ার্ড সঠিক নয়।',
                 'errors' => ['phone' => ['মোবাইল নম্বর অথবা পাসওয়ার্ড সঠিক নয়।']],

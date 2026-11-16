@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Services\WordPressHasher;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -28,16 +30,37 @@ class AuthController extends Controller
         ]);
 
         $normalizedPhone = User::normalizePhone($validated['phone']);
+        $user = $normalizedPhone ? User::where('phone', $normalizedPhone)->first() : null;
 
-        if ($normalizedPhone === null || ! Auth::attempt([
-            'phone' => $normalizedPhone,
-            'password' => $validated['password'],
-        ])) {
+        if (! $user && filter_var($validated['phone'], FILTER_VALIDATE_EMAIL)) {
+            $user = User::where('email', strtolower(trim($validated['phone'])))->first();
+        }
+
+        if (! $user) {
             return back()->withErrors([
                 'phone' => 'Invalid phone number or password.',
             ])->onlyInput('phone');
         }
 
+        $passwordMatches = false;
+        if (str_starts_with($user->password, '$wp$') || str_starts_with($user->password, '$P$') || str_starts_with($user->password, '$H$')) {
+            $wpHasher = new WordPressHasher();
+            if ($wpHasher->checkPassword($validated['password'], $user->password)) {
+                $passwordMatches = true;
+                $user->password = Hash::make($validated['password']);
+                $user->save();
+            }
+        } else {
+            $passwordMatches = Hash::check($validated['password'], $user->password);
+        }
+
+        if (! $passwordMatches) {
+            return back()->withErrors([
+                'phone' => 'Invalid phone number or password.',
+            ])->onlyInput('phone');
+        }
+
+        Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
         return redirect()->intended(route('dashboard'));
