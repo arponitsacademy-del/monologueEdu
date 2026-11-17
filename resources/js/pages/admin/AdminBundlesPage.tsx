@@ -10,14 +10,18 @@ import {
     Edit, 
     Trash2, 
     BookOpen, 
-    Percent
+    Percent,
+    RotateCcw
 } from 'lucide-react';
 
 export const AdminBundlesPage: React.FC = () => {
     const [bundles, setBundles] = useState<CourseBundle[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState(() => {
+        const p = new URLSearchParams(window.location.search);
+        return p.get('status') || '';
+    });
     const [deletingId, setDeletingId] = useState<number | null>(null);
 
     useEffect(() => {
@@ -44,7 +48,7 @@ export const AdminBundlesPage: React.FC = () => {
     };
 
     const handleDelete = async (bundle: CourseBundle) => {
-        if (!confirm(`Are you sure you want to delete bundle "${bundle.title}"? Included courses will not be deleted.`)) {
+        if (!confirm(`আপনি কি নিশ্চিতভাবে বান্ডেল "${bundle.title}" ট্র্যাশে পাঠাতে চান? পরবর্তীতে ট্র্যাশ থেকে এটি যেকোনো সময় পুনরুদ্ধার করা যাবে।`)) {
             return;
         }
 
@@ -56,6 +60,29 @@ export const AdminBundlesPage: React.FC = () => {
             alert(err.response?.data?.message || 'Failed to delete course bundle.');
         } finally {
             setDeletingId(null);
+        }
+    };
+
+    const handleRestore = async (bundle: CourseBundle) => {
+        try {
+            await apiClient.post(`/admin/bundles/${bundle.id}/restore`);
+            setBundles(prev => prev.filter(b => b.id !== bundle.id));
+            alert(`বান্ডেল "${bundle.title}" সফলভাবে পুনরুদ্ধার করা হয়েছে!`);
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to restore course bundle.');
+        }
+    };
+
+    const handleForceDelete = async (bundle: CourseBundle) => {
+        if (!confirm(`সতর্কতা: আপনি কি নিশ্চিতভাবে বান্ডেল "${bundle.title}" স্থায়ীভাবে মুছে ফেলতে চান? এটি আর কখনোই পুনরুদ্ধার করা যাবে না!`)) {
+            return;
+        }
+
+        try {
+            await apiClient.delete(`/admin/bundles/${bundle.id}/force-delete`);
+            setBundles(prev => prev.filter(b => b.id !== bundle.id));
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to permanently delete course bundle.');
         }
     };
 
@@ -98,14 +125,41 @@ export const AdminBundlesPage: React.FC = () => {
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
-                        className="w-full sm:w-auto bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700"
+                        className={`w-full sm:w-auto bg-slate-50 border rounded-xl px-4 py-2.5 text-xs sm:text-sm font-semibold ${
+                            statusFilter === 'trashed' ? 'border-rose-300 text-rose-700 bg-rose-50' : 'border-slate-200 text-slate-700'
+                        }`}
                     >
-                        <option value="">All Statuses</option>
+                        <option value="">All Statuses (সকল স্ট্যাটাস)</option>
                         <option value="published">Published</option>
                         <option value="draft">Draft</option>
+                        <option value="trashed">🗑️ ট্র্যাশ (Trash)</option>
                     </select>
+
+                    <button
+                        type="button"
+                        onClick={() => setStatusFilter(prev => prev === 'trashed' ? '' : 'trashed')}
+                        className={`px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                            statusFilter === 'trashed'
+                                ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
+                        }`}
+                        title="Trash / রিসাইকেল বিন"
+                    >
+                        <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                        <span>{statusFilter === 'trashed' ? 'সব বান্ডেলে ফিরুন' : 'ট্র্যাশ (Trash)'}</span>
+                    </button>
                 </div>
             </div>
+
+            {/* Trash Mode Notice */}
+            {statusFilter === 'trashed' && (
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-2xl flex items-center gap-2 text-xs text-rose-800">
+                    <Trash2 className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span className="font-semibold">
+                        ট্র্যাশ মোড (Trash Bin): এখানে মুছে ফেলা কোর্স বান্ডেল সংরক্ষিত আছে। আপনি বান্ডেল পুনরুদ্ধার (Restore) করতে পারেন অথবা ডাটাবেজ থেকে স্থায়ীভাবে মুছে ফেলতে পারেন।
+                    </span>
+                </div>
+            )}
 
             {/* Table */}
             <div className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
@@ -234,31 +288,54 @@ export const AdminBundlesPage: React.FC = () => {
                                             </td>
 
                                             {/* Action */}
-                                            <td className="py-4 px-6 text-right">
+                                            <td className="py-4 px-6 text-right whitespace-nowrap">
                                                 <div className="inline-flex items-center gap-1.5">
-                                                    <Link
-                                                        to={`/admin/bundles/${bundle.id}/builder`}
-                                                        title="Open Realtime Bundle Builder"
-                                                        className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold rounded-lg flex items-center gap-1 text-xs transition-colors cursor-pointer"
-                                                    >
-                                                        <Wrench className="w-3.5 h-3.5" />
-                                                        <span>Builder</span>
-                                                    </Link>
-                                                    <Link
-                                                        to={`/admin/bundles/${bundle.id}/edit`}
-                                                        title="Edit Bundle Details"
-                                                        className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors cursor-pointer"
-                                                    >
-                                                        <Edit className="w-4 h-4" />
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleDelete(bundle)}
-                                                        disabled={deletingId === bundle.id}
-                                                        title="Delete Bundle"
-                                                        className="p-1.5 hover:bg-rose-50 text-rose-500 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
+                                                    {statusFilter === 'trashed' ? (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleRestore(bundle)}
+                                                                title="পুনরুদ্ধার করুন (Restore)"
+                                                                className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold rounded-lg flex items-center gap-1 text-xs transition-colors cursor-pointer border border-emerald-200"
+                                                            >
+                                                                <RotateCcw className="w-3.5 h-3.5" />
+                                                                <span>পুনরুদ্ধার</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleForceDelete(bundle)}
+                                                                title="স্থায়ীভাবে মুছুন (Permanent Delete)"
+                                                                className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg flex items-center gap-1 text-xs transition-colors cursor-pointer border border-rose-200"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                                <span>স্থায়ী মুছুন</span>
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <Link
+                                                                to={`/admin/bundles/${bundle.id}/builder`}
+                                                                title="Open Realtime Bundle Builder"
+                                                                className="px-3 py-1.5 bg-sky-50 hover:bg-sky-100 text-sky-700 font-bold rounded-lg flex items-center gap-1 text-xs transition-colors cursor-pointer"
+                                                            >
+                                                                <Wrench className="w-3.5 h-3.5" />
+                                                                <span>Builder</span>
+                                                            </Link>
+                                                            <Link
+                                                                to={`/admin/bundles/${bundle.id}/edit`}
+                                                                title="Edit Bundle Details"
+                                                                className="p-1.5 hover:bg-slate-100 text-slate-600 rounded-lg transition-colors cursor-pointer"
+                                                            >
+                                                                <Edit className="w-4 h-4" />
+                                                            </Link>
+                                                            <button
+                                                                onClick={() => handleDelete(bundle)}
+                                                                disabled={deletingId === bundle.id}
+                                                                title="Delete Bundle"
+                                                                className="p-1.5 hover:bg-rose-50 text-rose-500 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </td>
                                         </tr>

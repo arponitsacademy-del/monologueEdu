@@ -57,7 +57,9 @@ class AdminCouponController extends Controller
         if ($request->filled('status')) {
             $status = $request->status;
             $now = Carbon::now();
-            if ($status === 'active') {
+            if ($status === 'trashed') {
+                $query->onlyTrashed();
+            } elseif ($status === 'active') {
                 $query->where('is_active', true)
                     ->where(function ($q) use ($now) {
                         $q->whereNull('start_date')->orWhere('start_date', '<=', $now);
@@ -70,6 +72,8 @@ class AdminCouponController extends Controller
             } elseif ($status === 'expired') {
                 $query->where('expiry_date', '<', $now);
             }
+        } elseif ($request->boolean('trashed')) {
+            $query->onlyTrashed();
         }
 
         $perPage = (int) $request->get('per_page', 15);
@@ -96,6 +100,7 @@ class AdminCouponController extends Controller
                 'active_coupons' => $activeCoupons,
                 'total_redemptions' => $totalRedemptions,
                 'total_discount_given' => $totalDiscountGiven,
+                'trashed_coupons' => Coupon::onlyTrashed()->count(),
             ],
         ]);
     }
@@ -277,7 +282,30 @@ class AdminCouponController extends Controller
         $coupon->delete();
 
         return response()->json([
-            'message' => 'Coupon deleted successfully!',
+            'message' => 'কুপনটি ট্র্যাশে সরানো হয়েছে। প্রয়োজনে ট্র্যাশ থেকে পুনরুদ্ধার করা যাবে।',
+        ]);
+    }
+
+    public function restore($id): JsonResponse
+    {
+        $coupon = Coupon::onlyTrashed()->findOrFail($id);
+        $coupon->restore();
+
+        return response()->json([
+            'message' => 'কুপনটি সফলভাবে পুনরুদ্ধার করা হয়েছে।',
+            'coupon' => $coupon,
+        ]);
+    }
+
+    public function forceDelete($id): JsonResponse
+    {
+        $coupon = Coupon::withTrashed()->findOrFail($id);
+        $coupon->courses()->detach();
+        $coupon->categories()->detach();
+        $coupon->forceDelete();
+
+        return response()->json([
+            'message' => 'কুপনটি স্থায়ীভাবে মুছে ফেলা হয়েছে।',
         ]);
     }
 

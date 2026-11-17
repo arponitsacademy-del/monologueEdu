@@ -160,6 +160,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/{exam}', [ExamController::class, 'show']);
         Route::put('/{exam}', [ExamController::class, 'update']);
         Route::delete('/{exam}', [ExamController::class, 'destroy']);
+        Route::post('/{id}/restore', [ExamController::class, 'restore']);
+        Route::delete('/{id}/force-delete', [ExamController::class, 'forceDelete']);
 
         // Exam Builder
         Route::get('/{exam}/questions', [ExamBuilderController::class, 'getQuestions']);
@@ -268,6 +270,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('courses/{course}', [AdminCourseController::class, 'show']);
         Route::put('courses/{course}', [AdminCourseController::class, 'update']);
         Route::delete('courses/{course}', [AdminCourseController::class, 'destroy']);
+        Route::post('courses/{id}/restore', [AdminCourseController::class, 'restore']);
+        Route::delete('courses/{id}/force-delete', [AdminCourseController::class, 'forceDelete']);
         Route::get('teachers-list', [AdminCourseController::class, 'teachersList']);
 
         // Course Category Management
@@ -332,6 +336,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('bundles/{bundle}', [AdminBundleController::class, 'show']);
         Route::put('bundles/{bundle}', [AdminBundleController::class, 'update']);
         Route::delete('bundles/{bundle}', [AdminBundleController::class, 'destroy']);
+        Route::post('bundles/{id}/restore', [AdminBundleController::class, 'restore']);
+        Route::delete('bundles/{id}/force-delete', [AdminBundleController::class, 'forceDelete']);
         Route::post('bundles/{bundle}/courses', [AdminBundleController::class, 'addCourse']);
         Route::delete('bundles/{bundle}/courses/{course}', [AdminBundleController::class, 'removeCourse']);
         Route::post('bundles/{bundle}/courses/reorder', [AdminBundleController::class, 'reorderCourses']);
@@ -351,6 +357,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('coupons/{id}', [AdminCouponController::class, 'show']);
         Route::put('coupons/{id}', [AdminCouponController::class, 'update']);
         Route::delete('coupons/{id}', [AdminCouponController::class, 'destroy']);
+        Route::post('coupons/{id}/restore', [AdminCouponController::class, 'restore']);
+        Route::delete('coupons/{id}/force-delete', [AdminCouponController::class, 'forceDelete']);
         Route::post('coupons/{id}/toggle-status', [AdminCouponController::class, 'toggleStatus']);
 
         // Website Settings & Appearance (Header / Footer Builder / Manual Payment)

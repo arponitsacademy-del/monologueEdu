@@ -36,7 +36,8 @@ import {
     Boxes,
     TicketPercent,
     Megaphone,
-    Loader2
+    Loader2,
+    Trash2
 } from 'lucide-react';
 
 export const DashboardLayout: React.FC = () => {
@@ -263,6 +264,7 @@ export const DashboardLayout: React.FC = () => {
                     ]
                 },
                 { title: t.sidebar.settings, path: '/admin/settings', icon: Settings, permission: 'settings.manage' },
+                { title: 'Recycle Bin (ট্র্যাশ)', path: '/admin/trash', icon: Trash2, permission: 'courses.view' },
             ];
 
             if (user.role === 'admin') {

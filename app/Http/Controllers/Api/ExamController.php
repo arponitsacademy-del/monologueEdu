@@ -105,7 +105,9 @@ class ExamController extends Controller
             });
         }
 
-        if ($request->filled('status')) {
+        if ($request->status === 'trashed' || $request->boolean('trashed')) {
+            $query->onlyTrashed();
+        } elseif ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
@@ -250,7 +252,31 @@ class ExamController extends Controller
         $exam->delete();
 
         return response()->json([
-            'message' => 'Exam deleted successfully.',
+            'message' => 'পরীক্ষাটি (Exam) ট্র্যাশে সরানো হয়েছে। প্রয়োজনে ট্র্যাশ থেকে পুনরুদ্ধার করা যাবে।',
+        ]);
+    }
+
+    public function restore(Request $request, $id): JsonResponse
+    {
+        $exam = Exam::onlyTrashed()->findOrFail($id);
+        $this->authorizeExam($request->user(), $exam);
+        $exam->restore();
+
+        return response()->json([
+            'message' => 'পরীক্ষাটি সফলভাবে পুনরুদ্ধার করা হয়েছে।',
+            'exam' => $exam,
+        ]);
+    }
+
+    public function forceDelete(Request $request, $id): JsonResponse
+    {
+        $exam = Exam::withTrashed()->findOrFail($id);
+        $this->authorizeExam($request->user(), $exam);
+        $exam->courses()->detach();
+        $exam->forceDelete();
+
+        return response()->json([
+            'message' => 'পরীক্ষাটি স্থায়ীভাবে মুছে ফেলা হয়েছে।',
         ]);
     }
 }

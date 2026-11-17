@@ -18,7 +18,8 @@ import {
     CheckCircle2,
     Users,
     ChevronRight,
-    Loader2
+    Loader2,
+    RotateCcw
 } from 'lucide-react';
 
 export const ExamListPage: React.FC = () => {
@@ -32,7 +33,10 @@ export const ExamListPage: React.FC = () => {
     const [exams, setExams] = useState<Exam[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState(() => {
+        const p = new URLSearchParams(window.location.search);
+        return p.get('status') || '';
+    });
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [totalExams, setTotalExams] = useState(0);
@@ -62,7 +66,7 @@ export const ExamListPage: React.FC = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (!window.confirm('Are you sure you want to delete this exam? This will remove all questions and student submissions.')) {
+        if (!window.confirm('আপনি কি নিশ্চিতভাবে এই পরীক্ষাটি (Exam) ট্র্যাশে পাঠাতে চান? পরবর্তীতে ট্র্যাশ থেকে এটি যেকোনো সময় পুনরুদ্ধার করা যাবে।')) {
             return;
         }
 
@@ -75,6 +79,31 @@ export const ExamListPage: React.FC = () => {
             alert(err.response?.data?.message || 'Failed to delete exam.');
         } finally {
             setDeletingId(null);
+        }
+    };
+
+    const handleRestore = async (id: number) => {
+        try {
+            await apiClient.post(`/exams/${id}/restore`);
+            setExams(prev => prev.filter(e => e.id !== id));
+            setTotalExams(prev => Math.max(0, prev - 1));
+            alert('পরীক্ষাটি সফলভাবে পুনরুদ্ধার করা হয়েছে!');
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to restore exam.');
+        }
+    };
+
+    const handleForceDelete = async (id: number) => {
+        if (!window.confirm('সতর্কতা: আপনি কি নিশ্চিতভাবে এই পরীক্ষাটি স্থায়ীভাবে মুছে ফেলতে চান? এটি আর কখনোই পুনরুদ্ধার করা যাবে না!')) {
+            return;
+        }
+
+        try {
+            await apiClient.delete(`/exams/${id}/force-delete`);
+            setExams(prev => prev.filter(e => e.id !== id));
+            setTotalExams(prev => Math.max(0, prev - 1));
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to permanently delete exam.');
         }
     };
 
@@ -158,15 +187,44 @@ export const ExamListPage: React.FC = () => {
                     <select
                         value={statusFilter}
                         onChange={e => setStatusFilter(e.target.value)}
-                        className="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        className={`px-3 py-2 rounded-xl border bg-slate-50 dark:bg-slate-800/60 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 ${
+                            statusFilter === 'trashed'
+                                ? 'border-rose-400 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60'
+                                : 'border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white'
+                        }`}
                     >
-                        <option value="">All Statuses</option>
+                        <option value="">All Statuses (সকল স্ট্যাটাস)</option>
                         <option value="published">Published</option>
                         <option value="draft">Draft</option>
                         <option value="archived">Archived</option>
+                        <option value="trashed">🗑️ ট্র্যাশ (Trash)</option>
                     </select>
+
+                    <button
+                        type="button"
+                        onClick={() => setStatusFilter(prev => prev === 'trashed' ? '' : 'trashed')}
+                        className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                            statusFilter === 'trashed'
+                                ? 'bg-rose-100 text-rose-800 border border-rose-300 dark:bg-rose-950 dark:text-rose-200'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 border border-slate-200 dark:border-slate-700'
+                        }`}
+                        title="Trash / রিসাইকেল বিন"
+                    >
+                        <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                        <span>{statusFilter === 'trashed' ? 'সব পরীক্ষায় ফিরুন' : 'ট্র্যাশ (Trash)'}</span>
+                    </button>
                 </div>
             </div>
+
+            {/* Trash Mode Notice */}
+            {statusFilter === 'trashed' && (
+                <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl flex items-center gap-2 text-xs text-rose-800 dark:text-rose-200">
+                    <Trash2 className="w-4 h-4 text-rose-600 shrink-0" />
+                    <span className="font-semibold">
+                        ট্র্যাশ মোড (Trash Bin): এখানে পূর্বে মুছে ফেলা পরীক্ষাগুলো (Exams) সংরক্ষিত রয়েছে। আপনি পরীক্ষা পুনরুদ্ধার (Restore) করতে পারেন অথবা ডাটাবেজ থেকে স্থায়ীভাবে মুছে ফেলতে পারেন।
+                    </span>
+                </div>
+            )}
 
             {/* Exams Table / Cards */}
             {loading ? (
@@ -283,46 +341,69 @@ export const ExamListPage: React.FC = () => {
                                                 </span>
                                             )}
                                         </td>
-                                        <td className="px-6 py-4 text-right">
+                                        <td className="px-6 py-4 text-right whitespace-nowrap">
                                             <div className="flex items-center justify-end gap-1.5">
-                                                {/* Exam Builder button */}
-                                                <Link
-                                                    to={`${basePath}/${exam.id}/builder`}
-                                                    title="Exam Builder"
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900 text-sky-600 dark:text-sky-300 font-semibold text-xs transition-colors border border-sky-200 dark:border-sky-800/40"
-                                                >
-                                                    <Wrench className="w-3.5 h-3.5" />
-                                                    <span>Exam Builder</span>
-                                                </Link>
+                                                {statusFilter === 'trashed' ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleRestore(exam.id)}
+                                                            title="পুনরুদ্ধার করুন (Restore)"
+                                                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900 text-emerald-700 dark:text-emerald-300 font-bold text-xs transition-colors border border-emerald-200 dark:border-emerald-800 cursor-pointer"
+                                                        >
+                                                            <RotateCcw className="w-3.5 h-3.5" />
+                                                            <span>পুনরুদ্ধার</span>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleForceDelete(exam.id)}
+                                                            title="স্থায়ীভাবে মুছুন (Permanent Delete)"
+                                                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900 text-rose-700 dark:text-rose-300 font-bold text-xs transition-colors border border-rose-200 dark:border-rose-800 cursor-pointer"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                            <span>স্থায়ী মুছুন</span>
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        {/* Exam Builder button */}
+                                                        <Link
+                                                            to={`${basePath}/${exam.id}/builder`}
+                                                            title="Exam Builder"
+                                                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900 text-sky-600 dark:text-sky-300 font-semibold text-xs transition-colors border border-sky-200 dark:border-sky-800/40"
+                                                        >
+                                                            <Wrench className="w-3.5 h-3.5" />
+                                                            <span>Exam Builder</span>
+                                                        </Link>
 
-                                                {/* Submissions & Evaluation button */}
-                                                <Link
-                                                    to={`${basePath}/${exam.id}/submissions`}
-                                                    title="Submissions & Grading"
-                                                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium transition-colors"
-                                                >
-                                                    <FileText className="w-3.5 h-3.5" />
-                                                    <span>Submissions</span>
-                                                </Link>
+                                                        {/* Submissions & Evaluation button */}
+                                                        <Link
+                                                            to={`${basePath}/${exam.id}/submissions`}
+                                                            title="Submissions & Grading"
+                                                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-medium transition-colors"
+                                                        >
+                                                            <FileText className="w-3.5 h-3.5" />
+                                                            <span>Submissions</span>
+                                                        </Link>
 
-                                                {/* Edit exam settings */}
-                                                <Link
-                                                    to={`${basePath}/${exam.id}/edit`}
-                                                    title="Edit Settings"
-                                                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                                                >
-                                                    <Edit3 className="w-4 h-4" />
-                                                </Link>
+                                                        {/* Edit exam settings */}
+                                                        <Link
+                                                            to={`${basePath}/${exam.id}/edit`}
+                                                            title="Edit Settings"
+                                                            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                                                        >
+                                                            <Edit3 className="w-4 h-4" />
+                                                        </Link>
 
-                                                {/* Delete exam */}
-                                                <button
-                                                    onClick={() => handleDelete(exam.id)}
-                                                    disabled={deletingId === exam.id}
-                                                    title="Delete Exam"
-                                                    className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                                        {/* Delete exam */}
+                                                        <button
+                                                            onClick={() => handleDelete(exam.id)}
+                                                            disabled={deletingId === exam.id}
+                                                            title="Delete Exam"
+                                                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors cursor-pointer"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

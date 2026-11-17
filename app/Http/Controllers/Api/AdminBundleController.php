@@ -21,7 +21,9 @@ class AdminBundleController extends Controller
                   ->orWhere('short_description', 'like', "%{$search}%");
         }
 
-        if ($request->filled('status') && $request->status !== 'all') {
+        if ($request->status === 'trashed' || $request->boolean('trashed')) {
+            $query->onlyTrashed();
+        } elseif ($request->filled('status') && $request->status !== 'all') {
             $query->where('status', $request->status);
         }
 
@@ -136,7 +138,29 @@ class AdminBundleController extends Controller
         $bundle->delete();
 
         return response()->json([
-            'message' => 'Course bundle deleted successfully.',
+            'message' => 'কোর্স বান্ডেলটি ট্র্যাশে সরানো হয়েছে। প্রয়োজনে ট্র্যাশ থেকে পুনরুদ্ধার করা যাবে।',
+        ]);
+    }
+
+    public function restore($id): JsonResponse
+    {
+        $bundle = CourseBundle::onlyTrashed()->findOrFail($id);
+        $bundle->restore();
+
+        return response()->json([
+            'message' => 'কোর্স বান্ডেলটি সফলভাবে পুনরুদ্ধার করা হয়েছে।',
+            'bundle' => $bundle,
+        ]);
+    }
+
+    public function forceDelete($id): JsonResponse
+    {
+        $bundle = CourseBundle::withTrashed()->findOrFail($id);
+        $bundle->courses()->detach();
+        $bundle->forceDelete();
+
+        return response()->json([
+            'message' => 'কোর্স বান্ডেলটি স্থায়ীভাবে মুছে ফেলা হয়েছে।',
         ]);
     }
 

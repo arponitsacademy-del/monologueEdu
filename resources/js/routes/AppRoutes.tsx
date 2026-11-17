@@ -48,6 +48,7 @@ import { AdminNexPilotEditPage } from '../pages/admin/AdminNexPilotEditPage';
 import { AdminNexPilotBuilderPage } from '../pages/admin/AdminNexPilotBuilderPage';
 import { AdminNexPilotAiConfigPage } from '../pages/admin/AdminNexPilotAiConfigPage';
 import { AdminCouponsPage } from '../pages/admin/AdminCouponsPage';
+import { AdminTrashPage } from '../pages/admin/AdminTrashPage';
 import { NotifyStudentPage } from '../pages/shared/NotifyStudentPage';
 import { CustomPageView } from '../pages/public/CustomPageView';
 
@@ -167,6 +168,7 @@ export const AppRoutes: React.FC = () => {
                 <Route path="sms-marketing" element={<AdminSmsMarketingPage />} />
                 <Route path="settings" element={<AdminSettingsPage />} />
                 <Route path="media" element={<AdminMediaPage />} />
+                <Route path="trash" element={<AdminTrashPage />} />
             </Route>
 
             {/* Teacher Dashboard */}

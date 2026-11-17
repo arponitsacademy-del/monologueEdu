@@ -18,7 +18,9 @@ class AdminCourseController extends Controller
             ->with(['instructors:id,name,email', 'categories:id,name'])
             ->withCount(['lessons', 'enrollments']);
 
-        if ($request->filled('status')) {
+        if ($request->status === 'trashed' || $request->boolean('trashed')) {
+            $query->onlyTrashed();
+        } elseif ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
@@ -191,10 +193,43 @@ class AdminCourseController extends Controller
         $oldValues = $course->toArray();
         $course->delete();
 
-        AuditLog::log('course_deleted', 'Course', $course->id, $oldValues, null);
+        AuditLog::log('course_trashed', 'Course', $course->id, $oldValues, null);
 
         return response()->json([
-            'message' => 'কোর্স মুছে ফেলা হয়েছে।',
+            'message' => 'কোর্সটি ট্র্যাশে সরানো হয়েছে। প্রয়োজনে ট্র্যাশ থেকে পুনরুদ্ধার করা যাবে।',
+        ]);
+    }
+
+    public function restore($id): JsonResponse
+    {
+        $course = Course::onlyTrashed()->findOrFail($id);
+        $course->restore();
+
+        AuditLog::log('course_restored', 'Course', $course->id, null, $course->toArray());
+
+        return response()->json([
+            'message' => 'কোর্সটি সফলভাবে পুনরুদ্ধার করা হয়েছে।',
+            'course' => $course,
+        ]);
+    }
+
+    public function forceDelete($id): JsonResponse
+    {
+        $course = Course::withTrashed()->findOrFail($id);
+        $oldValues = $course->toArray();
+
+        // Detach relations safely
+        $course->instructors()->detach();
+        $course->categories()->detach();
+        if (method_exists($course, 'bundles')) {
+            $course->bundles()->detach();
+        }
+        $course->forceDelete();
+
+        AuditLog::log('course_permanently_deleted', 'Course', $id, $oldValues, null);
+
+        return response()->json([
+            'message' => 'কোর্সটি স্থায়ীভাবে মুছে ফেলা হয়েছে।',
         ]);
     }
 

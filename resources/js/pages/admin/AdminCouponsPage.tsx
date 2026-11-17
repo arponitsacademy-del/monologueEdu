@@ -26,7 +26,8 @@ import {
     User as UserIcon,
     Phone,
     TrendingUp,
-    FolderKanban
+    FolderKanban,
+    RotateCcw
 } from 'lucide-react';
 
 interface CourseOption {
@@ -74,6 +75,7 @@ interface CouponItem {
     categories?: { id: number; name: string }[];
     usages_count?: number;
     created_at: string;
+    deleted_at?: string | null;
 }
 
 interface CouponStats {
@@ -81,6 +83,7 @@ interface CouponStats {
     active_coupons: number;
     total_redemptions: number;
     total_discount_given: number;
+    trashed_coupons?: number;
 }
 
 interface AdminCouponsPageProps {
@@ -95,6 +98,7 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
         active_coupons: 0,
         total_redemptions: 0,
         total_discount_given: 0,
+        trashed_coupons: 0,
     });
     const [loading, setLoading] = useState(true);
 
@@ -102,7 +106,10 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
     const [searchTerm, setSearchTerm] = useState('');
     const [discountTypeFilter, setDiscountTypeFilter] = useState('');
     const [scopeFilter, setScopeFilter] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
+    const [statusFilter, setStatusFilter] = useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('status') || '';
+    });
     const [page, setPage] = useState(1);
     const [lastPage, setLastPage] = useState(1);
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
@@ -251,7 +258,7 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
     };
 
     const handleDeleteCoupon = async (coupon: CouponItem) => {
-        if (!window.confirm(`আপনি কি নিশ্চিতভাবে কুপন "${coupon.code}" মুছে ফেলতে চান?`)) return;
+        if (!window.confirm(`আপনি কি কুপন "${coupon.code}" ট্র্যাশে পাঠাতে চান? পরবর্তীতে ট্র্যাশ থেকে এটি যেকোনো সময় পুনরুদ্ধার করা যাবে।`)) return;
 
         try {
             await apiClient.delete(`/admin/coupons/${coupon.id}`);
@@ -259,10 +266,41 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
             setStats(prev => ({
                 ...prev,
                 total_coupons: Math.max(0, prev.total_coupons - 1),
-                active_coupons: coupon.is_active ? Math.max(0, prev.active_coupons - 1) : prev.active_coupons
+                active_coupons: coupon.is_active ? Math.max(0, prev.active_coupons - 1) : prev.active_coupons,
+                trashed_coupons: (prev.trashed_coupons || 0) + 1,
             }));
         } catch (err) {
             alert('Failed to delete coupon.');
+        }
+    };
+
+    const handleRestoreCoupon = async (coupon: CouponItem) => {
+        try {
+            await apiClient.post(`/admin/coupons/${coupon.id}/restore`);
+            setCoupons(prev => prev.filter(c => c.id !== coupon.id));
+            setStats(prev => ({
+                ...prev,
+                total_coupons: prev.total_coupons + 1,
+                trashed_coupons: Math.max(0, (prev.trashed_coupons || 1) - 1),
+            }));
+            alert(`কুপন "${coupon.code}" সফলভাবে পুনরুদ্ধার করা হয়েছে!`);
+        } catch (err) {
+            alert('Failed to restore coupon.');
+        }
+    };
+
+    const handleForceDeleteCoupon = async (coupon: CouponItem) => {
+        if (!window.confirm(`সতর্কতা: আপনি কি নিশ্চিতভাবে কুপন "${coupon.code}" স্থায়ীভাবে মুছে ফেলতে চান? এটি আর কখনোই পুনরুদ্ধার করা যাবে না!`)) return;
+
+        try {
+            await apiClient.delete(`/admin/coupons/${coupon.id}/force-delete`);
+            setCoupons(prev => prev.filter(c => c.id !== coupon.id));
+            setStats(prev => ({
+                ...prev,
+                trashed_coupons: Math.max(0, (prev.trashed_coupons || 1) - 1),
+            }));
+        } catch (err) {
+            alert('Failed to permanently delete coupon.');
         }
     };
 
@@ -555,13 +593,35 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
                             setStatusFilter(e.target.value);
                             setPage(1);
                         }}
-                        className="px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500"
+                        className={`px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border rounded-xl text-xs font-semibold focus:ring-2 focus:ring-indigo-500 ${
+                            statusFilter === 'trashed'
+                                ? 'border-rose-400 text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60'
+                                : 'border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
+                        }`}
                     >
-                        <option value="">All Status</option>
+                        <option value="">All Status (সকল সক্রিয়)</option>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
                         <option value="expired">Expired</option>
+                        <option value="trashed">🗑️ ট্র্যাশ / Trash ({stats.trashed_coupons || 0})</option>
                     </select>
+
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setStatusFilter(prev => prev === 'trashed' ? '' : 'trashed');
+                            setPage(1);
+                        }}
+                        className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                            statusFilter === 'trashed'
+                                ? 'bg-rose-100 text-rose-800 border border-rose-300 dark:bg-rose-950 dark:text-rose-200'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 border border-slate-200 dark:border-slate-700'
+                        }`}
+                        title="Trash / রিসাইকেল বিন"
+                    >
+                        <Trash2 className="w-3.5 h-3.5 text-rose-500" />
+                        <span>{statusFilter === 'trashed' ? 'সব কুপনে ফিরুন' : `ট্র্যাশ (${stats.trashed_coupons || 0})`}</span>
+                    </button>
 
                     <button
                         onClick={() => {
@@ -574,6 +634,18 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
                     </button>
                 </div>
             </div>
+
+            {/* Trash Mode Notice */}
+            {statusFilter === 'trashed' && (
+                <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl flex items-center justify-between text-xs text-rose-800 dark:text-rose-200 animate-in fade-in">
+                    <div className="flex items-center gap-2">
+                        <Trash2 className="w-4 h-4 text-rose-600 shrink-0" />
+                        <span className="font-semibold">
+                            ট্র্যাশ মোড (Trash Bin): এখানে মুছে ফেলা কুপন সংরক্ষিত রয়েছে। আপনি কুপন পুনরুদ্ধার (Restore) করতে পারেন অথবা ডাটাবেজ থেকে স্থায়ীভাবে মুছে ফেলতে পারেন।
+                        </span>
+                    </div>
+                </div>
+            )}
 
             {/* Coupons Table */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
@@ -774,21 +846,44 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
                                             </td>
 
                                             {/* Actions */}
-                                            <td className="px-6 py-4 text-right space-x-1.5">
-                                                <button
-                                                    onClick={() => handleOpenEditModal(coupon)}
-                                                    className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-                                                    title="Edit Coupon"
-                                                >
-                                                    <Edit2 className="w-4 h-4" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteCoupon(coupon)}
-                                                    className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-                                                    title="Delete Coupon"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </button>
+                                            <td className="px-6 py-4 text-right space-x-1.5 whitespace-nowrap">
+                                                {statusFilter === 'trashed' ? (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleRestoreCoupon(coupon)}
+                                                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 rounded-lg transition-colors cursor-pointer"
+                                                            title="পুনরুদ্ধার করুন (Restore)"
+                                                        >
+                                                            <RotateCcw className="w-3.5 h-3.5" />
+                                                            <span>পুনরুদ্ধার</span>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleForceDeleteCoupon(coupon)}
+                                                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 dark:border-rose-800 dark:bg-rose-950/60 dark:text-rose-300 rounded-lg transition-colors cursor-pointer"
+                                                            title="স্থায়ীভাবে মুছুন (Permanent Delete)"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                            <span>স্থায়ী মুছুন</span>
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            onClick={() => handleOpenEditModal(coupon)}
+                                                            className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                                                            title="Edit Coupon"
+                                                        >
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteCoupon(coupon)}
+                                                            className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                                                            title="Delete Coupon"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </>
+                                                )}
                                             </td>
                                         </tr>
                                     );
