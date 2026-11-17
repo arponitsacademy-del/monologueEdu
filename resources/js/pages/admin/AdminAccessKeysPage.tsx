@@ -105,7 +105,7 @@ export const AdminAccessKeysPage: React.FC = () => {
     const fetchCourses = async (search = '') => {
         setLoadingCourses(true);
         try {
-            const { data } = await apiClient.get('/access-keys/courses', {
+            const { data } = await apiClient.get('/admin/access-keys/courses', {
                 params: { search: search.trim() || undefined }
             });
             setCourses(data.courses || []);
@@ -120,7 +120,7 @@ export const AdminAccessKeysPage: React.FC = () => {
     const fetchCourseStudents = async (courseId: number, page = 1, search = '') => {
         setLoadingStudents(true);
         try {
-            const { data } = await apiClient.get(`/access-keys/courses/${courseId}`, {
+            const { data } = await apiClient.get(`/admin/access-keys/courses/${courseId}`, {
                 params: {
                     page,
                     search: search.trim() || undefined,
@@ -192,8 +192,19 @@ export const AdminAccessKeysPage: React.FC = () => {
 
         setVerifying(true);
         try {
-            const { data } = await apiClient.post('/access-keys/verify', { key: trimmed });
-            setVerifyResult(data);
+            const { data } = await apiClient.post('/admin/access-keys/verify', { key: trimmed });
+            setVerifyResult({
+                valid: data.found ?? true,
+                message: data.found ? 'শিক্ষার্থী ও অ্যাক্সেস কি সফলভাবে ভেরিফাই হয়েছে!' : (data.message || 'অ্যাক্সেস কি পাওয়া যায়নি।'),
+                enrollment: data.found ? {
+                    id: data.enrollment_id,
+                    access_key: data.access_key,
+                    status: data.status,
+                    enrolled_at: data.enrolled_at,
+                    user: data.user,
+                    course: data.course
+                } : undefined
+            });
             setShowVerifyModal(true);
         } catch (err: any) {
             setVerifyResult({
@@ -214,7 +225,7 @@ export const AdminAccessKeysPage: React.FC = () => {
 
         setRegeneratingId(enrollmentId);
         try {
-            const { data } = await apiClient.post(`/access-keys/${enrollmentId}/regenerate`);
+            const { data } = await apiClient.post(`/admin/access-keys/${enrollmentId}/regenerate`);
             if (data.access_key) {
                 setStudents(prev => prev.map(s => 
                     s.enrollment_id === enrollmentId 

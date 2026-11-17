@@ -298,7 +298,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::prefix('access-keys')->group(function () {
             Route::get('courses', [AdminAccessKeyController::class, 'courses']);
             Route::get('courses/{courseId}', [AdminAccessKeyController::class, 'courseStudents']);
-            Route::get('verify', [AdminAccessKeyController::class, 'verify']);
+            Route::match(['get', 'post'], 'verify', [AdminAccessKeyController::class, 'verify']);
             Route::post('{enrollmentId}/regenerate', [AdminAccessKeyController::class, 'regenerate']);
         });
 
