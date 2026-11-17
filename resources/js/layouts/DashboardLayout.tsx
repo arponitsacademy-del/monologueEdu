@@ -166,19 +166,11 @@ export const DashboardLayout: React.FC = () => {
                     children: [
                         { title: t.sidebar.createCourse, path: '/admin/courses/create', permission: 'courses.create' },
                         { title: t.sidebar.courseManagement, path: '/admin/courses', permission: 'courses.view' },
+                        { title: 'Add New Bundle', path: '/admin/bundles/create', permission: 'bundles.manage' },
+                        { title: 'All Bundles', path: '/admin/bundles', permission: 'bundles.view' },
                         { title: t.sidebar.courseCategories, path: '/admin/courses/categories', permission: 'courses.categories' },
                         { title: 'Manual Enrollment', path: '/admin/courses/manual-enrollment', permission: 'courses.view' },
                         { title: 'Student', path: '/admin/courses/students', permission: 'courses.view' },
-                    ]
-                },
-                { 
-                    title: 'Course Bundles', 
-                    path: '/admin/bundles', 
-                    icon: Boxes,
-                    permission: 'bundles.view',
-                    children: [
-                        { title: 'Add New Bundle', path: '/admin/bundles/create', permission: 'bundles.manage' },
-                        { title: 'All Bundles', path: '/admin/bundles', permission: 'bundles.view' },
                     ]
                 },
                 { 
@@ -380,7 +372,7 @@ export const DashboardLayout: React.FC = () => {
                         const Icon = item.icon;
                         const hasChildren = Boolean(item.children && item.children.length > 0);
                         const isChildActive = hasChildren && (
-                            item.children?.some(c => location.pathname === c.path) ||
+                            item.children?.some(c => location.pathname === c.path || (c.path === '/admin/bundles' && location.pathname.startsWith('/admin/bundles'))) ||
                             (item.path !== '/admin' && location.pathname.startsWith(item.path))
                         );
                         const isActive = (!hasChildren && (location.pathname === item.path || 
@@ -436,6 +428,10 @@ export const DashboardLayout: React.FC = () => {
                                                 location.pathname !== '/admin/courses/categories' &&
                                                 location.pathname !== '/admin/courses/manual-enrollment' &&
                                                 location.pathname !== '/admin/courses/students'
+                                            ) || (
+                                                child.path === '/admin/bundles' &&
+                                                location.pathname.startsWith('/admin/bundles') &&
+                                                location.pathname !== '/admin/bundles/create'
                                             );
                                             return (
                                                 <Link
@@ -654,7 +650,7 @@ export const DashboardLayout: React.FC = () => {
                                 const Icon = item.icon;
                                 const hasChildren = Boolean(item.children && item.children.length > 0);
                                 const isChildActive = hasChildren && (
-                                    item.children?.some(c => location.pathname === c.path) ||
+                                    item.children?.some(c => location.pathname === c.path || (c.path === '/admin/bundles' && location.pathname.startsWith('/admin/bundles'))) ||
                                     (item.path !== '/admin' && location.pathname.startsWith(item.path))
                                 );
                                 const isExpanded = expandedMenus[item.path] ?? isChildActive;
@@ -688,6 +684,10 @@ export const DashboardLayout: React.FC = () => {
                                                                 location.pathname !== '/admin/courses/categories' &&
                                                                 location.pathname !== '/admin/courses/manual-enrollment' &&
                                                                 location.pathname !== '/admin/courses/students'
+                                                            ) || (
+                                                                child.path === '/admin/bundles' &&
+                                                                location.pathname.startsWith('/admin/bundles') &&
+                                                                location.pathname !== '/admin/bundles/create'
                                                             );
                                                             return (
                                                                 <Link
