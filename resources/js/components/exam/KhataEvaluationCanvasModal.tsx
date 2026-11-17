@@ -81,11 +81,11 @@ const PRESET_COLORS = [
 ];
 
 const PRESET_SIZES = [
-    { label: 'চিকন', width: 2, dotSize: 4 },
-    { label: 'সাধারণ', width: 4, dotSize: 6 },
-    { label: 'তুলি', width: 8, dotSize: 9 },
-    { label: 'মোটা', width: 14, dotSize: 13 },
-    { label: 'মার্কার', width: 22, dotSize: 17 },
+    { label: '2px', width: 2, dotSize: 4 },
+    { label: '4px', width: 4, dotSize: 6 },
+    { label: '8px', width: 8, dotSize: 9 },
+    { label: '14px', width: 14, dotSize: 13 },
+    { label: '22px', width: 22, dotSize: 17 },
 ];
 
 const QUICK_COMMENTS = [
@@ -686,87 +686,82 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                 </div>
             </header>
 
-            {/* Top Bar 2: Comprehensive Paint Ribbon / Toolbar */}
-            <nav className="min-h-14 py-2 px-4 bg-slate-900/95 border-b border-slate-800 flex items-center gap-4 shrink-0 overflow-x-auto select-none z-10 shadow-md">
+            {/* Top Bar 2: Sleek Paint Ribbon / Toolbar */}
+            <nav className="min-h-13 py-2 px-4 bg-slate-900/95 border-b border-slate-800 flex items-center gap-3 shrink-0 overflow-x-auto select-none z-10 shadow-md">
                 {/* 1. Main Drawing Tools */}
                 <div className="flex items-center gap-1 shrink-0">
                     <button
                         type="button"
                         onClick={() => selectTool('pen')}
-                        title="কলম / সরু পেন (Fine Pen)"
-                        className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                        title="পেন (Pen)"
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                             activeTool === 'pen'
-                                ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
+                                ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 scale-105'
                                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
                         }`}
                     >
                         <Pen className="w-4 h-4" />
-                        <span>কলম</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => selectTool('brush')}
                         title="তুলি / ব্রাশ (Paint Brush)"
-                        className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                             activeTool === 'brush'
-                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 scale-105'
                                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
                         }`}
                     >
                         <Paintbrush className="w-4 h-4" />
-                        <span>তুলি / ব্রাশ</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => selectTool('highlighter')}
-                        title="হাইলাইটার (Highlighter Marker)"
-                        className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                        title="হাইলাইটার (Highlighter)"
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                             activeTool === 'highlighter'
-                                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
+                                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30 scale-105'
                                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
                         }`}
                     >
                         <Highlighter className="w-4 h-4" />
-                        <span>হাইলাইট</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => selectTool('eraser')}
-                        title="ইরেজার / রবার (Eraser - দাগ মুছে ফেলুন)"
-                        className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                        title="ইরেজার (Eraser)"
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                             activeTool === 'eraser'
-                                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30 scale-105'
                                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
                         }`}
                     >
                         <Eraser className="w-4 h-4" />
-                        <span>ইরেজার</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => selectTool('text')}
-                        title="খাতায় মন্তব্য / টেক্সট লিখুন (Text Note)"
-                        className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                        title="টেক্সট / মন্তব্য লিখুন (Text Note)"
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                             activeTool === 'text'
-                                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30 scale-105'
                                 : 'text-slate-300 hover:text-white hover:bg-slate-800'
                         }`}
                     >
                         <Type className="w-4 h-4" />
-                        <span>মন্তব্য</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => selectTool('rect')}
                         title="বক্স / চারকোনা (Rectangle)"
-                        className={`p-1.5 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                             activeTool === 'rect'
-                                ? 'bg-slate-700 text-white'
+                                ? 'bg-slate-700 text-white ring-1 ring-slate-500 scale-105'
                                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
                         }`}
                     >
@@ -776,10 +771,10 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                     <button
                         type="button"
                         onClick={() => selectTool('circle')}
-                        title="গোল দাগ / বৃত্ত (Circle)"
-                        className={`p-1.5 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                        title="বৃত্ত / গোল দাগ (Circle)"
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                             activeTool === 'circle'
-                                ? 'bg-slate-700 text-white'
+                                ? 'bg-slate-700 text-white ring-1 ring-slate-500 scale-105'
                                 : 'text-slate-400 hover:text-white hover:bg-slate-800'
                         }`}
                     >
@@ -787,46 +782,41 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                     </button>
                 </div>
 
-                <div className="w-px h-7 bg-slate-800 shrink-0" />
+                <div className="w-px h-6 bg-slate-800 shrink-0" />
 
                 {/* 2. Teacher Quick Stamps */}
-                <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider hidden lg:inline">
-                        স্ট্যাম্প:
-                    </span>
+                <div className="flex items-center gap-1 shrink-0">
                     <button
                         type="button"
                         onClick={() => selectTool('stamp_tick')}
-                        title="টিক মার্ক (Correct ✔)"
-                        className={`px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-black transition-all cursor-pointer ${
+                        title="টিক মার্ক (Tick ✔)"
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                             activeTool === 'stamp_tick'
                                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/40 scale-105'
                                 : 'text-emerald-400 bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-800/50'
                         }`}
                     >
                         <Check className="w-4 h-4 stroke-[3]" />
-                        <span>টিক</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => selectTool('stamp_cross')}
-                        title="ক্রস মার্ক (Incorrect ✖)"
-                        className={`px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-black transition-all cursor-pointer ${
+                        title="ক্রস মার্ক (Cross ✖)"
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                             activeTool === 'stamp_cross'
                                 ? 'bg-rose-600 text-white shadow-md shadow-rose-600/40 scale-105'
                                 : 'text-rose-400 bg-rose-950/40 hover:bg-rose-900/40 border border-rose-800/50'
                         }`}
                     >
                         <X className="w-4 h-4 stroke-[3]" />
-                        <span>ক্রস</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => selectTool('stamp_doubt')}
-                        title="সন্দেহ / প্রশ্নবোধক (?)"
-                        className={`p-1.5 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                        title="প্রশ্নবোধক (?)"
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                             activeTool === 'stamp_doubt'
                                 ? 'bg-amber-600 text-white scale-105 shadow-md'
                                 : 'text-amber-400 bg-amber-950/40 hover:bg-amber-900/40 border border-amber-800/50'
@@ -839,7 +829,7 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                         type="button"
                         onClick={() => selectTool('stamp_star')}
                         title="স্টার (★)"
-                        className={`p-1.5 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
                             activeTool === 'stamp_star'
                                 ? 'bg-yellow-500 text-slate-950 scale-105 shadow-md'
                                 : 'text-yellow-400 bg-yellow-950/40 hover:bg-yellow-900/40 border border-yellow-800/50'
@@ -849,86 +839,75 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                     </button>
                 </div>
 
-                <div className="w-px h-7 bg-slate-800 shrink-0" />
+                <div className="w-px h-6 bg-slate-800 shrink-0" />
 
-                {/* 3. Color Palette (Prominent Row) */}
-                <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
-                        রং:
-                    </span>
-                    <div className="flex items-center gap-1.5 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
-                        {PRESET_COLORS.map(c => (
-                            <button
-                                key={c.hex}
-                                type="button"
-                                onClick={() => setStrokeColor(c.hex)}
-                                title={c.name}
-                                style={{ backgroundColor: c.hex }}
-                                className={`w-6 h-6 rounded-full transition-transform cursor-pointer relative ${
-                                    strokeColor.toLowerCase() === c.hex.toLowerCase()
-                                        ? 'ring-2 ring-white scale-110 shadow-lg'
-                                        : 'opacity-85 hover:opacity-100 hover:scale-105'
-                                }`}
-                            >
-                                {strokeColor.toLowerCase() === c.hex.toLowerCase() && (
-                                    <span className="absolute inset-0 flex items-center justify-center text-[10px] text-white drop-shadow-md">
-                                        ✓
-                                    </span>
-                                )}
-                            </button>
-                        ))}
-
-                        {/* Custom Color Picker */}
-                        <label
-                            title="কাস্টম কালার নির্বাচন করুন"
-                            className="w-6 h-6 rounded-full border border-slate-600 bg-slate-800 flex items-center justify-center cursor-pointer hover:border-white transition-colors relative"
+                {/* 3. Color Palette */}
+                <div className="flex items-center gap-1.5 shrink-0 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
+                    {PRESET_COLORS.map(c => (
+                        <button
+                            key={c.hex}
+                            type="button"
+                            onClick={() => setStrokeColor(c.hex)}
+                            title={c.name}
+                            style={{ backgroundColor: c.hex }}
+                            className={`w-6 h-6 rounded-full transition-transform cursor-pointer relative ${
+                                strokeColor.toLowerCase() === c.hex.toLowerCase()
+                                    ? 'ring-2 ring-white scale-110 shadow-lg'
+                                    : 'opacity-85 hover:opacity-100 hover:scale-105'
+                            }`}
                         >
-                            <Palette className="w-3.5 h-3.5 text-slate-300" />
-                            <input
-                                type="color"
-                                value={strokeColor}
-                                onChange={(e) => setStrokeColor(e.target.value)}
-                                className="sr-only"
+                            {strokeColor.toLowerCase() === c.hex.toLowerCase() && (
+                                <span className="absolute inset-0 flex items-center justify-center text-[10px] text-white drop-shadow-md">
+                                    ✓
+                                </span>
+                            )}
+                        </button>
+                    ))}
+
+                    {/* Custom Color Picker */}
+                    <label
+                        title="কাস্টম রং নির্বাচন করুন"
+                        className="w-6 h-6 rounded-full border border-slate-600 bg-slate-800 flex items-center justify-center cursor-pointer hover:border-white transition-colors relative"
+                    >
+                        <Palette className="w-3.5 h-3.5 text-slate-300" />
+                        <input
+                            type="color"
+                            value={strokeColor}
+                            onChange={(e) => setStrokeColor(e.target.value)}
+                            className="sr-only"
+                        />
+                    </label>
+                </div>
+
+                <div className="w-px h-6 bg-slate-800 shrink-0" />
+
+                {/* 4. Stroke Thickness / Size Selector (Clean Dots Only) */}
+                <div className="flex items-center gap-1 shrink-0 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
+                    {PRESET_SIZES.map(s => (
+                        <button
+                            key={s.width}
+                            type="button"
+                            onClick={() => setStrokeWidth(s.width)}
+                            title={`${s.width}px`}
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                                strokeWidth === s.width
+                                    ? 'bg-slate-700 text-white shadow-sm ring-1 ring-slate-400'
+                                    : 'hover:bg-slate-800'
+                            }`}
+                        >
+                            <span
+                                style={{
+                                    width: `${s.dotSize}px`,
+                                    height: `${s.dotSize}px`,
+                                    backgroundColor: strokeColor,
+                                }}
+                                className="rounded-full shrink-0 shadow-sm transition-transform"
                             />
-                        </label>
-                    </div>
+                        </button>
+                    ))}
                 </div>
 
-                <div className="w-px h-7 bg-slate-800 shrink-0" />
-
-                {/* 4. Stroke Thickness / Size Selector */}
-                <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider hidden sm:inline">
-                        সাইজ:
-                    </span>
-                    <div className="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
-                        {PRESET_SIZES.map(s => (
-                            <button
-                                key={s.width}
-                                type="button"
-                                onClick={() => setStrokeWidth(s.width)}
-                                title={`${s.label} (${s.width}px)`}
-                                className={`px-2 py-1 rounded-lg flex items-center gap-1.5 text-[11px] font-bold transition-all cursor-pointer ${
-                                    strokeWidth === s.width
-                                        ? 'bg-slate-700 text-white shadow-sm'
-                                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-                                }`}
-                            >
-                                <span
-                                    style={{
-                                        width: `${s.dotSize}px`,
-                                        height: `${s.dotSize}px`,
-                                        backgroundColor: strokeColor,
-                                    }}
-                                    className="rounded-full shrink-0 shadow-sm"
-                                />
-                                <span className="hidden xl:inline">{s.label}</span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="w-px h-7 bg-slate-800 shrink-0" />
+                <div className="w-px h-6 bg-slate-800 shrink-0" />
 
                 {/* 5. History & Canvas View Controls */}
                 <div className="flex items-center gap-1 shrink-0 ml-auto">
