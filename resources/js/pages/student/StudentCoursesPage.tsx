@@ -227,6 +227,62 @@ export const StudentCoursesPage: React.FC = () => {
                                         </div>
                                     </div>
 
+                                    {/* Primary Continue Learning Action */}
+                                    {item.has_nexpilot ? (
+                                        <div className="flex items-center gap-2 pt-1">
+                                            <Link
+                                                to={last_lesson_id 
+                                                    ? `/learning/${course.id}/lessons/${last_lesson_id}` 
+                                                    : `/courses/${course.slug}`}
+                                                className="flex-1 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                                            >
+                                                <PlayCircle className="w-4 h-4" />
+                                                <span>Continue Learning</span>
+                                            </Link>
+                                            <Link
+                                                to={`/student/courses/${course.id}/nexpilot`}
+                                                className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors shrink-0 border border-slate-700"
+                                                title="Open NexPilot AI Tutor Room"
+                                            >
+                                                <Bot className="w-4 h-4 text-sky-400" />
+                                                <span>Pilot</span>
+                                            </Link>
+                                        </div>
+                                    ) : item.has_active_pilot ? (
+                                        <div className="flex items-center gap-2 pt-1">
+                                            <Link
+                                                to={last_lesson_id 
+                                                    ? `/learning/${course.id}/lessons/${last_lesson_id}` 
+                                                    : `/courses/${course.slug}`}
+                                                className="flex-1 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                                            >
+                                                <PlayCircle className="w-4 h-4" />
+                                                <span>Continue Learning</span>
+                                            </Link>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleOpenUnlock(item)}
+                                                className="px-3 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
+                                                title="Unlock NexPilot AI Tutor for this course"
+                                            >
+                                                <Sparkles className="w-3.5 h-3.5 text-white" />
+                                                <span>{item.pilot_price > 0 ? 'Get Pilot' : 'Enable Free'}</span>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="pt-1">
+                                            <Link
+                                                to={last_lesson_id 
+                                                    ? `/learning/${course.id}/lessons/${last_lesson_id}` 
+                                                    : `/courses/${course.slug}`}
+                                                className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                                            >
+                                                <PlayCircle className="w-4 h-4" />
+                                                <span>Continue Learning</span>
+                                            </Link>
+                                        </div>
+                                    )}
+
                                     {/* Enrolled Action Buttons & Community Groups */}
                                     {course.enrolled_action_buttons && course.enrolled_action_buttons.length > 0 && (
                                         <div className="pt-3 border-t border-slate-100 space-y-2">
@@ -280,59 +336,6 @@ export const StudentCoursesPage: React.FC = () => {
                                                 ))}
                                             </div>
                                         </div>
-                                    )}
-
-                                    {item.has_nexpilot ? (
-                                        <div className="flex items-center gap-2">
-                                            <Link
-                                                to={last_lesson_id 
-                                                    ? `/learning/${course.id}/lessons/${last_lesson_id}` 
-                                                    : `/courses/${course.slug}`}
-                                                className="flex-1 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
-                                            >
-                                                <PlayCircle className="w-4 h-4" />
-                                                <span>Continue Learning</span>
-                                            </Link>
-                                            <Link
-                                                to={`/student/courses/${course.id}/nexpilot`}
-                                                className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors shrink-0 border border-slate-700"
-                                                title="Open NexPilot AI Tutor Room"
-                                            >
-                                                <Bot className="w-4 h-4 text-sky-400" />
-                                                <span>Pilot</span>
-                                            </Link>
-                                        </div>
-                                    ) : item.has_active_pilot ? (
-                                        <div className="flex items-center gap-2">
-                                            <Link
-                                                to={last_lesson_id 
-                                                    ? `/learning/${course.id}/lessons/${last_lesson_id}` 
-                                                    : `/courses/${course.slug}`}
-                                                className="flex-1 py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
-                                            >
-                                                <PlayCircle className="w-4 h-4" />
-                                                <span>Continue Learning</span>
-                                            </Link>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleOpenUnlock(item)}
-                                                className="px-3 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all shrink-0 cursor-pointer"
-                                                title="Unlock NexPilot AI Tutor for this course"
-                                            >
-                                                <Sparkles className="w-3.5 h-3.5 text-white" />
-                                                <span>{item.pilot_price > 0 ? 'Get Pilot' : 'Enable Free'}</span>
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <Link
-                                            to={last_lesson_id 
-                                                ? `/learning/${course.id}/lessons/${last_lesson_id}` 
-                                                : `/courses/${course.slug}`}
-                                            className="w-full py-2.5 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-xs transition-colors"
-                                        >
-                                            <PlayCircle className="w-4 h-4" />
-                                            <span>Continue Learning</span>
-                                        </Link>
                                     )}
                                 </div>
                             </div>
