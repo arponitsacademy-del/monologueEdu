@@ -17,6 +17,7 @@ class ExamQuestion extends Model
         'question_text',
         'question_type',
         'marks',
+        'negative_marks',
         'attachment_url',
         'explanation',
         'order',
@@ -26,6 +27,7 @@ class ExamQuestion extends Model
 
     protected $casts = [
         'marks' => 'float',
+        'negative_marks' => 'float',
         'order' => 'integer',
         'options' => 'array',
         'correct_answers' => 'array',

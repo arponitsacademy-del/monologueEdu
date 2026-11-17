@@ -787,8 +787,11 @@ class ExamSubmissionController extends Controller
                             ]);
                         } else {
                             $totalWrong++;
-                            if ($exam->has_negative_marking && $exam->negative_marks > 0) {
-                                $negativeDeduction += (float) $exam->negative_marks;
+                            $negMark = ($question->negative_marks !== null && $question->negative_marks > 0)
+                                ? (float) $question->negative_marks
+                                : (($exam->has_negative_marking && $exam->negative_marks > 0) ? (float) $exam->negative_marks : 0);
+                            if ($negMark > 0) {
+                                $negativeDeduction += $negMark;
                             }
 
                             $submission->answers()->create([
@@ -830,8 +833,11 @@ class ExamSubmissionController extends Controller
                             ]);
                         } else {
                             $totalWrong++;
-                            if ($exam->has_negative_marking && $exam->negative_marks > 0) {
-                                $negativeDeduction += (float) $exam->negative_marks;
+                            $negMark = ($question->negative_marks !== null && $question->negative_marks > 0)
+                                ? (float) $question->negative_marks
+                                : (($exam->has_negative_marking && $exam->negative_marks > 0) ? (float) $exam->negative_marks : 0);
+                            if ($negMark > 0) {
+                                $negativeDeduction += $negMark;
                             }
 
                             $submission->answers()->create([

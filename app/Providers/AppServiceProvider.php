@@ -31,6 +31,7 @@ class AppServiceProvider extends ServiceProvider
                 ! \Illuminate\Support\Facades\Schema::hasTable('coupons') ||
                 ! \Illuminate\Support\Facades\Schema::hasColumn('courses', 'deleted_at') ||
                 ! \Illuminate\Support\Facades\Schema::hasColumn('courses', 'enrolled_action_buttons') ||
+                ! \Illuminate\Support\Facades\Schema::hasColumn('exam_questions', 'negative_marks') ||
                 ! \Illuminate\Support\Facades\Schema::hasColumn('enrollments', 'access_key')) {
                 \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
             }

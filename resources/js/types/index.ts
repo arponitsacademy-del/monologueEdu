@@ -458,6 +458,7 @@ export interface ExamQuestion {
     question_text: string;
     question_type: 'single_choice' | 'multiple_choice' | 'written_paper' | 'fill_in_the_blank';
     marks: number;
+    negative_marks?: number | null;
     attachment_url?: string | null;
     explanation?: string | null;
     order: number;

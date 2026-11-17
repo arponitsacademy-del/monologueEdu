@@ -6,6 +6,7 @@ import { Exam, ExamQuestion } from '../../types';
 import { WordMathEditor } from '../../components/exam/WordMathEditor';
 import { MathView } from '../../components/shared/MathView';
 import { AiQuestionGeneratorModal } from '../../components/exam/AiQuestionGeneratorModal';
+import { CsvQuestionImportModal } from '../../components/exam/CsvQuestionImportModal';
 import {
     Wrench,
     ArrowLeft,
@@ -29,7 +30,8 @@ import {
     HelpCircle,
     MoveUp,
     MoveDown,
-    Sparkles
+    Sparkles,
+    FileSpreadsheet
 } from 'lucide-react';
 
 export const ExamBuilderPage: React.FC = () => {
@@ -46,6 +48,8 @@ export const ExamBuilderPage: React.FC = () => {
 
     // AI Question Generator Modal
     const [aiModalOpen, setAiModalOpen] = useState(false);
+    // CSV Question Import Modal
+    const [csvModalOpen, setCsvModalOpen] = useState(false);
 
     // Modal state for Add/Edit Question
     const [modalOpen, setModalOpen] = useState(false);
@@ -58,6 +62,7 @@ export const ExamBuilderPage: React.FC = () => {
         question_text: '',
         question_type: 'single_choice' as 'single_choice' | 'multiple_choice' | 'written_paper' | 'fill_in_the_blank',
         marks: 1,
+        negative_marks: 0,
         attachment_url: '',
         explanation: '',
         options: [
@@ -110,6 +115,7 @@ export const ExamBuilderPage: React.FC = () => {
             question_text: '',
             question_type: 'single_choice',
             marks: 1,
+            negative_marks: 0,
             attachment_url: '',
             explanation: '',
             options: [
@@ -130,6 +136,7 @@ export const ExamBuilderPage: React.FC = () => {
             question_text: q.question_text || '',
             question_type: q.question_type,
             marks: q.marks !== undefined && q.marks !== null ? Number(q.marks) : 1,
+            negative_marks: q.negative_marks !== undefined && q.negative_marks !== null ? Number(q.negative_marks) : 0,
             attachment_url: q.attachment_url || '',
             explanation: q.explanation || '',
             options: q.options && q.options.length > 0
@@ -243,6 +250,7 @@ export const ExamBuilderPage: React.FC = () => {
             const payload = {
                 ...questionForm,
                 marks: Number(questionForm.marks) > 0 ? Number(questionForm.marks) : 1,
+                negative_marks: Number(questionForm.negative_marks) >= 0 ? Number(questionForm.negative_marks) : 0,
                 options: isNoOptions ? null : questionForm.options,
                 correct_answers: questionForm.question_type === 'written_paper' ? null : questionForm.correct_answers.map(s => s.trim()).filter(Boolean),
             };
@@ -351,6 +359,15 @@ export const ExamBuilderPage: React.FC = () => {
                     </button>
                     <button
                         type="button"
+                        onClick={() => setCsvModalOpen(true)}
+                        className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer"
+                        title="CSV ফাইল থেকে প্রশ্ন ইম্পোর্ট করুন"
+                    >
+                        <FileSpreadsheet className="w-4 h-4" />
+                        <span>Import CSV</span>
+                    </button>
+                    <button
+                        type="button"
                         onClick={openAddModal}
                         className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-sky-600/20 cursor-pointer"
                     >
@@ -376,6 +393,14 @@ export const ExamBuilderPage: React.FC = () => {
                         >
                             <Sparkles className="w-4 h-4 text-amber-300" />
                             <span>Make Questions with AI</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setCsvModalOpen(true)}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-sm shadow-emerald-600/20 cursor-pointer"
+                        >
+                            <FileSpreadsheet className="w-4 h-4" />
+                            <span>Import CSV</span>
                         </button>
                         <button
                             type="button"
@@ -426,6 +451,11 @@ export const ExamBuilderPage: React.FC = () => {
                                             <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                                                 [{q.marks} Marks]
                                             </span>
+                                            {q.negative_marks && Number(q.negative_marks) > 0 ? (
+                                                <span className="text-xs font-semibold text-rose-500 dark:text-rose-400">
+                                                    [-{q.negative_marks} Neg]
+                                                </span>
+                                            ) : null}
                                         </div>
                                         <MathView
                                             content={q.question_text}
@@ -647,8 +677,8 @@ export const ExamBuilderPage: React.FC = () => {
                                 />
                             </div>
 
-                            {/* Marks & Image Attachment Grid */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* Marks, Negative Marks & Image Attachment Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                                         Question Marks <span className="text-rose-500">*</span>
@@ -666,7 +696,22 @@ export const ExamBuilderPage: React.FC = () => {
 
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                        Question Image / Diagram (Optional)
+                                        Negative Mark (Optional)
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="any"
+                                        value={questionForm.negative_marks ?? 0}
+                                        onChange={e => setQuestionForm({ ...questionForm, negative_marks: e.target.value === '' ? 0 : Number(e.target.value) })}
+                                        placeholder="0 or 0.25"
+                                        className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                        Image / Diagram (Optional)
                                     </label>
                                     <div className="flex items-center gap-2">
                                         <label className="cursor-pointer px-3 py-2 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-xs font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-100 flex items-center gap-1.5 shrink-0">
@@ -1028,6 +1073,19 @@ export const ExamBuilderPage: React.FC = () => {
                 examTitle={exam?.title || 'Exam'}
                 onQuestionsImported={(newQuestions, newTotal) => {
                     setQuestions(prev => [...prev, ...newQuestions]);
+                    if (exam) {
+                        setExam({ ...exam, total_marks: newTotal });
+                    }
+                }}
+            />
+
+            {/* CSV Question Import Modal */}
+            <CsvQuestionImportModal
+                isOpen={csvModalOpen}
+                onClose={() => setCsvModalOpen(false)}
+                examId={id || ''}
+                onSuccess={(newQuestions, newTotal) => {
+                    setQuestions(newQuestions);
                     if (exam) {
                         setExam({ ...exam, total_marks: newTotal });
                     }
