@@ -73,6 +73,7 @@ Route::match(['get', 'post'], 'payment/shurjopay/callback', [ShurjopayController
 Route::match(['get', 'post'], 'payment/shurjopay/cancel', [ShurjopayController::class, 'cancel']);
 
 // Public/Token-aware Attachment Download & Redirect
+Route::get('exams/csv-template', [ExamBuilderController::class, 'downloadCsvTemplate']);
 Route::get('learning/attachments/{attachment}/download', [LessonAttachmentController::class, 'download']);
 
 /*
