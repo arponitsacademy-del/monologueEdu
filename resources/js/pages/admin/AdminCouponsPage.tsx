@@ -595,9 +595,11 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
                                                         )}
                                                     </button>
                                                 </div>
-                                                <div className="font-bold text-slate-900 dark:text-white mt-1">
-                                                    {coupon.title}
-                                                </div>
+                                                {coupon.title && coupon.title !== coupon.code && (
+                                                    <div className="font-bold text-slate-900 dark:text-white mt-1">
+                                                        {coupon.title}
+                                                    </div>
+                                                )}
                                                 {coupon.description && (
                                                     <div className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
                                                         {coupon.description}
@@ -877,67 +879,38 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
                             {/* 4. Advanced Section (Collapsible) */}
                             {showAdvanced && (
                                 <div className="space-y-4 pt-3 border-t border-slate-200 dark:border-slate-800 animate-in fade-in duration-200">
-                                    {/* Optional Promo Title & Description */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                                                Coupon Title / Promo Name (Optional)
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.title}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                                                placeholder="e.g. Special Eid Discount"
-                                                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                                                Description / শর্তাবলী (Optional)
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.description}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                                                placeholder="e.g. Applicable on first purchase only"
-                                                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                                            />
-                                        </div>
-                                    </div>
-
                                     {/* Caps & Minimums */}
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                        {formData.discount_type === 'percentage' && (
-                                            <div>
-                                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                                                    Max Discount Cap (৳)
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    step="any"
-                                                    min="0"
-                                                    value={formData.max_discount_amount}
-                                                    onChange={(e) => setFormData(prev => ({ ...prev, max_discount_amount: e.target.value }))}
-                                                    placeholder="Leave blank for Unlimited"
-                                                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                                                />
-                                            </div>
-                                        )}
-
+                                    {formData.discount_type === 'percentage' && (
                                         <div>
-                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                                                Min Course Price (৳)
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+                                                সর্বোচ্চ ছাড়ের সীমা / Max Discount Cap (৳)
                                             </label>
                                             <input
                                                 type="number"
                                                 step="any"
                                                 min="0"
-                                                value={formData.min_order_amount}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, min_order_amount: e.target.value }))}
-                                                placeholder="Leave blank for No Minimum"
-                                                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                                value={formData.max_discount_amount}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, max_discount_amount: e.target.value }))}
+                                                placeholder="ফাঁকা রাখলে আনলিমিটেড (Unlimited)"
+                                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
                                             />
                                         </div>
+                                    )}
+
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1.5">
+                                            ন্যূনতম কোর্সের মূল্য / Min Course Price (৳)
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step="any"
+                                            min="0"
+                                            value={formData.min_order_amount}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, min_order_amount: e.target.value }))}
+                                            placeholder="ফাঁকা রাখলে কোনো ন্যূনতম মূল্য প্রযোজ্য নয় (No Minimum Limit)"
+                                            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white transition-all shadow-sm"
+                                        />
+                                        <p className="text-[11px] text-slate-400 mt-1">কোর্স বা কার্টের মোট মূল্য এই টাকার সমান বা বেশি হলে তবেই কুপনটি প্রযোজ্য হবে।</p>
                                     </div>
 
                                     {/* Scope: Open vs Course vs Category */}
