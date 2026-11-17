@@ -156,6 +156,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('exams')->middleware('role:teacher,admin')->group(function () {
         Route::get('/', [ExamController::class, 'index']);
         Route::get('/courses-list', [ExamController::class, 'coursesList']);
+        Route::get('/csv-template', [ExamBuilderController::class, 'downloadCsvTemplate']);
         Route::post('/upload-attachment', [ExamSubmissionController::class, 'uploadAnswerAttachment']);
         Route::post('/', [ExamController::class, 'store']);
         Route::get('/{exam}', [ExamController::class, 'show']);
@@ -165,14 +166,12 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}/force-delete', [ExamController::class, 'forceDelete']);
 
         // Exam Builder
-        Route::get('/csv-template', [ExamBuilderController::class, 'downloadCsvTemplate']);
         Route::get('/{exam}/questions', [ExamBuilderController::class, 'getQuestions']);
         Route::post('/{exam}/questions', [ExamBuilderController::class, 'storeQuestion']);
         Route::put('/{exam}/questions/{question}', [ExamBuilderController::class, 'updateQuestion']);
         Route::delete('/{exam}/questions/{question}', [ExamBuilderController::class, 'deleteQuestion']);
         Route::post('/{exam}/questions/reorder', [ExamBuilderController::class, 'reorderQuestions']);
         Route::post('/questions/upload-attachment', [ExamBuilderController::class, 'uploadAttachment']);
-        Route::post('/upload-attachment', [ExamBuilderController::class, 'uploadAttachment']);
         Route::post('/{exam}/import-csv', [ExamBuilderController::class, 'importCsv']);
 
         // AI Question Generation & Import
