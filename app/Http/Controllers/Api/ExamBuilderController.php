@@ -194,7 +194,7 @@ class ExamBuilderController extends Controller
     /**
      * Download CSV Template for Question Import
      */
-    public function downloadCsvTemplate(): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function downloadCsvTemplate()
     {
         $headers = [
             'Content-Type' => 'text/csv; charset=UTF-8',
@@ -204,88 +204,14 @@ class ExamBuilderController extends Controller
             'Expires' => '0',
         ];
 
-        return response()->stream(function () {
-            $handle = fopen('php://output', 'w');
-            // Write UTF-8 BOM so Excel opens Bengali / Unicode characters properly
-            fprintf($handle, chr(0xEF) . chr(0xBB) . chr(0xBF));
+        $csv = "\xEF\xBB\xBF"
+            . "question_text,question_type,mark,negative_mark,option_a,option_b,option_c,option_d,option_e,correct_answer,explanation\n"
+            . "\"বাংলাদেশের রাজধানী কোথায়?\",single_choice,1,0.25,\"ঢাকা\",\"চট্টগ্রাম\",\"খুলনা\",\"রাজশাহী\",,\"A\",\"বাংলাদেশের রাজধানী ও প্রধান প্রশাসনিক কেন্দ্র হলো ঢাকা।\"\n"
+            . "\"নিচের কোনগুলো মৌলিক সংখ্যা (Prime Number)?\",multiple_choice,2,0.5,\"2\",\"3\",\"4\",\"6\",,\"A,B\",\"২ এবং ৩ হলো মৌলিক সংখ্যা।\"\n"
+            . "\"আলোর প্রতিসরণ কাকে বলে? চিত্রসহ ব্যাখ্যা করো।\",written_paper,5,0,,,,,,,\"আলো এক স্বচ্ছ মাধ্যম থেকে অন্য স্বচ্ছ মাধ্যমে প্রবেশের সময় দিক পরিবর্তনকে আলোর প্রতিসরণ বলে।\"\n"
+            . "\"সূর্য একটি _____।\",fill_in_the_blank,1,0,,,,,,নক্ষত্র,\"সূর্য একটি মাঝারি আকারের উজ্জ্বল নক্ষত্র।\"\n";
 
-            // CSV Header
-            fputcsv($handle, [
-                'question_text',
-                'question_type',
-                'mark',
-                'negative_mark',
-                'option_a',
-                'option_b',
-                'option_c',
-                'option_d',
-                'option_e',
-                'correct_answer',
-                'explanation'
-            ]);
-
-            // Sample Row 1: Single Choice MCQ
-            fputcsv($handle, [
-                'বাংলাদেশের রাজধানী কোথায়?',
-                'single_choice',
-                '1',
-                '0.25',
-                'ঢাকা',
-                'চট্টগ্রাম',
-                'খুলনা',
-                'রাজশাহী',
-                '',
-                'A',
-                'বাংলাদেশের রাজধানী ও প্রধান প্রশাসনিক কেন্দ্র হলো ঢাকা।'
-            ]);
-
-            // Sample Row 2: Multiple Choice MCQ
-            fputcsv($handle, [
-                'নিচের কোনগুলো মৌলিক সংখ্যা (Prime Number)?',
-                'multiple_choice',
-                '2',
-                '0.5',
-                '2',
-                '3',
-                '4',
-                '6',
-                '',
-                'A,B',
-                '২ এবং ৩ হলো মৌলিক সংখ্যা।'
-            ]);
-
-            // Sample Row 3: Written Question
-            fputcsv($handle, [
-                'আলোর প্রতিসরণ কাকে বলে? চিত্রসহ ব্যাখ্যা করো।',
-                'written_paper',
-                '5',
-                '0',
-                '',
-                '',
-                '',
-                '',
-                '',
-                '',
-                'আলো এক স্বচ্ছ মাধ্যম থেকে অন্য স্বচ্ছ মাধ্যমে প্রবেশের সময় দিক পরিবর্তনকে আলোর প্রতিসরণ বলে।'
-            ]);
-
-            // Sample Row 4: Fill in the blank
-            fputcsv($handle, [
-                'সূর্য একটি _____।',
-                'fill_in_the_blank',
-                '1',
-                '0',
-                '',
-                '',
-                '',
-                '',
-                '',
-                'নক্ষত্র',
-                'সূর্য একটি মাঝারি আকারের উজ্জ্বল নক্ষত্র।'
-            ]);
-
-            fclose($handle);
-        }, 200, $headers);
+        return response($csv, 200, $headers);
     }
 
     /**
