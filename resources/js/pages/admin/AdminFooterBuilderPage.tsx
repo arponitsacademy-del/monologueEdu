@@ -200,6 +200,7 @@ export const AdminFooterBuilderPage: React.FC = () => {
     };
 
     // Live preview localized helpers
+    const logoUrl = footerSettings.logo_url || settings?.logo_url || settings?.header_settings?.logo_url;
     const previewBrandTitle = getLocalizedText(footerSettings.brand_title, footerSettings.brand_title_en, previewLang) || 'Monologue';
     const previewBrandSubtitle = getLocalizedText(footerSettings.brand_subtitle, footerSettings.brand_subtitle_en, previewLang) || 'Edu';
     const previewDescription = getLocalizedText(footerSettings.description, footerSettings.description_en, previewLang);
@@ -272,13 +273,23 @@ export const AdminFooterBuilderPage: React.FC = () => {
                         {/* Col 1 */}
                         <div className="space-y-3">
                             <div className="flex items-center gap-2.5">
-                                <div className="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center text-white font-bold">
-                                    <BookOpen className="w-5 h-5" />
-                                </div>
-                                <span className="text-xl font-black text-white tracking-tight">
-                                    {previewBrandTitle}{' '}
-                                    <span className="text-sky-400">{previewBrandSubtitle}</span>
-                                </span>
+                                {logoUrl ? (
+                                    <img
+                                        src={logoUrl}
+                                        alt="Footer Logo"
+                                        className="h-9 sm:h-10 w-auto object-contain max-w-[180px]"
+                                    />
+                                ) : (
+                                    <>
+                                        <div className="w-9 h-9 rounded-xl bg-sky-500 flex items-center justify-center text-white font-bold">
+                                            <BookOpen className="w-5 h-5" />
+                                        </div>
+                                        <span className="text-xl font-black text-white tracking-tight">
+                                            {previewBrandTitle}{' '}
+                                            <span className="text-sky-400">{previewBrandSubtitle}</span>
+                                        </span>
+                                    </>
+                                )}
                             </div>
                             <p className="text-xs text-slate-400 leading-relaxed">
                                 {previewDescription}
@@ -434,6 +445,23 @@ export const AdminFooterBuilderPage: React.FC = () => {
                     {/* TAB 1: BRAND & INTRO */}
                     {activeTab === 'col1' && (
                         <div className="space-y-4">
+                            {/* Logo Status & Preview */}
+                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div>
+                                    <span className="text-xs font-bold text-slate-800 block">ওয়েবসাইট লোগো (Website Logo)</span>
+                                    <span className="text-[11px] text-slate-500 block">
+                                        ফুটার স্বয়ংক্রিয়ভাবে আপনার সাইটের মূল লোগো (Appearance &gt; General Settings থেকে) প্রদর্শন করে।
+                                    </span>
+                                </div>
+                                {logoUrl ? (
+                                    <div className="p-2.5 bg-slate-900 rounded-xl flex items-center justify-center shrink-0">
+                                        <img src={logoUrl} alt="Footer Logo" className="h-8 max-w-[150px] object-contain" />
+                                    </div>
+                                ) : (
+                                    <span className="text-xs text-slate-400 italic shrink-0">No logo set yet</span>
+                                )}
+                            </div>
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5">

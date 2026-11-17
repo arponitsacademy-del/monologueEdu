@@ -2,13 +2,18 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useSettings } from '../../context/SettingsContext';
 import { apiClient } from '../../api/client';
 import { Phone, Lock, BookOpen, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
     const { login } = useAuth();
     const { t } = useLanguage();
+    const { settings } = useSettings();
     const navigate = useNavigate();
+
+    const logoUrl = settings?.logo_url || settings?.header_settings?.logo_url;
+    const [logoError, setLogoError] = useState(false);
 
     const [phone, setPhone] = useState('');
     const [password, setPassword] = useState('');
@@ -48,16 +53,29 @@ export const LoginPage: React.FC = () => {
         <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
             <div className="max-w-md w-full space-y-8 bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl">
                 {/* Brand Logo & Title */}
-                <div className="text-center space-y-2">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-amber-500 flex items-center justify-center text-white mx-auto shadow-md shadow-sky-500/20">
-                        <BookOpen className="w-6 h-6" />
+                <div className="text-center space-y-3">
+                    {logoUrl && !logoError ? (
+                        <Link to="/" className="inline-block transition-transform hover:scale-105 mx-auto">
+                            <img
+                                src={logoUrl}
+                                alt={settings?.site_name || 'Logo'}
+                                onError={() => setLogoError(true)}
+                                className="h-12 sm:h-14 w-auto object-contain mx-auto max-w-[220px]"
+                            />
+                        </Link>
+                    ) : (
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-amber-500 flex items-center justify-center text-white mx-auto shadow-md shadow-sky-500/20">
+                            <BookOpen className="w-6 h-6" />
+                        </div>
+                    )}
+                    <div>
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                            {t.auth.loginTitle}
+                        </h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            {t.auth.loginSub}
+                        </p>
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                        {t.auth.loginTitle}
-                    </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {t.auth.loginSub}
-                    </p>
                 </div>
 
                 {error && (

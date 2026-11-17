@@ -9,6 +9,9 @@ export const Footer: React.FC = () => {
     const { t, language } = useLanguage();
     const { settings } = useSettings();
     const footer = settings?.footer_settings;
+    const [logoError, setLogoError] = React.useState(false);
+
+    const logoUrl = footer?.logo_url || settings?.logo_url || settings?.header_settings?.logo_url;
 
     const bgColor = footer?.bg_color || '#0f172a';
     const brandTitle = getLocalizedText(footer?.brand_title, footer?.brand_title_en, language)
@@ -70,12 +73,25 @@ export const Footer: React.FC = () => {
                     {/* Brand Info */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
-                                <BookOpen className="w-6 h-6" />
-                            </div>
-                            <span className="text-2xl font-black text-white tracking-tight">
-                                {brandTitle} <span className="text-sky-400">{brandSubtitle}</span>
-                            </span>
+                            {logoUrl && !logoError ? (
+                                <Link to="/" className="inline-flex items-center transition-transform hover:opacity-90">
+                                    <img
+                                        src={logoUrl}
+                                        alt={`${brandTitle} ${brandSubtitle}`}
+                                        onError={() => setLogoError(true)}
+                                        className="h-10 sm:h-12 w-auto object-contain max-w-[220px]"
+                                    />
+                                </Link>
+                            ) : (
+                                <>
+                                    <div className="w-10 h-10 rounded-xl bg-sky-500 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+                                        <BookOpen className="w-6 h-6" />
+                                    </div>
+                                    <span className="text-2xl font-black text-white tracking-tight">
+                                        {brandTitle} <span className="text-sky-400">{brandSubtitle}</span>
+                                    </span>
+                                </>
+                            )}
                         </div>
                         <p className="text-sm text-slate-400 leading-relaxed">
                             {description}

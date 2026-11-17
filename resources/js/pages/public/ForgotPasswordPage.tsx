@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useSettings } from '../../context/SettingsContext';
 import { apiClient } from '../../api/client';
 import { 
     Phone, 
@@ -19,7 +20,11 @@ import {
 
 export const ForgotPasswordPage: React.FC = () => {
     const { login } = useAuth();
+    const { settings } = useSettings();
     const navigate = useNavigate();
+
+    const logoUrl = settings?.logo_url || settings?.header_settings?.logo_url;
+    const [logoError, setLogoError] = useState(false);
 
     // Step: 1 = Enter Phone, 2 = Enter OTP, 3 = New Password
     const [step, setStep] = useState<1 | 2 | 3>(1);
@@ -173,18 +178,31 @@ export const ForgotPasswordPage: React.FC = () => {
         <div className="min-h-[85vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-slate-50 dark:bg-slate-950 font-sans">
             <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl shadow-xl shadow-sky-500/5 p-6 sm:p-8 border border-slate-200/80 dark:border-slate-800 space-y-6">
                 {/* Brand & Header */}
-                <div className="text-center space-y-2">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-amber-500 text-white flex items-center justify-center mx-auto shadow-md shadow-sky-500/20">
-                        <KeyRound className="w-6 h-6" />
+                <div className="text-center space-y-3">
+                    {logoUrl && !logoError ? (
+                        <Link to="/" className="inline-block transition-transform hover:scale-105 mx-auto">
+                            <img
+                                src={logoUrl}
+                                alt={settings?.site_name || 'Logo'}
+                                onError={() => setLogoError(true)}
+                                className="h-12 sm:h-14 w-auto object-contain mx-auto max-w-[220px]"
+                            />
+                        </Link>
+                    ) : (
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-500 to-amber-500 text-white flex items-center justify-center mx-auto shadow-md shadow-sky-500/20">
+                            <KeyRound className="w-6 h-6" />
+                        </div>
+                    )}
+                    <div>
+                        <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
+                            পাসওয়ার্ড রিসেট
+                        </h2>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            {step === 1 && 'আপনার নিবন্ধিত মোবাইল নম্বর দিন'}
+                            {step === 2 && 'ফোনে প্রেরিত ওটিপি (OTP) কোড যাচাই করুন'}
+                            {step === 3 && 'আপনার অ্যাকাউন্টের জন্য নতুন পাসওয়ার্ড সেট করুন'}
+                        </p>
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                        পাসওয়ার্ড রিসেট
-                    </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {step === 1 && 'আপনার নিবন্ধিত মোবাইল নম্বর দিন'}
-                        {step === 2 && 'ফোনে প্রেরিত ওটিপি (OTP) কোড যাচাই করুন'}
-                        {step === 3 && 'আপনার অ্যাকাউন্টের জন্য নতুন পাসওয়ার্ড সেট করুন'}
-                    </p>
                 </div>
 
                 {/* Step Indicators */}
