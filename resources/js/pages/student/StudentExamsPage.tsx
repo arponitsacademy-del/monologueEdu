@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams, Navigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
 import { MathView } from '../../components/shared/MathView';
 import { Modal } from '../../components/ui/Modal';
@@ -115,6 +116,7 @@ interface QuestionReview {
 }
 
 export const StudentExamsPage: React.FC = () => {
+    const { user } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
 
     if (searchParams.get('tab') === 'leaderboard') {
@@ -301,26 +303,48 @@ export const StudentExamsPage: React.FC = () => {
 
     return (
         <div className="space-y-6 max-w-7xl mx-auto pb-12">
-            {/* Print Header (Only visible on paper print / PDF export) */}
-            <div className="hidden print:block mb-6 border-b border-gray-300 pb-4 text-center">
-                <h1 className="text-2xl font-black text-gray-900 tracking-tight">MONOLOGUE EDU</h1>
-                <p className="text-xs text-gray-500 uppercase tracking-widest mt-0.5">Online Examination Result & Evaluation Sheet</p>
-                {selectedSubmission && (
-                    <div className="mt-4 grid grid-cols-2 text-left text-xs text-gray-700 border border-gray-300 rounded-lg p-3 bg-gray-50/50">
-                        <div>
-                            <p><strong>Student Name:</strong> {selectedSubmission.evaluator ? 'Student' : 'User'}</p>
-                            <p><strong>Exam Title:</strong> {selectedSubmission.exam?.title}</p>
-                            <p><strong>Date:</strong> {new Date(selectedSubmission.submitted_at).toLocaleDateString('en-US')}</p>
-                        </div>
-                        <div className="text-right">
-                            <p><strong>Marks Obtained:</strong> {selectedSubmission.obtained_marks} / {selectedSubmission.total_marks}</p>
-                            <p><strong>Rank:</strong> #{selectedSubmission.merit_position} (Total {selectedSubmission.total_participants} candidates)</p>
-                            <p><strong>Result:</strong> {selectedSubmission.total_correct} Correct, {selectedSubmission.total_wrong} Wrong, {selectedSubmission.total_skipped} Skipped</p>
-                        </div>
-                    </div>
-                )}
-            </div>
+            {/* Global Print Styles */}
+            <style>{`
+                @media print {
+                    @page {
+                        size: A4;
+                        margin: 12mm 10mm;
+                    }
+                    body {
+                        background: white !important;
+                        color: black !important;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                        overflow: visible !important;
+                    }
+                    html, #app, #root, body {
+                        height: auto !important;
+                        min-height: 100% !important;
+                        overflow: visible !important;
+                    }
+                    .print-modal-container {
+                        position: static !important;
+                        inset: auto !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        height: auto !important;
+                        max-height: none !important;
+                        overflow: visible !important;
+                        display: block !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        background: white !important;
+                        box-shadow: none !important;
+                    }
+                    .print-break-avoid {
+                        break-inside: avoid !important;
+                        page-break-inside: avoid !important;
+                    }
+                }
+            `}</style>
 
+            {/* Screen Page Content (Hidden during modal print) */}
+            <div className={reviewModalOpen ? 'print:hidden' : ''}>
             {/* Page Header (Screen only) */}
             <div className="print:hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
@@ -906,13 +930,51 @@ export const StudentExamsPage: React.FC = () => {
             </div>
             </div>
             )}
+            </div>
 
             {/* REVIEW & ANALYSIS MODAL */}
             {reviewModalOpen && selectedSubmission && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto">
-                    <div className="bg-white rounded-2xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl relative my-8 max-h-[90vh] flex flex-col">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto print-modal-container print:static print:inset-auto print:p-0 print:m-0 print:bg-white print:overflow-visible print:block print:z-auto">
+                    <div className="bg-white rounded-2xl max-w-4xl w-full p-4 sm:p-6 shadow-2xl relative my-8 max-h-[90vh] flex flex-col print-modal-container print:shadow-none print:border-none print:p-0 print:my-0 print:max-h-none print:w-full print:max-w-none print:block print:overflow-visible">
+                        {/* Printable Official Header (Print Only) */}
+                        <div className="hidden print:block border-b-2 border-slate-900 pb-4 mb-6">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h1 className="text-2xl font-black text-slate-900 tracking-tight">MONOLOGUE EDU</h1>
+                                    <p className="text-xs text-slate-600 uppercase font-semibold tracking-wider">
+                                        Online Examination Result & Evaluation Sheet
+                                    </p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-xs font-bold uppercase tracking-wider px-2.5 py-1 bg-slate-100 border border-slate-300 rounded text-slate-800">
+                                        Official Exam Review
+                                    </span>
+                                    <p className="text-[11px] text-slate-500 mt-1">
+                                        Date: {new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <p><span className="text-slate-500">Student Name:</span> <strong className="text-slate-900">{user?.name || 'Student'}</strong></p>
+                                    <p><span className="text-slate-500">Student ID / Roll:</span> <strong className="text-slate-900 font-mono">{user?.registration_no || user?.roll || `ME-STU-${user?.id || ''}`}</strong></p>
+                                    <p><span className="text-slate-500">Exam Title:</span> <strong className="text-slate-900">{selectedSubmission.exam?.title || reviewExam?.title}</strong></p>
+                                    <p><span className="text-slate-500">Submitted At:</span> <strong className="text-slate-900">{selectedSubmission.submitted_at ? new Date(selectedSubmission.submitted_at).toLocaleString() : 'N/A'}</strong></p>
+                                </div>
+                                <div className="space-y-1 text-right">
+                                    <p><span className="text-slate-500">Marks Obtained:</span> <strong className="text-indigo-900 text-sm">{selectedSubmission.obtained_marks} / {selectedSubmission.total_marks} ({selectedSubmission.percentage}%)</strong></p>
+                                    <p><span className="text-slate-500">Merit Position:</span> <strong className="text-amber-700 font-bold">#{selectedSubmission.merit_position} (of {selectedSubmission.total_participants})</strong></p>
+                                    <p><span className="text-slate-500">Answer Breakdown:</span> <strong className="text-slate-900">{selectedSubmission.total_correct} Correct • {selectedSubmission.total_wrong} Wrong • {selectedSubmission.total_skipped} Skipped</strong></p>
+                                    {Number(selectedSubmission.negative_marks_deducted) > 0 && (
+                                        <p><span className="text-slate-500">Negative Marks Deducted:</span> <strong className="text-rose-600">-{selectedSubmission.negative_marks_deducted}</strong></p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Modal Header */}
-                        <div className="flex items-start justify-between border-b border-gray-100 pb-4 shrink-0">
+                        <div className="flex items-start justify-between border-b border-gray-100 pb-4 shrink-0 print:hidden">
                             <div>
                                 <div className="flex items-center gap-2">
                                     <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-indigo-50 text-indigo-700">
@@ -946,7 +1008,7 @@ export const StudentExamsPage: React.FC = () => {
                         </div>
 
                         {/* Top Score Banner */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4 p-4 rounded-xl bg-gradient-to-r from-indigo-50 via-sky-50 to-indigo-50/50 border border-indigo-100 text-xs shrink-0">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 my-4 p-4 rounded-xl bg-gradient-to-r from-indigo-50 via-sky-50 to-indigo-50/50 border border-indigo-100 text-xs shrink-0 print:hidden">
                             <div>
                                 <span className="text-gray-500 text-[11px] block">Marks Obtained</span>
                                 <span className="text-xl font-black text-indigo-950">
@@ -979,7 +1041,7 @@ export const StudentExamsPage: React.FC = () => {
                         </div>
 
                         {/* Question Filter Tabs */}
-                        <div className="flex items-center gap-1.5 border-b border-gray-200 pb-2 mb-4 shrink-0 overflow-x-auto">
+                        <div className="flex items-center gap-1.5 border-b border-gray-200 pb-2 mb-4 shrink-0 overflow-x-auto print:hidden">
                             <button
                                 onClick={() => setQuestionFilter('all')}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
@@ -1023,7 +1085,7 @@ export const StudentExamsPage: React.FC = () => {
                         </div>
 
                         {/* Questions Content List (Scrollable) */}
-                        <div className="overflow-y-auto flex-1 space-y-4 pr-1">
+                        <div className="overflow-y-auto flex-1 space-y-4 pr-1 print:overflow-visible print:max-h-none print:h-auto print:block print:space-y-4 print:p-0 print-modal-container">
                             {loadingReview ? (
                                 <div className="py-16 text-center text-gray-400">
                                     <Loader2 className="h-8 w-8 animate-spin text-indigo-600 mx-auto mb-2" />
@@ -1043,7 +1105,8 @@ export const StudentExamsPage: React.FC = () => {
                                     return (
                                         <div
                                             key={q.id}
-                                            className={`p-4 rounded-xl border transition-all ${
+                                            style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
+                                            className={`p-4 rounded-xl border transition-all print-break-avoid print:border print:border-gray-300 print:shadow-none print:bg-white print:mb-4 print:p-3.5 print:rounded-lg ${
                                                 isCorrect
                                                     ? 'border-emerald-200 bg-emerald-50/20'
                                                     : isWrong
@@ -1248,7 +1311,7 @@ export const StudentExamsPage: React.FC = () => {
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="pt-3 border-t border-gray-100 flex items-center justify-between shrink-0 mt-2">
+                        <div className="pt-3 border-t border-gray-100 flex items-center justify-between shrink-0 mt-2 print:hidden">
                             <span className="text-xs text-gray-400">
                                 Monologue Edu Examination System
                             </span>
@@ -1267,6 +1330,11 @@ export const StudentExamsPage: React.FC = () => {
                                     Close
                                 </button>
                             </div>
+                        </div>
+
+                        {/* Print Only Footer */}
+                        <div className="hidden print:block pt-3 mt-4 border-t border-gray-300 text-center text-[10px] text-gray-500">
+                            Monologue Edu Examination System • {selectedSubmission.exam?.title || reviewExam?.title}
                         </div>
                     </div>
                 </div>

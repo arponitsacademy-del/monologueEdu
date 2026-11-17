@@ -20,6 +20,7 @@ import {
     Trophy,
     Check,
     X,
+    MinusCircle,
     Eye,
     RotateCcw,
     Printer,
@@ -47,6 +48,7 @@ export const StudentExamRoomPage: React.FC = () => {
 
     // Result screen state
     const [resultData, setResultData] = useState<any>(null);
+    const [reviewFilter, setReviewFilter] = useState<'all' | 'correct' | 'wrong' | 'skipped'>('all');
     const [uploadingPaperId, setUploadingPaperId] = useState<number | null>(null);
 
     useEffect(() => {
@@ -245,22 +247,97 @@ export const StudentExamRoomPage: React.FC = () => {
         );
     }
 
-    // RESULT SCREEN (Instant MCQ evaluation + Merit Position)
+    // RESULT SCREEN (Instant MCQ evaluation + Merit Position + Complete Question Review)
     if (resultData) {
         const percentage = resultData.total_marks > 0
             ? Math.round((resultData.obtained_marks / resultData.total_marks) * 100)
             : 0;
 
+        const reviewAnswers = (submission?.answers && submission.answers.length > 0)
+            ? submission.answers
+            : (questions || []).map(q => {
+                const ansData = answersState[q.id];
+                const studentAns = ansData?.student_answer || [];
+                const attachments = ansData?.attachments || [];
+                const isAnswered = studentAns.length > 0 || attachments.length > 0;
+                const correctAnswers = (q.correct_answers || []).map(String).sort();
+                const selectedAnswers = studentAns.map(String).sort();
+                const isCorrect = isAnswered && (JSON.stringify(correctAnswers) === JSON.stringify(selectedAnswers));
+                return {
+                    id: q.id,
+                    question_id: q.id,
+                    student_answer: studentAns,
+                    attachments: attachments,
+                    is_correct: isAnswered ? isCorrect : false,
+                    marks_obtained: isCorrect ? (q.marks || 1) : 0,
+                    question: q,
+                };
+            });
+
+        const filteredReviewAnswers = reviewAnswers.filter((ans: any) => {
+            const studentAnswers: string[] = Array.isArray(ans.student_answer)
+                ? ans.student_answer.map(String)
+                : (ans.student_answer ? [String(ans.student_answer)] : []);
+            const isSkipped = studentAnswers.length === 0 && (!ans.attachments || ans.attachments.length === 0);
+            const isCorrect = ans.is_correct === true;
+            const isWrong = !isSkipped && ans.is_correct === false;
+
+            if (reviewFilter === 'correct') return isCorrect;
+            if (reviewFilter === 'wrong') return isWrong;
+            if (reviewFilter === 'skipped') return isSkipped;
+            return true;
+        });
+
         return (
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 sm:p-8">
-                <div className="max-w-3xl mx-auto space-y-6">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-950 p-4 sm:p-8 print:p-0 print:bg-white print:min-h-0 text-slate-900 dark:text-white">
+                {/* Print Optimization Styles */}
+                <style>{`
+                    @media print {
+                        @page {
+                            size: A4;
+                            margin: 12mm 10mm 12mm 10mm;
+                        }
+                        html, body {
+                            background: #ffffff !important;
+                            color: #0f172a !important;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                        }
+                        .print-break-inside-avoid {
+                            break-inside: avoid !important;
+                            page-break-inside: avoid !important;
+                        }
+                    }
+                `}</style>
+
+                <div className="max-w-3xl mx-auto space-y-6 print:max-w-none print:w-full print:space-y-4">
+                    {/* Print-Only Official Header */}
+                    <div className="hidden print:block mb-6 border-b-2 border-slate-900 pb-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h1 className="text-2xl font-black tracking-tight text-slate-900">MONOLOGUE EDU</h1>
+                                <p className="text-xs uppercase tracking-widest text-slate-600 font-bold">Online Examination Result & Evaluation Sheet</p>
+                            </div>
+                            <div className="text-right text-xs text-slate-700">
+                                <p className="font-bold text-sm text-slate-900">{exam?.title}</p>
+                                <p className="text-slate-500">{new Date(submission?.submitted_at || Date.now()).toLocaleDateString('bn-BD', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                            </div>
+                        </div>
+                        <div className="mt-3 grid grid-cols-4 gap-2 text-xs border border-slate-300 rounded-lg p-2.5 bg-slate-50">
+                            <div><span className="text-slate-500 block text-[11px]">শিক্ষার্থী:</span><strong className="text-slate-900">{user?.name}</strong></div>
+                            <div><span className="text-slate-500 block text-[11px]">রোল নম্বর:</span><strong className="text-slate-900 font-mono">{user?.registration_number || `ME-2026-${user?.id}`}</strong></div>
+                            <div><span className="text-slate-500 block text-[11px]">প্রাপ্ত নম্বর:</span><strong className="text-emerald-700">{resultData.obtained_marks} / {resultData.total_marks} ({percentage}%)</strong></div>
+                            <div><span className="text-slate-500 block text-[11px]">মেরিট পজিশন:</span><strong className="text-amber-700 font-bold">#{resultData.merit_position}</strong></div>
+                        </div>
+                    </div>
+
                     {/* Result Header Card */}
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center relative overflow-hidden">
-                        <div className="w-20 h-20 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center mx-auto mb-4 shadow-md">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm text-center relative overflow-hidden print:shadow-none print:border-slate-300 print:rounded-2xl print:p-5 print:mb-4">
+                        <div className="w-20 h-20 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-500 flex items-center justify-center mx-auto mb-4 shadow-md print:hidden">
                             <Trophy className="w-10 h-10" />
                         </div>
 
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
+                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white print:text-xl">
                             Exam Result
                         </h1>
                         <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -268,7 +345,7 @@ export const StudentExamRoomPage: React.FC = () => {
                         </p>
 
                         {/* Merit Position Badge */}
-                        <div className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-sky-500/10 border border-amber-300 dark:border-amber-800/60">
+                        <div className="mt-5 inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-purple-500/10 to-sky-500/10 border border-amber-300 dark:border-amber-800/60 print:bg-amber-50 print:border-amber-300">
                             <Award className="w-5 h-5 text-amber-500" />
                             <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
                                 Your Rank (Merit Position): <span className="text-amber-600 dark:text-amber-400 text-lg">#{resultData.merit_position}</span>
@@ -276,18 +353,18 @@ export const StudentExamRoomPage: React.FC = () => {
                         </div>
 
                         {/* Score Big Display */}
-                        <div className="mt-8 py-6 border-y border-slate-100 dark:border-slate-800 flex items-center justify-center gap-8">
+                        <div className="mt-8 py-6 border-y border-slate-100 dark:border-slate-800 flex items-center justify-center gap-8 print:py-3 print:mt-4">
                             <div>
                                 <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Marks Obtained</p>
-                                <p className="text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1">
+                                <p className="text-4xl font-extrabold text-emerald-600 dark:text-emerald-400 mt-1 print:text-2xl">
                                     {resultData.obtained_marks}
-                                    <span className="text-lg font-normal text-slate-400"> / {resultData.total_marks}</span>
+                                    <span className="text-lg font-normal text-slate-400 print:text-sm"> / {resultData.total_marks}</span>
                                 </p>
                             </div>
                             <div className="h-12 w-px bg-slate-200 dark:bg-slate-800" />
                             <div>
                                 <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Percentage</p>
-                                <p className="text-4xl font-extrabold text-sky-600 dark:text-sky-400 mt-1">
+                                <p className="text-4xl font-extrabold text-sky-600 dark:text-sky-400 mt-1 print:text-2xl">
                                     {percentage}%
                                 </p>
                             </div>
@@ -304,38 +381,38 @@ export const StudentExamRoomPage: React.FC = () => {
                         )}
 
                         {/* Detailed Metrics Grid */}
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6">
-                            <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 print:mt-3">
+                            <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 print:p-2.5">
                                 <p className="text-xs text-emerald-700 dark:text-emerald-300 font-medium">Correct Answers</p>
-                                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5">
+                                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-0.5 print:text-lg">
                                     {resultData.total_correct}
                                 </p>
                             </div>
 
-                            <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40">
+                            <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 print:p-2.5">
                                 <p className="text-xs text-rose-700 dark:text-rose-300 font-medium">Wrong Answers</p>
-                                <p className="text-2xl font-bold text-rose-700 dark:text-rose-300 mt-0.5">
+                                <p className="text-2xl font-bold text-rose-700 dark:text-rose-300 mt-0.5 print:text-lg">
                                     {resultData.total_wrong}
                                 </p>
                             </div>
 
-                            <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60">
+                            <div className="p-3.5 rounded-2xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 print:p-2.5">
                                 <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">Skipped</p>
-                                <p className="text-2xl font-bold text-slate-700 dark:text-slate-200 mt-0.5">
+                                <p className="text-2xl font-bold text-slate-700 dark:text-slate-200 mt-0.5 print:text-lg">
                                     {resultData.total_skipped}
                                 </p>
                             </div>
 
-                            <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40">
+                            <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 print:p-2.5">
                                 <p className="text-xs text-amber-700 dark:text-amber-300 font-medium">Negative Deduction</p>
-                                <p className="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-0.5">
+                                <p className="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-0.5 print:text-lg">
                                     -{resultData.negative_marks_deducted}
                                 </p>
                             </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                        {/* Action Buttons (Hidden on Print) */}
+                        <div className="mt-8 flex flex-wrap items-center justify-center gap-3 print:hidden">
                             <Link
                                 to="/student/exams"
                                 className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition-all flex items-center gap-2 shadow-md shadow-indigo-600/20"
@@ -344,8 +421,9 @@ export const StudentExamRoomPage: React.FC = () => {
                                 <span>All Exams History & Review</span>
                             </Link>
                             <button
+                                type="button"
                                 onClick={() => window.print()}
-                                className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-2"
+                                className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-800 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-2 shadow-xs"
                             >
                                 <Printer className="w-4 h-4 text-slate-500" />
                                 <span>Download PDF / Print</span>
@@ -356,6 +434,207 @@ export const StudentExamRoomPage: React.FC = () => {
                             >
                                 Return to Courses
                             </Link>
+                        </div>
+                    </div>
+
+                    {/* DETAILED QUESTION-BY-QUESTION REVIEW */}
+                    <div className="space-y-4 print:space-y-4">
+                        {/* Filter Tabs (Hidden on Print) */}
+                        <div className="print:hidden flex items-center justify-between flex-wrap gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs">
+                            <div className="flex items-center gap-2">
+                                <ClipboardList className="w-4 h-4 text-sky-500" />
+                                <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                                    প্রশ্ন ও উত্তর বিশ্লেষণ ({reviewAnswers.length} টি প্রশ্ন)
+                                </h3>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold">
+                                <button
+                                    type="button"
+                                    onClick={() => setReviewFilter('all')}
+                                    className={`px-3 py-1.5 rounded-lg transition-all ${
+                                        reviewFilter === 'all'
+                                            ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-xs'
+                                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                                    }`}
+                                >
+                                    সব ({reviewAnswers.length})
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setReviewFilter('correct')}
+                                    className={`px-3 py-1.5 rounded-lg transition-all ${
+                                        reviewFilter === 'correct'
+                                            ? 'bg-emerald-600 text-white shadow-xs'
+                                            : 'text-emerald-600 hover:text-emerald-700'
+                                    }`}
+                                >
+                                    সঠিক ({resultData.total_correct || 0})
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setReviewFilter('wrong')}
+                                    className={`px-3 py-1.5 rounded-lg transition-all ${
+                                        reviewFilter === 'wrong'
+                                            ? 'bg-rose-600 text-white shadow-xs'
+                                            : 'text-rose-600 hover:text-rose-700'
+                                    }`}
+                                >
+                                    ভুল ({resultData.total_wrong || 0})
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setReviewFilter('skipped')}
+                                    className={`px-3 py-1.5 rounded-lg transition-all ${
+                                        reviewFilter === 'skipped'
+                                            ? 'bg-slate-700 text-white shadow-xs'
+                                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                                    }`}
+                                >
+                                    ছেড়ে দেওয়া ({resultData.total_skipped || 0})
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Questions List */}
+                        <div className="space-y-4 print:space-y-4">
+                            {filteredReviewAnswers.map((ans: any, idx: number) => {
+                                const q = ans.question || questions.find(qItem => qItem.id === ans.question_id);
+                                if (!q) return null;
+
+                                const studentAnswers: string[] = Array.isArray(ans.student_answer)
+                                    ? ans.student_answer.map(String)
+                                    : (ans.student_answer ? [String(ans.student_answer)] : []);
+                                
+                                const isSkipped = studentAnswers.length === 0 && (!ans.attachments || ans.attachments.length === 0);
+                                const isCorrect = ans.is_correct === true;
+                                const isWrong = !isSkipped && ans.is_correct === false;
+                                const correctAnswers: string[] = (q.correct_answers || []).map(String);
+
+                                return (
+                                    <div
+                                        key={ans.id || q.id || idx}
+                                        className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xs print:border-slate-300 print:shadow-none print:bg-white print:p-4 print:mb-4 print:break-inside-avoid print:page-break-inside-avoid"
+                                        style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
+                                    >
+                                        {/* Question Header Meta */}
+                                        <div className="flex items-center justify-between text-xs mb-3 border-b border-slate-100 dark:border-slate-800 pb-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="font-mono font-bold px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 print:bg-slate-200">
+                                                    প্রশ্ন #{idx + 1}
+                                                </span>
+                                                <span className="text-slate-400">•</span>
+                                                <span className="font-semibold text-slate-500">
+                                                    পূর্ণমান: {q.marks || 1}
+                                                </span>
+                                            </div>
+
+                                            <div>
+                                                {isCorrect && (
+                                                    <span className="inline-flex items-center gap-1 font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2.5 py-0.5 rounded-full text-xs print:bg-emerald-100">
+                                                        <CheckCircle2 className="w-3.5 h-3.5" />
+                                                        সঠিক উত্তর (+{ans.marks_obtained})
+                                                    </span>
+                                                )}
+                                                {isWrong && (
+                                                    <span className="inline-flex items-center gap-1 font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 px-2.5 py-0.5 rounded-full text-xs print:bg-rose-100">
+                                                        <XCircle className="w-3.5 h-3.5" />
+                                                        ভুল উত্তর ({exam?.has_negative_marking ? `-${exam.negative_marks}` : '0'})
+                                                    </span>
+                                                )}
+                                                {isSkipped && (
+                                                    <span className="inline-flex items-center gap-1 font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 rounded-full text-xs print:bg-slate-200">
+                                                        <MinusCircle className="w-3.5 h-3.5" />
+                                                        উত্তর দেওয়া হয়নি
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Question Text with MathView */}
+                                        <div className="text-sm font-semibold text-slate-900 dark:text-white leading-relaxed mb-4">
+                                            <MathView content={q.question_text} />
+                                        </div>
+
+                                        {/* Attachment image if present */}
+                                        {q.attachment_url && (
+                                            <div className="mb-4">
+                                                <img
+                                                    src={q.attachment_url}
+                                                    alt="Question attachment"
+                                                    className="max-h-60 rounded-xl border border-slate-200 dark:border-slate-700 object-contain"
+                                                />
+                                            </div>
+                                        )}
+
+                                        {/* MCQ Options List */}
+                                        {(q.question_type === 'single_choice' || q.question_type === 'multiple_choice' || !q.question_type) && q.options && (
+                                            <div className="space-y-2 mb-4">
+                                                {q.options.map((opt: any) => {
+                                                    const optId = String(opt.id ?? opt.key);
+                                                    const isCorrectOpt = correctAnswers.includes(optId);
+                                                    const isSelected = studentAnswers.includes(optId);
+
+                                                    let optStyle = 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 text-slate-800 dark:text-slate-200';
+                                                    if (isCorrectOpt) {
+                                                        optStyle = 'border-emerald-400 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-950 dark:text-emerald-100 font-semibold';
+                                                    } else if (isSelected && !isCorrectOpt) {
+                                                        optStyle = 'border-rose-300 dark:border-rose-700 bg-rose-50 dark:bg-rose-950/50 text-rose-950 dark:text-rose-100 font-semibold';
+                                                    }
+
+                                                    return (
+                                                        <div
+                                                            key={optId}
+                                                            className={`p-3 rounded-xl border flex items-center justify-between text-xs transition-colors ${optStyle}`}
+                                                        >
+                                                            <div className="flex items-center gap-2.5 flex-1 pr-2">
+                                                                <span className="w-6 h-6 rounded-lg bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 font-mono font-bold flex items-center justify-center shrink-0 text-slate-700 dark:text-slate-200">
+                                                                    {optId}
+                                                                </span>
+                                                                <div className="flex-1">
+                                                                    <MathView content={opt.text} inline />
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="shrink-0 flex items-center gap-1.5">
+                                                                {isCorrectOpt && isSelected && (
+                                                                    <span className="px-2 py-0.5 rounded-md bg-emerald-600 text-white font-bold text-[10px] flex items-center gap-1 shadow-2xs">
+                                                                        <Check className="w-3 h-3" />
+                                                                        আপনার সঠিক উত্তর
+                                                                    </span>
+                                                                )}
+                                                                {isCorrectOpt && !isSelected && (
+                                                                    <span className="px-2 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 font-bold text-[10px] flex items-center gap-1 border border-emerald-300 dark:border-emerald-700">
+                                                                        <Check className="w-3 h-3" />
+                                                                        সঠিক উত্তর
+                                                                    </span>
+                                                                )}
+                                                                {!isCorrectOpt && isSelected && (
+                                                                    <span className="px-2 py-0.5 rounded-md bg-rose-600 text-white font-bold text-[10px] flex items-center gap-1 shadow-2xs">
+                                                                        <X className="w-3 h-3" />
+                                                                        আপনার ভুল উত্তর
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+
+                                        {/* Explanation Box */}
+                                        {q.explanation && (
+                                            <div className="p-3.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/50 text-xs text-amber-900 dark:text-amber-200 mt-2">
+                                                <span className="font-bold block mb-1 text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                                                    <Award className="w-3.5 h-3.5 text-amber-600" />
+                                                    ব্যাখ্যা (Explanation):
+                                                </span>
+                                                <MathView content={q.explanation} />
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
