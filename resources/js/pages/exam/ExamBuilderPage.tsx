@@ -342,7 +342,7 @@ export const ExamBuilderPage: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
                     <Link
                         to={`${basePath}/${id}/submissions`}
                         className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium flex items-center gap-1.5"
@@ -350,40 +350,6 @@ export const ExamBuilderPage: React.FC = () => {
                         <FileText className="w-4 h-4 text-purple-500" />
                         <span>Submissions ({exam?.submissions_count ?? 0})</span>
                     </Link>
-                    <button
-                        type="button"
-                        onClick={() => setAiModalOpen(true)}
-                        className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-purple-600/20 cursor-pointer"
-                    >
-                        <Sparkles className="w-4 h-4 text-amber-300" />
-                        <span>Make Questions with AI</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setCsvModalOpen(true)}
-                        className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer"
-                        title="CSV ফাইল আপলোড করে এক ক্লিকে অনেক প্রশ্ন যোগ করুন"
-                    >
-                        <FileSpreadsheet className="w-4 h-4" />
-                        <span>Bulk Import Question</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={downloadExamCsvTemplate}
-                        className="px-3 py-2 rounded-xl border border-emerald-500/80 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
-                        title="নমুনা CSV টেমপ্লেট ডাউনলোড করুন"
-                    >
-                        <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                        <span>Download CSV Template</span>
-                    </button>
-                    <button
-                        type="button"
-                        onClick={openAddModal}
-                        className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-sky-600/20 cursor-pointer"
-                    >
-                        <Plus className="w-4 h-4" />
-                        <span>Add Manually</span>
-                    </button>
                 </div>
             </div>
 
@@ -437,6 +403,47 @@ export const ExamBuilderPage: React.FC = () => {
                 </div>
             ) : (
                 <div className="space-y-4">
+                    <div className="flex items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex-wrap">
+                        <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                            Questions ({questions.length})
+                        </span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <button
+                                type="button"
+                                onClick={() => setAiModalOpen(true)}
+                                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-purple-600/20 cursor-pointer"
+                            >
+                                <Sparkles className="w-4 h-4 text-amber-300" />
+                                <span>Make Questions with AI</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setCsvModalOpen(true)}
+                                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer"
+                                title="CSV ফাইল আপলোড করে এক ক্লিকে অনেক প্রশ্ন যোগ করুন"
+                            >
+                                <FileSpreadsheet className="w-4 h-4" />
+                                <span>Bulk Import Question</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={downloadExamCsvTemplate}
+                                className="px-3 py-2 rounded-xl border border-emerald-500/80 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                                title="নমুনা CSV টেমপ্লেট ডাউনলোড করুন"
+                            >
+                                <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                <span>Download CSV Template</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={openAddModal}
+                                className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-sky-600/20 cursor-pointer"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>Add Manually</span>
+                            </button>
+                        </div>
+                    </div>
                     {questions.map((q, idx) => (
                         <div
                             key={q.id}
