@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { apiClient, formatBDT } from '../../api/client';
 import { 
@@ -117,6 +117,10 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
     const [allCourses, setAllCourses] = useState<CourseOption[]>([]);
     const [allCategories, setAllCategories] = useState<CategoryOption[]>([]);
 
+    // Search filter terms for courses and categories in modal
+    const [courseSearchTerm, setCourseSearchTerm] = useState('');
+    const [categorySearchTerm, setCategorySearchTerm] = useState('');
+
     // Form fields
     const [formData, setFormData] = useState({
         code: '',
@@ -146,6 +150,41 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
     const [userSearchResults, setUserSearchResults] = useState<UserOption[]>([]);
     const [searchingUsers, setSearchingUsers] = useState(false);
     const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
+
+    // Filtered courses and categories for modal
+    const filteredCourses = useMemo(() => {
+        if (!courseSearchTerm.trim()) return allCourses;
+        const q = courseSearchTerm.toLowerCase();
+        return allCourses.filter(c => c.title.toLowerCase().includes(q));
+    }, [allCourses, courseSearchTerm]);
+
+    const selectedCoursesList = useMemo(() => {
+        const fromAll = allCourses.filter(c => formData.course_ids.includes(c.id));
+        if (editingCoupon && editingCoupon.courses) {
+            const missing = editingCoupon.courses.filter(c => 
+                formData.course_ids.includes(c.id) && !fromAll.some(a => a.id === c.id)
+            );
+            return [...fromAll, ...missing];
+        }
+        return fromAll;
+    }, [allCourses, formData.course_ids, editingCoupon]);
+
+    const filteredCategories = useMemo(() => {
+        if (!categorySearchTerm.trim()) return allCategories;
+        const q = categorySearchTerm.toLowerCase();
+        return allCategories.filter(cat => cat.name.toLowerCase().includes(q));
+    }, [allCategories, categorySearchTerm]);
+
+    const selectedCategoriesList = useMemo(() => {
+        const fromAll = allCategories.filter(cat => formData.category_ids.includes(cat.id));
+        if (editingCoupon && editingCoupon.categories) {
+            const missing = editingCoupon.categories.filter(cat => 
+                formData.category_ids.includes(cat.id) && !fromAll.some(a => a.id === cat.id)
+            );
+            return [...fromAll, ...missing];
+        }
+        return fromAll;
+    }, [allCategories, formData.category_ids, editingCoupon]);
 
     useEffect(() => {
         fetchCoupons();
@@ -276,6 +315,8 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
         setSelectedUser(null);
         setUserSearchTerm('');
         setUserSearchResults([]);
+        setCourseSearchTerm('');
+        setCategorySearchTerm('');
         setFormError(null);
         setModalOpen(true);
     };
@@ -316,6 +357,8 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
         setSelectedUser(coupon.restricted_user || null);
         setUserSearchTerm('');
         setUserSearchResults([]);
+        setCourseSearchTerm('');
+        setCategorySearchTerm('');
         setFormError(null);
         setModalOpen(true);
     };
@@ -956,63 +999,220 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
 
                                         {/* Multi-select courses */}
                                         {formData.scope_type === 'course' && (
-                                            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
-                                                <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                                                    Select Course(s):
+                                            <div className="mt-3 p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5">
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                                        <BookOpen className="w-3.5 h-3.5 text-indigo-600" />
+                                                        <span>কোর্স নির্বাচন করুন (Select Courses):</span>
+                                                    </label>
+                                                    <span className="text-[11px] text-slate-400">
+                                                        {formData.course_ids.length > 0 ? `${formData.course_ids.length}টি নির্বাচিত` : 'কোনোটি নির্বাচিত নয়'}
+                                                    </span>
                                                 </div>
-                                                <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
-                                                    {allCourses.map(course => {
-                                                        const checked = formData.course_ids.includes(course.id);
-                                                        return (
-                                                            <label key={course.id} className="flex items-center gap-2 p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg cursor-pointer text-xs">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={checked}
-                                                                    onChange={() => {
-                                                                        if (checked) {
-                                                                            setFormData(prev => ({ ...prev, course_ids: prev.course_ids.filter(id => id !== course.id) }));
-                                                                        } else {
-                                                                            setFormData(prev => ({ ...prev, course_ids: [...prev.course_ids, course.id] }));
-                                                                        }
+
+                                                {/* Selected Courses Chips */}
+                                                {selectedCoursesList.length > 0 && (
+                                                    <div className="flex flex-wrap items-center gap-1.5 p-2 bg-indigo-50/70 dark:bg-indigo-950/40 rounded-xl border border-indigo-100 dark:border-indigo-900/50">
+                                                        <span className="text-[10px] font-bold text-indigo-800 dark:text-indigo-300 mr-1">
+                                                            নির্বাচিত:
+                                                        </span>
+                                                        {selectedCoursesList.map(c => (
+                                                            <span
+                                                                key={c.id}
+                                                                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-850 text-indigo-700 dark:text-indigo-300 text-xs font-semibold rounded-lg border border-indigo-200 dark:border-indigo-800 shadow-2xs"
+                                                            >
+                                                                <span className="max-w-[200px] truncate">{c.title}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setFormData(prev => ({ ...prev, course_ids: prev.course_ids.filter(id => id !== c.id) }))}
+                                                                    className="text-slate-400 hover:text-rose-600 rounded p-0.5 transition-colors cursor-pointer"
+                                                                    title="মুছে ফেলুন"
+                                                                >
+                                                                    <X className="w-3 h-3" />
+                                                                </button>
+                                                            </span>
+                                                        ))}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setFormData(prev => ({ ...prev, course_ids: [] }))}
+                                                            className="text-[10px] text-rose-500 hover:underline ml-auto cursor-pointer"
+                                                        >
+                                                            সব মুছুন
+                                                        </button>
+                                                    </div>
+                                                )}
+
+                                                {/* Search Bar */}
+                                                <div className="relative">
+                                                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                    <input
+                                                        type="text"
+                                                        value={courseSearchTerm}
+                                                        onChange={(e) => setCourseSearchTerm(e.target.value)}
+                                                        placeholder="কোর্সের নাম লিখে সার্চ করুন (যেমনঃ Physics, HSC, Math...)"
+                                                        className="w-full pl-9 pr-8 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                                    />
+                                                    {courseSearchTerm && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setCourseSearchTerm('')}
+                                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                                                            title="Clear search"
+                                                        >
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {/* Filtered Courses List */}
+                                                <div className="max-h-48 overflow-y-auto space-y-1 pr-1 border border-slate-200/60 dark:border-slate-700/60 rounded-xl p-1 bg-white dark:bg-slate-850">
+                                                    {filteredCourses.length > 0 ? (
+                                                        filteredCourses.map(course => {
+                                                            const checked = formData.course_ids.includes(course.id);
+                                                            return (
+                                                                <div
+                                                                    key={course.id}
+                                                                    onClick={() => {
+                                                                        setFormData(prev => ({
+                                                                            ...prev,
+                                                                            course_ids: checked
+                                                                                ? prev.course_ids.filter(id => id !== course.id)
+                                                                                : [...prev.course_ids, course.id]
+                                                                        }));
                                                                     }}
-                                                                    className="rounded text-indigo-600 focus:ring-indigo-500"
-                                                                />
-                                                                <span className="font-semibold text-slate-800 dark:text-slate-200">{course.title}</span>
-                                                                <span className="text-[10px] text-slate-400 ml-auto">{formatBDT(course.price)}</span>
-                                                            </label>
-                                                        );
-                                                    })}
+                                                                    className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-colors text-xs ${
+                                                                        checked
+                                                                            ? 'bg-indigo-50/90 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200'
+                                                                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                                    }`}
+                                                                >
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={checked}
+                                                                        onChange={() => {}}
+                                                                        className="rounded text-indigo-600 focus:ring-indigo-500 pointer-events-none"
+                                                                    />
+                                                                    <span className="font-semibold flex-1 leading-snug">{course.title}</span>
+                                                                    <span className="text-[10px] text-slate-400 shrink-0 font-medium">{formatBDT(course.price)}</span>
+                                                                </div>
+                                                            );
+                                                        })
+                                                    ) : (
+                                                        <div className="text-center py-4 text-xs text-slate-400">
+                                                            "{courseSearchTerm}" দিয়ে কোনো কোর্স পাওয়া যায়নি
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         )}
 
                                         {/* Multi-select categories */}
                                         {formData.scope_type === 'category' && (
-                                            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
-                                                <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                                                    Select Course Category(ies):
+                                            <div className="mt-3 p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5">
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                                        <FolderKanban className="w-3.5 h-3.5 text-indigo-600" />
+                                                        <span>ক্যাটেগরি নির্বাচন করুন (Select Categories):</span>
+                                                    </label>
+                                                    <span className="text-[11px] text-slate-400">
+                                                        {formData.category_ids.length > 0 ? `${formData.category_ids.length}টি নির্বাচিত` : 'কোনোটি নির্বাচিত নয়'}
+                                                    </span>
                                                 </div>
-                                                <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
-                                                    {allCategories.map(cat => {
-                                                        const checked = formData.category_ids.includes(cat.id);
-                                                        return (
-                                                            <label key={cat.id} className="flex items-center gap-2 p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg cursor-pointer text-xs">
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={checked}
-                                                                    onChange={() => {
-                                                                        if (checked) {
-                                                                            setFormData(prev => ({ ...prev, category_ids: prev.category_ids.filter(id => id !== cat.id) }));
-                                                                        } else {
-                                                                            setFormData(prev => ({ ...prev, category_ids: [...prev.category_ids, cat.id] }));
-                                                                        }
+
+                                                {/* Selected Categories Chips */}
+                                                {selectedCategoriesList.length > 0 && (
+                                                    <div className="flex flex-wrap items-center gap-1.5 p-2 bg-amber-50/70 dark:bg-amber-950/40 rounded-xl border border-amber-100 dark:border-amber-900/50">
+                                                        <span className="text-[10px] font-bold text-amber-800 dark:text-amber-300 mr-1">
+                                                            নির্বাচিত:
+                                                        </span>
+                                                        {selectedCategoriesList.map(cat => (
+                                                            <span
+                                                                key={cat.id}
+                                                                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-850 text-amber-700 dark:text-amber-300 text-xs font-semibold rounded-lg border border-amber-200 dark:border-amber-800 shadow-2xs"
+                                                            >
+                                                                <span className="max-w-[200px] truncate">{cat.name}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setFormData(prev => ({ ...prev, category_ids: prev.category_ids.filter(id => id !== cat.id) }))}
+                                                                    className="text-slate-400 hover:text-rose-600 rounded p-0.5 transition-colors cursor-pointer"
+                                                                    title="মুছে ফেলুন"
+                                                                >
+                                                                    <X className="w-3 h-3" />
+                                                                </button>
+                                                            </span>
+                                                        ))}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setFormData(prev => ({ ...prev, category_ids: [] }))}
+                                                            className="text-[10px] text-rose-500 hover:underline ml-auto cursor-pointer"
+                                                        >
+                                                            সব মুছুন
+                                                        </button>
+                                                    </div>
+                                                )}
+
+                                                {/* Search Bar */}
+                                                <div className="relative">
+                                                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                    <input
+                                                        type="text"
+                                                        value={categorySearchTerm}
+                                                        onChange={(e) => setCategorySearchTerm(e.target.value)}
+                                                        placeholder="ক্যাটেগরির নাম লিখে সার্চ করুন..."
+                                                        className="w-full pl-9 pr-8 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                                    />
+                                                    {categorySearchTerm && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setCategorySearchTerm('')}
+                                                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                                                            title="Clear search"
+                                                        >
+                                                            <X className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {/* Filtered Categories List */}
+                                                <div className="max-h-48 overflow-y-auto space-y-1 pr-1 border border-slate-200/60 dark:border-slate-700/60 rounded-xl p-1 bg-white dark:bg-slate-850">
+                                                    {filteredCategories.length > 0 ? (
+                                                        filteredCategories.map(cat => {
+                                                            const checked = formData.category_ids.includes(cat.id);
+                                                            return (
+                                                                <div
+                                                                    key={cat.id}
+                                                                    onClick={() => {
+                                                                        setFormData(prev => ({
+                                                                            ...prev,
+                                                                            category_ids: checked
+                                                                                ? prev.category_ids.filter(id => id !== cat.id)
+                                                                                : [...prev.category_ids, cat.id]
+                                                                        }));
                                                                     }}
-                                                                    className="rounded text-indigo-600 focus:ring-indigo-500"
-                                                                />
-                                                                <span className="font-semibold text-slate-800 dark:text-slate-200">{cat.name}</span>
-                                                            </label>
-                                                        );
-                                                    })}
+                                                                    className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-colors text-xs ${
+                                                                        checked
+                                                                            ? 'bg-amber-50/90 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200'
+                                                                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                                                                    }`}
+                                                                >
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={checked}
+                                                                        onChange={() => {}}
+                                                                        className="rounded text-indigo-600 focus:ring-indigo-500 pointer-events-none"
+                                                                    />
+                                                                    <span className="font-semibold flex-1 leading-snug">{cat.name}</span>
+                                                                    {cat.courses_count !== undefined && (
+                                                                        <span className="text-[10px] text-slate-400 shrink-0 font-medium">({cat.courses_count} courses)</span>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })
+                                                    ) : (
+                                                        <div className="text-center py-4 text-xs text-slate-400">
+                                                            "{categorySearchTerm}" দিয়ে কোনো ক্যাটেগরি পাওয়া যায়নি
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         )}
