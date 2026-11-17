@@ -81,6 +81,11 @@ export interface Course {
         type: 'upload' | 'link' | 'file';
         url: string;
         file_name?: string;
+    }[] | null;
+    enrolled_action_buttons?: {
+        id: string;
+        label: string;
+        url: string;
         requires_access_key?: boolean;
     }[] | null;
     coupon_code?: string | null;

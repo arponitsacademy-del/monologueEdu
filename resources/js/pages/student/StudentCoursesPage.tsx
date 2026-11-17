@@ -14,7 +14,9 @@ import {
     Check, 
     AlertCircle, 
     Loader2,
-    Copy
+    Copy,
+    KeyRound,
+    ExternalLink
 } from 'lucide-react';
 import { Modal } from '../../components/ui/Modal';
 
@@ -36,6 +38,13 @@ export const StudentCoursesPage: React.FC = () => {
     const [unlockError, setUnlockError] = useState<string | null>(null);
     const [unlockSuccess, setUnlockSuccess] = useState<string | null>(null);
     const [copiedNumber, setCopiedNumber] = useState(false);
+    const [copiedAccessKey, setCopiedAccessKey] = useState<string | null>(null);
+
+    const handleCopyAccessKey = (key: string) => {
+        navigator.clipboard.writeText(key);
+        setCopiedAccessKey(key);
+        setTimeout(() => setCopiedAccessKey(null), 2000);
+    };
 
     useEffect(() => {
         fetchMyCourses();
@@ -217,6 +226,61 @@ export const StudentCoursesPage: React.FC = () => {
                                             />
                                         </div>
                                     </div>
+
+                                    {/* Enrolled Action Buttons & Community Groups */}
+                                    {course.enrolled_action_buttons && course.enrolled_action_buttons.length > 0 && (
+                                        <div className="pt-3 border-t border-slate-100 space-y-2">
+                                            {course.enrolled_action_buttons.some((b: any) => b.requires_access_key) && item.access_key && (
+                                                <div className="p-2.5 bg-gradient-to-r from-indigo-50/90 via-sky-50/70 to-indigo-50/90 rounded-xl border border-indigo-200/80 flex items-center justify-between gap-2 shadow-2xs">
+                                                    <div className="min-w-0 pr-1">
+                                                        <div className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                                                            <KeyRound className="w-3 h-3 text-indigo-600 shrink-0" />
+                                                            <span>অ্যাক্সেস কি (Access Key):</span>
+                                                        </div>
+                                                        <div className="font-mono font-black text-xs sm:text-sm text-indigo-700 select-all truncate mt-0.5">
+                                                            {item.access_key}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleCopyAccessKey(item.access_key)}
+                                                        className="px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer shrink-0 bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-2xs"
+                                                        title="অ্যাক্সেস কি কপি করুন"
+                                                    >
+                                                        {copiedAccessKey === item.access_key ? (
+                                                            <span className="flex items-center gap-1 text-emerald-600 font-bold">
+                                                                <Check className="w-3.5 h-3.5" /> কপি হয়েছে
+                                                            </span>
+                                                        ) : (
+                                                            <span className="flex items-center gap-1">
+                                                                <Copy className="w-3.5 h-3.5" /> কপি করুন
+                                                            </span>
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            <div className="space-y-1.5">
+                                                {course.enrolled_action_buttons.map((btn: any) => (
+                                                    <a
+                                                        key={btn.id}
+                                                        href={btn.url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        onClick={() => {
+                                                            if (btn.requires_access_key && item.access_key) {
+                                                                navigator.clipboard.writeText(item.access_key);
+                                                            }
+                                                        }}
+                                                        className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all hover:scale-[1.01] cursor-pointer"
+                                                    >
+                                                        <ExternalLink className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                                                        <span className="truncate">{btn.label}</span>
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {item.has_nexpilot ? (
                                         <div className="flex items-center gap-2">

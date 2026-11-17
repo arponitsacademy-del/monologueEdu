@@ -26,7 +26,9 @@ import {
     Clock,
     Sparkles,
     PlayCircle,
-    Key
+    Key,
+    KeyRound,
+    MessageCircle
 } from 'lucide-react';
 
 const DEFAULT_FEATURES = [
@@ -42,7 +44,13 @@ export interface CourseActionButton {
     type: 'file' | 'link';
     url: string;
     file_name?: string;
-    requires_access_key?: boolean;
+}
+
+export interface EnrolledActionButton {
+    id: string;
+    label: string;
+    url: string;
+    requires_access_key: boolean;
 }
 
 export const AdminCourseEditPage: React.FC = () => {
@@ -69,6 +77,7 @@ export const AdminCourseEditPage: React.FC = () => {
     const [actionButtons, setActionButtons] = useState<CourseActionButton[]>([
         { id: 'btn-outline', label: 'কোর্স আউটলাইন', type: 'link', url: '' }
     ]);
+    const [enrolledButtons, setEnrolledButtons] = useState<EnrolledActionButton[]>([]);
     const [uploadingButtonFileId, setUploadingButtonFileId] = useState<string | null>(null);
 
     // Coupon, Countdown & How-to-Buy
@@ -130,7 +139,6 @@ export const AdminCourseEditPage: React.FC = () => {
             label: 'কোর্স আউটলাইন',
             type: 'link',
             url: '',
-            requires_access_key: false,
         };
         setActionButtons([...actionButtons, newBtn]);
     };
@@ -141,6 +149,25 @@ export const AdminCourseEditPage: React.FC = () => {
 
     const handleUpdateButton = (id: string, updates: Partial<CourseActionButton>) => {
         setActionButtons(actionButtons.map((b) => (b.id === id ? { ...b, ...updates } : b)));
+    };
+
+    /* Enrolled Students Action Buttons (Community, Facebook Group, etc.) */
+    const handleAddEnrolledButton = () => {
+        const newBtn: EnrolledActionButton = {
+            id: 'ebtn-' + Date.now(),
+            label: 'Join our Facebook Discussion Group',
+            url: '',
+            requires_access_key: true,
+        };
+        setEnrolledButtons([...enrolledButtons, newBtn]);
+    };
+
+    const handleRemoveEnrolledButton = (id: string) => {
+        setEnrolledButtons(enrolledButtons.filter((b) => b.id !== id));
+    };
+
+    const handleUpdateEnrolledButton = (id: string, updates: Partial<EnrolledActionButton>) => {
+        setEnrolledButtons(enrolledButtons.map((b) => (b.id === id ? { ...b, ...updates } : b)));
     };
 
     const handleUploadButtonFile = async (e: React.ChangeEvent<HTMLInputElement>, btnId: string) => {
@@ -213,6 +240,9 @@ export const AdminCourseEditPage: React.FC = () => {
             if (c.action_buttons && Array.isArray(c.action_buttons) && c.action_buttons.length > 0) {
                 setActionButtons(c.action_buttons);
             }
+            if (c.enrolled_action_buttons && Array.isArray(c.enrolled_action_buttons) && c.enrolled_action_buttons.length > 0) {
+                setEnrolledButtons(c.enrolled_action_buttons);
+            }
             setCouponCode(c.coupon_code || '');
             setCouponDiscountText(c.coupon_discount_text || '');
             setDiscountDeadline(c.discount_deadline ? c.discount_deadline.substring(0, 16) : '');
@@ -253,6 +283,7 @@ export const AdminCourseEditPage: React.FC = () => {
                 fake_enrollment_count: parseInt(fakeEnrollmentCount, 10) || 0,
                 class_starts_at: classStartsAt.trim() || null,
                 action_buttons: actionButtons.filter((b) => b.label.trim().length > 0 && b.url.trim().length > 0),
+                enrolled_action_buttons: enrolledButtons.filter((b) => b.label.trim().length > 0 && b.url.trim().length > 0),
                 coupon_code: couponCode.trim() ? couponCode.trim().toUpperCase() : null,
                 coupon_discount_text: couponDiscountText.trim() || null,
                 discount_deadline: discountDeadline.trim() || null,
@@ -808,42 +839,125 @@ export const AdminCourseEditPage: React.FC = () => {
                                                 type="url"
                                                 value={btn.url}
                                                 onChange={(e) => handleUpdateButton(btn.id, { url: e.target.value })}
-                                                placeholder="https://drive.google.com/... বা ইউটিউব/ওয়েব লিংক দিন"
+                                                placeholder="https://drive.google.com/... বা লিঙ্ক দিন"
                                                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
                                             />
                                         </div>
                                     )}
+                                </div>
+                            ))}
 
-                                    {/* Access Key Option */}
-                                    <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            {actionButtons.length === 0 && (
+                                <p className="text-xs text-slate-400 text-center py-3 bg-white rounded-xl border border-dashed border-slate-200">
+                                    কোনো পাবলিক অ্যাকশন বাটন নেই। উপরে "+ নতুন বাটন যোগ করুন" এ ক্লিক করুন।
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Enrolled Students Action Buttons & Community Groups */}
+                    <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-50/70 via-white to-sky-50/50 border border-indigo-200 space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="flex items-center gap-2.5">
+                                <div className="p-2.5 bg-indigo-100 rounded-xl text-indigo-700 shrink-0">
+                                    <KeyRound className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                                        <span>এনরোল্ড শিক্ষার্থী বাটন ও অ্যাক্সেস কি (Enrolled Students Only)</span>
+                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700 border border-indigo-200">
+                                            Private / Dashboard
+                                        </span>
+                                    </h3>
+                                    <p className="text-[11px] text-slate-500 mt-0.5">
+                                        কোর্সটি কেনার পর শিক্ষার্থী তার ড্যাশবোর্ড থেকে "আমার কোর্স"-এ গেলে এই বাটনগুলো ও তার ইউনিক অ্যাক্সেস কি দেখতে পারবে (যেমন: Join our Facebook Discussion Group)।
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleAddEnrolledButton}
+                                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition cursor-pointer shrink-0"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>+ নতুন গ্রুপ বাটন যোগ করুন</span>
+                            </button>
+                        </div>
+
+                        <div className="space-y-3">
+                            {enrolledButtons.map((btn) => (
+                                <div
+                                    key={btn.id}
+                                    className="p-4 bg-white rounded-xl border border-indigo-150 space-y-3 shadow-2xs"
+                                >
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex-1">
+                                            <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                                বাটনের নাম (যেমন: Join our Facebook Discussion Group / Telegram Group)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={btn.label}
+                                                onChange={(e) => handleUpdateEnrolledButton(btn.id, { label: e.target.value })}
+                                                placeholder="বাটনের নাম লিখুন"
+                                                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                                            />
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveEnrolledButton(btn.id)}
+                                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition cursor-pointer shrink-0 mt-5"
+                                            title="বাটন ডিলিট করুন"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+
+                                    {/* URL Input */}
+                                    <div>
+                                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                                            গ্রুপ বা ডিসকাশন লিংক (Facebook / Telegram / Discord / WhatsApp URL)
+                                        </label>
+                                        <input
+                                            type="url"
+                                            value={btn.url}
+                                            onChange={(e) => handleUpdateEnrolledButton(btn.id, { url: e.target.value })}
+                                            placeholder="https://facebook.com/groups/your-group-name"
+                                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-mono text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:bg-white"
+                                        />
+                                    </div>
+
+                                    {/* Access Key Toggle */}
+                                    <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50/70 p-2.5 rounded-lg">
                                         <label className="flex items-center gap-2 cursor-pointer select-none">
                                             <input
                                                 type="checkbox"
                                                 checked={Boolean(btn.requires_access_key)}
-                                                onChange={(e) => handleUpdateButton(btn.id, { requires_access_key: e.target.checked })}
-                                                className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
+                                                onChange={(e) => handleUpdateEnrolledButton(btn.id, { requires_access_key: e.target.checked })}
+                                                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
                                             />
-                                            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                            <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                                                 <Key className="w-3.5 h-3.5 text-amber-500" />
                                                 <span>এই বাটনের জন্য শিক্ষার্থীর অ্যাক্সেস কি (Access Key) প্রয়োজন?</span>
                                             </span>
                                         </label>
                                         {btn.requires_access_key ? (
-                                            <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 shrink-0">
+                                            <span className="text-[11px] font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 shrink-0">
                                                 🔑 অ্যাক্সেস কি সক্রিয় (Verification Key On)
                                             </span>
                                         ) : (
                                             <span className="text-[11px] text-slate-400">
-                                                কোনো কি ছাড়াই সরাসরি ওপেন হবে
+                                                সরাসরি গ্রুপে প্রবেশ করতে পারবে
                                             </span>
                                         )}
                                     </div>
                                 </div>
                             ))}
 
-                            {actionButtons.length === 0 && (
-                                <p className="text-xs text-slate-400 text-center py-3 bg-white rounded-xl border border-dashed border-slate-200">
-                                    কোনো কাস্টম অ্যাকশন বাটন নেই। উপরে "+ নতুন বাটন যোগ করুন" এ ক্লিক করুন।
+                            {enrolledButtons.length === 0 && (
+                                <p className="text-xs text-slate-400 text-center py-4 bg-white rounded-xl border border-dashed border-indigo-200">
+                                    কোনো প্রাইভেট গ্রুপ বা এনরোল্ড শিক্ষার্থী বাটন তৈরি করা হয়নি। উপরে "+ নতুন গ্রুপ বাটন যোগ করুন" এ ক্লিক করুন।
                                 </p>
                             )}
                         </div>
