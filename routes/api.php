@@ -399,6 +399,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('pages/{id}', [AdminPageController::class, 'destroy']);
         Route::post('pages/{id}/toggle-status', [AdminPageController::class, 'toggleStatus']);
         Route::post('pages/{id}/duplicate', [AdminPageController::class, 'duplicate']);
+        Route::post('pages/{id}/reset-template', [AdminPageController::class, 'resetTemplate']);
 
         // AI Configuration (OpenAI Model Settings)
         Route::prefix('ai')->group(function () {

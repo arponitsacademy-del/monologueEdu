@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { apiClient, formatBDT, getImageUrl } from '../../api/client';
 import { Course, Category, CustomPage } from '../../types';
+import { PageBlockRenderer } from '../../components/builder/PageBlockRenderer';
 import { useLanguage } from '../../context/LanguageContext';
 import { 
     Sparkles, 
@@ -222,6 +223,17 @@ export const HomePage: React.FC = () => {
             a: 'অবশ্যই! আমাদের প্ল্যাটফর্ম যেকোনো স্মার্টফোন, ট্যাবলেট এবং ল্যাপটপ/পিসিতে অত্যন্ত দ্রুত ও স্মুথলি কাজ করে।',
         },
     ];
+
+    if (customPage && Array.isArray(customPage.blocks) && customPage.blocks.length > 0) {
+        return (
+            <div className="space-y-0 overflow-hidden font-sans">
+                {customPage.custom_css && <style>{customPage.custom_css}</style>}
+                {customPage.blocks.map((block) => (
+                    <PageBlockRenderer key={block.id} block={block} isBuilder={false} />
+                ))}
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-16 sm:space-y-24 pb-20 overflow-hidden font-sans">

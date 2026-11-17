@@ -135,7 +135,32 @@ class AdminPageController extends Controller
     {
         $page = Page::findOrFail($id);
 
+        if ($page->slug === 'home' && (!is_array($page->blocks) || count($page->blocks) < 5)) {
+            $page->blocks = Page::defaultHomeBlocks();
+            $page->save();
+        }
+
         return response()->json([
+            'page' => $page,
+        ]);
+    }
+
+    /**
+     * Reset page blocks to system default template.
+     */
+    public function resetTemplate($id): JsonResponse
+    {
+        $page = Page::findOrFail($id);
+
+        if ($page->slug === 'home') {
+            $page->blocks = Page::defaultHomeBlocks();
+        } elseif ($page->slug === 'courses') {
+            $page->blocks = Page::defaultCoursesBlocks();
+        }
+        $page->save();
+
+        return response()->json([
+            'message' => 'ডিফল্ট টেমপ্লেট সফলভাবে রিস্টোর করা হয়েছে।',
             'page' => $page,
         ]);
     }
