@@ -886,10 +886,7 @@ class ExamSubmissionController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Server Error: ' . $e->getMessage(),
-                'error_detail' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
+                'message' => 'পরীক্ষার উত্তর সাবমিট করার সময় সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন। (' . $e->getMessage() . ')',
             ], 500);
         }
     }
