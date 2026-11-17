@@ -51,17 +51,14 @@ export const DashboardLayout: React.FC = () => {
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
-    const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
+    const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
 
     const toggleSubmenu = (path: string, e?: React.MouseEvent) => {
         if (e) {
             e.preventDefault();
             e.stopPropagation();
         }
-        setExpandedMenus(prev => ({
-            ...prev,
-            [path]: !prev[path],
-        }));
+        setExpandedMenu(prev => (prev === path ? null : path));
     };
 
     useEffect(() => {
@@ -365,7 +362,7 @@ export const DashboardLayout: React.FC = () => {
                         );
                         const isActive = (!hasChildren && (location.pathname === item.path || 
                             (item.path !== '/admin' && item.path !== '/teacher' && item.path !== '/student' && location.pathname.startsWith(item.path)))) || isChildActive;
-                        const isExpanded = Boolean(expandedMenus[item.path]);
+                        const isExpanded = expandedMenu === item.path;
 
                         return (
                             <div key={item.path} className="space-y-1">
@@ -650,7 +647,7 @@ export const DashboardLayout: React.FC = () => {
                                     item.children?.some(c => location.pathname === c.path || (c.path === '/admin/bundles' && location.pathname.startsWith('/admin/bundles'))) ||
                                     (item.path !== '/admin' && location.pathname.startsWith(item.path))
                                 );
-                                const isExpanded = Boolean(expandedMenus[item.path]);
+                                const isExpanded = expandedMenu === item.path;
 
                                 return (
                                     <div key={item.path} className="space-y-1">

@@ -45,7 +45,15 @@ export const StudentDashboardLayout: React.FC = () => {
     const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [logoError, setLogoError] = useState(false);
-    const [settingsSubmenuOpen, setSettingsSubmenuOpen] = useState(false);
+    const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+
+    const toggleSubmenu = (title: string, e?: React.MouseEvent) => {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        setOpenSubmenu(prev => (prev === title ? null : title));
+    };
 
     const headerSettings = settings?.header_settings;
     const logoUrl = headerSettings?.logo_url ?? settings?.logo_url;
@@ -273,11 +281,12 @@ export const StudentDashboardLayout: React.FC = () => {
                                 const Icon = item.icon;
 
                                 if (item.children) {
+                                    const isSubmenuOpen = openSubmenu === item.title;
                                     return (
                                         <div key={item.title} className="space-y-1">
                                             <button
                                                 type="button"
-                                                onClick={() => setSettingsSubmenuOpen(!settingsSubmenuOpen)}
+                                                onClick={() => toggleSubmenu(item.title)}
                                                 className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all text-left cursor-pointer ${
                                                     active
                                                         ? 'bg-sky-50 text-sky-700 font-extrabold'
@@ -291,20 +300,20 @@ export const StudentDashboardLayout: React.FC = () => {
                                                 <div
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        setSettingsSubmenuOpen(!settingsSubmenuOpen);
+                                                        toggleSubmenu(item.title);
                                                     }}
                                                     className="p-1 rounded-lg hover:bg-sky-100/60 transition-colors"
-                                                    title={settingsSubmenuOpen ? 'সংকোচন করুন' : 'প্রসারিত করুন'}
+                                                    title={isSubmenuOpen ? 'সংকোচন করুন' : 'প্রসারিত করুন'}
                                                 >
                                                     <ChevronDown
                                                         className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                                                            settingsSubmenuOpen ? 'rotate-180 text-sky-600' : 'text-slate-400'
+                                                            isSubmenuOpen ? 'rotate-180 text-sky-600' : 'text-slate-400'
                                                         }`}
                                                     />
                                                 </div>
                                             </button>
 
-                                            {settingsSubmenuOpen && (
+                                            {isSubmenuOpen && (
                                                 <div className="pl-3 pr-1 py-1 space-y-1 ml-4 border-l-2 border-slate-100 animate-in fade-in slide-in-from-top-1 duration-200">
                                                     {item.children.map((child) => {
                                                         const ChildIcon = child.icon;
