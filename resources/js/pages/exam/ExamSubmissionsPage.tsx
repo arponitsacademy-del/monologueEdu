@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { apiClient } from '../../api/client';
 import { Exam, ExamSubmission } from '../../types';
 import { MathView } from '../../components/shared/MathView';
+import { KhataEvaluationCanvasModal, KhataAnnotationResult } from '../../components/exam/KhataEvaluationCanvasModal';
 import {
     FileText,
     ArrowLeft,
@@ -20,7 +21,9 @@ import {
     Eye,
     Loader2,
     HelpCircle,
-    Download
+    Download,
+    Pen,
+    Sparkles
 } from 'lucide-react';
 
 export const ExamSubmissionsPage: React.FC = () => {
@@ -51,6 +54,102 @@ export const ExamSubmissionsPage: React.FC = () => {
 
     // Full screen image preview modal
     const [previewImage, setPreviewImage] = useState<string | null>(null);
+
+    // Digital Khata Evaluation Canvas Modal state
+    const [canvasModalOpen, setCanvasModalOpen] = useState(false);
+    const [evaluatingAttachment, setEvaluatingAttachment] = useState<{
+        answerId: number;
+        attachmentIndex: number;
+        imageUrl: string;
+        questionText?: string;
+        maxMarks?: number;
+        initialMarks?: number;
+        initialFeedback?: string;
+        pageNumber?: number;
+        totalPages?: number;
+    } | null>(null);
+
+    const handleOpenCanvas = (
+        ans: any,
+        fIdx: number,
+        file: any,
+        q: any
+    ) => {
+        const gradeData = gradingState[ans.id] || { marks: ans.marks_obtained, feedback: '' };
+        setEvaluatingAttachment({
+            answerId: ans.id,
+            attachmentIndex: fIdx,
+            imageUrl: file.evaluated_url || file.url,
+            questionText: q.question_text,
+            maxMarks: q.marks,
+            initialMarks: gradeData.marks,
+            initialFeedback: gradeData.feedback || ans.teacher_feedback || '',
+            pageNumber: fIdx + 1,
+            totalPages: ans.attachments?.length || 1,
+        });
+        setCanvasModalOpen(true);
+    };
+
+    const handleSaveCanvas = async (result: KhataAnnotationResult) => {
+        if (!evaluatingAttachment || !selectedSubmission) return;
+
+        try {
+            const formData = new FormData();
+            formData.append(
+                'file',
+                result.annotatedBlob,
+                `evaluated_ans_${evaluatingAttachment.answerId}_p${evaluatingAttachment.pageNumber}.png`
+            );
+
+            const uploadRes = await apiClient.post('/exams/upload-attachment', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+
+            const evaluatedUrl = uploadRes.data.url;
+
+            // Update selectedSubmission state with the evaluated_url
+            setSelectedSubmission(prev => {
+                if (!prev) return null;
+                const nextAnswers = (prev.answers || []).map(ans => {
+                    if (ans.id === evaluatingAttachment.answerId) {
+                        const nextAttachments = [...(ans.attachments || [])];
+                        if (nextAttachments[evaluatingAttachment.attachmentIndex]) {
+                            nextAttachments[evaluatingAttachment.attachmentIndex] = {
+                                ...nextAttachments[evaluatingAttachment.attachmentIndex],
+                                evaluated_url: evaluatedUrl,
+                            };
+                        }
+                        return {
+                            ...ans,
+                            attachments: nextAttachments,
+                            marks_obtained: result.marks !== undefined ? result.marks : ans.marks_obtained,
+                            teacher_feedback: result.feedback !== undefined ? result.feedback : ans.teacher_feedback,
+                        };
+                    }
+                    return ans;
+                });
+                return { ...prev, answers: nextAnswers };
+            });
+
+            // Update gradingState
+            if (result.marks !== undefined || result.feedback !== undefined) {
+                setGradingState(prev => ({
+                    ...prev,
+                    [evaluatingAttachment.answerId]: {
+                        marks: result.marks !== undefined ? result.marks : (prev[evaluatingAttachment.answerId]?.marks || 0),
+                        feedback: result.feedback !== undefined ? result.feedback : (prev[evaluatingAttachment.answerId]?.feedback || ''),
+                    },
+                }));
+            }
+
+            setCanvasModalOpen(false);
+            setEvaluatingAttachment(null);
+            alert('খাতা মূল্যায়ন ও দাগানো সফলভাবে যুক্ত হয়েছে! পুরো মূল্যায়ন সেভ করতে নিচে "Complete Evaluation & Save Grades" এ ক্লিক করুন।');
+        } catch (err: any) {
+            console.error('Failed to upload evaluated attachment', err);
+            alert(err.response?.data?.message || 'মূল্যায়িত খাতা আপলোড করতে সমস্যা হয়েছে।');
+        }
+    };
 
     useEffect(() => {
         fetchSubmissions();
@@ -107,11 +206,15 @@ export const ExamSubmissionsPage: React.FC = () => {
 
         try {
             setEvaluating(true);
-            const evaluations = Object.entries(gradingState).map(([ansId, data]) => ({
-                answer_id: Number(ansId),
-                marks_obtained: Number(data.marks),
-                feedback: data.feedback,
-            }));
+            const evaluations = Object.entries(gradingState).map(([ansId, data]) => {
+                const answerObj = selectedSubmission.answers?.find(a => a.id === Number(ansId));
+                return {
+                    answer_id: Number(ansId),
+                    marks_obtained: Number(data.marks),
+                    feedback: data.feedback,
+                    attachments: answerObj?.attachments || [],
+                };
+            });
 
             const res = await apiClient.post(`/exams/${id}/submissions/${selectedSubmission.id}/evaluate`, {
                 evaluation_notes: overallNotes,
@@ -501,14 +604,17 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                                                                 {ans.attachments.map((file: any, fIdx: number) => {
                                                                     const isPdf = file.file_type === 'pdf' || file.url.toLowerCase().endsWith('.pdf');
+                                                                    const hasEvaluated = Boolean(file.evaluated_url);
+                                                                    const displayUrl = file.evaluated_url || file.url;
+
                                                                     return (
-                                                                        <div key={fIdx} className="group relative rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
+                                                                        <div key={fIdx} className="rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-900 shadow-xs flex flex-col">
                                                                             {isPdf ? (
                                                                                 <a
                                                                                     href={file.url}
                                                                                     target="_blank"
                                                                                     rel="noreferrer"
-                                                                                    className="p-4 flex flex-col items-center justify-center text-center gap-2 h-32 hover:bg-slate-50 dark:hover:bg-slate-800"
+                                                                                    className="p-4 flex flex-col items-center justify-center text-center gap-2 h-36 hover:bg-slate-50 dark:hover:bg-slate-800"
                                                                                 >
                                                                                     <FileText className="w-8 h-8 text-rose-500" />
                                                                                     <span className="text-[11px] font-medium text-slate-700 dark:text-slate-300 truncate max-w-full">
@@ -516,19 +622,42 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                                                     </span>
                                                                                 </a>
                                                                             ) : (
-                                                                                <div className="relative h-32 cursor-pointer" onClick={() => setPreviewImage(file.url)}>
+                                                                                <div className="relative h-36 bg-slate-950 group overflow-hidden">
                                                                                     <img
-                                                                                        src={file.url}
+                                                                                        src={displayUrl}
                                                                                         alt={`Page ${fIdx + 1}`}
                                                                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                                                                                     />
-                                                                                    <div className="absolute inset-0 bg-slate-900/30 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs font-semibold gap-1 transition-opacity">
-                                                                                        <Eye className="w-4 h-4" />
-                                                                                        <span>Enlarge Image</span>
-                                                                                    </div>
-                                                                                    <span className="absolute bottom-1 right-1 bg-slate-900/80 text-white text-[10px] px-1.5 py-0.5 rounded">
-                                                                                        Page {fIdx + 1}
+                                                                                    {hasEvaluated && (
+                                                                                        <span className="absolute top-1.5 left-1.5 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                                                                                            ✓ মূল্যায়িত খাতা
+                                                                                        </span>
+                                                                                    )}
+                                                                                    <span className="absolute bottom-1.5 right-1.5 bg-slate-900/80 text-white text-[10px] font-mono px-1.5 py-0.5 rounded">
+                                                                                        পৃষ্ঠা {fIdx + 1}
                                                                                     </span>
+                                                                                </div>
+                                                                            )}
+
+                                                                            {!isPdf && (
+                                                                                <div className="p-2 bg-slate-50 dark:bg-slate-850 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1">
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => handleOpenCanvas(ans, fIdx, file, q)}
+                                                                                        className="flex-1 py-1.5 px-2 rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-xs transition-all cursor-pointer"
+                                                                                        title="খাতা দাগান / মূল্যায়ন করুন"
+                                                                                    >
+                                                                                        <Pen className="w-3.5 h-3.5" />
+                                                                                        <span>{hasEvaluated ? 'পুনরায় দাগান' : 'খাতা দাগান'}</span>
+                                                                                    </button>
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => setPreviewImage(displayUrl)}
+                                                                                        className="p-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                                                                                        title="বড় করে দেখুন"
+                                                                                    >
+                                                                                        <Eye className="w-4 h-4" />
+                                                                                    </button>
                                                                                 </div>
                                                                             )}
                                                                         </div>
@@ -645,6 +774,26 @@ export const ExamSubmissionsPage: React.FC = () => {
                         />
                     </div>
                 </div>
+            )}
+
+            {/* Khata Evaluation Canvas Modal (Paint & Grading Studio) */}
+            {canvasModalOpen && evaluatingAttachment && (
+                <KhataEvaluationCanvasModal
+                    isOpen={canvasModalOpen}
+                    onClose={() => {
+                        setCanvasModalOpen(false);
+                        setEvaluatingAttachment(null);
+                    }}
+                    imageUrl={evaluatingAttachment.imageUrl}
+                    questionText={evaluatingAttachment.questionText}
+                    maxMarks={evaluatingAttachment.maxMarks}
+                    initialMarks={evaluatingAttachment.initialMarks}
+                    initialFeedback={evaluatingAttachment.initialFeedback}
+                    pageNumber={evaluatingAttachment.pageNumber}
+                    totalPages={evaluatingAttachment.totalPages}
+                    studentName={selectedSubmission?.user?.name}
+                    onSave={handleSaveCanvas}
+                />
             )}
         </div>
     );

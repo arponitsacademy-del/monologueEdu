@@ -178,16 +178,23 @@ class ExamSubmissionController extends Controller
             'evaluations.*.answer_id' => ['required', 'integer', 'exists:exam_submission_answers,id'],
             'evaluations.*.marks_obtained' => ['required', 'numeric', 'min:0'],
             'evaluations.*.feedback' => ['nullable', 'string'],
+            'evaluations.*.attachments' => ['nullable', 'array'],
         ]);
 
         DB::transaction(function () use ($validated, $submission, $user) {
             foreach ($validated['evaluations'] as $item) {
+                $updateData = [
+                    'marks_obtained' => $item['marks_obtained'],
+                    'teacher_feedback' => $item['feedback'] ?? null,
+                ];
+
+                if (array_key_exists('attachments', $item) && is_array($item['attachments'])) {
+                    $updateData['attachments'] = $item['attachments'];
+                }
+
                 ExamSubmissionAnswer::where('id', $item['answer_id'])
                     ->where('submission_id', $submission->id)
-                    ->update([
-                        'marks_obtained' => $item['marks_obtained'],
-                        'teacher_feedback' => $item['feedback'] ?? null,
-                    ]);
+                    ->update($updateData);
             }
 
             // Recalculate total obtained marks

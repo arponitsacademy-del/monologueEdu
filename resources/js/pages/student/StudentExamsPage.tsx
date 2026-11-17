@@ -108,7 +108,7 @@ interface QuestionReview {
     options: { key: string; text: string }[];
     correct_answers: string[];
     student_answer: string[] | string | null;
-    attachments: { url: string; file_name?: string; file_type?: string }[];
+    attachments: { url: string; evaluated_url?: string | null; file_name?: string; file_type?: string }[];
     is_answered: boolean;
     is_correct: boolean;
     marks_obtained: number;
@@ -1259,18 +1259,43 @@ export const StudentExamsPage: React.FC = () => {
                                                     </span>
 
                                                     {q.attachments && q.attachments.length > 0 ? (
-                                                        <div className="flex flex-wrap gap-2">
+                                                        <div className="flex flex-wrap gap-2.5">
                                                             {q.attachments.map((att, i) => (
-                                                                <a
-                                                                    key={i}
-                                                                    href={att.url}
-                                                                    target="_blank"
-                                                                    rel="noreferrer"
-                                                                    className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 border rounded-lg text-xs font-medium text-gray-800 flex items-center gap-1.5 transition-colors"
-                                                                >
-                                                                    <FileText className="h-3.5 w-3.5 text-indigo-600" />
-                                                                    <span>Sheet #{i + 1}</span>
-                                                                </a>
+                                                                <div key={i} className="flex items-center gap-1.5 p-1 rounded-lg border border-gray-200 bg-gray-50 text-xs">
+                                                                    {att.evaluated_url ? (
+                                                                        <>
+                                                                            <a
+                                                                                href={att.evaluated_url}
+                                                                                target="_blank"
+                                                                                rel="noreferrer"
+                                                                                className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-medium flex items-center gap-1.5 shadow-sm transition-colors"
+                                                                                title="শিক্ষক কর্তৃক মূল্যায়িত ও দাগানো খাতা দেখুন"
+                                                                            >
+                                                                                <Eye className="h-3.5 w-3.5" />
+                                                                                <span>Sheet #{i + 1} (মূল্যায়িত খাতা)</span>
+                                                                            </a>
+                                                                            <a
+                                                                                href={att.url}
+                                                                                target="_blank"
+                                                                                rel="noreferrer"
+                                                                                className="px-2 py-1 text-gray-500 hover:text-gray-800 hover:bg-gray-200 rounded text-[11px] font-normal transition-colors"
+                                                                                title="আসল খাতা দেখুন"
+                                                                            >
+                                                                                আসল কপি
+                                                                            </a>
+                                                                        </>
+                                                                    ) : (
+                                                                        <a
+                                                                            href={att.url}
+                                                                            target="_blank"
+                                                                            rel="noreferrer"
+                                                                            className="px-2.5 py-1 bg-white hover:bg-gray-100 border border-gray-200 rounded font-medium text-gray-800 flex items-center gap-1.5 transition-colors"
+                                                                        >
+                                                                            <FileText className="h-3.5 w-3.5 text-indigo-600" />
+                                                                            <span>Sheet #{i + 1}</span>
+                                                                        </a>
+                                                                    )}
+                                                                </div>
                                                             ))}
                                                         </div>
                                                     ) : (
