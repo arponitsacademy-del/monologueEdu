@@ -51,19 +51,7 @@ export const DashboardLayout: React.FC = () => {
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
-    const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({
-        '/admin/users': true,
-        '/admin/sms': true,
-        '/admin/appearance': true,
-        '/admin/payments': true,
-        '/admin/nexpilot': true,
-        '/admin/ai': true,
-        '/admin/exams': true,
-        '/admin/marketing': true,
-        '/admin/announcements': true,
-        '/teacher/exams': true,
-        '/teacher/announcements': true,
-    });
+    const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
 
     const toggleSubmenu = (path: string, e?: React.MouseEvent) => {
         if (e) {
@@ -377,7 +365,7 @@ export const DashboardLayout: React.FC = () => {
                         );
                         const isActive = (!hasChildren && (location.pathname === item.path || 
                             (item.path !== '/admin' && item.path !== '/teacher' && item.path !== '/student' && location.pathname.startsWith(item.path)))) || isChildActive;
-                        const isExpanded = expandedMenus[item.path] ?? isChildActive;
+                        const isExpanded = Boolean(expandedMenus[item.path]);
 
                         return (
                             <div key={item.path} className="space-y-1">
@@ -385,7 +373,7 @@ export const DashboardLayout: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => toggleSubmenu(item.path)}
-                                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold text-sm transition-all ${
+                                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold text-sm transition-all cursor-pointer ${
                                             isActive
                                                 ? 'bg-slate-800/80 text-sky-400'
                                                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
@@ -395,11 +383,20 @@ export const DashboardLayout: React.FC = () => {
                                             <Icon className="w-5 h-5" />
                                             <span>{item.title}</span>
                                         </div>
-                                        {isExpanded ? (
-                                            <ChevronDown className="w-4 h-4 opacity-80" />
-                                        ) : (
-                                            <ChevronRight className="w-4 h-4 opacity-50" />
-                                        )}
+                                        <div
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleSubmenu(item.path);
+                                            }}
+                                            className="p-1 rounded-lg hover:bg-slate-700/50 transition-colors"
+                                            title={isExpanded ? 'সংকোচন করুন' : 'প্রসারিত করুন'}
+                                        >
+                                            {isExpanded ? (
+                                                <ChevronDown className="w-4 h-4 opacity-80 transition-transform duration-200" />
+                                            ) : (
+                                                <ChevronRight className="w-4 h-4 opacity-50 transition-transform duration-200" />
+                                            )}
+                                        </div>
                                     </button>
                                 ) : (
                                     <Link
@@ -419,7 +416,7 @@ export const DashboardLayout: React.FC = () => {
                                 )}
 
                                 {hasChildren && isExpanded && (
-                                    <div className="pl-6 pt-1 space-y-1">
+                                    <div className="pl-6 pt-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
                                         {item.children?.map(child => {
                                             const isSelected = location.pathname === child.path || (
                                                 child.path === '/admin/courses' && 
@@ -653,7 +650,7 @@ export const DashboardLayout: React.FC = () => {
                                     item.children?.some(c => location.pathname === c.path || (c.path === '/admin/bundles' && location.pathname.startsWith('/admin/bundles'))) ||
                                     (item.path !== '/admin' && location.pathname.startsWith(item.path))
                                 );
-                                const isExpanded = expandedMenus[item.path] ?? isChildActive;
+                                const isExpanded = Boolean(expandedMenus[item.path]);
 
                                 return (
                                     <div key={item.path} className="space-y-1">
@@ -662,20 +659,29 @@ export const DashboardLayout: React.FC = () => {
                                                 <button
                                                     type="button"
                                                     onClick={() => toggleSubmenu(item.path)}
-                                                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold text-sm text-slate-400 hover:text-white hover:bg-slate-800"
+                                                    className="w-full flex items-center justify-between px-4 py-3 rounded-xl font-semibold text-sm text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
                                                 >
                                                     <div className="flex items-center gap-3">
                                                         <Icon className="w-5 h-5" />
                                                         <span>{item.title}</span>
                                                     </div>
-                                                    {isExpanded ? (
-                                                        <ChevronDown className="w-4 h-4 opacity-80" />
-                                                    ) : (
-                                                        <ChevronRight className="w-4 h-4 opacity-50" />
-                                                    )}
+                                                    <div
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            toggleSubmenu(item.path);
+                                                        }}
+                                                        className="p-1 rounded-lg hover:bg-slate-700/50 transition-colors"
+                                                        title={isExpanded ? 'সংকোচন করুন' : 'প্রসারিত করুন'}
+                                                    >
+                                                        {isExpanded ? (
+                                                            <ChevronDown className="w-4 h-4 opacity-80" />
+                                                        ) : (
+                                                            <ChevronRight className="w-4 h-4 opacity-50" />
+                                                        )}
+                                                    </div>
                                                 </button>
                                                 {isExpanded && (
-                                                    <div className="pl-6 pt-1 space-y-1">
+                                                    <div className="pl-6 pt-1 space-y-1 animate-in fade-in slide-in-from-top-1 duration-200">
                                                         {item.children?.map(child => {
                                                             const isSelected = location.pathname === child.path || (
                                                                 child.path === '/admin/courses' && 

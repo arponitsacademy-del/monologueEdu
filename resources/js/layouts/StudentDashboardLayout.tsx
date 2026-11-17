@@ -45,7 +45,7 @@ export const StudentDashboardLayout: React.FC = () => {
     const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [logoError, setLogoError] = useState(false);
-    const [settingsSubmenuOpen, setSettingsSubmenuOpen] = useState(true);
+    const [settingsSubmenuOpen, setSettingsSubmenuOpen] = useState(false);
 
     const headerSettings = settings?.header_settings;
     const logoUrl = headerSettings?.logo_url ?? settings?.logo_url;
@@ -288,15 +288,24 @@ export const StudentDashboardLayout: React.FC = () => {
                                                     <Icon className={`w-4 h-4 ${active ? 'text-sky-600' : 'text-slate-400'}`} />
                                                     <span>{item.title}</span>
                                                 </div>
-                                                <ChevronDown
-                                                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                                                        settingsSubmenuOpen ? 'rotate-180 text-sky-600' : 'text-slate-400'
-                                                    }`}
-                                                />
+                                                <div
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSettingsSubmenuOpen(!settingsSubmenuOpen);
+                                                    }}
+                                                    className="p-1 rounded-lg hover:bg-sky-100/60 transition-colors"
+                                                    title={settingsSubmenuOpen ? 'সংকোচন করুন' : 'প্রসারিত করুন'}
+                                                >
+                                                    <ChevronDown
+                                                        className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                                                            settingsSubmenuOpen ? 'rotate-180 text-sky-600' : 'text-slate-400'
+                                                        }`}
+                                                    />
+                                                </div>
                                             </button>
 
                                             {settingsSubmenuOpen && (
-                                                <div className="pl-3 pr-1 py-1 space-y-1 ml-4 border-l-2 border-slate-100">
+                                                <div className="pl-3 pr-1 py-1 space-y-1 ml-4 border-l-2 border-slate-100 animate-in fade-in slide-in-from-top-1 duration-200">
                                                     {item.children.map((child) => {
                                                         const ChildIcon = child.icon;
                                                         const isChildActive = location.pathname === child.path || (
