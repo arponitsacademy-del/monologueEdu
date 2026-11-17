@@ -6,7 +6,7 @@ import { Exam, ExamQuestion } from '../../types';
 import { WordMathEditor } from '../../components/exam/WordMathEditor';
 import { MathView } from '../../components/shared/MathView';
 import { AiQuestionGeneratorModal } from '../../components/exam/AiQuestionGeneratorModal';
-import { CsvQuestionImportModal } from '../../components/exam/CsvQuestionImportModal';
+import { CsvQuestionImportModal, downloadExamCsvTemplate } from '../../components/exam/CsvQuestionImportModal';
 import {
     Wrench,
     ArrowLeft,
@@ -31,7 +31,8 @@ import {
     MoveUp,
     MoveDown,
     Sparkles,
-    FileSpreadsheet
+    FileSpreadsheet,
+    Download
 } from 'lucide-react';
 
 export const ExamBuilderPage: React.FC = () => {
@@ -341,7 +342,7 @@ export const ExamBuilderPage: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2 flex-wrap">
                     <Link
                         to={`${basePath}/${id}/submissions`}
                         className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium flex items-center gap-1.5"
@@ -352,44 +353,57 @@ export const ExamBuilderPage: React.FC = () => {
                     <button
                         type="button"
                         onClick={() => setAiModalOpen(true)}
-                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-purple-600/20 cursor-pointer"
+                        className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-purple-600/20 cursor-pointer"
                     >
                         <Sparkles className="w-4 h-4 text-amber-300" />
-                        <span>Make Question with AI</span>
+                        <span>Make Questions with AI</span>
                     </button>
                     <button
                         type="button"
                         onClick={() => setCsvModalOpen(true)}
                         className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer"
-                        title="CSV ফাইল থেকে প্রশ্ন ইম্পোর্ট করুন"
+                        title="CSV ফাইল আপলোড করে এক ক্লিকে অনেক প্রশ্ন যোগ করুন"
                     >
                         <FileSpreadsheet className="w-4 h-4" />
-                        <span>Import CSV</span>
+                        <span>Bulk Import Question</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={downloadExamCsvTemplate}
+                        className="px-3 py-2 rounded-xl border border-emerald-500/80 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                        title="নমুনা CSV টেমপ্লেট ডাউনলোড করুন"
+                    >
+                        <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <span>Download CSV Template</span>
                     </button>
                     <button
                         type="button"
                         onClick={openAddModal}
-                        className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-sky-600/20 cursor-pointer"
+                        className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm shadow-sky-600/20 cursor-pointer"
                     >
                         <Plus className="w-4 h-4" />
-                        <span>Add Question</span>
+                        <span>Add Manually</span>
                     </button>
                 </div>
             </div>
 
             {/* Questions List */}
             {questions.length === 0 ? (
-                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-16 text-center shadow-sm">
-                    <Wrench className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-                    <h3 className="text-base font-semibold text-slate-800 dark:text-slate-200">No questions added yet</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-md mx-auto">
-                        Generate comprehensive questions instantly from books, PDF notes, or prompts with AI, or add manually.
+                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-8 sm:p-12 text-center shadow-sm">
+                    <div className="w-14 h-14 rounded-2xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto mb-4 border border-indigo-100 dark:border-indigo-800/40">
+                        <FileSpreadsheet className="w-7 h-7" />
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">পরীক্ষায় কোনো প্রশ্ন যুক্ত করা হয়নি</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-lg mx-auto">
+                        প্রশ্ন তৈরি করতে নিচের সুবিধাজনক অপশনটি বেছে নিন:
                     </p>
-                    <div className="flex items-center justify-center gap-3 mt-4">
+
+                    {/* Prominent Quick Action Buttons Row */}
+                    <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
                         <button
                             type="button"
                             onClick={() => setAiModalOpen(true)}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-bold shadow-sm shadow-purple-600/20 cursor-pointer"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-sm font-bold shadow-md shadow-purple-600/20 cursor-pointer transition-all hover:scale-[1.02]"
                         >
                             <Sparkles className="w-4 h-4 text-amber-300" />
                             <span>Make Questions with AI</span>
@@ -397,19 +411,107 @@ export const ExamBuilderPage: React.FC = () => {
                         <button
                             type="button"
                             onClick={() => setCsvModalOpen(true)}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-sm shadow-emerald-600/20 cursor-pointer"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-md shadow-emerald-600/20 cursor-pointer transition-all hover:scale-[1.02]"
                         >
                             <FileSpreadsheet className="w-4 h-4" />
-                            <span>Import CSV</span>
+                            <span>Bulk Import Question</span>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={downloadExamCsvTemplate}
+                            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-emerald-600/70 hover:border-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 text-sm font-bold shadow-sm cursor-pointer transition-all hover:bg-emerald-100 dark:hover:bg-emerald-900/60"
+                            title="নমুনা CSV টেমপ্লেট ফাইল ডাউনলোড করুন"
+                        >
+                            <Download className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                            <span>Download CSV Template</span>
                         </button>
                         <button
                             type="button"
                             onClick={openAddModal}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 text-sm font-semibold shadow-sm cursor-pointer"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm font-bold border border-slate-200 dark:border-slate-700 shadow-sm cursor-pointer transition-all hover:scale-[1.02]"
                         >
-                            <Plus className="w-4 h-4" />
+                            <Plus className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                             <span>Add Manually</span>
                         </button>
+                    </div>
+
+                    {/* 3 Clear Choice Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8 text-left max-w-4xl mx-auto">
+                        {/* Card 1: AI Generator */}
+                        <div className="p-4 rounded-xl border border-purple-200 dark:border-purple-900/50 bg-purple-50/40 dark:bg-purple-950/20 flex flex-col justify-between">
+                            <div>
+                                <div className="flex items-center gap-2 text-purple-700 dark:text-purple-300 font-bold text-sm">
+                                    <Sparkles className="w-4 h-4" />
+                                    <span>Make Questions with AI</span>
+                                </div>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+                                    বইয়ের ছবি, হ্যান্ডনোট PDF বা যেকোনো টপিক প্রম্পট থেকে সরাসরি বাংলায় সম্পূর্ণ প্রশ্নপত্র জেনারেট করুন।
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setAiModalOpen(true)}
+                                className="mt-4 w-full py-2 px-3 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                            >
+                                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                                <span>AI দিয়ে প্রশ্ন তৈরি করুন</span>
+                            </button>
+                        </div>
+
+                        {/* Card 2: Bulk CSV Import */}
+                        <div className="p-4 rounded-xl border-2 border-emerald-500/60 dark:border-emerald-600/60 bg-emerald-50/50 dark:bg-emerald-950/25 flex flex-col justify-between shadow-sm">
+                            <div>
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-bold text-sm">
+                                        <FileSpreadsheet className="w-4 h-4" />
+                                        <span>Bulk Import Question (CSV)</span>
+                                    </div>
+                                    <span className="text-[10px] uppercase font-bold bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 px-1.5 py-0.5 rounded">Fastest</span>
+                                </div>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+                                    এক্সেল বা CSV ফাইলে প্রশ্ন সাজিয়ে একসাথে আপলোড করুন। নেগেটিভ মার্কিং, মাল্টিপল চয়েস ও লিখিত সব সাপোর্ট করে।
+                                </p>
+                            </div>
+                            <div className="space-y-2 mt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setCsvModalOpen(true)}
+                                    className="w-full py-2 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                                >
+                                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                                    <span>Bulk Import Question</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={downloadExamCsvTemplate}
+                                    className="w-full py-1.5 px-3 rounded-lg border border-emerald-600/70 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer"
+                                >
+                                    <Download className="w-3.5 h-3.5" />
+                                    <span>Download CSV Template (.csv)</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Card 3: Manual Entry */}
+                        <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 flex flex-col justify-between">
+                            <div>
+                                <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-bold text-sm">
+                                    <Plus className="w-4 h-4 text-sky-500" />
+                                    <span>Add Manually</span>
+                                </div>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 mt-2 leading-relaxed">
+                                    একটি একটি করে প্রশ্ন টাইপ করুন। গণিত সমীকরণ (LaTeX), গ্রাফিক্স, ছবি ও বিস্তারিত সমাধান যুক্ত করতে পারবেন।
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={openAddModal}
+                                className="mt-4 w-full py-2 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                            >
+                                <Plus className="w-3.5 h-3.5" />
+                                <span>Add Manually</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             ) : (

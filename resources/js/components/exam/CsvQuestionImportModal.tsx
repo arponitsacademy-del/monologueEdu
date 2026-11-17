@@ -34,11 +34,27 @@ interface PreviewRow {
     explanation?: string;
 }
 
-const SAMPLE_CSV_CONTENT = `\uFEFFquestion_text,question_type,mark,negative_mark,option_a,option_b,option_c,option_d,option_e,correct_answer,explanation
+export const SAMPLE_CSV_CONTENT = `\uFEFFquestion_text,question_type,mark,negative_mark,option_a,option_b,option_c,option_d,option_e,correct_answer,explanation
 "বাংলাদেশের রাজধানী কোথায়?",single_choice,1,0.25,"ঢাকা","চট্টগ্রাম","খুলনা","রাজশাহী",,"A","বাংলাদেশের রাজধানী হলো ঢাকা।"
 "নিচের কোনগুলো মৌলিক সংখ্যা (Prime Number)?",multiple_choice,2,0.5,"2","3","4","6",,"A,B","২ এবং ৩ হলো মৌলিক সংখ্যা।"
 "আলোর প্রতিসরণ কাকে বলে? ব্যাখ্যা করো।",written_paper,5,0,,,,,,,"আলো এক স্বচ্ছ মাধ্যম থেকে অন্য স্বচ্ছ মাধ্যমে প্রবেশের সময় দিক পরিবর্তনকে আলোর প্রতিসরণ বলে।"
 "সূর্য একটি _____।",fill_in_the_blank,1,0,,,,,,নক্ষত্র,"সূর্য একটি উজ্জ্বল মাঝারি আকারের নক্ষত্র।"`;
+
+export const downloadExamCsvTemplate = () => {
+    try {
+        const blob = new Blob([SAMPLE_CSV_CONTENT], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'exam_questions_sample_template.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        window.open('/api/exams/csv-template', '_blank');
+    }
+};
 
 export const CsvQuestionImportModal: React.FC<CsvQuestionImportModalProps> = ({
     isOpen,
@@ -60,19 +76,7 @@ export const CsvQuestionImportModal: React.FC<CsvQuestionImportModalProps> = ({
 
     // Download Sample CSV template
     const handleDownloadTemplate = () => {
-        try {
-            const blob = new Blob([SAMPLE_CSV_CONTENT], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', 'exam_questions_sample_template.csv');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        } catch (err) {
-            window.open(`/api/exams/csv-template`, '_blank');
-        }
+        downloadExamCsvTemplate();
     };
 
     // Parse CSV locally for instant preview
