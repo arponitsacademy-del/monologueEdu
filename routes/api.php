@@ -285,6 +285,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('history', [AdminManualEnrollmentController::class, 'history']);
             Route::get('targets/{type}/{id}/students', [AdminManualEnrollmentController::class, 'getTargetStudents']);
             Route::delete('enrollment/{id}', [AdminManualEnrollmentController::class, 'removeEnrollment']);
+            Route::post('bulk-remove', [AdminManualEnrollmentController::class, 'bulkRemove']);
         });
 
         // User Management

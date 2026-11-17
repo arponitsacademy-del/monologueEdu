@@ -24,7 +24,8 @@ import {
     Eye, 
     Check, 
     Send,
-    ExternalLink
+    ExternalLink,
+    UserMinus
 } from 'lucide-react';
 
 interface TargetItem {
@@ -95,6 +96,17 @@ export const AdminCourseStudentsPage: React.FC = () => {
         last_page: 1,
         per_page: 50,
     });
+
+    // Bulk selection & Revoke state
+    const [selectedEnrollmentIds, setSelectedEnrollmentIds] = useState<number[]>([]);
+    const [selectAllAcrossPages, setSelectAllAcrossPages] = useState<boolean>(false);
+    const [revokeModalOpen, setRevokeModalOpen] = useState(false);
+    const [revokingTarget, setRevokingTarget] = useState<{
+        student?: StudentRecord;
+        isBulk?: boolean;
+        selectAllPages?: boolean;
+    } | null>(null);
+    const [isRevoking, setIsRevoking] = useState(false);
 
     // Manual Enroll Modal state
     const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
@@ -188,6 +200,8 @@ export const AdminCourseStudentsPage: React.FC = () => {
         setSelectedTarget(target);
         setCurrentPage(1);
         setStudentSearch('');
+        setSelectedEnrollmentIds([]);
+        setSelectAllAcrossPages(false);
         setSearchParams({ type: target.type, id: String(target.id) });
     };
 
@@ -196,6 +210,8 @@ export const AdminCourseStudentsPage: React.FC = () => {
         setStudents([]);
         setStudentSearch('');
         setCurrentPage(1);
+        setSelectedEnrollmentIds([]);
+        setSelectAllAcrossPages(false);
         setSearchParams({});
     };
 
@@ -211,22 +227,102 @@ export const AdminCourseStudentsPage: React.FC = () => {
         });
     }, [targets, targetFilter, targetSearch]);
 
-    // Handle Unenroll / Remove Student
-    const handleRemoveStudent = async (student: StudentRecord) => {
-        if (!selectedTarget) return;
+    // Selection helpers
+    const isAllPageSelected = students.length > 0 && students.every(s => selectedEnrollmentIds.includes(s.enrollment_id));
+    const isSomePageSelected = students.some(s => selectedEnrollmentIds.includes(s.enrollment_id)) && !isAllPageSelected;
 
-        const confirmMsg = `আপনি কি নিশ্চিতভাবে "${student.user.name}" (${student.user.phone || student.user.email || 'N/A'}) কে এই কোর্স থেকে রিমুভ করতে চান?`;
-        if (!window.confirm(confirmMsg)) return;
+    const handleToggleSelectAllPage = () => {
+        if (isAllPageSelected || selectAllAcrossPages) {
+            setSelectedEnrollmentIds([]);
+            setSelectAllAcrossPages(false);
+        } else {
+            setSelectedEnrollmentIds(students.map(s => s.enrollment_id));
+            setSelectAllAcrossPages(false);
+        }
+    };
+
+    const handleToggleSelectOne = (enrollmentId: number) => {
+        setSelectAllAcrossPages(false);
+        setSelectedEnrollmentIds(prev => 
+            prev.includes(enrollmentId)
+                ? prev.filter(id => id !== enrollmentId)
+                : [...prev, enrollmentId]
+        );
+    };
+
+    const handleSelectAllAcrossPages = () => {
+        setSelectAllAcrossPages(true);
+        setSelectedEnrollmentIds(students.map(s => s.enrollment_id));
+    };
+
+    const handleClearSelection = () => {
+        setSelectedEnrollmentIds([]);
+        setSelectAllAcrossPages(false);
+    };
+
+    // Open Single Revoke Modal
+    const handleOpenSingleRevoke = (student: StudentRecord) => {
+        setRevokingTarget({
+            student,
+            isBulk: false,
+            selectAllPages: false,
+        });
+        setRevokeModalOpen(true);
+    };
+
+    // Open Bulk Revoke Modal
+    const handleOpenBulkRevoke = () => {
+        if (selectedEnrollmentIds.length === 0 && !selectAllAcrossPages) return;
+        setRevokingTarget({
+            isBulk: true,
+            selectAllPages: selectAllAcrossPages,
+        });
+        setRevokeModalOpen(true);
+    };
+
+    // Confirm Revoke (Single or Bulk)
+    const handleConfirmRevoke = async () => {
+        if (!selectedTarget || !revokingTarget) return;
+        setIsRevoking(true);
 
         try {
-            await apiClient.delete(`/admin/manual-enrollment/enrollment/${student.enrollment_id}`);
-            alert('শিক্ষার্থীকে সফলভাবে রিমুভ করা হয়েছে।');
-            // Refresh list
-            fetchTargetStudents(selectedTarget.type, selectedTarget.id, currentPage, studentSearch);
-            // Refresh targets count
+            if (!revokingTarget.isBulk && revokingTarget.student) {
+                // Single student revoke
+                await apiClient.delete(`/admin/manual-enrollment/enrollment/${revokingTarget.student.enrollment_id}`);
+                alert(`"${revokingTarget.student.user.name}" কে সফলভাবে কোর্স থেকে বাদ দেওয়া হয়েছে।`);
+            } else {
+                // Bulk revoke
+                const selectedStudents = students.filter(s => selectedEnrollmentIds.includes(s.enrollment_id));
+                const userIds = selectedStudents.map(s => s.user_id);
+
+                const payload: any = {
+                    target_type: selectedTarget.type,
+                    target_id: selectedTarget.id,
+                    remove_all: Boolean(revokingTarget.selectAllPages),
+                };
+
+                if (!revokingTarget.selectAllPages) {
+                    payload.enrollment_ids = selectedEnrollmentIds;
+                    payload.user_ids = userIds;
+                }
+
+                const { data } = await apiClient.post('/admin/manual-enrollment/bulk-remove', payload);
+                alert(data.message || 'নির্বাচিত শিক্ষার্থীদের কোর্স থেকে সফলভাবে বাদ দেওয়া হয়েছে।');
+            }
+
+            setRevokeModalOpen(false);
+            setRevokingTarget(null);
+            setSelectedEnrollmentIds([]);
+            setSelectAllAcrossPages(false);
+
+            // Refresh student list & targets
+            await fetchTargetStudents(selectedTarget.type, selectedTarget.id, currentPage, studentSearch);
             fetchTargets();
         } catch (err: any) {
-            alert(err.response?.data?.message || 'শিক্ষার্থীকে রিমুভ করতে সমস্যা হয়েছে।');
+            console.error('Revoke failed', err);
+            alert(err.response?.data?.message || 'কোর্স থেকে বাদ দিতে সমস্যা হয়েছে।');
+        } finally {
+            setIsRevoking(false);
         }
     };
 
@@ -485,6 +581,16 @@ export const AdminCourseStudentsPage: React.FC = () => {
                             </div>
 
                             <div className="flex items-center gap-3">
+                                {students.length > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={handleToggleSelectAllPage}
+                                        className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-750 text-xs font-bold transition-all cursor-pointer"
+                                    >
+                                        <Check className="w-4 h-4 text-sky-500" />
+                                        <span>{isAllPageSelected || selectAllAcrossPages ? 'আনসিলেক্ট করুন' : 'সবাইকে নির্বাচন করুন'}</span>
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={handleExportCSV}
@@ -495,6 +601,51 @@ export const AdminCourseStudentsPage: React.FC = () => {
                                 </button>
                             </div>
                         </div>
+
+                        {/* Bulk Actions Banner */}
+                        {(selectedEnrollmentIds.length > 0 || selectAllAcrossPages) && (
+                            <div className="mx-5 sm:mx-6 mt-4 p-4 rounded-2xl bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in slide-in-from-top-1 duration-200">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-xl bg-sky-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
+                                        {selectAllAcrossPages ? pagination.total : selectedEnrollmentIds.length}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">
+                                            {selectAllAcrossPages 
+                                                ? `এই কোর্সের সকল (${pagination.total} জন) শিক্ষার্থী নির্বাচিত` 
+                                                : `${selectedEnrollmentIds.length} জন শিক্ষার্থী নির্বাচিত`}
+                                        </p>
+                                        {!selectAllAcrossPages && pagination.total > students.length && isAllPageSelected && (
+                                            <button
+                                                type="button"
+                                                onClick={handleSelectAllAcrossPages}
+                                                className="text-xs text-sky-600 dark:text-sky-400 font-semibold underline hover:text-sky-700 cursor-pointer block mt-0.5"
+                                            >
+                                                এই কোর্সের সকল {pagination.total} জন শিক্ষার্থীকে সিলেক্ট করতে চান? এখানে ক্লিক করুন
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={handleClearSelection}
+                                        className="px-3.5 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                                    >
+                                        সিলেকশন বাতিল
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleOpenBulkRevoke}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-sm hover:shadow transition-all cursor-pointer"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <span>কোর্স থেকে বাদ দিন ({selectAllAcrossPages ? pagination.total : selectedEnrollmentIds.length})</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Table */}
                         {loadingStudents ? (
@@ -529,7 +680,16 @@ export const AdminCourseStudentsPage: React.FC = () => {
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-850/50 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 font-bold">
-                                            <th className="py-3.5 px-4 w-12 text-center">#</th>
+                                            <th className="py-3.5 px-4 w-10 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isAllPageSelected || selectAllAcrossPages}
+                                                    onChange={handleToggleSelectAllPage}
+                                                    className="w-4 h-4 rounded-sm text-sky-600 focus:ring-sky-500 border-slate-300 dark:border-slate-600 cursor-pointer"
+                                                    title="এই পৃষ্ঠার সব শিক্ষার্থী নির্বাচন করুন"
+                                                />
+                                            </th>
+                                            <th className="py-3.5 px-3 w-12 text-center">#</th>
                                             <th className="py-3.5 px-4">শিক্ষার্থী (Student)</th>
                                             <th className="py-3.5 px-4">যোগাযোগ (Contact)</th>
                                             <th className="py-3.5 px-4">রেজিস্ট্রেশন রোল</th>
@@ -541,12 +701,25 @@ export const AdminCourseStudentsPage: React.FC = () => {
                                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-sm">
                                         {students.map((student, idx) => {
                                             const serialNo = (currentPage - 1) * pagination.per_page + idx + 1;
+                                            const isRowSelected = selectAllAcrossPages || selectedEnrollmentIds.includes(student.enrollment_id);
                                             return (
                                                 <tr 
                                                     key={student.enrollment_id}
-                                                    className="hover:bg-slate-50/60 dark:hover:bg-slate-850/40 transition-colors"
+                                                    className={`transition-colors ${
+                                                        isRowSelected 
+                                                            ? 'bg-sky-50/70 dark:bg-sky-950/40 hover:bg-sky-50 dark:hover:bg-sky-950/60' 
+                                                            : 'hover:bg-slate-50/60 dark:hover:bg-slate-850/40'
+                                                    }`}
                                                 >
-                                                    <td className="py-3.5 px-4 text-center font-bold text-xs text-slate-400">
+                                                    <td className="py-3.5 px-4 text-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isRowSelected}
+                                                            onChange={() => handleToggleSelectOne(student.enrollment_id)}
+                                                            className="w-4 h-4 rounded-sm text-sky-600 focus:ring-sky-500 border-slate-300 dark:border-slate-600 cursor-pointer"
+                                                        />
+                                                    </td>
+                                                    <td className="py-3.5 px-3 text-center font-bold text-xs text-slate-400">
                                                         {serialNo}
                                                     </td>
                                                     <td className="py-3.5 px-4">
@@ -601,12 +774,12 @@ export const AdminCourseStudentsPage: React.FC = () => {
                                                     <td className="py-3.5 px-4 text-right">
                                                         <button
                                                             type="button"
-                                                            onClick={() => handleRemoveStudent(student)}
-                                                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
-                                                            title="কোর্স থেকে রিমুভ করুন"
+                                                            onClick={() => handleOpenSingleRevoke(student)}
+                                                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 border border-transparent hover:border-rose-200 dark:hover:border-rose-800 transition-all cursor-pointer"
+                                                            title="কোর্স থেকে শিক্ষার্থীকে বাদ দিন"
                                                         >
                                                             <Trash2 className="w-3.5 h-3.5" />
-                                                            <span>রিমুভ</span>
+                                                            <span>বাদ দিন</span>
                                                         </button>
                                                     </td>
                                                 </tr>
@@ -1083,6 +1256,120 @@ export const AdminCourseStudentsPage: React.FC = () => {
                                     <Check className="w-4 h-4" />
                                 )}
                                 <span>{selectedUsers.length} জন শিক্ষার্থীকে এনরোল করুন</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Revoke Confirmation Modal */}
+            {revokeModalOpen && revokingTarget && (
+                <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        {/* Modal Header */}
+                        <div className="p-6 pb-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                                    <Trash2 className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                                        {revokingTarget.isBulk
+                                            ? 'শিক্ষার্থীদের কোর্স এক্সেস বাতিল'
+                                            : 'শিক্ষার্থীর কোর্স এক্সেস বাতিল'}
+                                    </h3>
+                                    <p className="text-xs text-slate-500 truncate max-w-[240px]">
+                                        {selectedTarget?.title}
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                disabled={isRevoking}
+                                onClick={() => {
+                                    setRevokeModalOpen(false);
+                                    setRevokingTarget(null);
+                                }}
+                                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        {/* Modal Body */}
+                        <div className="p-6 space-y-4">
+                            {revokingTarget.isBulk ? (
+                                <div className="p-4 rounded-2xl bg-rose-50/50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/40">
+                                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">
+                                        আপনি কি নিশ্চিতভাবে{' '}
+                                        <span className="text-rose-600 dark:text-rose-400 font-extrabold text-base">
+                                            {revokingTarget.selectAllPages ? pagination.total : selectedEnrollmentIds.length} জন
+                                        </span>{' '}
+                                        শিক্ষার্থীকে এই {selectedTarget?.type === 'bundle' ? 'বান্ডেল' : 'কোর্স'} থেকে বাদ দিতে চান?
+                                    </p>
+                                </div>
+                            ) : revokingTarget.student ? (
+                                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 space-y-2">
+                                    <div className="font-bold text-sm text-slate-900 dark:text-white">
+                                        {revokingTarget.student.user.name}
+                                    </div>
+                                    <div className="text-xs text-slate-500 space-y-1">
+                                        {revokingTarget.student.user.phone && (
+                                            <div className="flex items-center gap-1.5 font-medium text-slate-700 dark:text-slate-300">
+                                                <Phone className="w-3.5 h-3.5 text-slate-400" />
+                                                <span>{revokingTarget.student.user.phone}</span>
+                                            </div>
+                                        )}
+                                        {revokingTarget.student.user.email && (
+                                            <div className="flex items-center gap-1.5">
+                                                <Mail className="w-3.5 h-3.5 text-slate-400" />
+                                                <span>{revokingTarget.student.user.email}</span>
+                                            </div>
+                                        )}
+                                        <div className="font-mono text-xs text-sky-600 dark:text-sky-400 font-semibold pt-0.5">
+                                            রোল: {revokingTarget.student.user.registration_number || `ME-2026-${revokingTarget.student.user_id}`}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : null}
+
+                            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-800 dark:text-amber-300 flex items-start gap-2.5">
+                                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                                <span>
+                                    <strong>সতর্কবার্তা:</strong> বাদ দিলে শিক্ষার্থী আর এই কোর্সের ড্যাশবোর্ড, ভিডিও, রুটিন, রিসোর্স ও পরীক্ষায় এক্সেস করতে পারবে না।
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Modal Footer */}
+                        <div className="p-5 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-850 flex items-center justify-end gap-3">
+                            <button
+                                type="button"
+                                disabled={isRevoking}
+                                onClick={() => {
+                                    setRevokeModalOpen(false);
+                                    setRevokingTarget(null);
+                                }}
+                                className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+                            >
+                                বাতিল
+                            </button>
+                            <button
+                                type="button"
+                                disabled={isRevoking}
+                                onClick={handleConfirmRevoke}
+                                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+                            >
+                                {isRevoking ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                    <Trash2 className="w-4 h-4" />
+                                )}
+                                <span>
+                                    {revokingTarget.isBulk
+                                        ? `হ্যাঁ, ${revokingTarget.selectAllPages ? pagination.total : selectedEnrollmentIds.length} জনকে বাদ দিন`
+                                        : 'হ্যাঁ, বাদ দিন'}
+                                </span>
                             </button>
                         </div>
                     </div>

@@ -658,28 +658,182 @@ class AdminManualEnrollmentController extends Controller
     }
 
     /**
-     * Remove / unenroll student from course.
+     * Remove / unenroll student from course or bundle.
      */
-    public function removeEnrollment(int $id): JsonResponse
+    public function removeEnrollment(Request $request, int $id): JsonResponse
     {
-        $enrollment = Enrollment::with(['user', 'course'])->findOrFail($id);
-        $user = $enrollment->user;
-        $course = $enrollment->course;
+        $enrollment = Enrollment::with(['user', 'course'])->find($id);
 
-        $enrollment->delete();
+        if ($enrollment) {
+            $user = $enrollment->user;
+            $course = $enrollment->course;
 
-        AuditLog::log('manual_unenrollment', 'Enrollment', $id, null, [
-            'admin_id' => auth()->id(),
-            'user_id' => $user?->id,
-            'user_name' => $user?->name,
-            'user_phone' => $user?->phone,
-            'course_id' => $course?->id,
-            'course_title' => $course?->title,
+            $enrollment->delete();
+
+            AuditLog::log('manual_unenrollment', 'Enrollment', $id, null, [
+                'admin_id' => auth()->id(),
+                'user_id' => $user?->id,
+                'user_name' => $user?->name,
+                'user_phone' => $user?->phone,
+                'course_id' => $course?->id,
+                'course_title' => $course?->title,
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'শিক্ষার্থীকে কোর্স থেকে সফলভাবে রিমুভ করা হয়েছে।',
+            ]);
+        }
+
+        // If not found in Enrollment table, check if it's an Order ID (for Bundle)
+        $order = Order::with(['user'])->find($id);
+        if ($order && $order->bundle_id) {
+            $bundle = CourseBundle::with('courses')->find($order->bundle_id);
+            $user = $order->user;
+
+            if ($bundle && $user) {
+                $bundleCourseIds = $bundle->courses->pluck('id')->toArray();
+                Enrollment::where('user_id', $user->id)
+                    ->whereIn('course_id', $bundleCourseIds)
+                    ->delete();
+            }
+
+            $order->delete();
+
+            AuditLog::log('manual_bundle_unenrollment', 'Order', $id, null, [
+                'admin_id' => auth()->id(),
+                'user_id' => $user?->id,
+                'user_name' => $user?->name,
+                'user_phone' => $user?->phone,
+                'bundle_id' => $order->bundle_id,
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'শিক্ষার্থীকে বান্ডেল থেকে সফলভাবে রিমুভ করা হয়েছে।',
+            ]);
+        }
+
+        return response()->json([
+            'status' => 'error',
+            'message' => 'এনরোলমেন্ট বা অর্ডার রেকর্ড পাওয়া যায়নি।',
+        ], 404);
+    }
+
+    /**
+     * Bulk remove / revoke access of students from Course or Bundle.
+     */
+    public function bulkRemove(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'target_type' => ['required', 'string', 'in:course,bundle'],
+            'target_id' => ['required', 'integer'],
+            'user_ids' => ['nullable', 'array'],
+            'user_ids.*' => ['integer'],
+            'enrollment_ids' => ['nullable', 'array'],
+            'enrollment_ids.*' => ['integer'],
+            'remove_all' => ['nullable', 'boolean'],
         ]);
+
+        $targetType = $validated['target_type'];
+        $targetId = (int) $validated['target_id'];
+        $removeAll = $request->boolean('remove_all', false);
+        $userIds = array_values(array_filter(array_unique($validated['user_ids'] ?? [])));
+        $enrollmentIds = array_values(array_filter(array_unique($validated['enrollment_ids'] ?? [])));
+
+        if (! $removeAll && empty($userIds) && empty($enrollmentIds)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'বাদ দেওয়ার জন্য অন্তত একজন শিক্ষার্থী নির্বাচন করুন।',
+            ], 422);
+        }
+
+        $removedCount = 0;
+
+        if ($targetType === 'bundle') {
+            $bundle = CourseBundle::with('courses')->findOrFail($targetId);
+            $bundleCourseIds = $bundle->courses->pluck('id')->toArray();
+
+            DB::transaction(function () use (
+                $bundle,
+                $bundleCourseIds,
+                $removeAll,
+                $userIds,
+                $enrollmentIds,
+                &$removedCount
+            ) {
+                $ordersQuery = Order::where('bundle_id', $bundle->id);
+
+                if (! $removeAll) {
+                    if (! empty($userIds)) {
+                        $ordersQuery->whereIn('user_id', $userIds);
+                    } elseif (! empty($enrollmentIds)) {
+                        $ordersQuery->whereIn('id', $enrollmentIds);
+                    }
+                }
+
+                $orders = $ordersQuery->get();
+                $targetUserIds = $orders->pluck('user_id')->filter()->unique()->values()->toArray();
+
+                if (! empty($targetUserIds) && ! empty($bundleCourseIds)) {
+                    Enrollment::whereIn('user_id', $targetUserIds)
+                        ->whereIn('course_id', $bundleCourseIds)
+                        ->delete();
+                }
+
+                $removedCount = $orders->count();
+                $ordersQuery->delete();
+
+                AuditLog::log('manual_bulk_unenroll_bundle', 'CourseBundle', $bundle->id, null, [
+                    'admin_id' => auth()->id(),
+                    'bundle_id' => $bundle->id,
+                    'bundle_title' => $bundle->title,
+                    'removed_count' => $removedCount,
+                    'user_ids' => $targetUserIds,
+                    'remove_all' => $removeAll,
+                ]);
+            });
+        } else {
+            // Course
+            $course = Course::findOrFail($targetId);
+
+            DB::transaction(function () use (
+                $course,
+                $removeAll,
+                $userIds,
+                $enrollmentIds,
+                &$removedCount
+            ) {
+                $enrollmentQuery = Enrollment::where('course_id', $course->id);
+
+                if (! $removeAll) {
+                    if (! empty($userIds)) {
+                        $enrollmentQuery->whereIn('user_id', $userIds);
+                    } elseif (! empty($enrollmentIds)) {
+                        $enrollmentQuery->whereIn('id', $enrollmentIds);
+                    }
+                }
+
+                $deletedUserIds = (clone $enrollmentQuery)->pluck('user_id')->filter()->unique()->values()->toArray();
+                $removedCount = $enrollmentQuery->count();
+
+                $enrollmentQuery->delete();
+
+                AuditLog::log('manual_bulk_unenroll_course', 'Course', $course->id, null, [
+                    'admin_id' => auth()->id(),
+                    'course_id' => $course->id,
+                    'course_title' => $course->title,
+                    'removed_count' => $removedCount,
+                    'user_ids' => $deletedUserIds,
+                    'remove_all' => $removeAll,
+                ]);
+            });
+        }
 
         return response()->json([
             'status' => 'success',
-            'message' => 'শিক্ষার্থীকে কোর্স থেকে সফলভাবে রিমুভ করা হয়েছে।',
+            'message' => "সফলভাবে {$removedCount} জন শিক্ষার্থীর কোর্স এক্সেস বাতিল করা হয়েছে।",
+            'removed_count' => $removedCount,
         ]);
     }
 }
