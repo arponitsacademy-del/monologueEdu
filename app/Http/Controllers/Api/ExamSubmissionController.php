@@ -657,7 +657,8 @@ class ExamSubmissionController extends Controller
      */
     public function studentSubmitExam(Request $request, Exam $exam): JsonResponse
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
         $validated = $request->validate([
             'answers' => ['present', 'array'],
@@ -876,6 +877,20 @@ class ExamSubmissionController extends Controller
                 'requires_teacher_grading' => $hasWrittenPaper,
             ],
         ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Exam Submit Exception: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'message' => 'Server Error: ' . $e->getMessage(),
+                'error_detail' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
     }
 
     /**
