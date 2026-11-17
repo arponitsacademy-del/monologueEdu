@@ -21,6 +21,7 @@ import { AdminCoursesPage } from '../pages/admin/AdminCoursesPage';
 import { AdminCourseEditPage } from '../pages/admin/AdminCourseEditPage';
 import { AdminCourseBuilderPage } from '../pages/admin/AdminCourseBuilderPage';
 import { AdminManualEnrollmentPage } from '../pages/admin/AdminManualEnrollmentPage';
+import { AdminCourseStudentsPage } from '../pages/admin/AdminCourseStudentsPage';
 import { AdminUsersPage } from '../pages/admin/AdminUsersPage';
 import { AdminUserCreatePage } from '../pages/admin/AdminUserCreatePage';
 import { AdminRolesPage } from '../pages/admin/roles/AdminRolesPage';
@@ -113,6 +114,7 @@ export const AppRoutes: React.FC = () => {
                 <Route path="courses/create" element={<AdminCourseEditPage />} />
                 <Route path="courses/categories" element={<AdminCourseCategoriesPage />} />
                 <Route path="courses/manual-enrollment" element={<AdminManualEnrollmentPage />} />
+                <Route path="courses/students" element={<AdminCourseStudentsPage />} />
                 <Route path="courses/:id/edit" element={<AdminCourseEditPage />} />
                 <Route path="courses/:id/builder" element={<AdminCourseBuilderPage />} />
                 {/* Course Bundles & Bundle Builder */}

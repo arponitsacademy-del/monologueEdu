@@ -283,6 +283,8 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('lookup-phones', [AdminManualEnrollmentController::class, 'lookupPhones']);
             Route::post('enroll', [AdminManualEnrollmentController::class, 'enroll']);
             Route::get('history', [AdminManualEnrollmentController::class, 'history']);
+            Route::get('targets/{type}/{id}/students', [AdminManualEnrollmentController::class, 'getTargetStudents']);
+            Route::delete('enrollment/{id}', [AdminManualEnrollmentController::class, 'removeEnrollment']);
         });
 
         // User Management

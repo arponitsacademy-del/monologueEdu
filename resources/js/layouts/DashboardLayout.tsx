@@ -168,6 +168,7 @@ export const DashboardLayout: React.FC = () => {
                         { title: t.sidebar.courseManagement, path: '/admin/courses', permission: 'courses.view' },
                         { title: t.sidebar.courseCategories, path: '/admin/courses/categories', permission: 'courses.categories' },
                         { title: 'Manual Enrollment', path: '/admin/courses/manual-enrollment', permission: 'courses.view' },
+                        { title: 'Student', path: '/admin/courses/students', permission: 'courses.view' },
                     ]
                 },
                 { 
@@ -433,7 +434,8 @@ export const DashboardLayout: React.FC = () => {
                                                 location.pathname.startsWith('/admin/courses') && 
                                                 location.pathname !== '/admin/courses/create' && 
                                                 location.pathname !== '/admin/courses/categories' &&
-                                                location.pathname !== '/admin/courses/manual-enrollment'
+                                                location.pathname !== '/admin/courses/manual-enrollment' &&
+                                                location.pathname !== '/admin/courses/students'
                                             );
                                             return (
                                                 <Link
@@ -684,7 +686,8 @@ export const DashboardLayout: React.FC = () => {
                                                                 location.pathname.startsWith('/admin/courses') && 
                                                                 location.pathname !== '/admin/courses/create' && 
                                                                 location.pathname !== '/admin/courses/categories' &&
-                                                                location.pathname !== '/admin/courses/manual-enrollment'
+                                                                location.pathname !== '/admin/courses/manual-enrollment' &&
+                                                                location.pathname !== '/admin/courses/students'
                                                             );
                                                             return (
                                                                 <Link

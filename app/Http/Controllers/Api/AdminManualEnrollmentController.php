@@ -536,4 +536,150 @@ class AdminManualEnrollmentController extends Controller
 
         return response()->json($orders);
     }
+
+    /**
+     * Get enrolled students for a specific course or bundle.
+     */
+    public function getTargetStudents(Request $request, string $type, int $id): JsonResponse
+    {
+        $search = trim((string) $request->input('q', ''));
+        $perPage = max(10, min(100, (int) $request->input('per_page', 50)));
+
+        if ($type === 'bundle') {
+            $bundle = CourseBundle::with(['courses:id,title,thumbnail'])->findOrFail($id);
+
+            $query = Order::where('bundle_id', $bundle->id)
+                ->where('payment_status', Order::PAYMENT_PAID)
+                ->whereHas('user')
+                ->with(['user:id,name,phone,email,registration_number,status']);
+
+            if (!empty($search)) {
+                $cleanDigits = preg_replace('/[^0-9]/', '', $search);
+                $query->whereHas('user', function ($uq) use ($search, $cleanDigits) {
+                    $uq->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('registration_number', 'like', "%{$search}%");
+
+                    if (!empty($cleanDigits) && strlen($cleanDigits) >= 3) {
+                        $uq->orWhere('phone', 'like', "%{$cleanDigits}%");
+                    }
+                });
+            }
+
+            $orders = $query->orderBy('id', 'desc')->paginate($perPage);
+
+            $students = $orders->getCollection()->map(function ($order) {
+                return [
+                    'enrollment_id' => $order->id,
+                    'user_id' => $order->user_id,
+                    'user' => $order->user,
+                    'enrolled_at' => $order->created_at?->toISOString() ?? (string) $order->created_at,
+                    'status' => 'active',
+                    'order_number' => $order->order_number,
+                    'payment_method' => $order->payment_method ?? 'bundle',
+                ];
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'target' => [
+                    'id' => $bundle->id,
+                    'type' => 'bundle',
+                    'title' => $bundle->title,
+                    'slug' => $bundle->slug,
+                    'thumbnail' => $bundle->thumbnail,
+                    'courses_count' => $bundle->courses->count(),
+                    'courses' => $bundle->courses->map(fn($c) => ['id' => $c->id, 'title' => $c->title]),
+                    'total_students' => Order::where('bundle_id', $bundle->id)->where('payment_status', Order::PAYMENT_PAID)->distinct('user_id')->count('user_id'),
+                ],
+                'students' => $students,
+                'pagination' => [
+                    'total' => $orders->total(),
+                    'current_page' => $orders->currentPage(),
+                    'last_page' => $orders->lastPage(),
+                    'per_page' => $orders->perPage(),
+                ],
+            ]);
+        }
+
+        // Course
+        $course = Course::with(['categories:id,name'])->findOrFail($id);
+
+        $query = Enrollment::where('course_id', $course->id)
+            ->whereHas('user')
+            ->with(['user:id,name,phone,email,registration_number,status', 'order:id,order_number,payment_method']);
+
+        if (!empty($search)) {
+            $cleanDigits = preg_replace('/[^0-9]/', '', $search);
+            $query->whereHas('user', function ($uq) use ($search, $cleanDigits) {
+                $uq->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('registration_number', 'like', "%{$search}%");
+
+                if (!empty($cleanDigits) && strlen($cleanDigits) >= 3) {
+                    $uq->orWhere('phone', 'like', "%{$cleanDigits}%");
+                }
+            });
+        }
+
+        $enrollments = $query->orderBy('id', 'desc')->paginate($perPage);
+
+        $students = $enrollments->getCollection()->map(function ($enr) {
+            return [
+                'enrollment_id' => $enr->id,
+                'user_id' => $enr->user_id,
+                'user' => $enr->user,
+                'enrolled_at' => $enr->enrolled_at?->toISOString() ?? $enr->created_at?->toISOString() ?? (string) $enr->created_at,
+                'status' => $enr->status,
+                'order_number' => $enr->order?->order_number ?? 'MANUAL-' . $enr->id,
+                'payment_method' => $enr->order?->payment_method ?? 'manual',
+            ];
+        });
+
+        return response()->json([
+            'status' => 'success',
+            'target' => [
+                'id' => $course->id,
+                'type' => 'course',
+                'title' => $course->title,
+                'slug' => $course->slug,
+                'thumbnail' => $course->thumbnail,
+                'category' => $course->categories->first()?->name ?? 'সাধারণ কোর্স',
+                'total_students' => Enrollment::where('course_id', $course->id)->whereHas('user')->count(),
+            ],
+            'students' => $students,
+            'pagination' => [
+                'total' => $enrollments->total(),
+                'current_page' => $enrollments->currentPage(),
+                'last_page' => $enrollments->lastPage(),
+                'per_page' => $enrollments->perPage(),
+            ],
+        ]);
+    }
+
+    /**
+     * Remove / unenroll student from course.
+     */
+    public function removeEnrollment(int $id): JsonResponse
+    {
+        $enrollment = Enrollment::with(['user', 'course'])->findOrFail($id);
+        $user = $enrollment->user;
+        $course = $enrollment->course;
+
+        $enrollment->delete();
+
+        AuditLog::log('manual_unenrollment', 'Enrollment', $id, null, [
+            'admin_id' => auth()->id(),
+            'user_id' => $user?->id,
+            'user_name' => $user?->name,
+            'user_phone' => $user?->phone,
+            'course_id' => $course?->id,
+            'course_title' => $course?->title,
+        ]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'শিক্ষার্থীকে কোর্স থেকে সফলভাবে রিমুভ করা হয়েছে।',
+        ]);
+    }
 }
