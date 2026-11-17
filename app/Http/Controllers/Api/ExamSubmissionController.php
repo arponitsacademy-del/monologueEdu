@@ -709,6 +709,7 @@ class ExamSubmissionController extends Controller
 
         DB::transaction(function () use (
             $allQuestions,
+            $totalQuestions,
             $answersData,
             $submission,
             $exam,
