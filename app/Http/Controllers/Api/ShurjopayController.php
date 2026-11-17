@@ -201,7 +201,107 @@ class ShurjopayController extends Controller
             $courseFinalAmount = max(0, $courseFinalAmount - $couponDiscount);
         }
 
-        $finalAmount = $courseFinalAmount + $nexpilotPrice;
+        $finalAmount = max(0, $courseFinalAmount + $nexpilotPrice);
+
+        // If amount is 0 (100% coupon, 100% discount, or free course), do NOT call shurjoPay.
+        // Immediately mark order as PAID and activate enrollment.
+        if ($finalAmount <= 0) {
+            $order = DB::transaction(function () use ($user, $course, $validated, $price, $discountAmount, $affiliateDiscount, $affiliateProfile, $coupon, $couponDiscount, $includeNexPilot, $nexpilotId, $nexpilotPrice) {
+                $order = Order::create([
+                    'order_number' => Order::generateOrderNumber(),
+                    'user_id' => $user->id,
+                    'affiliate_id' => $affiliateProfile ? $affiliateProfile->id : null,
+                    'affiliate_code' => $affiliateProfile ? $affiliateProfile->affiliate_code : null,
+                    'course_id' => $course->id,
+                    'original_price' => $price,
+                    'discount_amount' => $discountAmount,
+                    'affiliate_discount' => $affiliateDiscount,
+                    'coupon_id' => $coupon ? $coupon->id : null,
+                    'coupon_code' => $coupon ? $coupon->code : null,
+                    'coupon_discount' => $couponDiscount,
+                    'final_amount' => 0,
+                    'has_nexpilot' => $nexpilotPrice > 0 || ($includeNexPilot && $nexpilotId),
+                    'nexpilot_id' => $nexpilotId,
+                    'nexpilot_price' => $nexpilotPrice,
+                    'payment_status' => Order::PAYMENT_PAID,
+                    'order_status' => Order::ORDER_COMPLETED,
+                    'payment_method' => 'free',
+                    'notes' => $validated['notes'] ?? '১০০% ডিসকাউন্ট / কুপন কোড প্রয়োগে ফ্রি এনরোলমেন্ট',
+                ]);
+
+                if ($coupon) {
+                    CouponUsage::create([
+                        'coupon_id' => $coupon->id,
+                        'user_id' => $user->id,
+                        'order_id' => $order->id,
+                        'discount_amount' => $couponDiscount,
+                    ]);
+                    $coupon->increment('times_used');
+                }
+
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'course_id' => $course->id,
+                    'price' => 0,
+                ]);
+
+                Payment::create([
+                    'order_id' => $order->id,
+                    'transaction_ref' => 'FREE_' . $order->order_number,
+                    'sender_phone' => $user->phone ?? '01700000000',
+                    'amount' => 0,
+                    'payment_method' => 'free',
+                    'status' => Payment::STATUS_APPROVED,
+                    'verified_at' => now(),
+                    'notes' => '১০০% ডিসকাউন্ট / ফ্রি এনরোলমেন্ট অনুমোদিত',
+                ]);
+
+                // Immediately create active Enrollment
+                Enrollment::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'course_id' => $course->id,
+                    ],
+                    [
+                        'order_id' => $order->id,
+                        'status' => Enrollment::STATUS_ACTIVE,
+                        'has_nexpilot' => (bool) ($nexpilotPrice > 0 || ($includeNexPilot && $nexpilotId)),
+                        'nexpilot_id' => $nexpilotId,
+                        'enrolled_at' => now(),
+                    ]
+                );
+
+                AuditLog::log('free_enrollment_auto_activated', 'Order', $order->id, null, [
+                    'order_number' => $order->order_number,
+                    'user_id' => $user->id,
+                    'course_id' => $course->id,
+                    'coupon_code' => $coupon?->code,
+                ]);
+
+                try {
+                    $user->notify(new PaymentConfirmedNotification($order));
+                } catch (\Throwable $e) {
+                    Log::error('Free enrollment notification failed: ' . $e->getMessage());
+                }
+
+                try {
+                    app(CoursePurchaseSmsService::class)->sendPurchaseSms($order);
+                } catch (\Throwable $e) {
+                    Log::error('Free enrollment SMS failed: ' . $e->getMessage());
+                }
+
+                return $order;
+            });
+
+            return response()->json([
+                'success' => true,
+                'is_free' => true,
+                'message' => '১০০% ডিসকাউন্টে কোর্সে সফলভাবে এনরোল সম্পন্ন হয়েছে!',
+                'order_number' => $order->order_number,
+                'order' => $order->load(['course', 'latestPayment']),
+                'redirect_url' => "/order-status/{$order->order_number}?status=success",
+            ]);
+        }
 
         // Create order and pending payment
         $order = DB::transaction(function () use ($user, $course, $validated, $price, $discountAmount, $affiliateDiscount, $affiliateProfile, $coupon, $couponDiscount, $finalAmount, $includeNexPilot, $nexpilotId, $nexpilotPrice) {

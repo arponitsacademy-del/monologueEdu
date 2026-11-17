@@ -304,14 +304,22 @@ export const CheckoutPage: React.FC = () => {
         try {
             const { data } = await apiClient.post('/orders/checkout', {
                 course_id: course.id,
-                payment_method: paymentMethod,
-                transaction_ref: transactionRef,
-                sender_phone: senderPhone,
+                payment_method: totalPayable <= 0 ? 'free' : paymentMethod,
+                transaction_ref: totalPayable <= 0 ? undefined : transactionRef,
+                sender_phone: totalPayable <= 0 ? undefined : senderPhone,
                 notes,
                 include_nexpilot: hasActivePilot && includeNexPilot,
                 affiliate_code: appliedReferral?.code || (referralInput.trim() ? referralInput.trim() : undefined),
                 coupon_code: appliedCoupon?.code || (couponInput.trim() ? couponInput.trim() : undefined),
             });
+
+            if (data.is_free) {
+                navigate(`/order-status/${data.order.order_number}?status=success`, {
+                    replace: true,
+                    state: { order: data.order, message: data.message }
+                });
+                return;
+            }
 
             navigate(`/order-status/${data.order.order_number}`, { state: { order: data.order } });
         } catch (err: any) {
@@ -336,6 +344,14 @@ export const CheckoutPage: React.FC = () => {
                 affiliate_code: appliedReferral?.code || (referralInput.trim() ? referralInput.trim() : undefined),
                 coupon_code: appliedCoupon?.code || (couponInput.trim() ? couponInput.trim() : undefined),
             });
+
+            if (data.is_free) {
+                navigate(data.redirect_url || `/order-status/${data.order_number}?status=success`, {
+                    replace: true,
+                    state: { order: data.order, message: data.message }
+                });
+                return;
+            }
 
             if (data.checkout_url) {
                 window.location.href = data.checkout_url;
@@ -373,155 +389,218 @@ export const CheckoutPage: React.FC = () => {
                 <div className="lg:col-span-7 space-y-6">
                     {/* Payment Provider Selection */}
                     <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs space-y-6">
-                        <h3 className="text-lg font-bold text-slate-900">
-                            Select Payment Method
-                        </h3>
-
-                        {/* shurjoPay Online Payment Option */}
-                        {isShurjopayAllowed && (
-                            <div className="space-y-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setPaymentMethod('shurjopay')}
-                                    className={`w-full p-4.5 rounded-2xl border-2 text-left transition-all cursor-pointer relative overflow-hidden ${
-                                        paymentMethod === 'shurjopay'
-                                            ? 'border-sky-500 bg-sky-50/70 text-sky-950 shadow-xs ring-2 ring-sky-500/20'
-                                            : 'border-slate-200 hover:border-slate-300 bg-white'
-                                    }`}
-                                >
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-500 to-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-sky-500/20">
-                                                <Zap className="w-5 h-5" />
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-extrabold text-base text-slate-900">
-                                                        অনলাইন পেমেন্ট
-                                                    </span>
-                                                    <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full shadow-2xs">
-                                                        অটোমেটিক এক্সপ্রেস
-                                                    </span>
-                                                </div>
-                                                <span className="text-xs text-slate-500 font-medium block mt-0.5">
-                                                    bKash, Nagad, Rocket, Cards বা Net Banking দিয়ে সাথে সাথে পেমেন্ট করুন
-                                                </span>
-                                            </div>
+                        {totalPayable <= 0 ? (
+                            <div className="space-y-5">
+                                <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-emerald-50 via-teal-50/60 to-sky-50 border-2 border-emerald-400 shadow-xs space-y-3">
+                                    <div className="flex items-start gap-3.5">
+                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 text-white flex items-center justify-center font-black shadow-md shadow-emerald-500/20 shrink-0">
+                                            <Sparkles className="w-6 h-6 animate-pulse" />
                                         </div>
-                                        <div className="grid grid-cols-2 gap-1.5 shrink-0 self-start sm:self-center">
-                                            <span className="px-3 py-1 bg-pink-50 border border-pink-200 rounded-lg text-[11px] font-bold text-pink-600 text-center shadow-2xs">
-                                                bKash
+                                        <div>
+                                            <span className="inline-block text-[11px] font-black uppercase tracking-wider bg-emerald-200 text-emerald-900 px-2.5 py-0.5 rounded-full mb-1">
+                                                ১০০% ডিসকাউন্ট সক্রিয়
                                             </span>
-                                            <span className="px-3 py-1 bg-orange-50 border border-orange-200 rounded-lg text-[11px] font-bold text-orange-600 text-center shadow-2xs">
-                                                Nagad
-                                            </span>
-                                            <span className="px-3 py-1 bg-purple-50 border border-purple-200 rounded-lg text-[11px] font-bold text-purple-600 text-center shadow-2xs">
-                                                Rocket
-                                            </span>
-                                            <span className="px-3 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-bold text-blue-600 text-center shadow-2xs">
-                                                Cards
-                                            </span>
+                                            <h3 className="text-lg font-black text-slate-900 tracking-tight">
+                                                সম্পূর্ণ বিনামূল্যে এনরোল করুন
+                                            </h3>
+                                            <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                                                আপনার ডিসকাউন্ট বা কুপন কোড সফলভাবে যুক্ত হয়েছে। কোনো পেমেন্ট পরিশোধ করতে হবে না, নিচের বাটনে ক্লিক করে সাথে সাথে কোর্সে যুক্ত হয়ে যান।
+                                            </p>
                                         </div>
                                     </div>
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Manual Payment Section */}
-                        {availableGateways.length > 0 && (
-                            <div className="space-y-3 pt-2">
-                                {isShurjopayAllowed && (
-                                    <div className="flex items-center gap-3">
-                                        <div className="h-px bg-slate-200 flex-1"></div>
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                                            বা ম্যানুয়াল সেন্ড মানি (TrxID)
-                                        </span>
-                                        <div className="h-px bg-slate-200 flex-1"></div>
-                                    </div>
-                                )}
-                                <div className={`grid grid-cols-${Math.min(availableGateways.length, 3)} gap-3`}>
-                                    {availableGateways.map(gw => {
-                                        const isSelected = paymentMethod === gw.id;
-                                        return (
-                                            <button
-                                                key={gw.id}
-                                                type="button"
-                                                onClick={() => setPaymentMethod(gw.id)}
-                                                className={`p-3.5 rounded-2xl border-2 text-center transition-all cursor-pointer ${
-                                                    isSelected
-                                                        ? `${gw.colorClass} shadow-xs ring-2 ring-slate-400/20`
-                                                        : `border-slate-200 hover:border-slate-300 ${gw.inactiveClass}`
-                                                }`}
-                                            >
-                                                <span className={`block font-black text-sm ${gw.textColor}`}>{gw.title}</span>
-                                                <span className="text-[11px] text-slate-500 font-semibold block truncate">
-                                                    {gw.title} {getMethodTypeLabel(gw.config?.type || 'send_money')}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
-
-                        {!isShurjopayAllowed && availableGateways.length === 0 && (
-                            <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center gap-2">
-                                <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
-                                <span>এই কোর্সের জন্য বর্তমানে কোনো পেমেন্ট মেথড সক্রিয় নেই। অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।</span>
-                            </div>
-                        )}
-
-                        {error && (
-                            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
-                                <AlertCircle className="w-4 h-4 shrink-0" />
-                                <span>{error}</span>
-                            </div>
-                        )}
-
-                        {/* Conditional Form: shurjoPay VS Manual */}
-                        {paymentMethod === 'shurjopay' ? (
-                            <div className="space-y-4 pt-1">
-                                <div className="p-3.5 rounded-2xl bg-sky-50/80 border border-sky-100 text-xs text-slate-700 flex items-center gap-2.5">
-                                    <ShieldCheck className="w-4 h-4 text-sky-600 shrink-0" />
-                                    <span>
-                                        Pay securely with bKash, Nagad, Rocket, or Cards via shurjoPay. Course access will unlock automatically.
-                                    </span>
                                 </div>
 
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                                        Additional Notes (Optional)
+                                        অতিরিক্ত নোট (ঐচ্ছিক)
                                     </label>
                                     <input
                                         type="text"
                                         value={notes}
                                         onChange={(e) => setNotes(e.target.value)}
-                                        placeholder="Any special note or reference"
-                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
+                                        placeholder="কোনো বিশেষ নোট বা রেফারেন্স থাকলে লিখুন"
+                                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:bg-white"
                                     />
                                 </div>
+
+                                {error && (
+                                    <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4 shrink-0" />
+                                        <span>{error}</span>
+                                    </div>
+                                )}
 
                                 <button
                                     type="button"
                                     onClick={handleShurjopayCheckout}
                                     disabled={submitting}
-                                    className="w-full py-4 bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 text-white font-black text-base rounded-2xl shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-4 cursor-pointer"
+                                    className="w-full py-4 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-black text-base rounded-2xl shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 cursor-pointer"
                                 >
                                     {submitting ? (
                                         <>
                                             <Loader2 className="w-5 h-5 animate-spin" />
-                                            <span>shurjoPay গেটওয়েতে সংযোগ হচ্ছে...</span>
+                                            <span>এনরোল সম্পন্ন হচ্ছে...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <ShieldCheck className="w-5 h-5" />
-                                            <span>Pay {formatBDT(totalPayable)} with shurjoPay</span>
+                                            <CheckCircle2 className="w-5 h-5" />
+                                            <span>সম্পূর্ণ বিনামূল্যে এনরোল করুন (৳০)</span>
                                             <ArrowRight className="w-5 h-5 ml-1" />
                                         </>
                                     )}
                                 </button>
                             </div>
                         ) : (
+                            <>
+                                <h3 className="text-lg font-bold text-slate-900">
+                                    Select Payment Method
+                                </h3>
+
+                                {/* shurjoPay Online Payment Option */}
+                                {isShurjopayAllowed && (
+                                    <div className="space-y-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setPaymentMethod('shurjopay')}
+                                            className={`w-full p-4.5 rounded-2xl border-2 text-left transition-all cursor-pointer relative overflow-hidden ${
+                                                paymentMethod === 'shurjopay'
+                                                    ? 'border-sky-500 bg-sky-50/70 text-sky-950 shadow-xs ring-2 ring-sky-500/20'
+                                                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                                            }`}
+                                        >
+                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-500 to-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm shadow-sky-500/20">
+                                                        <Zap className="w-5 h-5" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-extrabold text-base text-slate-900">
+                                                                অনলাইন পেমেন্ট
+                                                            </span>
+                                                            <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full shadow-2xs">
+                                                                অটোমেটিক এক্সপ্রেস
+                                                            </span>
+                                                        </div>
+                                                        <span className="text-xs text-slate-500 font-medium block mt-0.5">
+                                                            bKash, Nagad, Rocket, Cards বা Net Banking দিয়ে সাথে সাথে পেমেন্ট করুন
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-1.5 shrink-0 self-start sm:self-center">
+                                                    <span className="px-3 py-1 bg-pink-50 border border-pink-200 rounded-lg text-[11px] font-bold text-pink-600 text-center shadow-2xs">
+                                                        bKash
+                                                    </span>
+                                                    <span className="px-3 py-1 bg-orange-50 border border-orange-200 rounded-lg text-[11px] font-bold text-orange-600 text-center shadow-2xs">
+                                                        Nagad
+                                                    </span>
+                                                    <span className="px-3 py-1 bg-purple-50 border border-purple-200 rounded-lg text-[11px] font-bold text-purple-600 text-center shadow-2xs">
+                                                        Rocket
+                                                    </span>
+                                                    <span className="px-3 py-1 bg-blue-50 border border-blue-200 rounded-lg text-[11px] font-bold text-blue-600 text-center shadow-2xs">
+                                                        Cards
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Manual Payment Section */}
+                                {availableGateways.length > 0 && (
+                                    <div className="space-y-3 pt-2">
+                                        {isShurjopayAllowed && (
+                                            <div className="flex items-center gap-3">
+                                                <div className="h-px bg-slate-200 flex-1"></div>
+                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                                                    বা ম্যানুয়াল সেন্ড মানি (TrxID)
+                                                </span>
+                                                <div className="h-px bg-slate-200 flex-1"></div>
+                                            </div>
+                                        )}
+                                        <div className={`grid grid-cols-${Math.min(availableGateways.length, 3)} gap-3`}>
+                                            {availableGateways.map(gw => {
+                                                const isSelected = paymentMethod === gw.id;
+                                                return (
+                                                    <button
+                                                        key={gw.id}
+                                                        type="button"
+                                                        onClick={() => setPaymentMethod(gw.id)}
+                                                        className={`p-3.5 rounded-2xl border-2 text-center transition-all cursor-pointer ${
+                                                            isSelected
+                                                                ? `${gw.colorClass} shadow-xs ring-2 ring-slate-400/20`
+                                                                : `border-slate-200 hover:border-slate-300 ${gw.inactiveClass}`
+                                                        }`}
+                                                    >
+                                                        <span className={`block font-black text-sm ${gw.textColor}`}>{gw.title}</span>
+                                                        <span className="text-[11px] text-slate-500 font-semibold block truncate">
+                                                            {gw.title} {getMethodTypeLabel(gw.config?.type || 'send_money')}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {!isShurjopayAllowed && availableGateways.length === 0 && (
+                                    <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+                                        <span>এই কোর্সের জন্য বর্তমানে কোনো পেমেন্ট মেথড সক্রিয় নেই। অনুগ্রহ করে সাপোর্টে যোগাযোগ করুন।</span>
+                                    </div>
+                                )}
+
+                                {error && (
+                                    <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
+                                        <AlertCircle className="w-4 h-4 shrink-0" />
+                                        <span>{error}</span>
+                                    </div>
+                                )}
+
+                                {/* Conditional Form: shurjoPay VS Manual */}
+                                {paymentMethod === 'shurjopay' ? (
+                                    <div className="space-y-4 pt-1">
+                                        <div className="p-3.5 rounded-2xl bg-sky-50/80 border border-sky-100 text-xs text-slate-700 flex items-center gap-2.5">
+                                            <ShieldCheck className="w-4 h-4 text-sky-600 shrink-0" />
+                                            <span>
+                                                Pay securely with bKash, Nagad, Rocket, or Cards via shurjoPay. Course access will unlock automatically.
+                                            </span>
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                                Additional Notes (Optional)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={notes}
+                                                onChange={(e) => setNotes(e.target.value)}
+                                                placeholder="Any special note or reference"
+                                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-sky-500 focus:bg-white"
+                                            />
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            onClick={handleShurjopayCheckout}
+                                            disabled={submitting}
+                                            className="w-full py-4 bg-gradient-to-r from-sky-500 via-sky-600 to-sky-700 hover:from-sky-600 hover:to-sky-800 text-white font-black text-base rounded-2xl shadow-lg shadow-sky-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 mt-4 cursor-pointer"
+                                        >
+                                            {submitting ? (
+                                                <>
+                                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                                    <span>shurjoPay গেটওয়েতে সংযোগ হচ্ছে...</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <ShieldCheck className="w-5 h-5" />
+                                                    <span>Pay {formatBDT(totalPayable)} with shurjoPay</span>
+                                                    <ArrowRight className="w-5 h-5 ml-1" />
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                ) : (
                             <>
                                 {/* Manual Instructions */}
                                 {activeGateway && (
@@ -630,6 +709,8 @@ export const CheckoutPage: React.FC = () => {
                                 </form>
                             </>
                         )}
+                        </>
+                    )}
                     </div>
                 </div>
 

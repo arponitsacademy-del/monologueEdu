@@ -27,9 +27,9 @@ class OrderController extends Controller
         $validated = $request->validate([
             'course_id' => ['required', 'exists:courses,id'],
             'include_nexpilot' => ['nullable', 'boolean'],
-            'payment_method' => ['required', 'string', 'in:manual_bkash,manual_nagad,manual_rocket,bank,manual'],
-            'transaction_ref' => ['required', 'string', 'max:100'],
-            'sender_phone' => ['required', 'string', 'max:20'],
+            'payment_method' => ['required', 'string'],
+            'transaction_ref' => ['nullable', 'string', 'max:100'],
+            'sender_phone' => ['nullable', 'string', 'max:20'],
             'notes' => ['nullable', 'string', 'max:500'],
             'affiliate_code' => ['nullable', 'string', 'max:50'],
             'coupon_code' => ['nullable', 'string', 'max:50'],
@@ -45,14 +45,6 @@ class OrderController extends Controller
         if ($user->isEnrolledIn($course->id)) {
             return response()->json([
                 'message' => 'You are already enrolled in this course.',
-            ], 422);
-        }
-
-        // Prevent duplicate pending orders with same transaction reference
-        if (Payment::where('transaction_ref', $validated['transaction_ref'])->exists()) {
-            return response()->json([
-                'message' => 'This transaction reference has already been used for another order.',
-                'errors' => ['transaction_ref' => ['This transaction ID is already registered.']],
             ], 422);
         }
 
@@ -128,9 +120,31 @@ class OrderController extends Controller
             $courseFinalAmount = max(0, $courseFinalAmount - $couponDiscount);
         }
 
-        $finalAmount = $courseFinalAmount + $nexpilotPrice;
+        $finalAmount = max(0, $courseFinalAmount + $nexpilotPrice);
+        $isFree = ($finalAmount <= 0);
 
-        $order = DB::transaction(function () use ($user, $course, $validated, $price, $discountAmount, $affiliateDiscount, $affiliateProfile, $coupon, $couponDiscount, $finalAmount, $includeNexPilot, $nexpilotId, $nexpilotPrice) {
+        if (! $isFree) {
+            if (empty($validated['transaction_ref'])) {
+                return response()->json([
+                    'message' => 'Transaction ID is required.',
+                    'errors' => ['transaction_ref' => ['Transaction reference is required.']],
+                ], 422);
+            }
+            if (empty($validated['sender_phone'])) {
+                return response()->json([
+                    'message' => 'Sender phone is required.',
+                    'errors' => ['sender_phone' => ['Sender phone number is required.']],
+                ], 422);
+            }
+            if (Payment::where('transaction_ref', $validated['transaction_ref'])->exists()) {
+                return response()->json([
+                    'message' => 'This transaction reference has already been used for another order.',
+                    'errors' => ['transaction_ref' => ['This transaction ID is already registered.']],
+                ], 422);
+            }
+        }
+
+        $order = DB::transaction(function () use ($user, $course, $validated, $price, $discountAmount, $affiliateDiscount, $affiliateProfile, $coupon, $couponDiscount, $finalAmount, $includeNexPilot, $nexpilotId, $nexpilotPrice, $isFree) {
             $order = Order::create([
                 'order_number' => Order::generateOrderNumber(),
                 'user_id' => $user->id,
@@ -147,10 +161,10 @@ class OrderController extends Controller
                 'has_nexpilot' => $nexpilotPrice > 0 || ($includeNexPilot && $nexpilotId),
                 'nexpilot_id' => $nexpilotId,
                 'nexpilot_price' => $nexpilotPrice,
-                'payment_status' => Order::PAYMENT_PENDING,
-                'order_status' => Order::ORDER_PROCESSING,
-                'payment_method' => $validated['payment_method'],
-                'notes' => $validated['notes'] ?? null,
+                'payment_status' => $isFree ? Order::PAYMENT_PAID : Order::PAYMENT_PENDING,
+                'order_status' => $isFree ? Order::ORDER_COMPLETED : Order::ORDER_PROCESSING,
+                'payment_method' => $isFree ? 'free' : $validated['payment_method'],
+                'notes' => $validated['notes'] ?? ($isFree ? '১০০% ডিসকাউন্ট / কুপন ফ্রি এনরোলমেন্ট' : null),
             ]);
 
             // Track coupon usage
@@ -172,18 +186,36 @@ class OrderController extends Controller
 
             Payment::create([
                 'order_id' => $order->id,
-                'transaction_ref' => $validated['transaction_ref'],
-                'sender_phone' => $validated['sender_phone'],
+                'transaction_ref' => $isFree ? ('FREE_' . $order->order_number) : $validated['transaction_ref'],
+                'sender_phone' => $isFree ? ($user->phone ?? '01700000000') : $validated['sender_phone'],
                 'amount' => $finalAmount,
-                'payment_method' => $validated['payment_method'],
-                'status' => Payment::STATUS_PENDING,
+                'payment_method' => $isFree ? 'free' : $validated['payment_method'],
+                'status' => $isFree ? Payment::STATUS_APPROVED : Payment::STATUS_PENDING,
+                'verified_at' => $isFree ? now() : null,
             ]);
+
+            if ($isFree) {
+                Enrollment::updateOrCreate(
+                    [
+                        'user_id' => $user->id,
+                        'course_id' => $course->id,
+                    ],
+                    [
+                        'order_id' => $order->id,
+                        'status' => Enrollment::STATUS_ACTIVE,
+                        'has_nexpilot' => (bool) ($nexpilotPrice > 0 || ($includeNexPilot && $nexpilotId)),
+                        'nexpilot_id' => $nexpilotId,
+                        'enrolled_at' => now(),
+                    ]
+                );
+            }
 
             return $order;
         });
 
         return response()->json([
-            'message' => 'Order placed successfully. Enrollment will be activated upon payment verification.',
+            'message' => $isFree ? '১০০% ডিসকাউন্টে কোর্সে সফলভাবে এনরোল সম্পন্ন হয়েছে!' : 'Order placed successfully. Enrollment will be activated upon payment verification.',
+            'is_free' => $isFree,
             'order' => $order->load(['course', 'latestPayment']),
         ], 201);
     }
