@@ -21,6 +21,8 @@ import {
     Clock, 
     Tag, 
     ChevronDown, 
+    ChevronUp,
+    Sliders,
     User as UserIcon,
     Phone,
     TrendingUp,
@@ -130,11 +132,14 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
         user_restriction_type: 'all' as 'all' | 'specific',
         restricted_user_id: null as number | null,
         usage_limit: '' as string | number,
-        usage_limit_per_user: 1 as number,
+        usage_limit_per_user: '' as string | number,
         start_date: '',
         expiry_date: '',
         is_active: true,
     });
+
+    // Advance accordion state in modal
+    const [showAdvanced, setShowAdvanced] = useState(false);
 
     // User live search state
     const [userSearchTerm, setUserSearchTerm] = useState('');
@@ -248,6 +253,7 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
 
     const handleOpenCreateModal = () => {
         setEditingCoupon(null);
+        setShowAdvanced(false);
         setFormData({
             code: '',
             title: '',
@@ -262,7 +268,7 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
             user_restriction_type: 'all',
             restricted_user_id: null,
             usage_limit: '',
-            usage_limit_per_user: 1,
+            usage_limit_per_user: '',
             start_date: '',
             expiry_date: '',
             is_active: true,
@@ -276,9 +282,21 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
 
     const handleOpenEditModal = (coupon: CouponItem) => {
         setEditingCoupon(coupon);
+        const hasAdvancedSettings = Boolean(
+            coupon.scope_type !== 'all' ||
+            coupon.user_restriction_type !== 'all' ||
+            coupon.usage_limit ||
+            coupon.start_date ||
+            coupon.expiry_date ||
+            coupon.max_discount_amount ||
+            coupon.min_order_amount ||
+            coupon.description ||
+            (coupon.title && coupon.title !== coupon.code)
+        );
+        setShowAdvanced(hasAdvancedSettings);
         setFormData({
             code: coupon.code,
-            title: coupon.title,
+            title: coupon.title || '',
             description: coupon.description || '',
             discount_type: coupon.discount_type,
             discount_amount: coupon.discount_amount,
@@ -290,7 +308,7 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
             user_restriction_type: coupon.user_restriction_type,
             restricted_user_id: coupon.restricted_user_id || null,
             usage_limit: coupon.usage_limit || '',
-            usage_limit_per_user: coupon.usage_limit_per_user || 1,
+            usage_limit_per_user: coupon.usage_limit_per_user || '',
             start_date: coupon.start_date ? coupon.start_date.substring(0, 16) : '',
             expiry_date: coupon.expiry_date ? coupon.expiry_date.substring(0, 16) : '',
             is_active: coupon.is_active,
@@ -318,11 +336,6 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
             return;
         }
 
-        if (!formData.title.trim()) {
-            setFormError('Please provide a coupon title/description.');
-            return;
-        }
-
         if (!formData.discount_amount || Number(formData.discount_amount) <= 0) {
             setFormError('Please enter a valid discount amount.');
             return;
@@ -345,9 +358,10 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
 
         try {
             setSaving(true);
+            const cleanCode = formData.code.trim().toUpperCase();
             const payload: any = {
-                code: formData.code.trim().toUpperCase(),
-                title: formData.title.trim(),
+                code: cleanCode,
+                title: formData.title.trim() || cleanCode,
                 description: formData.description.trim() || null,
                 discount_type: formData.discount_type,
                 discount_amount: Number(formData.discount_amount),
@@ -359,7 +373,7 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
                 user_restriction_type: formData.user_restriction_type,
                 restricted_user_id: formData.user_restriction_type === 'specific' ? formData.restricted_user_id : null,
                 usage_limit: formData.usage_limit ? Number(formData.usage_limit) : null,
-                usage_limit_per_user: Number(formData.usage_limit_per_user || 1),
+                usage_limit_per_user: formData.usage_limit_per_user ? Number(formData.usage_limit_per_user) : null,
                 start_date: formData.start_date || null,
                 expiry_date: formData.expiry_date || null,
                 is_active: formData.is_active,
@@ -776,446 +790,460 @@ export const AdminCouponsPage: React.FC<AdminCouponsPageProps> = ({ autoOpenCrea
                                 </div>
                             )}
 
-                            {/* Code & Generator */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                                        Coupon Code <span className="text-rose-500">*</span>
-                                    </label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={formData.code}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                                            placeholder="e.g. DISCOUNT20"
-                                            className="w-full px-3.5 py-2.5 uppercase font-mono font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                                            required
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={generateRandomCode}
-                                            className="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors shrink-0 cursor-pointer"
-                                            title="Generate code"
-                                        >
-                                            Generate
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                                        Coupon Title / Promo Name <span className="text-rose-500">*</span>
-                                    </label>
+                            {/* 1. Primary: Coupon Code */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                                    Coupon Code <span className="text-rose-500">*</span>
+                                </label>
+                                <div className="flex gap-2">
                                     <input
                                         type="text"
-                                        value={formData.title}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                                        placeholder="e.g. Special Eid Discount"
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                        value={formData.code}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                                        placeholder="e.g. DISCOUNT20 or EID500"
+                                        className="w-full px-3.5 py-2.5 uppercase font-mono font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
                                         required
                                     />
-                                </div>
-                            </div>
-
-                            {/* Discount Type: Flat vs Percentage */}
-                            <div>
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-2">
-                                    Discount Type <span className="text-rose-500">*</span>
-                                </label>
-                                <div className="grid grid-cols-2 gap-3">
                                     <button
                                         type="button"
-                                        onClick={() => setFormData(prev => ({ ...prev, discount_type: 'fixed' }))}
-                                        className={`p-3.5 rounded-xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
-                                            formData.discount_type === 'fixed'
-                                                ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 ring-2 ring-indigo-500/20'
-                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
-                                        }`}
+                                        onClick={generateRandomCode}
+                                        className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-colors shrink-0 cursor-pointer flex items-center gap-1.5"
+                                        title="Auto generate code"
                                     >
-                                        <div className={`p-2 rounded-lg ${formData.discount_type === 'fixed' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
-                                            <Tag className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-sm">Flat Discount (Fixed ৳)</div>
-                                            <div className="text-[11px] text-slate-500 mt-0.5">Deducts a fixed amount (e.g. ৳500 off)</div>
-                                        </div>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setFormData(prev => ({ ...prev, discount_type: 'percentage' }))}
-                                        className={`p-3.5 rounded-xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
-                                            formData.discount_type === 'percentage'
-                                                ? 'border-indigo-600 bg-indigo-50/50 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-200 ring-2 ring-indigo-500/20'
-                                                : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
-                                        }`}
-                                    >
-                                        <div className={`p-2 rounded-lg ${formData.discount_type === 'percentage' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 dark:bg-slate-800'}`}>
-                                            <TicketPercent className="w-4 h-4" />
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-sm">Percentage Discount (%)</div>
-                                            <div className="text-[11px] text-slate-500 mt-0.5">Deducts a percentage (e.g. 20% off)</div>
-                                        </div>
+                                        <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
+                                        <span>Generate</span>
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Discount Amount & Caps */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            {/* 2. Primary: Discount Type Dropdown & Discount Amount */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                                        Discount Type <span className="text-rose-500">*</span>
+                                    </label>
+                                    <select
+                                        value={formData.discount_type}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, discount_type: e.target.value as 'fixed' | 'percentage' }))}
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-semibold focus:ring-2 focus:ring-indigo-500 dark:text-white cursor-pointer"
+                                    >
+                                        <option value="fixed">Flat Discount (Fixed ৳)</option>
+                                        <option value="percentage">Percentage Discount (%)</option>
+                                    </select>
+                                </div>
+
                                 <div>
                                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
                                         {formData.discount_type === 'percentage' ? 'Discount Percentage (%)' : 'Discount Amount (৳)'} <span className="text-rose-500">*</span>
                                     </label>
                                     <input
                                         type="number"
-                                        step="0.01"
+                                        step="any"
                                         min="0.01"
                                         max={formData.discount_type === 'percentage' ? '100' : undefined}
                                         value={formData.discount_amount}
                                         onChange={(e) => setFormData(prev => ({ ...prev, discount_amount: e.target.value }))}
-                                        placeholder={formData.discount_type === 'percentage' ? 'e.g. 25' : 'e.g. 500'}
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                        placeholder={formData.discount_type === 'percentage' ? 'e.g. 20' : 'e.g. 500'}
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 dark:text-white"
                                         required
                                     />
                                 </div>
-
-                                {formData.discount_type === 'percentage' && (
-                                    <div>
-                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                                            Max Discount Cap (৳)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            value={formData.max_discount_amount}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, max_discount_amount: e.target.value }))}
-                                            placeholder="e.g. 1000 (Optional)"
-                                            className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                                        />
-                                    </div>
-                                )}
-
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                                        Min Course Price (৳)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        step="0.01"
-                                        min="0"
-                                        value={formData.min_order_amount}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, min_order_amount: e.target.value }))}
-                                        placeholder="e.g. 1500 (Optional)"
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                                    />
-                                </div>
                             </div>
 
-                            {/* Scope: Open vs Course vs Category */}
-                            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-2">
-                                    Applicable Course Scope <span className="text-rose-500">*</span>
-                                </label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setFormData(prev => ({ ...prev, scope_type: 'all' }))}
-                                        className={`py-2 px-3 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer ${
-                                            formData.scope_type === 'all'
-                                                ? 'border-indigo-600 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
-                                                : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
-                                        }`}
-                                    >
-                                        Open (All Courses)
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setFormData(prev => ({ ...prev, scope_type: 'course' }))}
-                                        className={`py-2 px-3 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer ${
-                                            formData.scope_type === 'course'
-                                                ? 'border-indigo-600 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
-                                                : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
-                                        }`}
-                                    >
-                                        Specific Course(s)
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setFormData(prev => ({ ...prev, scope_type: 'category' }))}
-                                        className={`py-2 px-3 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer ${
-                                            formData.scope_type === 'category'
-                                                ? 'border-indigo-600 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
-                                                : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
-                                        }`}
-                                    >
-                                        Course Category(ies)
-                                    </button>
-                                </div>
-
-                                {/* Multi-select courses */}
-                                {formData.scope_type === 'course' && (
-                                    <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
-                                        <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                                            Select Course(s):
-                                        </div>
-                                        <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
-                                            {allCourses.map(course => {
-                                                const checked = formData.course_ids.includes(course.id);
-                                                return (
-                                                    <label key={course.id} className="flex items-center gap-2 p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg cursor-pointer text-xs">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={checked}
-                                                            onChange={() => {
-                                                                if (checked) {
-                                                                    setFormData(prev => ({ ...prev, course_ids: prev.course_ids.filter(id => id !== course.id) }));
-                                                                } else {
-                                                                    setFormData(prev => ({ ...prev, course_ids: [...prev.course_ids, course.id] }));
-                                                                }
-                                                            }}
-                                                            className="rounded text-indigo-600 focus:ring-indigo-500"
-                                                        />
-                                                        <span className="font-semibold text-slate-800 dark:text-slate-200">{course.title}</span>
-                                                        <span className="text-[10px] text-slate-400 ml-auto">{formatBDT(course.price)}</span>
-                                                    </label>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Multi-select categories */}
-                                {formData.scope_type === 'category' && (
-                                    <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
-                                        <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                                            Select Course Category(ies):
-                                        </div>
-                                        <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
-                                            {allCategories.map(cat => {
-                                                const checked = formData.category_ids.includes(cat.id);
-                                                return (
-                                                    <label key={cat.id} className="flex items-center gap-2 p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg cursor-pointer text-xs">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={checked}
-                                                            onChange={() => {
-                                                                if (checked) {
-                                                                    setFormData(prev => ({ ...prev, category_ids: prev.category_ids.filter(id => id !== cat.id) }));
-                                                                } else {
-                                                                    setFormData(prev => ({ ...prev, category_ids: [...prev.category_ids, cat.id] }));
-                                                                }
-                                                            }}
-                                                            className="rounded text-indigo-600 focus:ring-indigo-500"
-                                                        />
-                                                        <span className="font-semibold text-slate-800 dark:text-slate-200">{cat.name}</span>
-                                                    </label>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
+                            {/* Default settings banner */}
+                            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/40 text-indigo-800 dark:text-indigo-300 text-xs">
+                                <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
+                                <span>এই কুপনটি স্বয়ংক্রিয়ভাবে সব কোর্সের জন্য প্রযোজ্য এবং ব্যবহারের কোনো সীমা থাকবে না (আনলিমিটেড)।</span>
                             </div>
 
-                            {/* User Restriction: Open vs Specific User (By Phone/Name Search) */}
-                            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-2">
-                                    Target Audience / User Restriction <span className="text-rose-500">*</span>
-                                </label>
-                                <div className="grid grid-cols-2 gap-3 mb-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setFormData(prev => ({ ...prev, user_restriction_type: 'all', restricted_user_id: null }));
-                                            setSelectedUser(null);
-                                        }}
-                                        className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
-                                            formData.user_restriction_type === 'all'
-                                                ? 'border-indigo-600 bg-indigo-50 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200 ring-2 ring-indigo-500/20'
-                                                : 'border-slate-200 dark:border-slate-700'
-                                        }`}
-                                    >
-                                        <Users className="w-4 h-4 text-indigo-600 shrink-0" />
+                            {/* 3. Advance Toggle Button */}
+                            <div className="pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAdvanced(!showAdvanced)}
+                                    className="w-full py-2.5 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between transition-all cursor-pointer shadow-xs"
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <Sliders className="w-4 h-4 text-indigo-600" />
+                                        <span>Advance (অ্যাডভান্সড অপশন)</span>
+                                    </span>
+                                    <div className="flex items-center gap-1.5 text-slate-400 text-xs font-normal">
+                                        <span>{showAdvanced ? 'হাইড করুন' : 'ক্লিক করে বাকি কাজ করুন'}</span>
+                                        {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                    </div>
+                                </button>
+                            </div>
+
+                            {/* 4. Advanced Section (Collapsible) */}
+                            {showAdvanced && (
+                                <div className="space-y-4 pt-3 border-t border-slate-200 dark:border-slate-800 animate-in fade-in duration-200">
+                                    {/* Optional Promo Title & Description */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                         <div>
-                                            <div className="text-xs font-bold">Open to All Students</div>
-                                            <div className="text-[10px] text-slate-500">Any registered student can use</div>
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                                                Coupon Title / Promo Name (Optional)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.title}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                                                placeholder="e.g. Special Eid Discount"
+                                                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                            />
                                         </div>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => setFormData(prev => ({ ...prev, user_restriction_type: 'specific' }))}
-                                        className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
-                                            formData.user_restriction_type === 'specific'
-                                                ? 'border-indigo-600 bg-indigo-50 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200 ring-2 ring-indigo-500/20'
-                                                : 'border-slate-200 dark:border-slate-700'
-                                        }`}
-                                    >
-                                        <UserIcon className="w-4 h-4 text-rose-600 shrink-0" />
                                         <div>
-                                            <div className="text-xs font-bold">Restricted to Specific User</div>
-                                            <div className="text-[10px] text-slate-500">Search by student phone number</div>
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                                                Description / শর্তাবলী (Optional)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.description}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                                                placeholder="e.g. Applicable on first purchase only"
+                                                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                            />
                                         </div>
-                                    </button>
-                                </div>
+                                    </div>
 
-                                {/* User Search input when restricted */}
-                                {formData.user_restriction_type === 'specific' && (
-                                    <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
-                                        <div className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
-                                            <Phone className="w-3.5 h-3.5 text-indigo-600" />
-                                            <span>Search Student by Phone Number, Name or Email:</span>
-                                        </div>
-
-                                        {selectedUser ? (
-                                            <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-850 rounded-xl border border-indigo-200 dark:border-indigo-800">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold flex items-center justify-center text-sm">
-                                                        {selectedUser.name.charAt(0)}
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                                                            <span>{selectedUser.name}</span>
-                                                            <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-600 border border-indigo-100">
-                                                                {selectedUser.role}
-                                                            </span>
-                                                        </div>
-                                                        <div className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">
-                                                            {selectedUser.phone}
-                                                        </div>
-                                                        <div className="text-[11px] text-slate-400">
-                                                            {selectedUser.email}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setSelectedUser(null);
-                                                        setFormData(prev => ({ ...prev, restricted_user_id: null }));
-                                                    }}
-                                                    className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg cursor-pointer"
-                                                    title="Remove selected student"
-                                                >
-                                                    <X className="w-4 h-4" />
-                                                </button>
+                                    {/* Caps & Minimums */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        {formData.discount_type === 'percentage' && (
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                                                    Max Discount Cap (৳)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    step="any"
+                                                    min="0"
+                                                    value={formData.max_discount_amount}
+                                                    onChange={(e) => setFormData(prev => ({ ...prev, max_discount_amount: e.target.value }))}
+                                                    placeholder="Leave blank for Unlimited"
+                                                    className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                                />
                                             </div>
-                                        ) : (
-                                            <div className="relative">
-                                                <div className="relative">
-                                                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                                    <input
-                                                        type="text"
-                                                        value={userSearchTerm}
-                                                        onChange={(e) => setUserSearchTerm(e.target.value)}
-                                                        placeholder="Type student phone number (e.g. 017...) or name..."
-                                                        className="w-full pl-9 pr-9 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                                                    />
-                                                    {searchingUsers && (
-                                                        <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-indigo-600" />
-                                                    )}
+                                        )}
+
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                                                Min Course Price (৳)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                step="any"
+                                                min="0"
+                                                value={formData.min_order_amount}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, min_order_amount: e.target.value }))}
+                                                placeholder="Leave blank for No Minimum"
+                                                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Scope: Open vs Course vs Category */}
+                                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                            Applicable Course Scope <span className="text-rose-500">*</span>
+                                        </label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, scope_type: 'all' }))}
+                                                className={`py-2 px-3 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer ${
+                                                    formData.scope_type === 'all'
+                                                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+                                                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                                                }`}
+                                            >
+                                                Open (All Courses)
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, scope_type: 'course' }))}
+                                                className={`py-2 px-3 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer ${
+                                                    formData.scope_type === 'course'
+                                                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+                                                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                                                }`}
+                                            >
+                                                Specific Course(s)
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, scope_type: 'category' }))}
+                                                className={`py-2 px-3 rounded-xl border text-center text-xs font-bold transition-all cursor-pointer ${
+                                                    formData.scope_type === 'category'
+                                                        ? 'border-indigo-600 bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300'
+                                                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                                                }`}
+                                            >
+                                                Course Category(ies)
+                                            </button>
+                                        </div>
+
+                                        {/* Multi-select courses */}
+                                        {formData.scope_type === 'course' && (
+                                            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+                                                <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                                                    Select Course(s):
+                                                </div>
+                                                <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
+                                                    {allCourses.map(course => {
+                                                        const checked = formData.course_ids.includes(course.id);
+                                                        return (
+                                                            <label key={course.id} className="flex items-center gap-2 p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg cursor-pointer text-xs">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={checked}
+                                                                    onChange={() => {
+                                                                        if (checked) {
+                                                                            setFormData(prev => ({ ...prev, course_ids: prev.course_ids.filter(id => id !== course.id) }));
+                                                                        } else {
+                                                                            setFormData(prev => ({ ...prev, course_ids: [...prev.course_ids, course.id] }));
+                                                                        }
+                                                                    }}
+                                                                    className="rounded text-indigo-600 focus:ring-indigo-500"
+                                                                />
+                                                                <span className="font-semibold text-slate-800 dark:text-slate-200">{course.title}</span>
+                                                                <span className="text-[10px] text-slate-400 ml-auto">{formatBDT(course.price)}</span>
+                                                            </label>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Multi-select categories */}
+                                        {formData.scope_type === 'category' && (
+                                            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2">
+                                                <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                                                    Select Course Category(ies):
+                                                </div>
+                                                <div className="max-h-36 overflow-y-auto space-y-1 pr-1">
+                                                    {allCategories.map(cat => {
+                                                        const checked = formData.category_ids.includes(cat.id);
+                                                        return (
+                                                            <label key={cat.id} className="flex items-center gap-2 p-1.5 hover:bg-white dark:hover:bg-slate-700 rounded-lg cursor-pointer text-xs">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={checked}
+                                                                    onChange={() => {
+                                                                        if (checked) {
+                                                                            setFormData(prev => ({ ...prev, category_ids: prev.category_ids.filter(id => id !== cat.id) }));
+                                                                        } else {
+                                                                            setFormData(prev => ({ ...prev, category_ids: [...prev.category_ids, cat.id] }));
+                                                                        }
+                                                                    }}
+                                                                    className="rounded text-indigo-600 focus:ring-indigo-500"
+                                                                />
+                                                                <span className="font-semibold text-slate-800 dark:text-slate-200">{cat.name}</span>
+                                                            </label>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* User Restriction: Open vs Specific User (By Phone/Name Search) */}
+                                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                                        <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                            Target Audience / User Restriction <span className="text-rose-500">*</span>
+                                        </label>
+                                        <div className="grid grid-cols-2 gap-3 mb-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setFormData(prev => ({ ...prev, user_restriction_type: 'all', restricted_user_id: null }));
+                                                    setSelectedUser(null);
+                                                }}
+                                                className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
+                                                    formData.user_restriction_type === 'all'
+                                                        ? 'border-indigo-600 bg-indigo-50 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200 ring-2 ring-indigo-500/20'
+                                                        : 'border-slate-200 dark:border-slate-700'
+                                                }`}
+                                            >
+                                                <Users className="w-4 h-4 text-indigo-600 shrink-0" />
+                                                <div>
+                                                    <div className="text-xs font-bold">Open to All Students</div>
+                                                    <div className="text-[10px] text-slate-500">Any registered student can use</div>
+                                                </div>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData(prev => ({ ...prev, user_restriction_type: 'specific' }))}
+                                                className={`p-3 rounded-xl border text-left flex items-center gap-2.5 transition-all cursor-pointer ${
+                                                    formData.user_restriction_type === 'specific'
+                                                        ? 'border-indigo-600 bg-indigo-50 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-200 ring-2 ring-indigo-500/20'
+                                                        : 'border-slate-200 dark:border-slate-700'
+                                                }`}
+                                            >
+                                                <UserIcon className="w-4 h-4 text-rose-600 shrink-0" />
+                                                <div>
+                                                    <div className="text-xs font-bold">Restricted to Specific User</div>
+                                                    <div className="text-[10px] text-slate-500">Search by student phone number</div>
+                                                </div>
+                                            </button>
+                                        </div>
+
+                                        {/* User Search input when restricted */}
+                                        {formData.user_restriction_type === 'specific' && (
+                                            <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                                                <div className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                                    <Phone className="w-3.5 h-3.5 text-indigo-600" />
+                                                    <span>Search Student by Phone Number, Name or Email:</span>
                                                 </div>
 
-                                                {/* Search Results Dropdown */}
-                                                {userSearchResults.length > 0 && (
-                                                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl max-h-48 overflow-y-auto z-20 divide-y divide-slate-100 dark:divide-slate-700">
-                                                        {userSearchResults.map(u => (
-                                                            <button
-                                                                key={u.id}
-                                                                type="button"
-                                                                onClick={() => {
-                                                                    setSelectedUser(u);
-                                                                    setFormData(prev => ({ ...prev, restricted_user_id: u.id }));
-                                                                    setUserSearchTerm('');
-                                                                    setUserSearchResults([]);
-                                                                }}
-                                                                className="w-full text-left p-2.5 hover:bg-indigo-50 dark:hover:bg-slate-700/60 flex items-center justify-between transition-colors cursor-pointer"
-                                                            >
-                                                                <div>
-                                                                    <div className="text-xs font-bold text-slate-800 dark:text-white">
-                                                                        {u.name}
-                                                                    </div>
-                                                                    <div className="text-[11px] font-mono font-bold text-indigo-600 dark:text-indigo-400">
-                                                                        {u.phone}
-                                                                    </div>
+                                                {selectedUser ? (
+                                                    <div className="flex items-center justify-between p-3 bg-white dark:bg-slate-850 rounded-xl border border-indigo-200 dark:border-indigo-800">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 font-bold flex items-center justify-center text-sm">
+                                                                {selectedUser.name.charAt(0)}
+                                                            </div>
+                                                            <div>
+                                                                <div className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                                                                    <span>{selectedUser.name}</span>
+                                                                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-50 text-indigo-600 border border-indigo-100">
+                                                                        {selectedUser.role}
+                                                                    </span>
                                                                 </div>
-                                                                <span className="text-[10px] text-slate-400">{u.email}</span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                )}
+                                                                <div className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                                                                    {selectedUser.phone}
+                                                                </div>
+                                                                <div className="text-[11px] text-slate-400">
+                                                                    {selectedUser.email}
+                                                                </div>
+                                                            </div>
+                                                        </div>
 
-                                                {userSearchTerm.length >= 2 && !searchingUsers && userSearchResults.length === 0 && (
-                                                    <div className="text-xs text-slate-400 mt-1 italic">
-                                                        No student found with "{userSearchTerm}".
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setSelectedUser(null);
+                                                                setFormData(prev => ({ ...prev, restricted_user_id: null }));
+                                                            }}
+                                                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg cursor-pointer"
+                                                            title="Remove selected student"
+                                                        >
+                                                            <X className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="relative">
+                                                        <div className="relative">
+                                                            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                            <input
+                                                                type="text"
+                                                                value={userSearchTerm}
+                                                                onChange={(e) => setUserSearchTerm(e.target.value)}
+                                                                placeholder="Type student phone number (e.g. 017...) or name..."
+                                                                className="w-full pl-9 pr-9 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                                            />
+                                                            {searchingUsers && (
+                                                                <Loader2 className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-indigo-600" />
+                                                            )}
+                                                        </div>
+
+                                                        {/* Search Results Dropdown */}
+                                                        {userSearchResults.length > 0 && (
+                                                            <div className="absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl max-h-48 overflow-y-auto z-20 divide-y divide-slate-100 dark:divide-slate-700">
+                                                                {userSearchResults.map(u => (
+                                                                    <button
+                                                                        key={u.id}
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            setSelectedUser(u);
+                                                                            setFormData(prev => ({ ...prev, restricted_user_id: u.id }));
+                                                                            setUserSearchTerm('');
+                                                                            setUserSearchResults([]);
+                                                                        }}
+                                                                        className="w-full text-left p-2.5 hover:bg-indigo-50 dark:hover:bg-slate-700/60 flex items-center justify-between transition-colors cursor-pointer"
+                                                                    >
+                                                                        <div>
+                                                                            <div className="text-xs font-bold text-slate-800 dark:text-white">
+                                                                                {u.name}
+                                                                            </div>
+                                                                            <div className="text-[11px] font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                                                                                {u.phone}
+                                                                            </div>
+                                                                        </div>
+                                                                        <span className="text-[10px] text-slate-400">{u.email}</span>
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        )}
+
+                                                        {userSearchTerm.length >= 2 && !searchingUsers && userSearchResults.length === 0 && (
+                                                            <div className="text-xs text-slate-400 mt-1 italic">
+                                                                No student found with "{userSearchTerm}".
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
                                         )}
                                     </div>
-                                )}
-                            </div>
 
-                            {/* Usage Limits */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                                        Total Uses Limit (Overall)
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        value={formData.usage_limit}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, usage_limit: e.target.value }))}
-                                        placeholder="Leave blank for Unlimited"
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                                    />
-                                </div>
+                                    {/* Usage Limits */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                                                Total Uses Limit (Overall)
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                value={formData.usage_limit}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, usage_limit: e.target.value }))}
+                                                placeholder="Leave blank for Unlimited"
+                                                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                            />
+                                        </div>
 
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                                        Uses Per Student <span className="text-rose-500">*</span>
-                                    </label>
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        value={formData.usage_limit_per_user}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, usage_limit_per_user: Number(e.target.value) }))}
-                                        placeholder="Default: 1"
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                            </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                                                Uses Per Student
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                value={formData.usage_limit_per_user}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, usage_limit_per_user: e.target.value }))}
+                                                placeholder="Leave blank for Unlimited"
+                                                className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                            />
+                                        </div>
+                                    </div>
 
-                            {/* Validity Dates */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                                        Start Date & Time (Optional)
-                                    </label>
-                                    <input
-                                        type="datetime-local"
-                                        value={formData.start_date}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-                                        className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                                    />
-                                </div>
+                                    {/* Validity Dates */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                                                Start Date & Time (Optional)
+                                            </label>
+                                            <input
+                                                type="datetime-local"
+                                                value={formData.start_date}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
+                                                className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                            />
+                                        </div>
 
-                                <div>
-                                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
-                                        Expiry Date & Time (Optional)
-                                    </label>
-                                    <input
-                                        type="datetime-local"
-                                        value={formData.expiry_date}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, expiry_date: e.target.value }))}
-                                        className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
-                                    />
+                                        <div>
+                                            <label className="block text-xs font-bold text-slate-700 dark:text-slate-200 mb-1">
+                                                Expiry Date & Time (Optional)
+                                            </label>
+                                            <input
+                                                type="datetime-local"
+                                                value={formData.expiry_date}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, expiry_date: e.target.value }))}
+                                                className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-indigo-500 dark:text-white"
+                                            />
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
 
                             {/* Active Status */}
                             <div className="flex items-center gap-2 pt-1">
