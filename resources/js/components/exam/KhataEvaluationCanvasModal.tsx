@@ -643,7 +643,7 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                             type="number"
                             min="0"
                             max={maxMarks}
-                            step="0.5"
+                            step="any"
                             value={marks}
                             onChange={(e) => setMarks(Number(e.target.value))}
                             className="w-16 px-2 py-0.5 rounded-md bg-slate-900 border border-slate-600 text-white font-black text-sm text-center focus:outline-hidden focus:ring-1 focus:ring-rose-500"

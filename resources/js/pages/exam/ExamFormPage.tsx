@@ -334,7 +334,7 @@ export const ExamFormPage: React.FC = () => {
                         <input
                             type="number"
                             min="0"
-                            step="0.5"
+                            step="any"
                             value={formData.total_marks}
                             onChange={e => setFormData({ ...formData, total_marks: Number(e.target.value) })}
                             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
@@ -350,7 +350,7 @@ export const ExamFormPage: React.FC = () => {
                         <input
                             type="number"
                             min="0"
-                            step="0.5"
+                            step="any"
                             value={formData.pass_marks}
                             onChange={e => setFormData({ ...formData, pass_marks: Number(e.target.value) })}
                             className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"

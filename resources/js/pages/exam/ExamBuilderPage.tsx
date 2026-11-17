@@ -129,7 +129,7 @@ export const ExamBuilderPage: React.FC = () => {
         setQuestionForm({
             question_text: q.question_text || '',
             question_type: q.question_type,
-            marks: q.marks || 1,
+            marks: q.marks !== undefined && q.marks !== null ? Number(q.marks) : 1,
             attachment_url: q.attachment_url || '',
             explanation: q.explanation || '',
             options: q.options && q.options.length > 0
@@ -242,7 +242,7 @@ export const ExamBuilderPage: React.FC = () => {
             const isNoOptions = questionForm.question_type === 'written_paper' || questionForm.question_type === 'fill_in_the_blank';
             const payload = {
                 ...questionForm,
-                marks: Number(questionForm.marks),
+                marks: Number(questionForm.marks) > 0 ? Number(questionForm.marks) : 1,
                 options: isNoOptions ? null : questionForm.options,
                 correct_answers: questionForm.question_type === 'written_paper' ? null : questionForm.correct_answers.map(s => s.trim()).filter(Boolean),
             };
@@ -656,10 +656,10 @@ export const ExamBuilderPage: React.FC = () => {
                                     <input
                                         type="number"
                                         min="0.1"
-                                        step="0.5"
+                                        step="any"
                                         required
                                         value={questionForm.marks}
-                                        onChange={e => setQuestionForm({ ...questionForm, marks: Number(e.target.value) })}
+                                        onChange={e => setQuestionForm({ ...questionForm, marks: e.target.value === '' ? ('' as any) : Number(e.target.value) })}
                                         className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-sky-500"
                                     />
                                 </div>

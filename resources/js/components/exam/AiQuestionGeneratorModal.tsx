@@ -515,8 +515,8 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
                                         </label>
                                         <input
                                             type="number"
-                                            step={0.5}
-                                            min={0.5}
+                                            step="any"
+                                            min={0.1}
                                             value={marksPerQuestion}
                                             onChange={e => setMarksPerQuestion(Number(e.target.value) || 1)}
                                             className="w-full px-3.5 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold dark:text-white"
@@ -988,8 +988,8 @@ export const AiQuestionGeneratorModal: React.FC<AiQuestionGeneratorModalProps> =
                                 </label>
                                 <input
                                     type="number"
-                                    step={0.5}
-                                    min={0.5}
+                                    step="any"
+                                    min={0.1}
                                     value={editingQuestion.marks}
                                     onChange={e => setEditingQuestion({ ...editingQuestion, marks: Number(e.target.value) || 1 })}
                                     className="w-full px-3.5 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold dark:text-white"

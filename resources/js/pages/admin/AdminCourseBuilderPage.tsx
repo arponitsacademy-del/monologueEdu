@@ -2557,7 +2557,7 @@ export const AdminCourseBuilderPage: React.FC = () => {
                             <input
                                 type="number"
                                 min="0"
-                                step="0.5"
+                                step="any"
                                 value={examPassMarks}
                                 onChange={e => setExamPassMarks(e.target.value)}
                                 placeholder="0"

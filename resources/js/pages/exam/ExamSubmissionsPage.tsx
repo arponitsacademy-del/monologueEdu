@@ -690,7 +690,7 @@ export const ExamSubmissionsPage: React.FC = () => {
                                                                     type="number"
                                                                     min="0"
                                                                     max={q.marks}
-                                                                    step="0.5"
+                                                                    step="any"
                                                                     value={gradeData.marks}
                                                                     onChange={e => setGradingState({
                                                                         ...gradingState,
