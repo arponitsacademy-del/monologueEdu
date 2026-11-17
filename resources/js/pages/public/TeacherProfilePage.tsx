@@ -34,105 +34,6 @@ interface TeacherData {
     total_students: number;
 }
 
-const CURATED_FACULTY: TeacherData[] = [
-    {
-        id: 101,
-        name: 'Dr. Khaledur Rahman',
-        designation: 'Senior Higher Math Faculty',
-        institution: 'BUET',
-        photo_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
-        bio: 'বুয়েট (BUET) থেকে স্নাতক ও গণিতে উচ্চতর গবেষণার অভিজ্ঞতা সম্পন্ন। গত ১০ বছর ধরে হাজারো শিক্ষার্থীকে উচ্চতর গণিতের জটিল থিওরি ও শর্টকাট টেকনিক শিখিয়ে ইঞ্জিনিয়ারিং ও বোর্ড পরীক্ষায় সর্বোচ্চ সাফল্যে পৌঁছাতে সাহায্য করে আসছেন।',
-        expertise: 'উচ্চতর গণিত, ক্যালকুলাস, জ্যামিতি',
-        experience: '১০+ বছর',
-        courses_count: 5,
-        total_students: 14200
-    },
-    {
-        id: 102,
-        name: 'Saikat Abdullah',
-        designation: 'Senior Chemistry Teacher',
-        institution: 'KUET',
-        photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
-        bio: 'কুয়েট (KUET) এর সাবেক শিক্ষার্থী। কেমিস্ট্রির বিক্রিয়া ও পর্যায়বৃত্ত ধর্মগুলোকে সহজ বাস্তব উদাহরণের মাধ্যমে শিক্ষার্থীদের হৃদয়ে গেঁথে দিতে তিনি বিশেষভাবে পারদর্শী। তাঁর বিশেষ টেকনিক হাজারো শিক্ষার্থীর প্রিয়।',
-        expertise: 'জৈব রসায়ন, পরিমাণগত রসায়ন',
-        experience: '৮+ বছর',
-        courses_count: 4,
-        total_students: 11800
-    },
-    {
-        id: 103,
-        name: 'Md Abdur Rahman',
-        designation: 'Senior Physics Faculty',
-        institution: 'DU',
-        photo_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
-        bio: 'ঢাকা বিশ্ববিদ্যালয় (DU) পদার্থবিজ্ঞান বিভাগের মেধাবী গ্র্যাজুয়েট। ভৌত জগত, গতিবিদ্যা থেকে আধুনিক পদার্থবিজ্ঞানের প্রতিটি কনসেপ্ট ভিজ্যুয়াল ব্যাখ্যা ও বোর্ড-এডমিশন স্ট্যান্ডার্ড গাণিতিক সমস্যা সমাধানের জন্য সুপরিচিত।',
-        expertise: 'পদার্থবিজ্ঞান ১ম ও ২য় পত্র',
-        experience: '১০+ বছর',
-        courses_count: 6,
-        total_students: 16500
-    },
-    {
-        id: 104,
-        name: 'Md Jahangir Alam',
-        designation: 'General Math Specialist',
-        institution: 'BUET',
-        photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-        bio: 'বুয়েট থেকে পাস করা একজন অভিজ্ঞ গণিত শিক্ষক। সাধারণ গণিত ও ফাউন্ডেশন ম্যাথমেটিক্সে শিক্ষার্থীদের ভিত্তি মজবুত করার জন্য নিবেদিত। তাঁর ক্লাসগুলোতে প্রতিটি সূত্র ও সমীকরণের গোড়ার ব্যাখ্যা তুলে ধরা হয়।',
-        expertise: 'বীজগণিত, ত্রিকোণমিতি, পরিমিতি',
-        experience: '১০+ বছর',
-        courses_count: 4,
-        total_students: 9800
-    },
-    {
-        id: 105,
-        name: 'Md Yasin Mamun',
-        designation: 'Physics & Dynamics Teacher',
-        institution: 'RUET',
-        photo_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
-        bio: 'রুয়েট (RUET) থেকে মেকানিক্যাল ইঞ্জিনিয়ারিং। নিউটনিয়ান বলবিদ্যা ও তড়িৎ চুম্বকত্বের মতো জটিল অধ্যায়গুলোতে গাণিতিক বিশ্লেষণের সহজ ট্রিকস দিয়ে শিক্ষার্থীদের আত্মবিশ্বাস বহুগুণ বাড়িয়ে দেন।',
-        expertise: 'গতিবিদ্যা, কাজ-শক্তি-ক্ষমতা, আলো',
-        experience: '৯+ বছর',
-        courses_count: 5,
-        total_students: 13400
-    },
-    {
-        id: 106,
-        name: 'Kawser Islam',
-        designation: 'Accounting & Finance Faculty',
-        institution: 'DU',
-        photo_url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
-        bio: 'ঢাকা বিশ্ববিদ্যালয়ের একাউন্টিং অ্যান্ড ইনফরমেশন সিস্টেমস (AIS) থেকে বিবিএ ও এমবিএ সম্পন্ন। হিসাববিজ্ঞানের প্রতিটি নীতি ও আর্থিক বিবরণীর কঠিন হিসাবগুলোকে চোখের পলকে সহজ করে তোলার জন্য খ্যাত।',
-        expertise: 'হিসাববিজ্ঞান ১ম ও ২য় পত্র, ফিন্যান্স',
-        experience: '১২+ বছর',
-        courses_count: 3,
-        total_students: 8600
-    },
-    {
-        id: 107,
-        name: 'Dr. Abrar Hasan',
-        designation: 'Senior Biology & Medical Faculty',
-        institution: 'DMC',
-        photo_url: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=400&q=80',
-        bio: 'ঢাকা মেডিকেল কলেজ (DMC) থেকে এমবিবিএস সম্পন্ন চিকিৎসক ও শিক্ষক। জীববিজ্ঞান ও প্রাণিবিজ্ঞানের প্রতিটি চিত্র, অঙ্গসংস্থান ও শারীরতত্ত্ব সহজে মনে রাখার অনন্য নেমোনিক ট্রিকস উপহার দিয়ে মেডিকেল ভর্তিচ্ছুদের অন্যতম ভরসার নাম।',
-        expertise: 'উদ্ভিদবিজ্ঞান, প্রাণিবিজ্ঞান, মানব শারীরতত্ত্ব',
-        experience: '১০+ বছর',
-        courses_count: 6,
-        total_students: 19200
-    },
-    {
-        id: 108,
-        name: 'Nusrat Jahan',
-        designation: 'English Literature & Grammar',
-        institution: 'DU',
-        photo_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
-        bio: 'ঢাকা বিশ্ববিদ্যালয় ইংরেজি বিভাগ। গ্রামারের খুটিনাটি নিয়ম, ফ্রিহ্যান্ড রাইটিং ও সাহিত্যভিত্তিক পাঠদান করে শিক্ষার্থীদের বোর্ড পরীক্ষা ও বিশ্ববিদ্যালয় ভর্তি পরীক্ষায় ইংরেজি ভীতি দূর করতে অগ্রণী ভূমিকা পালন করছেন।',
-        expertise: 'ইংলিশ ১ম ও ২য় পত্র, রিটেন এক্সপার্ট',
-        experience: '৭+ বছর',
-        courses_count: 3,
-        total_students: 7900
-    }
-];
-
 export const TeacherProfilePage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [teacher, setTeacher] = useState<TeacherData | null>(null);
@@ -150,50 +51,16 @@ export const TeacherProfilePage: React.FC = () => {
             setLoading(true);
             setError(null);
             
-            const numericId = parseInt(id || '0', 10);
-            
-            // Try fetching from API first
-            try {
-                const res = await apiClient.get(`/teachers/${id}`);
-                if (res.data?.teacher) {
-                    setTeacher(res.data.teacher);
-                    setCourses(res.data.courses || []);
-                    return;
-                }
-            } catch {
-                // If API fails or teacher not in DB, fallback to curated faculty
-            }
-
-            // Find in curated faculty
-            const curated = CURATED_FACULTY.find((c) => c.id === numericId);
-            if (curated) {
-                setTeacher(curated);
-                // Fetch public courses for course showcase
-                try {
-                    const coursesRes = await apiClient.get('/courses?per_page=6');
-                    setCourses(coursesRes.data.data || []);
-                } catch {
-                    setCourses([]);
-                }
+            const res = await apiClient.get(`/teachers/${id}`);
+            if (res.data?.teacher) {
+                setTeacher(res.data.teacher);
+                setCourses(res.data.courses || []);
             } else {
-                // If ID is not curated, fallback to first curated or general teacher
-                const fallback = CURATED_FACULTY[0];
-                setTeacher({
-                    ...fallback,
-                    id: numericId || 101,
-                    name: 'অভিজ্ঞ শিক্ষক মেন্টর',
-                    designation: 'সিনিয়র ফ্যাকাল্টি মেম্বার'
-                });
-                try {
-                    const coursesRes = await apiClient.get('/courses?per_page=6');
-                    setCourses(coursesRes.data.data || []);
-                } catch {
-                    setCourses([]);
-                }
+                setError('ইন্সট্রাক্টর প্রোফাইল খুঁজে পাওয়া যায়নি।');
             }
         } catch (err: any) {
             console.error('Failed to load teacher profile', err);
-            setError('ইন্সট্রাক্টর প্রোফাইল লোড করতে সমস্যা হয়েছে।');
+            setError('ইন্সট্রাক্টর প্রোফাইল লোড করতে সমস্যা হয়েছে বা খুঁজে পাওয়া যায়নি।');
         } finally {
             setLoading(false);
         }

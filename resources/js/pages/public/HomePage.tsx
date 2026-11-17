@@ -46,97 +46,6 @@ interface FeaturedTeacher {
     courses_count: number;
 }
 
-const CURATED_FACULTY: FeaturedTeacher[] = [
-    {
-        id: 101,
-        name: 'Dr. Khaledur Rahman',
-        designation: 'Senior Higher Math Faculty',
-        experience: '১০ বছরের অভিজ্ঞতা',
-        institution: 'BUET',
-        photo_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
-        tags: ['নবম-দশম শ্রেণী', 'এইচএসসি'],
-        category: 'ssc',
-        courses_count: 12
-    },
-    {
-        id: 102,
-        name: 'Saikat Abdullah',
-        designation: 'Senior Chemistry Teacher',
-        experience: '৮ বছরের অভিজ্ঞতা',
-        institution: 'KUET',
-        photo_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
-        tags: ['নবম-দশম শ্রেণী', 'এইচএসসি'],
-        category: 'ssc',
-        courses_count: 8
-    },
-    {
-        id: 103,
-        name: 'Md Abdur Rahman',
-        designation: 'Senior Physics Faculty',
-        experience: '১০ বছরের অভিজ্ঞতা',
-        institution: 'DU',
-        photo_url: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=400&q=80',
-        tags: ['এইচএসসি', 'এডমিশন'],
-        category: 'hsc',
-        courses_count: 14
-    },
-    {
-        id: 104,
-        name: 'Md Jahangir Alam',
-        designation: 'General Math Specialist',
-        experience: '১০ বছরের শিক্ষকতা',
-        institution: 'BUET',
-        photo_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-        tags: ['নবম-দশম শ্রেণী', 'এইচএসসি'],
-        category: 'ssc',
-        courses_count: 9
-    },
-    {
-        id: 105,
-        name: 'Md Yasin Mamun',
-        designation: 'Physics & Dynamics Teacher',
-        experience: '৯ বছরের অভিজ্ঞতা',
-        institution: 'RUET',
-        photo_url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
-        tags: ['নবম-দশম শ্রেণী', 'এইচএসসি'],
-        category: 'ssc',
-        courses_count: 11
-    },
-    {
-        id: 106,
-        name: 'Kawser Islam',
-        designation: 'Accounting & Finance Faculty',
-        experience: '১২ বছরের অভিজ্ঞতা',
-        institution: 'DU',
-        photo_url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
-        tags: ['আর্টস ও কমার্স', 'এডমিশন'],
-        category: 'arts',
-        courses_count: 7
-    },
-    {
-        id: 107,
-        name: 'Dr. Abrar Hasan',
-        designation: 'Senior Biology & Medical Faculty',
-        experience: '১০ বছরের শিক্ষকতা',
-        institution: 'DMC',
-        photo_url: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=400&q=80',
-        tags: ['এইচএসসি', 'মেডিকেল এডমিশন'],
-        category: 'admission',
-        courses_count: 15
-    },
-    {
-        id: 108,
-        name: 'Nusrat Jahan',
-        designation: 'English Literature & Grammar',
-        experience: '৭ বছরের অভিজ্ঞতা',
-        institution: 'DU',
-        photo_url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=400&q=80',
-        tags: ['এইচএসসি', 'আর্টস ও কমার্স'],
-        category: 'arts',
-        courses_count: 6
-    }
-];
-
 interface FeaturedBundle {
     id: number;
     title: string;
@@ -214,20 +123,33 @@ export const HomePage: React.FC = () => {
         fetchData();
     }, []);
 
-    // Merge DB teachers with curated faculty for a rich, vibrant panel
-    const allFaculty: FeaturedTeacher[] = [
-        ...teachers.map((t, idx) => ({
+    // Only real platform teachers from database
+    const allFaculty: FeaturedTeacher[] = teachers.map((t) => {
+        const combined = `${t.expertise || ''} ${t.designation || ''} ${t.bio || ''}`.toLowerCase();
+        let cat: 'ssc' | 'hsc' | 'admission' | 'arts' | 'all' = 'all';
+        if (combined.includes('ssc') || combined.includes('নবম') || combined.includes('দশম')) {
+            cat = 'ssc';
+        } else if (combined.includes('admission') || combined.includes('এডমিশন') || combined.includes('মেডিকেল') || combined.includes('du') || combined.includes('bcs') || combined.includes('বিসিএস')) {
+            cat = 'admission';
+        } else if (combined.includes('commerce') || combined.includes('arts') || combined.includes('কমার্স') || combined.includes('আর্টস')) {
+            cat = 'arts';
+        } else {
+            cat = 'hsc';
+        }
+
+        const tags = t.expertise 
+            ? t.expertise.split(',').map((s: string) => s.trim()) 
+            : ['এইচএসসি', 'এডমিশন'];
+
+        return {
             ...t,
-            designation: t.designation || 'সিনিয়র মেন্টর',
-            institution: t.institution || (idx % 2 === 0 ? 'BUET' : 'DU'),
-            experience: t.bio || '৭+ বছরের শিক্ষকতা',
-            tags: t.expertise 
-                ? t.expertise.split(',').map((s: string) => s.trim()) 
-                : (idx % 3 === 0 ? ['নবম-দশম শ্রেণী', 'এইচএসসি'] : idx % 3 === 1 ? ['এইচএসসি', 'এডমিশন'] : ['আর্টস ও কমার্স', 'এইচএসসি']),
-            category: (idx % 4 === 0 ? 'ssc' : idx % 4 === 1 ? 'hsc' : idx % 4 === 2 ? 'admission' : 'arts') as any
-        })),
-        ...CURATED_FACULTY.filter(cf => !teachers.some(t => t.name.toLowerCase() === cf.name.toLowerCase()))
-    ];
+            designation: t.designation || 'শিক্ষক মেন্টর',
+            institution: t.institution || 'Monologue Edu',
+            experience: t.bio ? (t.bio.length > 50 ? t.bio.substring(0, 50) + '...' : t.bio) : 'ফ্যাকাল্টি মেম্বার',
+            tags,
+            category: cat
+        };
+    });
 
     const displayedFaculty = allFaculty.filter((t) => {
         if (teacherFilter === 'all') return true;
