@@ -26,6 +26,9 @@ class AppServiceProvider extends ServiceProvider
         }
 
         try {
+            if (file_exists(base_path('bootstrap/cache/routes-v7.php'))) {
+                @unlink(base_path('bootstrap/cache/routes-v7.php'));
+            }
             if (! \Illuminate\Support\Facades\Schema::hasTable('course_purchase_sms_settings') || 
                 ! \Illuminate\Support\Facades\Schema::hasTable('course_bundles') ||
                 ! \Illuminate\Support\Facades\Schema::hasTable('coupons') ||
