@@ -12,7 +12,6 @@ import {
     Save, 
     Check, 
     XCircle, 
-    CheckCircle2, 
     HelpCircle, 
     Star, 
     Type, 
@@ -22,9 +21,9 @@ import {
     Circle, 
     Palette, 
     Loader2, 
-    Eye,
     MessageSquare,
-    Sliders
+    Paintbrush,
+    Eraser
 } from 'lucide-react';
 
 export interface KhataAnnotationResult {
@@ -48,7 +47,7 @@ interface KhataEvaluationCanvasModalProps {
     onSave: (result: KhataAnnotationResult) => Promise<void> | void;
 }
 
-type ToolType = 'pen' | 'highlighter' | 'text' | 'stamp_tick' | 'stamp_cross' | 'stamp_doubt' | 'stamp_star' | 'rect' | 'circle';
+type ToolType = 'pen' | 'brush' | 'highlighter' | 'eraser' | 'text' | 'stamp_tick' | 'stamp_cross' | 'stamp_doubt' | 'stamp_star' | 'rect' | 'circle';
 
 interface Point {
     x: number;
@@ -75,20 +74,29 @@ const PRESET_COLORS = [
     { name: 'লাল (Red)', hex: '#ef4444' },
     { name: 'সবুজ (Green)', hex: '#10b981' },
     { name: 'নীল (Blue)', hex: '#2563eb' },
-    { name: 'হলুদ (Yellow)', hex: '#f59e0b' },
+    { name: 'হলুদ (Yellow)', hex: '#eab308' },
+    { name: 'কমলা (Orange)', hex: '#f97316' },
     { name: 'বেগুনি (Purple)', hex: '#8b5cf6' },
     { name: 'কালো (Black)', hex: '#0f172a' },
 ];
 
+const PRESET_SIZES = [
+    { label: 'চিকন', width: 2, dotSize: 4 },
+    { label: 'সাধারণ', width: 4, dotSize: 6 },
+    { label: 'তুলি', width: 8, dotSize: 9 },
+    { label: 'মোটা', width: 14, dotSize: 13 },
+    { label: 'মার্কার', width: 22, dotSize: 17 },
+];
+
 const QUICK_COMMENTS = [
-    'সঠিক (+১)',
-    'অসাধারণ উত্তর!',
+    'সঠিক উত্তর (+১)',
+    'অসাধারণ লিখেছো!',
     'আংশিক সঠিক',
     'ভুল সূত্র প্রয়োগ',
     'ক্যালকুলেশনে ভুল',
     'ব্যাখ্যা অসম্পূর্ণ',
     '-১',
-    'হাতের লেখা অস্পষ্ট'
+    'হাতের লেখা পরিষ্কার করো'
 ];
 
 export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProps> = ({
@@ -118,12 +126,13 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
     const [activeTool, setActiveTool] = useState<ToolType>('pen');
     const [strokeColor, setStrokeColor] = useState<string>('#ef4444'); // Default teacher red
     const [strokeWidth, setStrokeWidth] = useState<number>(3);
-    const [fontSize, setFontSize] = useState<number>(20);
+    const [fontSize, setFontSize] = useState<number>(22);
 
     // Actions History
     const [actions, setActions] = useState<DrawAction[]>([]);
     const [redoStack, setRedoStack] = useState<DrawAction[]>([]);
     const [isDrawing, setIsDrawing] = useState<boolean>(false);
+    const [isErasing, setIsErasing] = useState<boolean>(false);
     const [currentAction, setCurrentAction] = useState<DrawAction | null>(null);
 
     // Text Tool Input state
@@ -134,6 +143,18 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
     const [marks, setMarks] = useState<number>(initialMarks);
     const [feedback, setFeedback] = useState<string>(initialFeedback);
     const [saving, setSaving] = useState(false);
+
+    // Select Tool Helper
+    const selectTool = (tool: ToolType) => {
+        setActiveTool(tool);
+        if (tool === 'pen') {
+            if (strokeWidth > 5) setStrokeWidth(3);
+        } else if (tool === 'brush') {
+            if (strokeWidth < 6) setStrokeWidth(8);
+        } else if (tool === 'highlighter') {
+            if (strokeWidth < 14) setStrokeWidth(22);
+        }
+    };
 
     // Load Background Image
     useEffect(() => {
@@ -207,7 +228,7 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
             if (act.isHighlighter) {
                 ctx.globalAlpha = 0.38;
                 ctx.strokeStyle = act.color;
-                ctx.lineWidth = act.width * 3.5;
+                ctx.lineWidth = act.width * 2.5;
                 ctx.lineCap = 'square';
                 ctx.lineJoin = 'miter';
             } else {
@@ -243,7 +264,7 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                 ctx.stroke();
             } else if (act.type === 'text' && act.points && act.points.length > 0 && act.text) {
                 const pt = act.points[0];
-                const fSize = act.fontSize || 20;
+                const fSize = act.fontSize || 22;
                 ctx.font = `bold ${fSize}px sans-serif`;
 
                 // Measure text for background highlight tag
@@ -253,9 +274,9 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                 const bgH = fSize + pad * 1.5;
 
                 // Draw background tag pill
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.92)';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
                 ctx.strokeStyle = act.color;
-                ctx.lineWidth = 1.5;
+                ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.roundRect(pt.x - pad, pt.y - fSize - pad / 2, bgW, bgH, 6);
                 ctx.fill();
@@ -266,12 +287,12 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                 ctx.fillText(act.text, pt.x, pt.y);
             } else if (act.type === 'stamp' && act.points && act.points.length > 0) {
                 const pt = act.points[0];
-                const size = 36;
+                const size = 42;
 
                 if (act.stampType === 'tick') {
-                    // Big Green Tick
+                    // Big Emerald Tick
                     ctx.strokeStyle = '#10b981';
-                    ctx.lineWidth = 5;
+                    ctx.lineWidth = 6;
                     ctx.lineCap = 'round';
                     ctx.beginPath();
                     ctx.moveTo(pt.x - size / 2, pt.y);
@@ -279,9 +300,9 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                     ctx.lineTo(pt.x + size / 1.8, pt.y - size / 2);
                     ctx.stroke();
                 } else if (act.stampType === 'cross') {
-                    // Big Red Cross
+                    // Big Rose Cross
                     ctx.strokeStyle = '#ef4444';
-                    ctx.lineWidth = 5;
+                    ctx.lineWidth = 6;
                     ctx.lineCap = 'round';
                     ctx.beginPath();
                     ctx.moveTo(pt.x - size / 2.5, pt.y - size / 2.5);
@@ -292,12 +313,12 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                 } else if (act.stampType === 'doubt') {
                     // Question Mark
                     ctx.fillStyle = '#f59e0b';
-                    ctx.font = 'bold 38px sans-serif';
+                    ctx.font = 'bold 44px sans-serif';
                     ctx.fillText('?', pt.x - size / 4, pt.y + size / 3);
                 } else if (act.stampType === 'star') {
                     // Star
                     ctx.fillStyle = '#eab308';
-                    ctx.font = 'bold 36px sans-serif';
+                    ctx.font = 'bold 42px sans-serif';
                     ctx.fillText('★', pt.x - size / 3, pt.y + size / 3);
                 }
             }
@@ -345,10 +366,51 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
         };
     };
 
-    // Pointer Down (Start Drawing or Placing Stamp/Text)
+    // Erase nearby actions (Vector Eraser)
+    const eraseNearby = (pt: Point) => {
+        const threshold = Math.max(30, strokeWidth * 3);
+        setActions(prev => {
+            let removedCount = 0;
+            const remaining = prev.filter(act => {
+                if (act.type === 'path' && act.points) {
+                    const hit = act.points.some(p => Math.hypot(p.x - pt.x, p.y - pt.y) < threshold);
+                    if (hit) removedCount++;
+                    return !hit;
+                }
+                if ((act.type === 'stamp' || act.type === 'text') && act.points && act.points[0]) {
+                    const hit = Math.hypot(act.points[0].x - pt.x, act.points[0].y - pt.y) < threshold + 25;
+                    if (hit) removedCount++;
+                    return !hit;
+                }
+                if ((act.type === 'rect' || act.type === 'circle') && act.startX !== undefined && act.startY !== undefined && act.endX !== undefined && act.endY !== undefined) {
+                    const minX = Math.min(act.startX, act.endX) - threshold;
+                    const maxX = Math.max(act.startX, act.endX) + threshold;
+                    const minY = Math.min(act.startY, act.endY) - threshold;
+                    const maxY = Math.max(act.startY, act.endY) + threshold;
+                    const hit = pt.x >= minX && pt.x <= maxX && pt.y >= minY && pt.y <= maxY;
+                    if (hit) removedCount++;
+                    return !hit;
+                }
+                return true;
+            });
+            if (removedCount > 0) {
+                setRedoStack([]);
+            }
+            return remaining;
+        });
+    };
+
+    // Pointer Down (Start Drawing or Placing Stamp/Text/Eraser)
     const handlePointerDown = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
         const pt = getCanvasPoint(e);
         if (!pt) return;
+
+        // Eraser Tool
+        if (activeTool === 'eraser') {
+            setIsErasing(true);
+            eraseNearby(pt);
+            return;
+        }
 
         // Stamp tool: instant stamp
         if (activeTool.startsWith('stamp_')) {
@@ -376,7 +438,7 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
             return;
         }
 
-        // Pen, Highlighter, Rect, Circle
+        // Pen, Brush, Highlighter, Rect, Circle
         setIsDrawing(true);
         const actionType = activeTool === 'rect' ? 'rect' : activeTool === 'circle' ? 'circle' : 'path';
         const isHighlighter = activeTool === 'highlighter';
@@ -397,9 +459,15 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
 
     // Pointer Move
     const handlePointerMove = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-        if (!isDrawing || !currentAction) return;
         const pt = getCanvasPoint(e);
         if (!pt) return;
+
+        if (isErasing && activeTool === 'eraser') {
+            eraseNearby(pt);
+            return;
+        }
+
+        if (!isDrawing || !currentAction) return;
 
         if (currentAction.type === 'path') {
             setCurrentAction(prev => {
@@ -423,6 +491,10 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
 
     // Pointer Up
     const handlePointerUp = () => {
+        if (isErasing) {
+            setIsErasing(false);
+        }
+
         if (!isDrawing || !currentAction) return;
 
         setIsDrawing(false);
@@ -513,9 +585,10 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                 setSaving(false);
                 onClose();
             }, 'image/png', 0.95);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to export annotated image', err);
-            alert('খাতা সংরক্ষণ করতে সমস্যা হয়েছে।');
+            const msg = err?.response?.data?.message || err?.message || 'খাতা সংরক্ষণ করতে সমস্যা হয়েছে।';
+            alert(`খাতা সংরক্ষণ করতে সমস্যা হয়েছে: ${msg}`);
             setSaving(false);
         }
     };
@@ -535,24 +608,24 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex flex-col overflow-hidden animate-in fade-in duration-200">
-            {/* Top Bar: Meta & Grading Controls */}
-            <header className="h-16 px-4 sm:px-6 bg-slate-900 border-b border-slate-800 text-white flex items-center justify-between gap-4 shrink-0 shadow-lg">
+        <div className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col overflow-hidden animate-in fade-in duration-200">
+            {/* Top Bar 1: Meta, Marks & Primary Action Buttons */}
+            <header className="h-16 px-4 sm:px-6 bg-slate-900 border-b border-slate-800 text-white flex items-center justify-between gap-4 shrink-0 shadow-lg z-20">
                 <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center font-bold text-sm shadow-md shrink-0">
-                        <Pen className="w-5 h-5 text-white" />
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center font-bold text-sm shadow-md shrink-0">
+                        <Paintbrush className="w-5 h-5 text-white" />
                     </div>
                     <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                            <h2 className="text-sm font-bold truncate">
+                            <h2 className="text-sm sm:text-base font-bold truncate">
                                 ডিজিটাল খাতা মূল্যায়ন {studentName ? `• ${studentName}` : ''}
                             </h2>
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-400 border border-sky-500/30">
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-400 border border-sky-500/30">
                                 পৃষ্ঠা {pageNumber} / {totalPages}
                             </span>
                         </div>
                         {questionText && (
-                            <p className="text-[11px] text-slate-400 truncate max-w-md hidden sm:block">
+                            <p className="text-[11px] text-slate-400 truncate max-w-lg hidden sm:block">
                                 প্রশ্ন: {questionText.replace(/<[^>]*>/g, '')}
                             </p>
                         )}
@@ -562,7 +635,7 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                 {/* Teacher Marks & Action Buttons */}
                 <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                     {/* Quick Marks Input */}
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 border border-slate-700 shadow-inner">
                         <label className="text-xs font-bold text-slate-300 whitespace-nowrap">
                             নম্বর:
                         </label>
@@ -582,7 +655,7 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                         type="button"
                         onClick={handleDownload}
                         title="দাগানো খাতা ডাউনলোড করুন"
-                        className="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                         <Download className="w-4 h-4 text-sky-400" />
                         <span className="hidden md:inline">ডাউনলোড</span>
@@ -613,147 +686,177 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                 </div>
             </header>
 
-            {/* Main Area: Toolbox + Canvas Workspace */}
-            <div className="flex-1 flex overflow-hidden relative">
-                {/* Left Floating Paint Toolbox */}
-                <aside className="w-16 sm:w-20 bg-slate-900 border-r border-slate-800 flex flex-col items-center py-4 gap-4 shrink-0 overflow-y-auto select-none z-10">
-                    {/* Tool Selection Group */}
-                    <div className="flex flex-col items-center gap-1.5 w-full px-2">
-                        <button
-                            type="button"
-                            onClick={() => setActiveTool('pen')}
-                            title="কলম / পেন (Pen Draw)"
-                            className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
-                                activeTool === 'pen'
-                                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 font-bold'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
-                        >
-                            <Pen className="w-4 h-4" />
-                            <span className="text-[9px]">পেন</span>
-                        </button>
+            {/* Top Bar 2: Comprehensive Paint Ribbon / Toolbar */}
+            <nav className="min-h-14 py-2 px-4 bg-slate-900/95 border-b border-slate-800 flex items-center gap-4 shrink-0 overflow-x-auto select-none z-10 shadow-md">
+                {/* 1. Main Drawing Tools */}
+                <div className="flex items-center gap-1 shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => selectTool('pen')}
+                        title="কলম / সরু পেন (Fine Pen)"
+                        className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                            activeTool === 'pen'
+                                ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30'
+                                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                        }`}
+                    >
+                        <Pen className="w-4 h-4" />
+                        <span>কলম</span>
+                    </button>
 
-                        <button
-                            type="button"
-                            onClick={() => setActiveTool('highlighter')}
-                            title="হাইলাইটার (Highlighter)"
-                            className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
-                                activeTool === 'highlighter'
-                                    ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30 font-bold'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
-                        >
-                            <Highlighter className="w-4 h-4" />
-                            <span className="text-[9px]">হাইলাইট</span>
-                        </button>
+                    <button
+                        type="button"
+                        onClick={() => selectTool('brush')}
+                        title="তুলি / ব্রাশ (Paint Brush)"
+                        className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                            activeTool === 'brush'
+                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                        }`}
+                    >
+                        <Paintbrush className="w-4 h-4" />
+                        <span>তুলি / ব্রাশ</span>
+                    </button>
 
-                        <button
-                            type="button"
-                            onClick={() => setActiveTool('text')}
-                            title="টেক্সট / মন্তব্য লিখুন (Add Text Note)"
-                            className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
-                                activeTool === 'text'
-                                    ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30 font-bold'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
-                        >
-                            <Type className="w-4 h-4" />
-                            <span className="text-[9px]">টেক্সট</span>
-                        </button>
+                    <button
+                        type="button"
+                        onClick={() => selectTool('highlighter')}
+                        title="হাইলাইটার (Highlighter Marker)"
+                        className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                            activeTool === 'highlighter'
+                                ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30'
+                                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                        }`}
+                    >
+                        <Highlighter className="w-4 h-4" />
+                        <span>হাইলাইট</span>
+                    </button>
 
-                        <button
-                            type="button"
-                            onClick={() => setActiveTool('rect')}
-                            title="বক্স / আয়তক্ষেত্র (Rectangle)"
-                            className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
-                                activeTool === 'rect'
-                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-bold'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
-                        >
-                            <Square className="w-4 h-4" />
-                            <span className="text-[9px]">বক্স</span>
-                        </button>
+                    <button
+                        type="button"
+                        onClick={() => selectTool('eraser')}
+                        title="ইরেজার / রবার (Eraser - দাগ মুছে ফেলুন)"
+                        className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                            activeTool === 'eraser'
+                                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                        }`}
+                    >
+                        <Eraser className="w-4 h-4" />
+                        <span>ইরেজার</span>
+                    </button>
 
-                        <button
-                            type="button"
-                            onClick={() => setActiveTool('circle')}
-                            title="গোল দাগ / বৃত্ত (Circle)"
-                            className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center gap-0.5 transition-all cursor-pointer ${
-                                activeTool === 'circle'
-                                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-bold'
-                                    : 'text-slate-400 hover:text-white hover:bg-slate-800'
-                            }`}
-                        >
-                            <Circle className="w-4 h-4" />
-                            <span className="text-[9px]">বৃত্ত</span>
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => selectTool('text')}
+                        title="খাতায় মন্তব্য / টেক্সট লিখুন (Text Note)"
+                        className={`px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 text-xs font-bold transition-all cursor-pointer ${
+                            activeTool === 'text'
+                                ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30'
+                                : 'text-slate-300 hover:text-white hover:bg-slate-800'
+                        }`}
+                    >
+                        <Type className="w-4 h-4" />
+                        <span>মন্তব্য</span>
+                    </button>
 
-                    <div className="w-8 h-px bg-slate-800" />
+                    <button
+                        type="button"
+                        onClick={() => selectTool('rect')}
+                        title="বক্স / চারকোনা (Rectangle)"
+                        className={`p-1.5 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                            activeTool === 'rect'
+                                ? 'bg-slate-700 text-white'
+                                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                        }`}
+                    >
+                        <Square className="w-4 h-4" />
+                    </button>
 
-                    {/* Teacher Quick Stamps */}
-                    <div className="flex flex-col items-center gap-1.5 w-full px-2">
-                        <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">স্ট্যাম্প</span>
-                        
-                        <button
-                            type="button"
-                            onClick={() => setActiveTool('stamp_tick')}
-                            title="টিক মার্ক (Correct)"
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                                activeTool === 'stamp_tick'
-                                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/40 scale-105'
-                                    : 'text-emerald-500 bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-800/40'
-                            }`}
-                        >
-                            <Check className="w-5 h-5 stroke-[3]" />
-                        </button>
+                    <button
+                        type="button"
+                        onClick={() => selectTool('circle')}
+                        title="গোল দাগ / বৃত্ত (Circle)"
+                        className={`p-1.5 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                            activeTool === 'circle'
+                                ? 'bg-slate-700 text-white'
+                                : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                        }`}
+                    >
+                        <Circle className="w-4 h-4" />
+                    </button>
+                </div>
 
-                        <button
-                            type="button"
-                            onClick={() => setActiveTool('stamp_cross')}
-                            title="ক্রস মার্ক (Incorrect)"
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                                activeTool === 'stamp_cross'
-                                    ? 'bg-rose-600 text-white shadow-md shadow-rose-600/40 scale-105'
-                                    : 'text-rose-500 bg-rose-950/40 hover:bg-rose-900/40 border border-rose-800/40'
-                            }`}
-                        >
-                            <X className="w-5 h-5 stroke-[3]" />
-                        </button>
+                <div className="w-px h-7 bg-slate-800 shrink-0" />
 
-                        <button
-                            type="button"
-                            onClick={() => setActiveTool('stamp_doubt')}
-                            title="সন্দেহ / প্রশ্নবোধক (?)"
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                                activeTool === 'stamp_doubt'
-                                    ? 'bg-amber-600 text-white shadow-md shadow-amber-600/40 scale-105'
-                                    : 'text-amber-500 bg-amber-950/40 hover:bg-amber-900/40 border border-amber-800/40'
-                            }`}
-                        >
-                            <HelpCircle className="w-5 h-5" />
-                        </button>
+                {/* 2. Teacher Quick Stamps */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider hidden lg:inline">
+                        স্ট্যাম্প:
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => selectTool('stamp_tick')}
+                        title="টিক মার্ক (Correct ✔)"
+                        className={`px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-black transition-all cursor-pointer ${
+                            activeTool === 'stamp_tick'
+                                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/40 scale-105'
+                                : 'text-emerald-400 bg-emerald-950/40 hover:bg-emerald-900/40 border border-emerald-800/50'
+                        }`}
+                    >
+                        <Check className="w-4 h-4 stroke-[3]" />
+                        <span>টিক</span>
+                    </button>
 
-                        <button
-                            type="button"
-                            onClick={() => setActiveTool('stamp_star')}
-                            title="স্টার (Star)"
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-                                activeTool === 'stamp_star'
-                                    ? 'bg-yellow-500 text-black shadow-md shadow-yellow-500/40 scale-105'
-                                    : 'text-yellow-400 bg-yellow-950/40 hover:bg-yellow-900/40 border border-yellow-800/40'
-                            }`}
-                        >
-                            <Star className="w-5 h-5 fill-current" />
-                        </button>
-                    </div>
+                    <button
+                        type="button"
+                        onClick={() => selectTool('stamp_cross')}
+                        title="ক্রস মার্ক (Incorrect ✖)"
+                        className={`px-2 py-1 rounded-lg flex items-center gap-1 text-xs font-black transition-all cursor-pointer ${
+                            activeTool === 'stamp_cross'
+                                ? 'bg-rose-600 text-white shadow-md shadow-rose-600/40 scale-105'
+                                : 'text-rose-400 bg-rose-950/40 hover:bg-rose-900/40 border border-rose-800/50'
+                        }`}
+                    >
+                        <X className="w-4 h-4 stroke-[3]" />
+                        <span>ক্রস</span>
+                    </button>
 
-                    <div className="w-8 h-px bg-slate-800" />
+                    <button
+                        type="button"
+                        onClick={() => selectTool('stamp_doubt')}
+                        title="সন্দেহ / প্রশ্নবোধক (?)"
+                        className={`p-1.5 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                            activeTool === 'stamp_doubt'
+                                ? 'bg-amber-600 text-white scale-105 shadow-md'
+                                : 'text-amber-400 bg-amber-950/40 hover:bg-amber-900/40 border border-amber-800/50'
+                        }`}
+                    >
+                        <HelpCircle className="w-4 h-4" />
+                    </button>
 
-                    {/* Color Palette */}
-                    <div className="flex flex-col items-center gap-1.5 w-full px-2">
-                        <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">রং</span>
+                    <button
+                        type="button"
+                        onClick={() => selectTool('stamp_star')}
+                        title="স্টার (★)"
+                        className={`p-1.5 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
+                            activeTool === 'stamp_star'
+                                ? 'bg-yellow-500 text-slate-950 scale-105 shadow-md'
+                                : 'text-yellow-400 bg-yellow-950/40 hover:bg-yellow-900/40 border border-yellow-800/50'
+                        }`}
+                    >
+                        <Star className="w-4 h-4 fill-current" />
+                    </button>
+                </div>
+
+                <div className="w-px h-7 bg-slate-800 shrink-0" />
+
+                {/* 3. Color Palette (Prominent Row) */}
+                <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
+                        রং:
+                    </span>
+                    <div className="flex items-center gap-1.5 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
                         {PRESET_COLORS.map(c => (
                             <button
                                 key={c.hex}
@@ -761,14 +864,26 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                                 onClick={() => setStrokeColor(c.hex)}
                                 title={c.name}
                                 style={{ backgroundColor: c.hex }}
-                                className={`w-6 h-6 rounded-full transition-transform cursor-pointer ${
-                                    strokeColor === c.hex ? 'ring-2 ring-white scale-125 shadow-md' : 'opacity-80 hover:opacity-100 hover:scale-110'
+                                className={`w-6 h-6 rounded-full transition-transform cursor-pointer relative ${
+                                    strokeColor.toLowerCase() === c.hex.toLowerCase()
+                                        ? 'ring-2 ring-white scale-110 shadow-lg'
+                                        : 'opacity-85 hover:opacity-100 hover:scale-105'
                                 }`}
-                            />
+                            >
+                                {strokeColor.toLowerCase() === c.hex.toLowerCase() && (
+                                    <span className="absolute inset-0 flex items-center justify-center text-[10px] text-white drop-shadow-md">
+                                        ✓
+                                    </span>
+                                )}
+                            </button>
                         ))}
-                        {/* Custom color input */}
-                        <label title="কাস্টম রং" className="w-6 h-6 rounded-full border border-slate-700 bg-slate-800 flex items-center justify-center cursor-pointer hover:border-slate-500 mt-1">
-                            <Palette className="w-3.5 h-3.5 text-slate-400" />
+
+                        {/* Custom Color Picker */}
+                        <label
+                            title="কাস্টম কালার নির্বাচন করুন"
+                            className="w-6 h-6 rounded-full border border-slate-600 bg-slate-800 flex items-center justify-center cursor-pointer hover:border-white transition-colors relative"
+                        >
+                            <Palette className="w-3.5 h-3.5 text-slate-300" />
                             <input
                                 type="color"
                                 value={strokeColor}
@@ -777,234 +892,247 @@ export const KhataEvaluationCanvasModal: React.FC<KhataEvaluationCanvasModalProp
                             />
                         </label>
                     </div>
+                </div>
 
-                    <div className="w-8 h-px bg-slate-800" />
+                <div className="w-px h-7 bg-slate-800 shrink-0" />
 
-                    {/* Stroke Width Selector */}
-                    <div className="flex flex-col items-center gap-2 w-full px-2">
-                        <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">সাইজ</span>
-                        {[2, 4, 8, 14].map(w => (
+                {/* 4. Stroke Thickness / Size Selector */}
+                <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider hidden sm:inline">
+                        সাইজ:
+                    </span>
+                    <div className="flex items-center gap-1 bg-slate-950/60 p-1 rounded-xl border border-slate-800">
+                        {PRESET_SIZES.map(s => (
                             <button
-                                key={w}
+                                key={s.width}
                                 type="button"
-                                onClick={() => setStrokeWidth(w)}
-                                title={`Stroke Width: ${w}px`}
-                                className={`w-8 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer ${
-                                    strokeWidth === w ? 'bg-slate-700 text-white font-bold' : 'text-slate-400 hover:bg-slate-800'
+                                onClick={() => setStrokeWidth(s.width)}
+                                title={`${s.label} (${s.width}px)`}
+                                className={`px-2 py-1 rounded-lg flex items-center gap-1.5 text-[11px] font-bold transition-all cursor-pointer ${
+                                    strokeWidth === s.width
+                                        ? 'bg-slate-700 text-white shadow-sm'
+                                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
                                 }`}
                             >
                                 <span
                                     style={{
-                                        width: `${Math.min(w * 1.5, 20)}px`,
-                                        height: `${Math.min(w, 10)}px`,
+                                        width: `${s.dotSize}px`,
+                                        height: `${s.dotSize}px`,
                                         backgroundColor: strokeColor,
-                                        borderRadius: '999px',
                                     }}
+                                    className="rounded-full shrink-0 shadow-sm"
                                 />
+                                <span className="hidden xl:inline">{s.label}</span>
                             </button>
                         ))}
                     </div>
-                </aside>
+                </div>
 
-                {/* Center: Canvas Workspace Container */}
-                <main
-                    ref={containerRef}
-                    className="flex-1 bg-slate-950 overflow-auto flex items-center justify-center p-4 relative"
-                    style={{ touchAction: isDrawing ? 'none' : 'auto' }}
-                >
-                    {/* Floating Zoom & Canvas Tools */}
-                    <div className="absolute top-4 right-4 z-20 flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-800 shadow-xl backdrop-blur-md">
-                        <button
-                            type="button"
-                            onClick={handleRotate}
-                            title="খাতা ৯০° ঘোরান (Rotate 90°)"
-                            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                        >
-                            <RotateCw className="w-4 h-4" />
-                        </button>
-                        <div className="w-px h-5 bg-slate-800" />
-                        <button
-                            type="button"
-                            onClick={() => setZoom(prev => Math.min(prev + 0.25, 3))}
-                            title="বড় করুন (Zoom In)"
-                            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                        >
-                            <ZoomIn className="w-4 h-4" />
-                        </button>
-                        <span className="text-xs font-mono font-bold text-slate-400 px-1">
-                            {Math.round(zoom * 100)}%
-                        </span>
-                        <button
-                            type="button"
-                            onClick={() => setZoom(prev => Math.max(prev - 0.25, 0.5))}
-                            title="ছোট করুন (Zoom Out)"
-                            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                        >
-                            <ZoomOut className="w-4 h-4" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setZoom(1)}
-                            title="আসল সাইজ (100%)"
-                            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-                        >
-                            <Maximize2 className="w-4 h-4" />
-                        </button>
-                        <div className="w-px h-5 bg-slate-800" />
-                        <button
-                            type="button"
-                            onClick={handleUndo}
-                            disabled={actions.length === 0}
-                            title="পূর্বাবস্থায় ফেরান (Undo)"
-                            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
-                        >
-                            <Undo2 className="w-4 h-4" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleRedo}
-                            disabled={redoStack.length === 0}
-                            title="পুনরায় করুন (Redo)"
-                            className="p-2 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
-                        >
-                            <Redo2 className="w-4 h-4" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleClearAll}
-                            disabled={actions.length === 0}
-                            title="সব দাগ মুছুন (Clear All)"
-                            className="p-2 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-950/50 disabled:opacity-30 transition-colors cursor-pointer"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </button>
+                <div className="w-px h-7 bg-slate-800 shrink-0" />
+
+                {/* 5. History & Canvas View Controls */}
+                <div className="flex items-center gap-1 shrink-0 ml-auto">
+                    <button
+                        type="button"
+                        onClick={handleUndo}
+                        disabled={actions.length === 0}
+                        title="পূর্বাবস্থায় ফেরান (Undo)"
+                        className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
+                    >
+                        <Undo2 className="w-4 h-4" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleRedo}
+                        disabled={redoStack.length === 0}
+                        title="পুনরায় করুন (Redo)"
+                        className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-30 transition-colors cursor-pointer"
+                    >
+                        <Redo2 className="w-4 h-4" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleClearAll}
+                        disabled={actions.length === 0}
+                        title="সব দাগ মুছুন (Clear All)"
+                        className="p-2 rounded-lg text-rose-400 hover:text-rose-300 hover:bg-rose-950/50 disabled:opacity-30 transition-colors cursor-pointer"
+                    >
+                        <Trash2 className="w-4 h-4" />
+                    </button>
+
+                    <div className="w-px h-5 bg-slate-800 mx-1" />
+
+                    <button
+                        type="button"
+                        onClick={handleRotate}
+                        title="খাতা ৯০° ঘোরান (Rotate 90°)"
+                        className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                        <RotateCw className="w-4 h-4" />
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setZoom(prev => Math.min(prev + 0.25, 3))}
+                        title="বড় করুন (Zoom In)"
+                        className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                        <ZoomIn className="w-4 h-4" />
+                    </button>
+                    <span className="text-[11px] font-mono font-bold text-slate-400 px-1">
+                        {Math.round(zoom * 100)}%
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => setZoom(prev => Math.max(prev - 0.25, 0.5))}
+                        title="ছোট করুন (Zoom Out)"
+                        className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                        <ZoomOut className="w-4 h-4" />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setZoom(1)}
+                        title="আসল সাইজ (100%)"
+                        className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                        <Maximize2 className="w-4 h-4" />
+                    </button>
+                </div>
+            </nav>
+
+            {/* Main Center Area: Canvas Workspace */}
+            <main
+                ref={containerRef}
+                className="flex-1 bg-slate-950 overflow-auto flex items-center justify-center p-4 relative"
+                style={{ touchAction: (isDrawing || isErasing) ? 'none' : 'auto' }}
+            >
+                {imgLoading ? (
+                    <div className="flex flex-col items-center justify-center text-slate-400 space-y-3">
+                        <Loader2 className="w-10 h-10 animate-spin text-rose-500" />
+                        <p className="text-sm font-semibold">শিক্ষার্থীর উত্তরপত্র লোড হচ্ছে...</p>
                     </div>
-
-                    {imgLoading ? (
-                        <div className="flex flex-col items-center justify-center text-slate-400 space-y-3">
-                            <Loader2 className="w-10 h-10 animate-spin text-rose-500" />
-                            <p className="text-sm font-semibold">শিক্ষার্থীর উত্তরপত্র লোড হচ্ছে...</p>
-                        </div>
-                    ) : imgError ? (
-                        <div className="text-center p-8 rounded-2xl bg-slate-900 border border-slate-800 text-rose-400 space-y-2">
-                            <XCircle className="w-10 h-10 mx-auto" />
-                            <h4 className="font-bold text-base text-white">উত্তরপত্র ইমেজ লোড করা সম্ভব হয়নি</h4>
-                            <p className="text-xs text-slate-400">ইমেজ লিংকটি সক্রিয় আছে কিনা অথবা ফরম্যাট সঠিক কিনা যাচাই করুন।</p>
-                        </div>
-                    ) : (
-                        <div
-                            className="relative max-w-full max-h-full transition-transform duration-100 ease-out shadow-2xl rounded-lg"
+                ) : imgError ? (
+                    <div className="text-center p-8 rounded-2xl bg-slate-900 border border-slate-800 text-rose-400 space-y-2">
+                        <XCircle className="w-10 h-10 mx-auto" />
+                        <h4 className="font-bold text-base text-white">উত্তরপত্র ইমেজ লোড করা সম্ভব হয়নি</h4>
+                        <p className="text-xs text-slate-400">ইমেজ লিংকটি সক্রিয় আছে কিনা অথবা ফরম্যাট সঠিক কিনা যাচাই করুন।</p>
+                    </div>
+                ) : (
+                    <div
+                        className="relative max-w-full max-h-full transition-transform duration-100 ease-out shadow-2xl rounded-lg"
+                        style={{
+                            transform: `scale(${zoom})`,
+                            transformOrigin: 'center center',
+                        }}
+                    >
+                        <canvas
+                            ref={canvasRef}
+                            onMouseDown={handlePointerDown}
+                            onMouseMove={handlePointerMove}
+                            onMouseUp={handlePointerUp}
+                            onMouseLeave={handlePointerUp}
+                            onTouchStart={handlePointerDown}
+                            onTouchMove={handlePointerMove}
+                            onTouchEnd={handlePointerUp}
+                            className={`rounded-lg bg-white shadow-2xl block ${
+                                activeTool === 'pen' || activeTool === 'brush' || activeTool === 'highlighter'
+                                    ? 'cursor-crosshair'
+                                    : activeTool === 'eraser'
+                                    ? 'cursor-cell'
+                                    : activeTool === 'text'
+                                    ? 'cursor-text'
+                                    : 'cursor-cell'
+                            }`}
                             style={{
-                                transform: `scale(${zoom})`,
-                                transformOrigin: 'center center',
+                                maxWidth: '92vw',
+                                maxHeight: 'calc(100vh - 12rem)',
+                                objectFit: 'contain',
                             }}
-                        >
-                            <canvas
-                                ref={canvasRef}
-                                onMouseDown={handlePointerDown}
-                                onMouseMove={handlePointerMove}
-                                onMouseUp={handlePointerUp}
-                                onMouseLeave={handlePointerUp}
-                                onTouchStart={handlePointerDown}
-                                onTouchMove={handlePointerMove}
-                                onTouchEnd={handlePointerUp}
-                                className={`rounded-lg bg-white shadow-2xl block ${
-                                    activeTool === 'pen' || activeTool === 'highlighter'
-                                        ? 'cursor-crosshair'
-                                        : activeTool === 'text'
-                                        ? 'cursor-text'
-                                        : 'cursor-cell'
-                                }`}
+                        />
+
+                        {/* Floating Text Input Popover */}
+                        {textPromptPos && (
+                            <div
+                                className="absolute z-30 p-3 rounded-2xl bg-slate-900/95 border border-slate-700 shadow-2xl text-white space-y-2.5 backdrop-blur-md animate-in fade-in zoom-in-95 duration-150"
                                 style={{
-                                    maxWidth: '90vw',
-                                    maxHeight: 'calc(100vh - 8rem)',
-                                    objectFit: 'contain',
+                                    left: '50%',
+                                    top: '35%',
+                                    transform: 'translate(-50%, -50%)',
+                                    width: '330px',
                                 }}
-                            />
-
-                            {/* Floating Text Input Popover */}
-                            {textPromptPos && (
-                                <div
-                                    className="absolute z-30 p-3 rounded-2xl bg-slate-900/95 border border-slate-700 shadow-2xl text-white space-y-2.5 backdrop-blur-md animate-in fade-in zoom-in-95 duration-150"
-                                    style={{
-                                        left: '50%',
-                                        top: '30%',
-                                        transform: 'translate(-50%, -50%)',
-                                        width: '320px',
-                                    }}
-                                >
-                                    <div className="flex items-center justify-between text-xs font-bold border-b border-slate-800 pb-1.5">
-                                        <span className="flex items-center gap-1.5 text-sky-400">
-                                            <Type className="w-3.5 h-3.5" />
-                                            খাতায় মন্তব্য যুক্ত করুন
-                                        </span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setTextPromptPos(null)}
-                                            className="text-slate-400 hover:text-white"
-                                        >
-                                            <X className="w-4 h-4" />
-                                        </button>
-                                    </div>
-
-                                    {/* Fast Preset Comment Pills */}
-                                    <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
-                                        {QUICK_COMMENTS.map((c, i) => (
-                                            <button
-                                                key={i}
-                                                type="button"
-                                                onClick={() => handleConfirmText(c)}
-                                                className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-white border border-slate-700 transition-colors"
-                                            >
-                                                {c}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <div className="flex items-center gap-2">
-                                        <input
-                                            type="text"
-                                            autoFocus
-                                            value={textInputValue}
-                                            onChange={(e) => setTextInputValue(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') handleConfirmText();
-                                                if (e.key === 'Escape') setTextPromptPos(null);
-                                            }}
-                                            placeholder="আপনার মন্তব্য টাইপ করুন..."
-                                            className="flex-1 px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:ring-1 focus:ring-rose-500"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => handleConfirmText()}
-                                            className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs"
-                                        >
-                                            যুক্ত
-                                        </button>
-                                    </div>
+                            >
+                                <div className="flex items-center justify-between text-xs font-bold border-b border-slate-800 pb-1.5">
+                                    <span className="flex items-center gap-1.5 text-sky-400">
+                                        <Type className="w-3.5 h-3.5" />
+                                        খাতায় মন্তব্য যুক্ত করুন
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setTextPromptPos(null)}
+                                        className="text-slate-400 hover:text-white"
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </button>
                                 </div>
-                            )}
-                        </div>
-                    )}
-                </main>
-            </div>
+
+                                {/* Fast Preset Comment Pills */}
+                                <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
+                                    {QUICK_COMMENTS.map((c, i) => (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            onClick={() => handleConfirmText(c)}
+                                            className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-800 hover:bg-rose-900/40 text-slate-300 hover:text-white border border-slate-700 transition-colors"
+                                        >
+                                            {c}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        autoFocus
+                                        value={textInputValue}
+                                        onChange={(e) => setTextInputValue(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') handleConfirmText();
+                                            if (e.key === 'Escape') setTextPromptPos(null);
+                                        }}
+                                        placeholder="আপনার মন্তব্য লিখুন..."
+                                        className="flex-1 px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:ring-1 focus:ring-rose-500"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => handleConfirmText()}
+                                        className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs"
+                                    >
+                                        যুক্ত
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </main>
 
             {/* Bottom Bar: Teacher Feedback Note Input */}
-            <footer className="h-14 px-4 sm:px-6 bg-slate-900 border-t border-slate-800 flex items-center justify-between gap-4 shrink-0 text-white text-xs">
+            <footer className="h-14 px-4 sm:px-6 bg-slate-900 border-t border-slate-800 flex items-center justify-between gap-4 shrink-0 text-white text-xs z-20">
                 <div className="flex items-center gap-2 flex-1 max-w-2xl">
                     <MessageSquare className="w-4 h-4 text-slate-400 shrink-0" />
                     <input
                         type="text"
                         value={feedback}
                         onChange={(e) => setFeedback(e.target.value)}
-                        placeholder="এই প্রশ্নের জন্য শিক্ষার্থীর উদ্দেশ্যে কোনো পরামর্শ বা মন্তব্য লিখুন..."
+                        placeholder="এই প্রশ্নের জন্য শিক্ষার্থীর উদ্দেশ্যে পরামর্শ বা মূল্যায়ন নোট লিখুন..."
                         className="w-full px-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-slate-200 placeholder:text-slate-500 focus:outline-hidden focus:ring-1 focus:ring-rose-500"
                     />
                 </div>
 
                 <div className="flex items-center gap-3 text-slate-400 text-[11px] shrink-0">
-                    <span className="hidden sm:inline">
-                        টুল নির্বাচন করে খাতার উপরে ক্লিক বা ড্র্যাগ করুন।
+                    <span className="hidden md:inline">
+                        টুল ও রং নির্বাচন করে খাতার উপরে দাগ দিন।
                     </span>
                     <button
                         type="button"

@@ -107,47 +107,61 @@ export const ExamSubmissionsPage: React.FC = () => {
 
             const evaluatedUrl = uploadRes.data.url;
 
-            // Update selectedSubmission state with the evaluated_url
-            setSelectedSubmission(prev => {
-                if (!prev) return null;
-                const nextAnswers = (prev.answers || []).map(ans => {
-                    if (ans.id === evaluatingAttachment.answerId) {
-                        const nextAttachments = [...(ans.attachments || [])];
-                        if (nextAttachments[evaluatingAttachment.attachmentIndex]) {
-                            nextAttachments[evaluatingAttachment.attachmentIndex] = {
-                                ...nextAttachments[evaluatingAttachment.attachmentIndex],
-                                evaluated_url: evaluatedUrl,
-                            };
-                        }
-                        return {
-                            ...ans,
-                            attachments: nextAttachments,
-                            marks_obtained: result.marks !== undefined ? result.marks : ans.marks_obtained,
-                            teacher_feedback: result.feedback !== undefined ? result.feedback : ans.teacher_feedback,
+            // Prepare next answers array
+            const currentAnswers = selectedSubmission.answers || [];
+            const nextAnswers = currentAnswers.map(ans => {
+                if (ans.id === evaluatingAttachment.answerId) {
+                    const nextAttachments = [...(ans.attachments || [])];
+                    if (nextAttachments[evaluatingAttachment.attachmentIndex]) {
+                        nextAttachments[evaluatingAttachment.attachmentIndex] = {
+                            ...nextAttachments[evaluatingAttachment.attachmentIndex],
+                            evaluated_url: evaluatedUrl,
                         };
                     }
-                    return ans;
-                });
-                return { ...prev, answers: nextAnswers };
+                    return {
+                        ...ans,
+                        attachments: nextAttachments,
+                        marks_obtained: result.marks !== undefined ? result.marks : ans.marks_obtained,
+                        teacher_feedback: result.feedback !== undefined ? result.feedback : ans.teacher_feedback,
+                    };
+                }
+                return ans;
             });
 
+            // Update selectedSubmission state
+            setSelectedSubmission(prev => prev ? { ...prev, answers: nextAnswers } : null);
+
             // Update gradingState
-            if (result.marks !== undefined || result.feedback !== undefined) {
-                setGradingState(prev => ({
-                    ...prev,
-                    [evaluatingAttachment.answerId]: {
-                        marks: result.marks !== undefined ? result.marks : (prev[evaluatingAttachment.answerId]?.marks || 0),
-                        feedback: result.feedback !== undefined ? result.feedback : (prev[evaluatingAttachment.answerId]?.feedback || ''),
-                    },
-                }));
-            }
+            const newGrading = {
+                ...gradingState,
+                [evaluatingAttachment.answerId]: {
+                    marks: result.marks !== undefined ? result.marks : (gradingState[evaluatingAttachment.answerId]?.marks || 0),
+                    feedback: result.feedback !== undefined ? result.feedback : (gradingState[evaluatingAttachment.answerId]?.feedback || ''),
+                },
+            };
+            setGradingState(newGrading);
+
+            // Persist directly to backend database
+            const evaluationsPayload = nextAnswers.map(ans => ({
+                answer_id: ans.id,
+                marks_obtained: newGrading[ans.id]?.marks ?? ans.marks_obtained ?? 0,
+                feedback: newGrading[ans.id]?.feedback ?? ans.teacher_feedback ?? '',
+                attachments: ans.attachments || [],
+            }));
+
+            await apiClient.post(`/exams/${id}/submissions/${selectedSubmission.id}/evaluate`, {
+                evaluation_notes: overallNotes,
+                evaluations: evaluationsPayload,
+            });
 
             setCanvasModalOpen(false);
             setEvaluatingAttachment(null);
-            alert('খাতা মূল্যায়ন ও দাগানো সফলভাবে যুক্ত হয়েছে! পুরো মূল্যায়ন সেভ করতে নিচে "Complete Evaluation & Save Grades" এ ক্লিক করুন।');
+            fetchSubmissions();
+            alert('খাতা মূল্যায়ন ও দাগানো সফলভাবে সংরক্ষিত হয়েছে!');
         } catch (err: any) {
             console.error('Failed to upload evaluated attachment', err);
-            alert(err.response?.data?.message || 'মূল্যায়িত খাতা আপলোড করতে সমস্যা হয়েছে।');
+            const msg = err.response?.data?.message || err.message || 'মূল্যায়িত খাতা আপলোড করতে সমস্যা হয়েছে।';
+            alert(`মূল্যায়িত খাতা সংরক্ষণ করতে সমস্যা হয়েছে: ${msg}`);
         }
     };
 
