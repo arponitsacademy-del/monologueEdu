@@ -213,6 +213,38 @@ export const Navbar: React.FC = () => {
 
     const isHome = location.pathname === '/';
 
+    // 10MS Style Header Banner Dismissal State
+    const bannerKey = `${headerSettings?.banner_image_url || ''}_${headerSettings?.banner_title || ''}_${headerSettings?.banner_bg_color || ''}`;
+    const [bannerDismissed, setBannerDismissed] = useState<boolean>(() => {
+        try {
+            return sessionStorage.getItem(`monologue_header_banner_dismissed_${bannerKey}`) === 'true';
+        } catch {
+            return false;
+        }
+    });
+
+    useEffect(() => {
+        try {
+            const isDismissed = sessionStorage.getItem(`monologue_header_banner_dismissed_${bannerKey}`) === 'true';
+            setBannerDismissed(isDismissed);
+        } catch {
+            setBannerDismissed(false);
+        }
+    }, [bannerKey]);
+
+    const handleDismissBanner = () => {
+        setBannerDismissed(true);
+        try {
+            sessionStorage.setItem(`monologue_header_banner_dismissed_${bannerKey}`, 'true');
+        } catch {}
+    };
+
+    const shouldShowBanner = Boolean(
+        headerSettings?.banner_enabled &&
+        !bannerDismissed &&
+        (headerSettings?.banner_show_on === 'home' ? isHome : true)
+    );
+
     return (
         <div className={`${headerSettings?.sticky !== false ? 'sticky top-0' : 'relative'} z-50`}>
             {/* Announcement Top Banner */}
@@ -784,6 +816,139 @@ export const Navbar: React.FC = () => {
                 </div>
             )}
         </header>
+
+        {/* 10 MINUTE SCHOOL STYLE SUB-HEADER BANNER */}
+        {shouldShowBanner && (
+            <div
+                style={{
+                    backgroundColor: headerSettings?.banner_bg_color || '#8a0000',
+                    color: headerSettings?.banner_text_color || '#ffffff',
+                }}
+                className="w-full relative shadow-xs overflow-hidden border-b border-black/10 z-40 transition-all duration-300"
+            >
+                {/* Mode 1: Image Banner */}
+                {headerSettings?.banner_mode !== 'text' && headerSettings?.banner_image_url ? (
+                    headerSettings.banner_link ? (
+                        headerSettings.banner_link.startsWith('http') ? (
+                            <a
+                                href={headerSettings.banner_link}
+                                target={headerSettings.banner_link_open_new_tab ? '_blank' : '_self'}
+                                rel={headerSettings.banner_link_open_new_tab ? 'noopener noreferrer' : undefined}
+                                className="block relative w-full h-[55px] sm:h-[70px] md:h-[80px] lg:h-[85px] group overflow-hidden"
+                            >
+                                <img
+                                    src={headerSettings.banner_image_url}
+                                    alt={headerSettings.banner_title || 'Promotional Banner'}
+                                    className="w-full h-full object-cover sm:object-contain object-center mx-auto transition-transform duration-300 group-hover:scale-[1.008]"
+                                />
+                            </a>
+                        ) : (
+                            <Link
+                                to={headerSettings.banner_link}
+                                className="block relative w-full h-[55px] sm:h-[70px] md:h-[80px] lg:h-[85px] group overflow-hidden"
+                            >
+                                <img
+                                    src={headerSettings.banner_image_url}
+                                    alt={headerSettings.banner_title || 'Promotional Banner'}
+                                    className="w-full h-full object-cover sm:object-contain object-center mx-auto transition-transform duration-300 group-hover:scale-[1.008]"
+                                />
+                            </Link>
+                        )
+                    ) : (
+                        <div className="relative w-full h-[55px] sm:h-[70px] md:h-[80px] lg:h-[85px] overflow-hidden">
+                            <img
+                                src={headerSettings.banner_image_url}
+                                alt={headerSettings.banner_title || 'Promotional Banner'}
+                                className="w-full h-full object-cover sm:object-contain object-center mx-auto"
+                            />
+                        </div>
+                    )
+                ) : (
+                    /* Mode 2: Custom Text & Background Color Banner */
+                    <div className="py-2.5 sm:py-3 px-4 sm:px-6 lg:px-8">
+                        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs sm:text-sm">
+                            <div className="flex items-center gap-2.5 min-w-0 pr-6 sm:pr-0">
+                                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                                <span className="font-extrabold truncate text-white">
+                                    {headerSettings?.banner_title || 'নতুন ব্যাচে প্রথম ক্লাস একদম ফ্রি!'}
+                                </span>
+                                {headerSettings?.banner_subtitle && (
+                                    <span className="hidden md:inline text-xs text-white/90 truncate font-medium">
+                                        • {headerSettings.banner_subtitle}
+                                    </span>
+                                )}
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0">
+                                {headerSettings?.banner_btn_text && (
+                                    headerSettings.banner_btn_link?.startsWith('http') ? (
+                                        <a
+                                            href={headerSettings.banner_btn_link}
+                                            target={headerSettings.banner_link_open_new_tab ? '_blank' : '_self'}
+                                            rel="noopener noreferrer"
+                                            style={{
+                                                backgroundColor: headerSettings.banner_btn_bg || '#16a34a',
+                                                color: headerSettings.banner_btn_text_color || '#ffffff',
+                                            }}
+                                            className="px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg text-xs font-black shadow-xs hover:brightness-110 transition-all flex items-center gap-1"
+                                        >
+                                            <span>{headerSettings.banner_btn_text}</span>
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                        </a>
+                                    ) : (
+                                        <Link
+                                            to={headerSettings.banner_btn_link || headerSettings.banner_link || '/courses'}
+                                            style={{
+                                                backgroundColor: headerSettings.banner_btn_bg || '#16a34a',
+                                                color: headerSettings.banner_btn_text_color || '#ffffff',
+                                            }}
+                                            className="px-3 py-1 sm:px-4 sm:py-1.5 rounded-lg text-xs font-black shadow-xs hover:brightness-110 transition-all flex items-center gap-1"
+                                        >
+                                            <span>{headerSettings.banner_btn_text}</span>
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                        </Link>
+                                    )
+                                )}
+
+                                {headerSettings?.banner_secondary_text && (
+                                    headerSettings.banner_secondary_link ? (
+                                        <a
+                                            href={headerSettings.banner_secondary_link}
+                                            className="hidden lg:flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-600/90 hover:bg-rose-600 text-white text-xs font-bold transition-colors shadow-xs"
+                                        >
+                                            <PhoneCall className="w-3.5 h-3.5" />
+                                            <span>{headerSettings.banner_secondary_text}</span>
+                                        </a>
+                                    ) : (
+                                        <span className="hidden lg:flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white/15 text-white text-xs font-bold shadow-xs">
+                                            <PhoneCall className="w-3.5 h-3.5" />
+                                            <span>{headerSettings.banner_secondary_text}</span>
+                                        </span>
+                                    )
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Dismiss / Close 'X' Button */}
+                {headerSettings?.banner_closeable !== false && (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDismissBanner();
+                        }}
+                        className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-4 w-6 h-6 rounded-full bg-black/40 hover:bg-black/75 text-white flex items-center justify-center transition-all cursor-pointer z-30 backdrop-blur-xs"
+                        title="ব্যানার বন্ধ করুন (Close Banner)"
+                        aria-label="Close banner"
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
+                )}
+            </div>
+        )}
     </div>
     );
 };

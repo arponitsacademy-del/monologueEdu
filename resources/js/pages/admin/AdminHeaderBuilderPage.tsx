@@ -25,7 +25,10 @@ import {
     Bell,
     Check,
     Palette,
-    ChevronDown
+    ChevronDown,
+    ChevronRight,
+    X,
+    PhoneCall
 } from 'lucide-react';
 
 const DEFAULT_HEADER_SETTINGS: HeaderSettings = {
@@ -47,6 +50,23 @@ const DEFAULT_HEADER_SETTINGS: HeaderSettings = {
     cta_button_text: 'ফ্রি ক্লাস',
     cta_button_text_en: 'Free Classes',
     cta_button_link: '/courses?type=free',
+    banner_enabled: false,
+    banner_mode: 'image',
+    banner_image_url: null,
+    banner_link: '/courses',
+    banner_link_open_new_tab: false,
+    banner_bg_color: '#8a0000',
+    banner_text_color: '#ffffff',
+    banner_title: 'নতুন ব্যাচে প্রথম ক্লাস একদম ফ্রি!',
+    banner_subtitle: 'রেজিস্ট্রার করতে এখনই জয়েন করুন',
+    banner_btn_text: 'ক্লিক করুন',
+    banner_btn_link: '/courses',
+    banner_btn_bg: '#16a34a',
+    banner_btn_text_color: '#ffffff',
+    banner_secondary_text: 'কল করুন ১৬৯১০',
+    banner_secondary_link: 'tel:16910',
+    banner_closeable: true,
+    banner_show_on: 'all',
     menu_items: [
         {
             id: '1',
@@ -113,15 +133,18 @@ export const AdminHeaderBuilderPage: React.FC = () => {
     const { settings, refreshSettings, updateSettingsLocally } = useSettings();
 
     const [headerSettings, setHeaderSettings] = useState<HeaderSettings>(DEFAULT_HEADER_SETTINGS);
-    const [activeTab, setActiveTab] = useState<'branding' | 'menu' | 'announcement' | 'options'>('branding');
+    const [activeTab, setActiveTab] = useState<'branding' | 'menu' | 'banner' | 'announcement' | 'options'>('branding');
     const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
     const previewLang = 'en';
 
     const [saving, setSaving] = useState(false);
     const [uploadingLogo, setUploadingLogo] = useState(false);
+    const [uploadingBanner, setUploadingBanner] = useState(false);
+    const [mediaPickerTarget, setMediaPickerTarget] = useState<'logo' | 'banner'>('logo');
     const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const logoFileInputRef = useRef<HTMLInputElement>(null);
+    const bannerFileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         if (settings?.header_settings) {
@@ -172,6 +195,26 @@ export const AdminHeaderBuilderPage: React.FC = () => {
         } finally {
             setUploadingLogo(false);
             if (logoFileInputRef.current) logoFileInputRef.current.value = '';
+        }
+    };
+
+    const handleBannerUpload = async (file: File) => {
+        setUploadingBanner(true);
+        const formData = new FormData();
+        formData.append('file', file);
+        try {
+            const res = await apiClient.post('/admin/media', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            if (res.data?.media?.url) {
+                handleUpdate('banner_image_url', res.data.media.url);
+                handleUpdate('banner_mode', 'image');
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to upload banner image.');
+        } finally {
+            setUploadingBanner(false);
+            if (bannerFileInputRef.current) bannerFileInputRef.current.value = '';
         }
     };
 
@@ -451,6 +494,70 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                             )}
                         </div>
                     </div>
+
+                    {/* Sub-Header Banner Live Preview (10MS Style) */}
+                    {headerSettings.banner_enabled && (
+                        <div
+                            style={{
+                                backgroundColor: headerSettings.banner_bg_color || '#8a0000',
+                                color: headerSettings.banner_text_color || '#ffffff',
+                            }}
+                            className="relative overflow-hidden w-full transition-all border-t border-black/10 select-none"
+                        >
+                            {headerSettings.banner_mode !== 'text' && headerSettings.banner_image_url ? (
+                                <div className="relative w-full h-[55px] sm:h-[70px] flex items-center justify-center overflow-hidden">
+                                    <img
+                                        src={headerSettings.banner_image_url}
+                                        alt="Banner Preview"
+                                        className="w-full h-full object-cover sm:object-contain object-center"
+                                    />
+                                </div>
+                            ) : (
+                                <div className="px-4 py-2 sm:py-2.5 max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs sm:text-sm">
+                                    <div className="flex items-center gap-2 truncate pr-6 sm:pr-0">
+                                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                                        <span className="font-extrabold truncate text-white">
+                                            {headerSettings.banner_title || 'নতুন ব্যাচে প্রথম ক্লাস একদম ফ্রি!'}
+                                        </span>
+                                        {headerSettings.banner_subtitle && (
+                                            <span className="hidden md:inline text-xs opacity-90 truncate font-medium text-white/90">
+                                                • {headerSettings.banner_subtitle}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        {headerSettings.banner_btn_text && (
+                                            <span
+                                                style={{
+                                                    backgroundColor: headerSettings.banner_btn_bg || '#16a34a',
+                                                    color: headerSettings.banner_btn_text_color || '#ffffff',
+                                                }}
+                                                className="px-3 py-1 sm:px-3.5 sm:py-1 rounded-lg text-xs font-bold shadow-xs flex items-center gap-1"
+                                            >
+                                                <span>{headerSettings.banner_btn_text}</span>
+                                                <ChevronRight className="w-3 h-3" />
+                                            </span>
+                                        )}
+                                        {headerSettings.banner_secondary_text && (
+                                            <span className="hidden lg:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-600/90 text-white text-[11px] font-bold">
+                                                <PhoneCall className="w-3 h-3" />
+                                                <span>{headerSettings.banner_secondary_text}</span>
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {headerSettings.banner_closeable !== false && (
+                                <div
+                                    className="absolute top-1/2 -translate-y-1/2 right-2 sm:right-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-black/40 text-white flex items-center justify-center text-xs opacity-80 z-10"
+                                    title="Close button preview"
+                                >
+                                    <X className="w-3 h-3" />
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -481,6 +588,21 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                     >
                         <Layers className="w-4 h-4" />
                         <span>Navigation Menu ({headerSettings.menu_items?.length || 0})</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setActiveTab('banner')}
+                        className={`px-6 py-4 text-xs font-bold transition flex items-center gap-2 border-b-2 whitespace-nowrap cursor-pointer ${
+                            activeTab === 'banner'
+                                ? 'border-sky-600 text-sky-600 bg-white'
+                                : 'border-transparent text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                        <Sparkles className="w-4 h-4 text-amber-500" />
+                        <span>Header Banner (10MS Style)</span>
+                        {headerSettings.banner_enabled && (
+                            <span className="w-2 h-2 rounded-full bg-emerald-500" title="Active"></span>
+                        )}
                     </button>
                     <button
                         type="button"
@@ -561,7 +683,10 @@ export const AdminHeaderBuilderPage: React.FC = () => {
 
                                             <button
                                                 type="button"
-                                                onClick={() => setIsMediaModalOpen(true)}
+                                                onClick={() => {
+                                                    setMediaPickerTarget('logo');
+                                                    setIsMediaModalOpen(true);
+                                                }}
                                                 className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl text-xs font-bold border border-slate-200 transition cursor-pointer"
                                             >
                                                 <ImageIcon className="w-4 h-4 text-slate-600" />
@@ -843,6 +968,435 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                         </div>
                     )}
 
+                    {/* TAB: 10 MINUTE SCHOOL STYLE HEADER BANNER */}
+                    {activeTab === 'banner' && (
+                        <div className="space-y-6">
+                            {/* Master Toggle */}
+                            <div className="flex items-center justify-between p-5 rounded-2xl bg-gradient-to-r from-amber-500/10 via-sky-500/5 to-transparent border border-amber-200/80">
+                                <div>
+                                    <div className="flex items-center gap-2">
+                                        <h4 className="text-sm font-bold text-slate-900">
+                                            10 Minute School স্টাইল হেডার ব্যানার চালু করুন
+                                        </h4>
+                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-500 text-white shadow-xs">
+                                            10MS Style
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        ওয়েবসাইটের হেডারের ঠিক নিচে একটি স্লিম ও আকর্ষণীয় প্রমোশনাল ব্যানার প্রদর্শন করবে।
+                                    </p>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                                    <input
+                                        type="checkbox"
+                                        checked={Boolean(headerSettings.banner_enabled)}
+                                        onChange={(e) => handleUpdate('banner_enabled', e.target.checked)}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-12 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-600"></div>
+                                </label>
+                            </div>
+
+                            {headerSettings.banner_enabled && (
+                                <div className="space-y-6">
+                                    {/* Banner Mode Selector */}
+                                    <div>
+                                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                                            ব্যানারের ধরন নির্বাচন করুন (Banner Type)
+                                        </label>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {/* Option A: Image Banner */}
+                                            <div
+                                                onClick={() => handleUpdate('banner_mode', 'image')}
+                                                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                                                    headerSettings.banner_mode !== 'text'
+                                                        ? 'border-sky-600 bg-sky-50/50 shadow-xs'
+                                                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <ImageIcon className="w-4 h-4 text-sky-600" />
+                                                        <span className="text-sm font-bold text-slate-900">ছবি / ব্যানার গ্রাফিক্স (Image Banner)</span>
+                                                    </div>
+                                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                                                        headerSettings.banner_mode !== 'text' ? 'border-sky-600 bg-sky-600' : 'border-slate-300'
+                                                    }`}>
+                                                        {headerSettings.banner_mode !== 'text' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-slate-500">
+                                                    10 Minute School-এর মতো কাস্টম ডিজাইন করা স্লিম ব্যানার ছবি আপলোড করুন।
+                                                </p>
+                                            </div>
+
+                                            {/* Option B: Custom Text & Background Color */}
+                                            <div
+                                                onClick={() => handleUpdate('banner_mode', 'text')}
+                                                className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                                                    headerSettings.banner_mode === 'text'
+                                                        ? 'border-sky-600 bg-sky-50/50 shadow-xs'
+                                                        : 'border-slate-200 hover:border-slate-300 bg-white'
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between mb-1.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <Palette className="w-4 h-4 text-emerald-600" />
+                                                        <span className="text-sm font-bold text-slate-900">ব্যাকগ্রাউন্ড কালার ও টেক্সট (Color & Text)</span>
+                                                    </div>
+                                                    <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                                                        headerSettings.banner_mode === 'text' ? 'border-sky-600 bg-sky-600' : 'border-slate-300'
+                                                    }`}>
+                                                        {headerSettings.banner_mode === 'text' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                                    </div>
+                                                </div>
+                                                <p className="text-xs text-slate-500">
+                                                    কোনো ছবি ছাড়া ব্যাকগ্রাউন্ড কালার পছন্দ করে কাস্টম টেক্সট ও বাটন তৈরি করুন।
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* MODE 1: IMAGE BANNER CONFIG */}
+                                    {headerSettings.banner_mode !== 'text' && (
+                                        <div className="space-y-5 p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                                            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                                                <ImageIcon className="w-4 h-4 text-sky-600" />
+                                                <span>ব্যানার ছবি আপলোড ও কনফিগারেশন</span>
+                                            </h4>
+
+                                            {/* Banner Image Preview / Upload Box */}
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                                    ব্যানার ইমেজ (Banner Graphic)
+                                                </label>
+                                                {headerSettings.banner_image_url ? (
+                                                    <div className="relative rounded-2xl border border-slate-200 p-2 bg-slate-900 overflow-hidden group">
+                                                        <div className="h-20 sm:h-24 w-full flex items-center justify-center overflow-hidden rounded-xl">
+                                                            <img
+                                                                src={headerSettings.banner_image_url}
+                                                                alt="Header Banner"
+                                                                className="w-full h-full object-contain"
+                                                            />
+                                                        </div>
+                                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-3 transition-opacity">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => bannerFileInputRef.current?.click()}
+                                                                className="px-3 py-1.5 bg-white text-slate-900 rounded-lg text-xs font-bold shadow hover:bg-slate-100 cursor-pointer"
+                                                            >
+                                                                Change Image
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setMediaPickerTarget('banner');
+                                                                    setIsMediaModalOpen(true);
+                                                                }}
+                                                                className="px-3 py-1.5 bg-sky-600 text-white rounded-lg text-xs font-bold shadow hover:bg-sky-500 cursor-pointer"
+                                                            >
+                                                                Media Library
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => handleUpdate('banner_image_url', null)}
+                                                                className="px-3 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-bold shadow hover:bg-rose-500 cursor-pointer"
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="border-2 border-dashed border-slate-200 hover:border-sky-400 rounded-2xl p-6 text-center transition-colors bg-slate-50/50">
+                                                        <UploadCloud className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                                                        <p className="text-xs font-bold text-slate-700 mb-1">
+                                                            আপনার ব্যানার ছবি আপলোড করুন
+                                                        </p>
+                                                        <p className="text-[11px] text-slate-400 mb-3">
+                                                            প্রস্তাবিত সাইজ: ১২০০×১২০ বা ১৯২০×১৫০ পিক্সেল (স্লিম অনুপাত)
+                                                        </p>
+                                                        <div className="flex items-center justify-center gap-2">
+                                                            <button
+                                                                type="button"
+                                                                disabled={uploadingBanner}
+                                                                onClick={() => bannerFileInputRef.current?.click()}
+                                                                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                                                            >
+                                                                {uploadingBanner ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UploadCloud className="w-3.5 h-3.5" />}
+                                                                <span>Upload from PC</span>
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setMediaPickerTarget('banner');
+                                                                    setIsMediaModalOpen(true);
+                                                                }}
+                                                                className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5 border border-slate-200 cursor-pointer"
+                                                            >
+                                                                <ImageIcon className="w-3.5 h-3.5" />
+                                                                <span>Media Library</span>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                <input
+                                                    ref={bannerFileInputRef}
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) handleBannerUpload(file);
+                                                    }}
+                                                    className="hidden"
+                                                />
+                                            </div>
+
+                                            {/* Banner Click Link & Edge Color */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                                                        ব্যানার ক্লিক লিংক (Click URL)
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={headerSettings.banner_link || ''}
+                                                        onChange={(e) => handleUpdate('banner_link', e.target.value)}
+                                                        placeholder="e.g. /courses or https://..."
+                                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                                    />
+                                                    <span className="text-[11px] text-slate-400 mt-1 block">
+                                                        ভিজিটর ব্যানারে ক্লিক করলে এই লিংকে রিডাইরেক্ট হবে।
+                                                    </span>
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                                                        ব্যাকগ্রাউন্ড কালার (Edge Fill Background Color)
+                                                    </label>
+                                                    <div className="flex items-center gap-2">
+                                                        <input
+                                                            type="color"
+                                                            value={headerSettings.banner_bg_color || '#8a0000'}
+                                                            onChange={(e) => handleUpdate('banner_bg_color', e.target.value)}
+                                                            className="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-0.5"
+                                                        />
+                                                        <input
+                                                            type="text"
+                                                            value={headerSettings.banner_bg_color || '#8a0000'}
+                                                            onChange={(e) => handleUpdate('banner_bg_color', e.target.value)}
+                                                            className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs font-mono text-slate-800 uppercase focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                                        />
+                                                    </div>
+                                                    <span className="text-[11px] text-slate-400 mt-1 block">
+                                                        ব্যানার ছবির দুই পাশের খালি অংশ এই কালারে ফিল হবে (যেমন: লাল #8a0000)।
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* MODE 2: CUSTOM TEXT & COLOR CONFIG */}
+                                    {headerSettings.banner_mode === 'text' && (
+                                        <div className="space-y-5 p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
+                                            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                                                <Palette className="w-4 h-4 text-emerald-600" />
+                                                <span>ব্যাকগ্রাউন্ড কালার ও টেক্সট কনফিগারেশন</span>
+                                            </h4>
+
+                                            {/* Background Color Presets */}
+                                            <div>
+                                                <label className="block text-xs font-bold text-slate-700 mb-2">
+                                                    ব্যাকগ্রাউন্ড কালার নির্ধারণ করুন (Background Color)
+                                                </label>
+                                                <div className="flex flex-wrap items-center gap-2 mb-3">
+                                                    {[
+                                                        { label: '10MS Crimson Red', color: '#8a0000' },
+                                                        { label: 'Deep Maroon', color: '#680000' },
+                                                        { label: 'Royal Blue', color: '#1e40af' },
+                                                        { label: 'Sky Blue', color: '#0284c7' },
+                                                        { label: 'Emerald Green', color: '#065f46' },
+                                                        { label: 'Dark Slate', color: '#0f172a' },
+                                                        { label: 'Deep Purple', color: '#581c87' },
+                                                    ].map((preset) => (
+                                                        <button
+                                                            key={preset.color}
+                                                            type="button"
+                                                            onClick={() => handleUpdate('banner_bg_color', preset.color)}
+                                                            style={{ backgroundColor: preset.color }}
+                                                            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold text-white flex items-center gap-1.5 shadow-xs border transition-all cursor-pointer ${
+                                                                headerSettings.banner_bg_color === preset.color
+                                                                    ? 'ring-2 ring-offset-2 ring-sky-500 border-white'
+                                                                    : 'border-transparent opacity-90 hover:opacity-100'
+                                                            }`}
+                                                        >
+                                                            {headerSettings.banner_bg_color === preset.color && <Check className="w-3 h-3" />}
+                                                            <span>{preset.label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                <div className="flex items-center gap-2 max-w-xs">
+                                                    <input
+                                                        type="color"
+                                                        value={headerSettings.banner_bg_color || '#8a0000'}
+                                                        onChange={(e) => handleUpdate('banner_bg_color', e.target.value)}
+                                                        className="w-10 h-10 rounded-xl border border-slate-200 cursor-pointer p-0.5"
+                                                    />
+                                                    <input
+                                                        type="text"
+                                                        value={headerSettings.banner_bg_color || '#8a0000'}
+                                                        onChange={(e) => handleUpdate('banner_bg_color', e.target.value)}
+                                                        className="flex-1 px-3.5 py-2 rounded-xl border border-slate-200 text-xs font-mono uppercase"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Title & Subtitle */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                                                        প্রধান টেক্সট / শিরোনাম (Headline)
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={headerSettings.banner_title || ''}
+                                                        onChange={(e) => handleUpdate('banner_title', e.target.value)}
+                                                        placeholder="e.g. নতুন ব্যাচে প্রথম ক্লাস একদম ফ্রি!"
+                                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                                                        সাবটাইটেল / বিবরণ (Subtitle)
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={headerSettings.banner_subtitle || ''}
+                                                        onChange={(e) => handleUpdate('banner_subtitle', e.target.value)}
+                                                        placeholder="e.g. রেজিস্ট্রার করতে এখনই জয়েন করুন"
+                                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* CTA Button Settings */}
+                                            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                                                <span className="text-xs font-bold text-slate-700 block">
+                                                    অ্যাকশন বাটন সেটিংস (Call to Action Button)
+                                                </span>
+                                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                                    <div>
+                                                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">বাটন টেক্সট</label>
+                                                        <input
+                                                            type="text"
+                                                            value={headerSettings.banner_btn_text || ''}
+                                                            onChange={(e) => handleUpdate('banner_btn_text', e.target.value)}
+                                                            placeholder="e.g. ক্লিক করুন"
+                                                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">বাটন লিংক</label>
+                                                        <input
+                                                            type="text"
+                                                            value={headerSettings.banner_btn_link || ''}
+                                                            onChange={(e) => handleUpdate('banner_btn_link', e.target.value)}
+                                                            placeholder="e.g. /courses"
+                                                            className="w-full px-3 py-2 rounded-lg border border-slate-200 text-xs"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">বাটন কালার</label>
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="color"
+                                                                value={headerSettings.banner_btn_bg || '#16a34a'}
+                                                                onChange={(e) => handleUpdate('banner_btn_bg', e.target.value)}
+                                                                className="w-8 h-8 rounded-lg border border-slate-200 cursor-pointer p-0.5"
+                                                            />
+                                                            <input
+                                                                type="text"
+                                                                value={headerSettings.banner_btn_bg || '#16a34a'}
+                                                                onChange={(e) => handleUpdate('banner_btn_bg', e.target.value)}
+                                                                className="flex-1 px-2.5 py-1.5 rounded-lg border border-slate-200 text-xs font-mono uppercase"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Secondary Hotline Badge (Like 10MS "কল করুন ১৬৯১০") */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                                                        হটলাইন / সেকেন্ডারি টেক্সট (যেমন: কল করুন ১৬৯১০)
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={headerSettings.banner_secondary_text || ''}
+                                                        onChange={(e) => handleUpdate('banner_secondary_text', e.target.value)}
+                                                        placeholder="e.g. কল করুন ১৬৯১০"
+                                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-xs font-bold text-slate-700 mb-1">
+                                                        হটলাইন লিংক / ফোন নম্বর
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={headerSettings.banner_secondary_link || ''}
+                                                        onChange={(e) => handleUpdate('banner_secondary_link', e.target.value)}
+                                                        placeholder="e.g. tel:16910"
+                                                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* COMMON BANNER OPTIONS */}
+                                    <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-2xs space-y-4">
+                                        <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                            ডিসপ্লে ও দৃশ্যমানতার সেটিংস (Visibility Settings)
+                                        </h4>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <label className="flex items-center gap-3 cursor-pointer p-3.5 rounded-xl border border-slate-200 hover:bg-slate-50">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={headerSettings.banner_closeable !== false}
+                                                    onChange={(e) => handleUpdate('banner_closeable', e.target.checked)}
+                                                    className="w-4 h-4 text-sky-600 rounded border-slate-300 focus:ring-sky-500 cursor-pointer"
+                                                />
+                                                <div>
+                                                    <span className="text-xs font-bold text-slate-800 block">
+                                                        ক্রস (X) বাটন দিয়ে বন্ধ করার সুযোগ দিন
+                                                    </span>
+                                                    <span className="text-[11px] text-slate-500 block">
+                                                        ভিজিটর ব্যানারের ক্রস বাটনে চাপলে ব্যানারটি বন্ধ করতে পারবে।
+                                                    </span>
+                                                </div>
+                                            </label>
+
+                                            <div className="p-3.5 rounded-xl border border-slate-200 space-y-1">
+                                                <span className="text-xs font-bold text-slate-800 block">
+                                                    ব্যানার প্রদর্শনের স্থান
+                                                </span>
+                                                <select
+                                                    value={headerSettings.banner_show_on || 'all'}
+                                                    onChange={(e) => handleUpdate('banner_show_on', e.target.value as any)}
+                                                    className="w-full px-3 py-1.5 rounded-lg border border-slate-200 text-xs text-slate-800 bg-white"
+                                                >
+                                                    <option value="all">সকল পাবলিক পেজে দেখাবে (All Public Pages)</option>
+                                                    <option value="home">শুধুমাত্র হোম পেজে দেখাবে (Home Page Only)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {/* TAB 3: ANNOUNCEMENT BAR */}
                     {activeTab === 'announcement' && (
                         <div className="space-y-5">
@@ -1017,9 +1571,14 @@ export const AdminHeaderBuilderPage: React.FC = () => {
                 isOpen={isMediaModalOpen}
                 onClose={() => setIsMediaModalOpen(false)}
                 filterType="image"
-                title="Select Logo Image"
+                title={mediaPickerTarget === 'logo' ? 'Select Logo Image' : 'Select Banner Image'}
                 onSelect={(url) => {
-                    handleUpdate('logo_url', url);
+                    if (mediaPickerTarget === 'logo') {
+                        handleUpdate('logo_url', url);
+                    } else {
+                        handleUpdate('banner_image_url', url);
+                        handleUpdate('banner_mode', 'image');
+                    }
                     setIsMediaModalOpen(false);
                 }}
             />

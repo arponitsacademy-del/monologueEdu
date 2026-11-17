@@ -218,6 +218,25 @@ export interface HeaderSettings {
     cta_button_text_en?: string;
     cta_button_link?: string;
     menu_items?: HeaderMenuItem[];
+
+    // 10 Minute School Style Sub-Header Banner
+    banner_enabled?: boolean;
+    banner_mode?: 'image' | 'text';
+    banner_image_url?: string | null;
+    banner_link?: string;
+    banner_link_open_new_tab?: boolean;
+    banner_bg_color?: string;
+    banner_text_color?: string;
+    banner_title?: string;
+    banner_subtitle?: string;
+    banner_btn_text?: string;
+    banner_btn_link?: string;
+    banner_btn_bg?: string;
+    banner_btn_text_color?: string;
+    banner_secondary_text?: string;
+    banner_secondary_link?: string;
+    banner_closeable?: boolean;
+    banner_show_on?: 'all' | 'home';
 }
 
 export interface FooterLink {
