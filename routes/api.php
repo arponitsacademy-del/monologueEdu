@@ -157,7 +157,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('exams')->middleware('role:teacher,admin')->group(function () {
         Route::get('/', [ExamController::class, 'index']);
         Route::get('/courses-list', [ExamController::class, 'coursesList']);
-        Route::get('/csv-template', [ExamBuilderController::class, 'downloadCsvTemplate']);
         Route::post('/upload-attachment', [ExamSubmissionController::class, 'uploadAnswerAttachment']);
         Route::post('/', [ExamController::class, 'store']);
         Route::get('/{exam}', [ExamController::class, 'show']);
