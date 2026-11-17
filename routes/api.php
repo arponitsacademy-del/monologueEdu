@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AdminCategoryController;
 use App\Http\Controllers\Api\AdminCourseController;
+use App\Http\Controllers\Api\AdminAccessKeyController;
 use App\Http\Controllers\Api\AdminUserController;
 use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\AuthController;
@@ -291,6 +292,14 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('targets/{type}/{id}/students', [AdminManualEnrollmentController::class, 'getTargetStudents']);
             Route::delete('enrollment/{id}', [AdminManualEnrollmentController::class, 'removeEnrollment']);
             Route::post('bulk-remove', [AdminManualEnrollmentController::class, 'bulkRemove']);
+        });
+
+        // Course Access Keys Management & Student Verification
+        Route::prefix('access-keys')->group(function () {
+            Route::get('courses', [AdminAccessKeyController::class, 'courses']);
+            Route::get('courses/{courseId}', [AdminAccessKeyController::class, 'courseStudents']);
+            Route::get('verify', [AdminAccessKeyController::class, 'verify']);
+            Route::post('{enrollmentId}/regenerate', [AdminAccessKeyController::class, 'regenerate']);
         });
 
         // User Management

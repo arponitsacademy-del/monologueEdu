@@ -72,9 +72,25 @@ class PublicCourseController extends Controller
             ->published()
             ->firstOrFail();
 
+        $user = auth('sanctum')->user();
+        $isEnrolled = false;
+        $accessKey = null;
+
+        if ($user && $user->isEnrolledIn($course->id)) {
+            $isEnrolled = true;
+            $enrollment = $user->enrollments()
+                ->where('course_id', $course->id)
+                ->where('status', \App\Models\Enrollment::STATUS_ACTIVE)
+                ->first();
+            if ($enrollment) {
+                $accessKey = $enrollment->getOrGenerateAccessKey();
+            }
+        }
+
         return response()->json([
             'course' => $course,
-            'is_enrolled' => auth('sanctum')->check() && auth('sanctum')->user()->isEnrolledIn($course->id),
+            'is_enrolled' => $isEnrolled,
+            'access_key' => $accessKey,
         ]);
     }
 

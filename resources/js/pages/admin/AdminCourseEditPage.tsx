@@ -25,7 +25,8 @@ import {
     Tag,
     Clock,
     Sparkles,
-    PlayCircle
+    PlayCircle,
+    Key
 } from 'lucide-react';
 
 const DEFAULT_FEATURES = [
@@ -41,6 +42,7 @@ export interface CourseActionButton {
     type: 'file' | 'link';
     url: string;
     file_name?: string;
+    requires_access_key?: boolean;
 }
 
 export const AdminCourseEditPage: React.FC = () => {
@@ -128,6 +130,7 @@ export const AdminCourseEditPage: React.FC = () => {
             label: 'কোর্স আউটলাইন',
             type: 'link',
             url: '',
+            requires_access_key: false,
         };
         setActionButtons([...actionButtons, newBtn]);
     };
@@ -810,6 +813,31 @@ export const AdminCourseEditPage: React.FC = () => {
                                             />
                                         </div>
                                     )}
+
+                                    {/* Access Key Option */}
+                                    <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                                            <input
+                                                type="checkbox"
+                                                checked={Boolean(btn.requires_access_key)}
+                                                onChange={(e) => handleUpdateButton(btn.id, { requires_access_key: e.target.checked })}
+                                                className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
+                                            />
+                                            <span className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                                                <Key className="w-3.5 h-3.5 text-amber-500" />
+                                                <span>এই বাটনের জন্য শিক্ষার্থীর অ্যাক্সেস কি (Access Key) প্রয়োজন?</span>
+                                            </span>
+                                        </label>
+                                        {btn.requires_access_key ? (
+                                            <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 shrink-0">
+                                                🔑 অ্যাক্সেস কি সক্রিয় (Verification Key On)
+                                            </span>
+                                        ) : (
+                                            <span className="text-[11px] text-slate-400">
+                                                কোনো কি ছাড়াই সরাসরি ওপেন হবে
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             ))}
 

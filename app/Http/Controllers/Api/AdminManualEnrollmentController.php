@@ -629,6 +629,7 @@ class AdminManualEnrollmentController extends Controller
                 'enrollment_id' => $enr->id,
                 'user_id' => $enr->user_id,
                 'user' => $enr->user,
+                'access_key' => $enr->getOrGenerateAccessKey(),
                 'enrolled_at' => $enr->enrolled_at?->toISOString() ?? $enr->created_at?->toISOString() ?? (string) $enr->created_at,
                 'status' => $enr->status,
                 'order_number' => $enr->order?->order_number ?? 'MANUAL-' . $enr->id,

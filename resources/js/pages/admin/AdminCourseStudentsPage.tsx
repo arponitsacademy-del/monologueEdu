@@ -25,7 +25,9 @@ import {
     Check, 
     Send,
     ExternalLink,
-    UserMinus
+    UserMinus,
+    KeyRound,
+    Copy
 } from 'lucide-react';
 
 interface TargetItem {
@@ -57,6 +59,7 @@ interface StudentRecord {
     };
     enrolled_at: string;
     status: string;
+    access_key?: string | null;
     order_number?: string | null;
     payment_method?: string | null;
 }
@@ -96,6 +99,13 @@ export const AdminCourseStudentsPage: React.FC = () => {
         last_page: 1,
         per_page: 50,
     });
+    const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+    const handleCopyKey = (key: string) => {
+        navigator.clipboard.writeText(key);
+        setCopiedKey(key);
+        setTimeout(() => setCopiedKey(null), 2000);
+    };
 
     // Bulk selection & Revoke state
     const [selectedEnrollmentIds, setSelectedEnrollmentIds] = useState<number[]>([]);
@@ -693,6 +703,7 @@ export const AdminCourseStudentsPage: React.FC = () => {
                                             <th className="py-3.5 px-4">শিক্ষার্থী (Student)</th>
                                             <th className="py-3.5 px-4">যোগাযোগ (Contact)</th>
                                             <th className="py-3.5 px-4">রেজিস্ট্রেশন রোল</th>
+                                            <th className="py-3.5 px-4">অ্যাক্সেস কি (Access Key)</th>
                                             <th className="py-3.5 px-4">এনরোলমেন্টের তারিখ</th>
                                             <th className="py-3.5 px-4">স্ট্যাটাস</th>
                                             <th className="py-3.5 px-4 text-right">অ্যাকশন</th>
@@ -757,6 +768,30 @@ export const AdminCourseStudentsPage: React.FC = () => {
                                                         <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                                                             {student.user.registration_number || `ME-2026-${student.user_id}`}
                                                         </span>
+                                                    </td>
+                                                    <td className="py-3.5 px-4">
+                                                        {student.access_key ? (
+                                                            <div className="inline-flex items-center gap-1.5 bg-sky-50 dark:bg-sky-950/50 border border-sky-200 dark:border-sky-800/60 px-2.5 py-1 rounded-lg">
+                                                                <KeyRound className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
+                                                                <span className="font-mono font-bold text-xs text-sky-700 dark:text-sky-300 select-all">
+                                                                    {student.access_key}
+                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleCopyKey(student.access_key!)}
+                                                                    className="p-1 hover:bg-white dark:hover:bg-slate-800 rounded transition-colors text-slate-500 hover:text-sky-600 cursor-pointer"
+                                                                    title="অ্যাক্সেস কি কপি করুন"
+                                                                >
+                                                                    {copiedKey === student.access_key ? (
+                                                                        <Check className="w-3 h-3 text-emerald-600" />
+                                                                    ) : (
+                                                                        <Copy className="w-3 h-3" />
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-xs text-slate-400 font-mono">—</span>
+                                                        )}
                                                     </td>
                                                     <td className="py-3.5 px-4 text-xs text-slate-600 dark:text-slate-400 whitespace-nowrap">
                                                         {new Date(student.enrolled_at).toLocaleDateString('bn-BD', {

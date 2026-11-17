@@ -103,6 +103,7 @@ class EnrollmentController extends Controller
 
             return [
                 'course' => $course,
+                'access_key' => $enrollment->getOrGenerateAccessKey(),
                 'enrolled_at' => $enrollment->enrolled_at,
                 'total_lessons' => $totalLessons,
                 'completed_lessons' => $completedCount,

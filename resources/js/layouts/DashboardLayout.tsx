@@ -37,7 +37,8 @@ import {
     TicketPercent,
     Megaphone,
     Loader2,
-    Trash2
+    Trash2,
+    KeyRound
 } from 'lucide-react';
 
 export const DashboardLayout: React.FC = () => {
@@ -157,7 +158,14 @@ export const DashboardLayout: React.FC = () => {
                         { title: t.sidebar.courseCategories, path: '/admin/courses/categories', permission: 'courses.categories' },
                         { title: 'Manual Enrollment', path: '/admin/courses/manual-enrollment', permission: 'courses.view' },
                         { title: 'Student', path: '/admin/courses/students', permission: 'courses.view' },
+                        { title: 'Access Keys', path: '/admin/access-keys', permission: 'courses.view' },
                     ]
+                },
+                { 
+                    title: 'Access Key (অ্যাক্সেস কি)', 
+                    path: '/admin/access-keys', 
+                    icon: KeyRound,
+                    permission: 'courses.view' 
                 },
                 { 
                     title: 'NexPilot', 

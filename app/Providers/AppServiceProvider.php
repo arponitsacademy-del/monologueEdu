@@ -29,7 +29,8 @@ class AppServiceProvider extends ServiceProvider
             if (! \Illuminate\Support\Facades\Schema::hasTable('course_purchase_sms_settings') || 
                 ! \Illuminate\Support\Facades\Schema::hasTable('course_bundles') ||
                 ! \Illuminate\Support\Facades\Schema::hasTable('coupons') ||
-                ! \Illuminate\Support\Facades\Schema::hasColumn('courses', 'deleted_at')) {
+                ! \Illuminate\Support\Facades\Schema::hasColumn('courses', 'deleted_at') ||
+                ! \Illuminate\Support\Facades\Schema::hasColumn('enrollments', 'access_key')) {
                 \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
             }
         } catch (\Throwable $e) {

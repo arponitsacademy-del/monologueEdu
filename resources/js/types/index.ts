@@ -78,9 +78,10 @@ export interface Course {
     action_buttons?: {
         id: string;
         label: string;
-        type: 'upload' | 'link';
+        type: 'upload' | 'link' | 'file';
         url: string;
         file_name?: string;
+        requires_access_key?: boolean;
     }[] | null;
     coupon_code?: string | null;
     coupon_discount_text?: string | null;

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 class Enrollment extends Model
 {
@@ -18,6 +19,7 @@ class Enrollment extends Model
         'has_nexpilot',
         'nexpilot_id',
         'status',
+        'access_key',
         'enrolled_at',
         'expires_at',
     ];
@@ -27,6 +29,38 @@ class Enrollment extends Model
         'enrolled_at' => 'datetime',
         'expires_at' => 'datetime',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($enrollment) {
+            if (empty($enrollment->access_key)) {
+                $enrollment->access_key = self::generateUniqueAccessKey();
+            }
+        });
+    }
+
+    public static function generateUniqueAccessKey(): string
+    {
+        do {
+            $key = 'MN-' . strtoupper(Str::random(4)) . '-' . strtoupper(Str::random(4));
+        } while (self::where('access_key', $key)->exists());
+
+        return $key;
+    }
+
+    public function getOrGenerateAccessKey(): string
+    {
+        if (!empty($this->access_key)) {
+            return $this->access_key;
+        }
+
+        $key = self::generateUniqueAccessKey();
+        $this->update(['access_key' => $key]);
+
+        return $key;
+    }
 
     public function user(): BelongsTo
     {
