@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { apiClient } from '../../api/client';
 import { CustomPage, PageBlock, BlockType, CourseTabItem, Category } from '../../types';
@@ -320,6 +320,27 @@ export const AdminPageBuilderPage: React.FC = () => {
 
     // Device preview: desktop (100%), tablet (768px), mobile (375px)
     const [deviceView, setDeviceView] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+
+    // Canvas scroll ref & smooth scroll helpers
+    const mainCanvasRef = useRef<HTMLElement>(null);
+
+    const scrollToBottom = () => {
+        if (mainCanvasRef.current) {
+            mainCanvasRef.current.scrollTo({
+                top: mainCanvasRef.current.scrollHeight,
+                behavior: 'smooth',
+            });
+        }
+    };
+
+    const scrollToTop = () => {
+        if (mainCanvasRef.current) {
+            mainCanvasRef.current.scrollTo({
+                top: 0,
+                behavior: 'smooth',
+            });
+        }
+    };
 
     // Sidebar state: 'widgets' | 'inspector' | 'css'
     const [activeSidebarTab, setActiveSidebarTab] = useState<'widgets' | 'inspector' | 'css'>('widgets');
@@ -905,7 +926,7 @@ export const AdminPageBuilderPage: React.FC = () => {
 
             {/* Toast Notification */}
             {toastMessage && (
-                <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-slate-700 animate-slide-up">
+                <div className="fixed bottom-20 right-8 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2 border border-slate-700 animate-slide-up">
                     <Check className="w-4 h-4 text-emerald-400" />
                     <span className="text-sm font-medium">{toastMessage}</span>
                 </div>
@@ -1014,11 +1035,11 @@ export const AdminPageBuilderPage: React.FC = () => {
             </header>
 
             {/* ---------------- MAIN WORKSPACE ---------------- */}
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex overflow-hidden min-h-0">
                 {/* ---------------- LEFT SIDEBAR PANEL ---------------- */}
                 <aside
                     className={`${sidebarOpen ? 'w-[380px]' : 'w-0'
-                        } transition-all duration-300 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 overflow-hidden z-20`}
+                        } transition-all duration-300 bg-slate-900 border-r border-slate-800 flex flex-col shrink-0 overflow-hidden z-20 min-h-0`}
                 >
                     {/* Sidebar Tabs */}
                     <div className="flex items-center border-b border-slate-800 bg-slate-950/60 p-1.5 shrink-0">
@@ -1055,7 +1076,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                     </div>
 
                     {/* Sidebar Tab Content */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
+                    <div className="flex-1 builder-sidebar-scroll p-4 space-y-4">
                         {/* TAB 1: WIDGETS DRAWER */}
                         {activeSidebarTab === 'widgets' && (
                             <div className="space-y-4">
@@ -1865,7 +1886,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                     + Add Step
                                                                 </button>
                                                             </div>
-                                                            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                                            <div className="space-y-2 max-h-56 builder-sidebar-scroll pr-1">
                                                                 {(selectedBlock.settings.steps || []).map((step: any, sIdx: number) => (
                                                                     <div key={step.id || sIdx} className="p-2.5 bg-slate-950 rounded-lg border border-slate-800 space-y-2">
                                                                         <div className="flex items-center justify-between">
@@ -1974,7 +1995,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                     + Add Review
                                                                 </button>
                                                             </div>
-                                                            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                                            <div className="space-y-2 max-h-56 builder-sidebar-scroll pr-1">
                                                                 {(selectedBlock.settings.items || []).map((item: any, iIdx: number) => (
                                                                     <div key={item.id || iIdx} className="p-2.5 bg-slate-950 rounded-lg border border-slate-800 space-y-2">
                                                                         <div className="flex items-center justify-between">
@@ -2084,7 +2105,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                     + Add FAQ
                                                                 </button>
                                                             </div>
-                                                            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                                            <div className="space-y-2 max-h-56 builder-sidebar-scroll pr-1">
                                                                 {(selectedBlock.settings.items || []).map((faq: any, fIdx: number) => (
                                                                     <div key={faq.id || fIdx} className="p-2.5 bg-slate-950 rounded-lg border border-slate-800 space-y-2">
                                                                         <div className="flex items-center justify-between">
@@ -2182,7 +2203,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                     + Add Card
                                                                 </button>
                                                             </div>
-                                                            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                                            <div className="space-y-2 max-h-56 builder-sidebar-scroll pr-1">
                                                                 {(selectedBlock.settings.items || []).map((feat: any, idx: number) => (
                                                                     <div key={feat.id || idx} className="p-2.5 bg-slate-950 rounded-lg border border-slate-800 space-y-2">
                                                                         <div className="flex items-center justify-between">
@@ -2247,7 +2268,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                 + Add Metric
                                                             </button>
                                                         </div>
-                                                        <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                                                        <div className="space-y-2 max-h-56 builder-sidebar-scroll pr-1">
                                                             {(selectedBlock.settings.stats || []).map((stat: any, sIdx: number) => (
                                                                 <div key={sIdx} className="p-2.5 bg-slate-950 rounded-lg border border-slate-800 space-y-2">
                                                                     <div className="flex items-center justify-between">
@@ -2487,7 +2508,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                                 </div>
                                                             </div>
 
-                                                            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
+                                                            <div className="space-y-1.5 max-h-48 builder-sidebar-scroll pr-1">
                                                                 {dbCategories
                                                                     .filter(c => c.slug !== 'free-courses' && c.slug !== 'paid-courses')
                                                                     .map(cat => {
@@ -2885,7 +2906,10 @@ export const AdminPageBuilderPage: React.FC = () => {
                 </button>
 
                 {/* ---------------- CENTER CANVAS AREA ---------------- */}
-                <main className="flex-1 bg-slate-950 overflow-y-auto p-4 sm:p-6 flex flex-col items-center">
+                <main
+                    ref={mainCanvasRef}
+                    className="flex-1 min-h-0 bg-slate-950 builder-canvas-scroll p-4 sm:p-6 pb-48 flex flex-col items-center relative"
+                >
                     {/* Responsive Frame Container */}
                     <div
                         className={`transition-all duration-300 bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-800 text-slate-900 ${deviceView === 'desktop'
@@ -3048,6 +3072,33 @@ export const AdminPageBuilderPage: React.FC = () => {
                                 })}
                             </div>
                         )}
+                    </div>
+
+                    {/* Floating Quick Navigation & Scroll Controller */}
+                    <div className="fixed bottom-6 right-8 z-40 flex items-center gap-1.5 bg-slate-900/95 backdrop-blur-md border border-slate-700/80 p-1.5 rounded-2xl shadow-2xl">
+                        <button
+                            type="button"
+                            onClick={scrollToTop}
+                            className="px-2.5 py-1.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-1 text-xs font-bold"
+                            title="Scroll to Top (উপরে উঠুন)"
+                        >
+                            <ChevronUp className="w-4 h-4 text-sky-400" />
+                            <span className="hidden sm:inline">Top</span>
+                        </button>
+                        <div className="w-px h-4 bg-slate-700" />
+                        <span className="text-[11px] font-bold text-slate-400 px-1.5 hidden md:inline">
+                            {blocks.length} Sections
+                        </span>
+                        <div className="w-px h-4 bg-slate-700 hidden md:block" />
+                        <button
+                            type="button"
+                            onClick={scrollToBottom}
+                            className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white transition-colors cursor-pointer flex items-center gap-1.5 text-xs font-bold shadow-md shadow-sky-600/30"
+                            title="Scroll to Bottom (নিচে নামুন)"
+                        >
+                            <ChevronDown className="w-4 h-4 animate-bounce" />
+                            <span>Bottom</span>
+                        </button>
                     </div>
                 </main>
             </div>
