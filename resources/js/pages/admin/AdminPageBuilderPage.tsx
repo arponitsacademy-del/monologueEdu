@@ -1024,6 +1024,16 @@ export const AdminPageBuilderPage: React.FC = () => {
                     </a>
 
                     <button
+                        type="button"
+                        onClick={scrollToBottom}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-sky-300 text-xs font-bold border border-slate-700/60 transition-colors cursor-pointer"
+                        title="Scroll to bottom of canvas"
+                    >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">Scroll Down</span>
+                    </button>
+
+                    <button
                         onClick={handleSave}
                         disabled={saving}
                         className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-bold text-xs shadow-md shadow-sky-500/20 transition-all disabled:opacity-50 cursor-pointer"
@@ -1035,7 +1045,7 @@ export const AdminPageBuilderPage: React.FC = () => {
             </header>
 
             {/* ---------------- MAIN WORKSPACE ---------------- */}
-            <div className="flex-1 flex overflow-hidden min-h-0">
+            <div className="flex-1 flex overflow-hidden min-h-0 h-[calc(100vh-3.5rem)] max-h-[calc(100vh-3.5rem)]">
                 {/* ---------------- LEFT SIDEBAR PANEL ---------------- */}
                 <aside
                     className={`${sidebarOpen ? 'w-[380px]' : 'w-0'
@@ -2908,7 +2918,8 @@ export const AdminPageBuilderPage: React.FC = () => {
                 {/* ---------------- CENTER CANVAS AREA ---------------- */}
                 <main
                     ref={mainCanvasRef}
-                    className="flex-1 min-h-0 bg-slate-950 builder-canvas-scroll p-4 sm:p-6 pb-48 flex flex-col items-center relative"
+                    tabIndex={0}
+                    className="flex-1 min-h-0 h-full max-h-full bg-slate-950 builder-canvas-scroll p-4 sm:p-6 pb-64 flex flex-col items-center relative outline-none"
                 >
                     {/* Responsive Frame Container */}
                     <div
@@ -2968,14 +2979,11 @@ export const AdminPageBuilderPage: React.FC = () => {
                                     return (
                                         <React.Fragment key={block.id}>
                                             <div
-                                                draggable={true}
-                                                onDragStart={(e) => handleBlockDragStart(e, idx)}
-                                                onDragEnd={handleDragEnd}
                                                 onClick={() => {
                                                     setSelectedBlockId(block.id);
                                                     setActiveSidebarTab('inspector');
                                                 }}
-                                                className={`relative group transition-all rounded-xl overflow-hidden cursor-pointer ${isBlockBeingDragged
+                                                className={`relative group transition-all rounded-xl cursor-pointer ${isBlockBeingDragged
                                                     ? 'opacity-40 border-2 border-dashed border-sky-500 scale-[0.98]'
                                                     : isSelected
                                                         ? 'ring-3 ring-sky-500 ring-inset shadow-md'
@@ -2986,6 +2994,9 @@ export const AdminPageBuilderPage: React.FC = () => {
                                                 <div className="absolute top-2 right-2 z-30 flex items-center gap-1 bg-slate-900/95 backdrop-blur-xs text-white p-1 rounded-xl shadow-lg border border-slate-700 opacity-90 group-hover:opacity-100 transition-opacity">
                                                     {/* Drag to Reorder Handle */}
                                                     <div
+                                                        draggable={true}
+                                                        onDragStart={(e) => handleBlockDragStart(e, idx)}
+                                                        onDragEnd={handleDragEnd}
                                                         className="px-2 py-1 flex items-center gap-1 text-slate-300 hover:text-white cursor-grab active:cursor-grabbing rounded hover:bg-slate-800"
                                                         title="Drag to reorder"
                                                     >
