@@ -323,8 +323,15 @@ export const AdminPageBuilderPage: React.FC = () => {
 
     // Canvas scroll ref & smooth scroll helpers
     const mainCanvasRef = useRef<HTMLElement>(null);
+    const canvasFrameRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
+        if (canvasFrameRef.current) {
+            canvasFrameRef.current.scrollTo({
+                top: canvasFrameRef.current.scrollHeight,
+                behavior: 'smooth',
+            });
+        }
         if (mainCanvasRef.current) {
             mainCanvasRef.current.scrollTo({
                 top: mainCanvasRef.current.scrollHeight,
@@ -334,6 +341,12 @@ export const AdminPageBuilderPage: React.FC = () => {
     };
 
     const scrollToTop = () => {
+        if (canvasFrameRef.current) {
+            canvasFrameRef.current.scrollTo({
+                top: 0,
+                behavior: 'smooth',
+            });
+        }
         if (mainCanvasRef.current) {
             mainCanvasRef.current.scrollTo({
                 top: 0,
@@ -2918,18 +2931,18 @@ export const AdminPageBuilderPage: React.FC = () => {
                 {/* ---------------- CENTER CANVAS AREA ---------------- */}
                 <main
                     ref={mainCanvasRef}
-                    tabIndex={0}
-                    className="flex-1 min-h-0 h-full max-h-full bg-slate-950 builder-canvas-scroll p-4 sm:p-6 pb-64 flex flex-col items-center relative outline-none"
+                    className="flex-1 min-h-0 h-full bg-slate-950 p-3 sm:p-5 flex flex-col items-center justify-start overflow-hidden relative"
                 >
                     {/* Responsive Frame Container */}
                     <div
-                        className={`transition-all duration-300 bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-800 text-slate-900 ${deviceView === 'desktop'
+                        ref={canvasFrameRef}
+                        tabIndex={0}
+                        className={`transition-all duration-300 bg-white rounded-2xl shadow-2xl border border-slate-800 text-slate-900 flex flex-col h-[calc(100vh-5.5rem)] max-h-[calc(100vh-5.5rem)] overflow-y-scroll builder-frame-scroll relative outline-none ${deviceView === 'desktop'
                             ? 'w-full max-w-[1280px]'
                             : deviceView === 'tablet'
                                 ? 'w-[768px]'
                                 : 'w-[375px]'
                             }`}
-                        style={{ minHeight: '800px' }}
                     >
                         {blocks.length === 0 ? (
                             <div
@@ -2960,7 +2973,7 @@ export const AdminPageBuilderPage: React.FC = () => {
                                 )}
                             </div>
                         ) : (
-                            <div className="p-3 space-y-0">
+                            <div className="p-3 pb-24 space-y-0">
                                 {/* Drop Zone at Top (index 0) */}
                                 <DropZone
                                     index={0}
@@ -3081,6 +3094,34 @@ export const AdminPageBuilderPage: React.FC = () => {
                                         </React.Fragment>
                                     );
                                 })}
+
+                                {/* Bottom Action: Add New Section / Open Widgets */}
+                                <div className="py-8 my-6 text-center border-2 border-dashed border-slate-300 rounded-2xl bg-slate-50/70 hover:bg-sky-50/50 transition-colors flex flex-col items-center justify-center gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setActiveSidebarTab('widgets');
+                                                setSidebarOpen(true);
+                                            }}
+                                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-md shadow-sky-600/30 transition-all cursor-pointer"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            <span>Add New Widget (উইজেট যোগ করুন)</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={scrollToTop}
+                                            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 font-bold text-xs shadow-xs transition-colors cursor-pointer"
+                                        >
+                                            <ChevronUp className="w-4 h-4 text-sky-500" />
+                                            <span>Back to Top</span>
+                                        </button>
+                                    </div>
+                                    <p className="text-[11px] text-slate-400">
+                                        Choose from 19 widgets in the left sidebar or drag & drop anywhere onto the canvas.
+                                    </p>
+                                </div>
                             </div>
                         )}
                     </div>

@@ -96,6 +96,43 @@ body, input, textarea, select, button {
     background: #0369a1 !important;
 }
 
+/* -------------------------------------------------------------
+ * Page Builder Visual Canvas Frame Prominent Scrollbars
+ * ----------------------------------------------------------- */
+.builder-frame-scroll {
+    overflow-y: scroll !important;
+    overflow-x: hidden !important;
+    scrollbar-gutter: stable;
+    scrollbar-width: auto;
+    scrollbar-color: #0284c7 #f1f5f9;
+}
+
+.builder-frame-scroll::-webkit-scrollbar {
+    width: 14px !important;
+    height: 14px !important;
+}
+
+.builder-frame-scroll::-webkit-scrollbar-track {
+    background: #f1f5f9 !important;
+    border-left: 1px solid #cbd5e1 !important;
+    border-radius: 0 1rem 1rem 0 !important;
+}
+
+.builder-frame-scroll::-webkit-scrollbar-thumb {
+    background: #0284c7 !important;
+    border-radius: 9999px !important;
+    border: 3px solid #f1f5f9 !important;
+    min-height: 50px !important;
+}
+
+.builder-frame-scroll::-webkit-scrollbar-thumb:hover {
+    background: #0369a1 !important;
+}
+
+.builder-frame-scroll::-webkit-scrollbar-thumb:active {
+    background: #075985 !important;
+}
+
 .builder-sidebar-scroll {
     overflow-y: auto !important;
     scrollbar-gutter: stable;
